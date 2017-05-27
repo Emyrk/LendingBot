@@ -1,7 +1,8 @@
 package controllers
 
 import (
-	"github.com/DistributedSolutions/LendingBot/database"
+	// "github.com/DistributedSolutions/LendingBot/database"
+	"fmt"
 	"github.com/revel/revel"
 )
 
@@ -17,15 +18,17 @@ func (c App) Login() revel.Result {
 	email := c.Params.Route.Get("email")
 	pass := c.Params.Route.Get("pass")
 
-	data := make(map[string]interface{})
+	// data := make(map[string]interface{})
 
-	if database.Login(email, pass) {
-		data["error"] = nil
-		data["data"] = nil
-		return c.RenderJSON(data)
-	} else {
-		data["error"] = "Invalid login"
-		data["data"] = nil
-		return c.RenderJSON(data)
-	}
+	// if database.Login(email, pass) {
+	// 	data["error"] = nil
+	// 	data["data"] = nil
+	// 	return c.RenderJSON(data)
+	// } else {
+	// 	data["error"] = "Invalid login"
+	// 	data["data"] = nil
+	// 	return c.RenderJSON(data)
+	// }
+	fmt.Printf("email: %s, pass: %s", email, pass)
+	return c.Render("App/index")
 }
