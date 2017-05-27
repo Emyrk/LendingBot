@@ -1,6 +1,7 @@
 package core
 
 import (
+	"crypto/rand"
 	"fmt"
 
 	"github.com/DistributedSolutions/LendingBot/app/core/poloniex"
@@ -11,6 +12,7 @@ type State struct {
 	UserDB      *userdb.UserDatabase
 	PoloniexAPI *poloniex.Poloniex
 	CipherKey   [32]byte
+	JWTSecret   [32]byte
 }
 
 func NewState() *State {
@@ -20,11 +22,17 @@ func NewState() *State {
 	ck := make([]byte, 32)
 	copy(s.CipherKey[:], ck[:])
 
+	jck := make([]byte, 32)
+	_, err := rand.Read(jck)
+	if err != nil {
+		panic(fmt.Sprintf("Could not generate JWT Siging Key %s", err.Error()))
+	}
+
 	return s
 }
 
 func (s *State) SetUserMinimumLoan(username string, minimumAmt float64) error {
-	u, err := s.UserDB.FetchUser(username)
+	u, err := s.UserDB.FetchUserIfFound(username)
 	if err != nil {
 		return err
 	}
@@ -34,9 +42,13 @@ func (s *State) SetUserMinimumLoan(username string, minimumAmt float64) error {
 }
 
 func (s *State) NewUser(username string, password string) error {
-	_, err := s.UserDB.FetchUser(username)
-	if err == nil {
-		return fmt.Errorf("username already exists")
+	ou, err := s.UserDB.FetchUserIfFound(username)
+	if err != nil {
+		if ou != nil {
+			return fmt.Errorf("username already exists")
+		} else {
+			return fmt.Errorf("could not check if username exists: %s", err.Error())
+		}
 	}
 
 	u, err := userdb.NewUser(username, password)
@@ -47,7 +59,7 @@ func (s *State) NewUser(username string, password string) error {
 }
 
 func (s *State) SetUserKeys(username string, acessKey string, secretKey string) error {
-	u, err := s.UserDB.FetchUser(username)
+	u, err := s.UserDB.FetchUserIfFound(username)
 	if err != nil {
 		return err
 	}
@@ -58,6 +70,7 @@ func (s *State) SetUserKeys(username string, acessKey string, secretKey string) 
 	}
 
 	u.PoloniexKeys = pk
+
 	return s.UserDB.PutUser(u)
 }
 

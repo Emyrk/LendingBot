@@ -1,8 +1,12 @@
 package userdb
 
 import (
+	"fmt"
+
 	"github.com/DistributedSolutions/LendingBot/app/core/database"
 )
+
+var _ = fmt.Println
 
 type BinaryMarshalable interface {
 	MarshalBinary() ([]byte, error)
@@ -28,15 +32,32 @@ func NewMapUserDatabase() *UserDatabase {
 
 func (ud *UserDatabase) PutUser(u *User) error {
 	hash := GetUsernameHash(u.Username)
+
 	return ud.put(UsersBucket, hash[:], u)
+}
+
+func (ud *UserDatabase) FetchUserIfFound(username string) (*User, error) {
+	u, err := ud.FetchUser(username)
+	if err != nil {
+		return nil, err
+	}
+
+	if u == nil {
+		return nil, fmt.Errorf("Not found")
+	}
+	return u, nil
 }
 
 func (ud *UserDatabase) FetchUser(username string) (*User, error) {
 	u := new(User)
 	hash := GetUsernameHash(u.Username)
-	err := ud.get(UsersBucket, hash[:], u)
+	f, err := ud.get(UsersBucket, hash[:], u)
 	if err != nil {
 		return nil, err
+	}
+
+	if !f {
+		return nil, nil
 	}
 
 	return u, nil
@@ -64,15 +85,19 @@ func (ud *UserDatabase) put(bucket []byte, key []byte, obj BinaryMarshalable) er
 	return ud.db.Put(bucket, key, data)
 }
 
-func (ud *UserDatabase) get(bucket []byte, key []byte, obj BinaryMarshalable) error {
+func (ud *UserDatabase) get(bucket []byte, key []byte, obj BinaryMarshalable) (found bool, err error) {
 	data, err := ud.db.Get(bucket, key)
 	if err != nil {
-		return err
+		return false, err
+	}
+
+	if data == nil || len(data) == 0 {
+		return false, nil
 	}
 
 	err = obj.UnmarshalBinary(data)
 	if err != nil {
-		return err
+		return true, err
 	}
-	return nil
+	return true, nil
 }
