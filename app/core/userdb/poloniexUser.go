@@ -16,19 +16,19 @@ type PoloniexKeys struct {
 func NewPoloniexKeys(apiKey string, secret string, cipherKey []byte) (*PoloniexKeys, error) {
 	pk := new(PoloniexKeys)
 
-	cipherBytes, err := cryption.Encrypt(apiKey, cipherKey)
+	cipherBytes, err := cryption.Encrypt([]byte(apiKey), cipherKey)
 	if err != nil {
 		return nil, err
 	}
 	pk.EncryptedAPIKey = cipherBytes
 
-	cipherBytes, err = cryption.Encrypt(secret, cipherKey)
+	cipherBytes, err = cryption.Encrypt([]byte(secret), cipherKey)
 	if err != nil {
 		return nil, err
 	}
 	pk.EncryptedAPISecret = cipherBytes
 
-	return pk
+	return pk, nil
 }
 
 func (p *PoloniexKeys) DecryptAPIKeyString(cipherKey []byte) (APIKey string, err error) {

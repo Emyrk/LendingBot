@@ -4,20 +4,24 @@ import (
 	"bytes"
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/binary"
 	"fmt"
 	"strings"
+	"time"
 
-	"github.com/DistributedSolutions/LendingBot/app/common/primitives"
+	"github.com/DistributedSolutions/LendingBot/app/core/common/primitives"
 )
 
 const UsernameMaxLength int = 100
 const SaltLength int = 5
 
 type User struct {
-	Username     string   // Not case sensitive
-	UsernameHash [32]byte // ToLower first!
+	Username     string // Not case sensitive
 	PasswordHash [32]byte
 	Salt         []byte
+
+	StartTime  time.Time
+	MiniumLend float64
 
 	PoloniexKeys *PoloniexKeys
 }
@@ -52,9 +56,8 @@ func NewUser(username string, password string) (*User, error) {
 	hash := sha256.Sum256(passAndSalt)
 	u.PasswordHash = hash
 
-	u.UsernameHash = GetUsernameHash(username)
-
 	u.PoloniexKeys = new(PoloniexKeys)
+	u.StartTime = time.Now()
 	return u, nil
 }
 
@@ -81,7 +84,6 @@ func (u *User) MarshalBinary() ([]byte, error) {
 	}
 	buf.Write(b)
 
-	buf.Write(u.UsernameHash[:])
 	buf.Write(u.PasswordHash[:])
 	buf.Write(u.Salt[:])
 
@@ -90,6 +92,17 @@ func (u *User) MarshalBinary() ([]byte, error) {
 		return nil, err
 	}
 	buf.Write(b)
+
+	b, err = u.StartTime.MarshalBinary()
+	if err != nil {
+		return nil, err
+	}
+	buf.Write(b)
+
+	err = binary.Write(buf, binary.BigEndian, u.MiniumLend)
+	if err != nil {
+		return nil, err
+	}
 
 	return buf.Next(buf.Len()), nil
 }
@@ -116,9 +129,6 @@ func (u *User) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 	}
 	u.Username = username
 
-	copy(u.UsernameHash[:], newData[:32])
-	newData = newData[32:]
-
 	copy(u.PasswordHash[:], newData[:32])
 	newData = newData[32:]
 
@@ -129,6 +139,21 @@ func (u *User) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 	if err != nil {
 		return data, nil
 	}
+
+	err = u.StartTime.UnmarshalBinary(newData)
+	if err != nil {
+		return data, err
+	}
+	newData = newData[15:]
+
+	buf := bytes.NewBuffer(newData[:8])
+	var f *float64
+	err = binary.Read(buf, binary.BigEndian, f)
+	if err != nil {
+		return data, err
+	}
+	u.MiniumLend = *f
+	newData = newData[8:]
 
 	return newData, nil
 }

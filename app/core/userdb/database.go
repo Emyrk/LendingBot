@@ -1,7 +1,7 @@
 package userdb
 
 import (
-	"github.com/DistributedSolutions/LendingBot/app/database"
+	"github.com/DistributedSolutions/LendingBot/app/core/database"
 )
 
 type BinaryMarshalable interface {
@@ -27,12 +27,14 @@ func NewMapUserDatabase() *UserDatabase {
 }
 
 func (ud *UserDatabase) PutUser(u *User) error {
-	return ud.put(UsersBucket, GetUsernameHash(u.Username)[:], u)
+	hash := GetUsernameHash(u.Username)
+	return ud.put(UsersBucket, hash[:], u)
 }
 
 func (ud *UserDatabase) FetchUser(username string) (*User, error) {
 	u := new(User)
-	err := ud.get(UsersBucket, GetUsernameHash(username)[:], u)
+	hash := GetUsernameHash(u.Username)
+	err := ud.get(UsersBucket, hash[:], u)
 	if err != nil {
 		return nil, err
 	}
