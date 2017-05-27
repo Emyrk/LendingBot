@@ -49,11 +49,11 @@ type Poloniex struct {
 	Websocket               bool
 	RESTPollingDelay        time.Duration
 	AuthenticatedAPISupport bool
-	AccessKey, SecretKey    string
-	Fee                     float64
-	BaseCurrencies          []string
-	AvailablePairs          []string
-	EnabledPairs            []string
+	// AccessKey, SecretKey    string
+	Fee            float64
+	BaseCurrencies []string
+	AvailablePairs []string
+	EnabledPairs   []string
 }
 
 type PoloniexTicker struct {
@@ -95,7 +95,7 @@ func (p *Poloniex) Setup(exch Exchanges) {
 	} else {
 		p.Enabled = true
 		p.AuthenticatedAPISupport = exch.AuthenticatedAPISupport
-		p.SetAPIKeys(exch.APIKey, exch.APISecret)
+		// p.SetAPIKeys(exch.APIKey, exch.APISecret)
 		p.RESTPollingDelay = exch.RESTPollingDelay
 		p.Verbose = exch.Verbose
 		p.Websocket = exch.Websocket
@@ -109,10 +109,10 @@ func (p *Poloniex) Start() {
 	go p.Run()
 }
 
-func (p *Poloniex) SetAPIKeys(apiKey, apiSecret string) {
+/*func (p *Poloniex) SetAPIKeys(apiKey, apiSecret string) {
 	p.AccessKey = apiKey
 	p.SecretKey = apiSecret
-}
+}*/
 
 func (p *Poloniex) GetFee() float64 {
 	return p.Fee
@@ -326,12 +326,12 @@ type PoloniexBalance struct {
 	Currency map[string]float64
 }
 
-func (p *Poloniex) GetBalances() (PoloniexBalance, error) {
+func (p *Poloniex) GetBalances(accessKey, secretKey string) (*PoloniexBalance, error) {
 	var result interface{}
-	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_BALANCES, url.Values{}, &result)
+	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_BALANCES, url.Values{}, &result, accessKey, secretKey)
 
 	if err != nil {
-		return PoloniexBalance{}, err
+		return nil, err
 	}
 
 	data := result.(map[string]interface{})
@@ -342,7 +342,7 @@ func (p *Poloniex) GetBalances() (PoloniexBalance, error) {
 		balance.Currency[x], _ = strconv.ParseFloat(y.(string), 64)
 	}
 
-	return balance, nil
+	return &balance, nil
 }
 
 type PoloniexCompleteBalance struct {
@@ -355,9 +355,9 @@ type PoloniexCompleteBalances struct {
 	Currency map[string]PoloniexCompleteBalance
 }
 
-func (p *Poloniex) GetCompleteBalances() (PoloniexCompleteBalances, error) {
+func (p *Poloniex) GetCompleteBalances(accessKey, secretKey string) (PoloniexCompleteBalances, error) {
 	var result interface{}
-	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_BALANCES_COMPLETE, url.Values{}, &result)
+	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_BALANCES_COMPLETE, url.Values{}, &result, accessKey, secretKey)
 
 	if err != nil {
 		return PoloniexCompleteBalances{}, err
@@ -382,10 +382,10 @@ type PoloniexDepositAddresses struct {
 	Addresses map[string]string
 }
 
-func (p *Poloniex) GetDepositAddresses() (PoloniexDepositAddresses, error) {
+func (p *Poloniex) GetDepositAddresses(accessKey, secretKey string) (PoloniexDepositAddresses, error) {
 	var result interface{}
 	addresses := PoloniexDepositAddresses{}
-	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_DEPOSIT_ADDRESSES, url.Values{}, &result)
+	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_DEPOSIT_ADDRESSES, url.Values{}, &result, accessKey, secretKey)
 
 	if err != nil {
 		return addresses, err
@@ -400,7 +400,7 @@ func (p *Poloniex) GetDepositAddresses() (PoloniexDepositAddresses, error) {
 	return addresses, nil
 }
 
-func (p *Poloniex) GenerateNewAddress(currency string) (string, error) {
+func (p *Poloniex) GenerateNewAddress(currency string, accessKey, secretKey string) (string, error) {
 	type Response struct {
 		Success  int
 		Error    string
@@ -410,7 +410,7 @@ func (p *Poloniex) GenerateNewAddress(currency string) (string, error) {
 	values := url.Values{}
 	values.Set("currency", currency)
 
-	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_GENERATE_NEW_ADDRESS, values, &resp)
+	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_GENERATE_NEW_ADDRESS, values, &resp, accessKey, secretKey)
 
 	if err != nil {
 		return "", err
@@ -446,7 +446,7 @@ type PoloniexDepositsWithdrawals struct {
 	} `json:"withdrawals"`
 }
 
-func (p *Poloniex) GetDepositsWithdrawals(start, end string) (PoloniexDepositsWithdrawals, error) {
+func (p *Poloniex) GetDepositsWithdrawals(start, end string, accessKey, secretKey string) (PoloniexDepositsWithdrawals, error) {
 	resp := PoloniexDepositsWithdrawals{}
 	values := url.Values{}
 
@@ -462,7 +462,7 @@ func (p *Poloniex) GetDepositsWithdrawals(start, end string) (PoloniexDepositsWi
 		values.Set("end", strconv.FormatInt(time.Now().Unix(), 10))
 	}
 
-	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_DEPOSITS_WITHDRAWALS, values, &resp)
+	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_DEPOSITS_WITHDRAWALS, values, &resp, accessKey, secretKey)
 
 	if err != nil {
 		return resp, err
@@ -489,13 +489,13 @@ type PoloniexOpenOrdersResponse struct {
 	Data []PoloniexOrder
 }
 
-func (p *Poloniex) GetOpenOrders(currency string) (interface{}, error) {
+func (p *Poloniex) GetOpenOrders(currency string, accessKey, secretKey string) (interface{}, error) {
 	values := url.Values{}
 
 	if currency != "" {
 		values.Set("currencyPair", currency)
 		result := PoloniexOpenOrdersResponse{}
-		err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_ORDERS, values, &result.Data)
+		err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_ORDERS, values, &result.Data, accessKey, secretKey)
 
 		if err != nil {
 			return result, err
@@ -505,7 +505,7 @@ func (p *Poloniex) GetOpenOrders(currency string) (interface{}, error) {
 	} else {
 		values.Set("currencyPair", "all")
 		result := PoloniexOpenOrdersResponseAll{}
-		err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_ORDERS, values, &result.Data)
+		err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_ORDERS, values, &result.Data, accessKey, secretKey)
 
 		if err != nil {
 			return result, err
@@ -536,7 +536,7 @@ type PoloniexAuthenticatedTradeHistoryResponse struct {
 	Data []PoloniexOrder
 }
 
-func (p *Poloniex) GetAuthenticatedTradeHistory(currency, start, end string) (interface{}, error) {
+func (p *Poloniex) GetAuthenticatedTradeHistory(currency, start, end string, accessKey, secretKey string) (interface{}, error) {
 	values := url.Values{}
 
 	if start != "" {
@@ -550,7 +550,7 @@ func (p *Poloniex) GetAuthenticatedTradeHistory(currency, start, end string) (in
 	if currency != "" {
 		values.Set("currencyPair", currency)
 		result := PoloniexAuthenticatedTradeHistoryResponse{}
-		err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_TRADE_HISTORY, values, &result.Data)
+		err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_TRADE_HISTORY, values, &result.Data, accessKey, secretKey)
 
 		if err != nil {
 			return result, err
@@ -560,7 +560,7 @@ func (p *Poloniex) GetAuthenticatedTradeHistory(currency, start, end string) (in
 	} else {
 		values.Set("currencyPair", "all")
 		result := PoloniexAuthenticatedTradeHistoryAll{}
-		err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_TRADE_HISTORY, values, &result.Data)
+		err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_TRADE_HISTORY, values, &result.Data, accessKey, secretKey)
 
 		if err != nil {
 			return result, err
@@ -584,7 +584,7 @@ type PoloniexOrderResponse struct {
 	Trades      []PoloniexResultingTrades `json:"resultingTrades"`
 }
 
-func (p *Poloniex) PlaceOrder(currency string, rate, amount float64, immediate, fillOrKill, buy bool) (PoloniexOrderResponse, error) {
+func (p *Poloniex) PlaceOrder(currency string, rate, amount float64, immediate, fillOrKill, buy bool, accessKey, secretKey string) (PoloniexOrderResponse, error) {
 	result := PoloniexOrderResponse{}
 	values := url.Values{}
 
@@ -607,7 +607,7 @@ func (p *Poloniex) PlaceOrder(currency string, rate, amount float64, immediate, 
 		values.Set("fillOrKill", "1")
 	}
 
-	err := p.SendAuthenticatedHTTPRequest("POST", orderType, values, &result)
+	err := p.SendAuthenticatedHTTPRequest("POST", orderType, values, &result, accessKey, secretKey)
 
 	if err != nil {
 		return result, err
@@ -621,12 +621,12 @@ type PoloniexGenericResponse struct {
 	Error   string `json:"error"`
 }
 
-func (p *Poloniex) CancelOrder(orderID int64) (bool, error) {
+func (p *Poloniex) CancelOrder(orderID int64, accessKey, secretKey string) (bool, error) {
 	result := PoloniexGenericResponse{}
 	values := url.Values{}
 	values.Set("orderNumber", strconv.FormatInt(orderID, 10))
 
-	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_ORDER_CANCEL, values, &result)
+	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_ORDER_CANCEL, values, &result, accessKey, secretKey)
 
 	if err != nil {
 		return false, err
@@ -646,7 +646,7 @@ type PoloniexMoveOrderResponse struct {
 	Trades      map[string][]PoloniexResultingTrades `json:"resultingTrades"`
 }
 
-func (p *Poloniex) MoveOrder(orderID int64, rate, amount float64) (PoloniexMoveOrderResponse, error) {
+func (p *Poloniex) MoveOrder(orderID int64, rate, amount float64, accessKey, secretKey string) (PoloniexMoveOrderResponse, error) {
 	result := PoloniexMoveOrderResponse{}
 	values := url.Values{}
 	values.Set("orderNumber", strconv.FormatInt(orderID, 10))
@@ -656,7 +656,7 @@ func (p *Poloniex) MoveOrder(orderID int64, rate, amount float64) (PoloniexMoveO
 		values.Set("amount", strconv.FormatFloat(amount, 'f', -1, 64))
 	}
 
-	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_ORDER_MOVE, values, &result)
+	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_ORDER_MOVE, values, &result, accessKey, secretKey)
 
 	if err != nil {
 		return result, err
@@ -674,7 +674,7 @@ type PoloniexWithdraw struct {
 	Error    string `json:"error"`
 }
 
-func (p *Poloniex) Withdraw(currency, address string, amount float64) (bool, error) {
+func (p *Poloniex) Withdraw(currency, address string, amount float64, accessKey, secretKey string) (bool, error) {
 	result := PoloniexWithdraw{}
 	values := url.Values{}
 
@@ -682,7 +682,7 @@ func (p *Poloniex) Withdraw(currency, address string, amount float64) (bool, err
 	values.Set("amount", strconv.FormatFloat(amount, 'f', -1, 64))
 	values.Set("address", address)
 
-	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_WITHDRAW, values, &result)
+	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_WITHDRAW, values, &result, accessKey, secretKey)
 
 	if err != nil {
 		return false, err
@@ -702,9 +702,9 @@ type PoloniexFee struct {
 	NextTier        float64 `json:"nextTier,string"`
 }
 
-func (p *Poloniex) GetFeeInfo() (PoloniexFee, error) {
+func (p *Poloniex) GetFeeInfo(accessKey, secretKey string) (PoloniexFee, error) {
 	result := PoloniexFee{}
-	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_FEE_INFO, url.Values{}, &result)
+	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_FEE_INFO, url.Values{}, &result, accessKey, secretKey)
 
 	if err != nil {
 		return result, err
@@ -713,13 +713,13 @@ func (p *Poloniex) GetFeeInfo() (PoloniexFee, error) {
 	return result, nil
 }
 
-func (p *Poloniex) GetTradableBalances() (map[string]map[string]float64, error) {
+func (p *Poloniex) GetTradableBalances(accessKey, secretKey string) (map[string]map[string]float64, error) {
 	type Response struct {
 		Data map[string]map[string]interface{}
 	}
 	result := Response{}
 
-	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_TRADABLE_BALANCES, url.Values{}, &result.Data)
+	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_TRADABLE_BALANCES, url.Values{}, &result.Data, accessKey, secretKey)
 
 	if err != nil {
 		return nil, err
@@ -737,7 +737,7 @@ func (p *Poloniex) GetTradableBalances() (map[string]map[string]float64, error) 
 	return balances, nil
 }
 
-func (p *Poloniex) GetAvilableBalances() (map[string]map[string]float64, error) {
+func (p *Poloniex) GetAvilableBalances(accessKey, secretKey string) (map[string]map[string]float64, error) {
 	values := url.Values{}
 
 	values.Set("account", "account")
@@ -746,7 +746,7 @@ func (p *Poloniex) GetAvilableBalances() (map[string]map[string]float64, error) 
 	}
 	result := Response{}
 
-	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_AVAILABLE_BALANCES, url.Values{}, &result.Data)
+	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_AVAILABLE_BALANCES, url.Values{}, &result.Data, accessKey, secretKey)
 
 	if err != nil {
 		return nil, err
@@ -764,7 +764,7 @@ func (p *Poloniex) GetAvilableBalances() (map[string]map[string]float64, error) 
 	return balances, nil
 }
 
-func (p *Poloniex) TransferBalance(currency, from, to string, amount float64) (bool, error) {
+func (p *Poloniex) TransferBalance(currency, from, to string, amount float64, accessKey, secretKey string) (bool, error) {
 	values := url.Values{}
 	result := PoloniexGenericResponse{}
 
@@ -773,7 +773,7 @@ func (p *Poloniex) TransferBalance(currency, from, to string, amount float64) (b
 	values.Set("fromAccount", from)
 	values.Set("toAccount", to)
 
-	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_TRANSFER_BALANCE, values, &result)
+	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_TRANSFER_BALANCE, values, &result, accessKey, secretKey)
 
 	if err != nil {
 		return false, err
@@ -795,9 +795,9 @@ type PoloniexMargin struct {
 	CurrentMargin float64 `json:"currentMargin,string"`
 }
 
-func (p *Poloniex) GetMarginAccountSummary() (PoloniexMargin, error) {
+func (p *Poloniex) GetMarginAccountSummary(accessKey, secretKey string) (PoloniexMargin, error) {
 	result := PoloniexMargin{}
-	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_MARGIN_ACCOUNT_SUMMARY, url.Values{}, &result)
+	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_MARGIN_ACCOUNT_SUMMARY, url.Values{}, &result, accessKey, secretKey)
 
 	if err != nil {
 		return result, err
@@ -806,7 +806,7 @@ func (p *Poloniex) GetMarginAccountSummary() (PoloniexMargin, error) {
 	return result, nil
 }
 
-func (p *Poloniex) PlaceMarginOrder(currency string, rate, amount, lendingRate float64, buy bool) (PoloniexOrderResponse, error) {
+func (p *Poloniex) PlaceMarginOrder(currency string, rate, amount, lendingRate float64, buy bool, accessKey, secretKey string) (PoloniexOrderResponse, error) {
 	result := PoloniexOrderResponse{}
 	values := url.Values{}
 
@@ -825,7 +825,7 @@ func (p *Poloniex) PlaceMarginOrder(currency string, rate, amount, lendingRate f
 		values.Set("lendingRate", strconv.FormatFloat(lendingRate, 'f', -1, 64))
 	}
 
-	err := p.SendAuthenticatedHTTPRequest("POST", orderType, values, &result)
+	err := p.SendAuthenticatedHTTPRequest("POST", orderType, values, &result, accessKey, secretKey)
 
 	if err != nil {
 		return result, err
@@ -844,13 +844,13 @@ type PoloniexMarginPosition struct {
 	Type              string  `json:"type"`
 }
 
-func (p *Poloniex) GetMarginPosition(currency string) (interface{}, error) {
+func (p *Poloniex) GetMarginPosition(currency string, accessKey, secretKey string) (interface{}, error) {
 	values := url.Values{}
 
 	if currency != "" && currency != "all" {
 		values.Set("currencyPair", currency)
 		result := PoloniexMarginPosition{}
-		err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_MARGIN_POSITION, values, &result)
+		err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_MARGIN_POSITION, values, &result, accessKey, secretKey)
 
 		if err != nil {
 			return result, err
@@ -865,7 +865,7 @@ func (p *Poloniex) GetMarginPosition(currency string) (interface{}, error) {
 		}
 
 		result := Response{}
-		err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_MARGIN_POSITION, values, &result.Data)
+		err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_MARGIN_POSITION, values, &result.Data, accessKey, secretKey)
 
 		if err != nil {
 			return result, err
@@ -875,12 +875,12 @@ func (p *Poloniex) GetMarginPosition(currency string) (interface{}, error) {
 	}
 }
 
-func (p *Poloniex) CloseMarginPosition(currency string) (bool, error) {
+func (p *Poloniex) CloseMarginPosition(currency string, accessKey, secretKey string) (bool, error) {
 	values := url.Values{}
 	values.Set("currencyPair", currency)
 	result := PoloniexGenericResponse{}
 
-	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_MARGIN_POSITION_CLOSE, values, &result)
+	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_MARGIN_POSITION_CLOSE, values, &result, accessKey, secretKey)
 
 	if err != nil {
 		return false, err
@@ -893,7 +893,7 @@ func (p *Poloniex) CloseMarginPosition(currency string) (bool, error) {
 	return true, nil
 }
 
-func (p *Poloniex) CreateLoanOffer(currency string, amount, rate float64, duration int, autoRenew bool) (int64, error) {
+func (p *Poloniex) CreateLoanOffer(currency string, amount, rate float64, duration int, autoRenew bool, accessKey, secretKey string) (int64, error) {
 	values := url.Values{}
 	values.Set("currency", currency)
 	values.Set("amount", strconv.FormatFloat(amount, 'f', -1, 64))
@@ -915,7 +915,7 @@ func (p *Poloniex) CreateLoanOffer(currency string, amount, rate float64, durati
 
 	result := Response{}
 
-	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_CREATE_LOAN_OFFER, values, &result)
+	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_CREATE_LOAN_OFFER, values, &result, accessKey, secretKey)
 
 	if err != nil {
 		return 0, err
@@ -928,12 +928,12 @@ func (p *Poloniex) CreateLoanOffer(currency string, amount, rate float64, durati
 	return result.OrderID, nil
 }
 
-func (p *Poloniex) CancelLoanOffer(currency string, orderNumber int64) (bool, error) {
+func (p *Poloniex) CancelLoanOffer(currency string, orderNumber int64, accessKey, secretKey string) (bool, error) {
 	result := PoloniexGenericResponse{}
 	values := url.Values{}
 	values.Set("currency", currency)
 	values.Set("orderNumber", strconv.FormatInt(orderNumber, 10))
-	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_CANCEL_LOAN_OFFER, values, &result)
+	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_CANCEL_LOAN_OFFER, values, &result, accessKey, secretKey)
 
 	if err != nil {
 		return false, err
@@ -956,13 +956,13 @@ type PoloniexLoanOffer struct {
 	Date      string  `json:"date"`
 }
 
-func (p *Poloniex) GetOpenLoanOffers() (map[string][]PoloniexLoanOffer, error) {
+func (p *Poloniex) GetOpenLoanOffers(accessKey, secretKey string) (map[string][]PoloniexLoanOffer, error) {
 	type Response struct {
 		Data map[string][]PoloniexLoanOffer
 	}
 	result := Response{}
 
-	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_OPEN_LOAN_OFFERS, url.Values{}, &result.Data)
+	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_OPEN_LOAN_OFFERS, url.Values{}, &result.Data, accessKey, secretKey)
 
 	if err != nil {
 		return nil, err
@@ -980,9 +980,9 @@ type PoloniexActiveLoans struct {
 	Used     []PoloniexLoanOffer `json:"used"`
 }
 
-func (p *Poloniex) GetActiveLoans() (PoloniexActiveLoans, error) {
+func (p *Poloniex) GetActiveLoans(accessKey, secretKey string) (PoloniexActiveLoans, error) {
 	result := PoloniexActiveLoans{}
-	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_ACTIVE_LOANS, url.Values{}, &result)
+	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_ACTIVE_LOANS, url.Values{}, &result, accessKey, secretKey)
 
 	if err != nil {
 		return result, err
@@ -991,12 +991,12 @@ func (p *Poloniex) GetActiveLoans() (PoloniexActiveLoans, error) {
 	return result, nil
 }
 
-func (p *Poloniex) ToggleAutoRenew(orderNumber int64) (bool, error) {
+func (p *Poloniex) ToggleAutoRenew(orderNumber int64, accessKey, secretKey string) (bool, error) {
 	values := url.Values{}
 	values.Set("orderNumber", strconv.FormatInt(orderNumber, 10))
 	result := PoloniexGenericResponse{}
 
-	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_AUTO_RENEW, values, &result)
+	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_AUTO_RENEW, values, &result, accessKey, secretKey)
 
 	if err != nil {
 		return false, err
@@ -1009,10 +1009,10 @@ func (p *Poloniex) ToggleAutoRenew(orderNumber int64) (bool, error) {
 	return true, nil
 }
 
-func (p *Poloniex) SendAuthenticatedHTTPRequest(method, endpoint string, values url.Values, result interface{}) error {
+func (p *Poloniex) SendAuthenticatedHTTPRequest(method, endpoint string, values url.Values, result interface{}, accessKey, secretKey string) error {
 	headers := make(map[string]string)
 	headers["Content-Type"] = "application/x-www-form-urlencoded"
-	headers["Key"] = p.AccessKey
+	headers["Key"] = accessKey
 
 	nonce := time.Now().UnixNano()
 	nonceStr := strconv.FormatInt(nonce, 10)
@@ -1020,7 +1020,7 @@ func (p *Poloniex) SendAuthenticatedHTTPRequest(method, endpoint string, values 
 	values.Set("nonce", nonceStr)
 	values.Set("command", endpoint)
 
-	hmac := GetHMAC(HASH_SHA512, []byte(values.Encode()), []byte(p.SecretKey))
+	hmac := GetHMAC(HASH_SHA512, []byte(values.Encode()), []byte(secretKey))
 	headers["Sign"] = HexEncodeToString(hmac)
 
 	path := fmt.Sprintf("%s/%s", POLONIEX_API_URL, POLONIEX_API_TRADING_ENDPOINT)

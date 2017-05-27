@@ -9,29 +9,29 @@ import (
 )
 
 type PoloniexKeys struct {
-	EncryptedAPIKey    []byte
-	EncryptedAPISecret []byte
+	encryptedAPIKey    []byte
+	encryptedAPISecret []byte
 }
 
-func NewPoloniexKeys(apiKey string, secret string, cipherKey []byte) (*PoloniexKeys, error) {
+func NewPoloniexKeys(apiKey string, secret string, cipherKey [32]byte) (*PoloniexKeys, error) {
 	pk := new(PoloniexKeys)
 
-	cipherBytes, err := cryption.Encrypt([]byte(apiKey), cipherKey)
+	cipherBytes, err := cryption.Encrypt([]byte(apiKey), cipherKey[:])
 	if err != nil {
 		return nil, err
 	}
-	pk.EncryptedAPIKey = cipherBytes
+	pk.encryptedAPIKey = cipherBytes
 
-	cipherBytes, err = cryption.Encrypt([]byte(secret), cipherKey)
+	cipherBytes, err = cryption.Encrypt([]byte(secret), cipherKey[:])
 	if err != nil {
 		return nil, err
 	}
-	pk.EncryptedAPISecret = cipherBytes
+	pk.encryptedAPISecret = cipherBytes
 
 	return pk, nil
 }
 
-func (p *PoloniexKeys) DecryptAPIKeyString(cipherKey []byte) (APIKey string, err error) {
+func (p *PoloniexKeys) DecryptAPIKeyString(cipherKey [32]byte) (APIKey string, err error) {
 	k, e := p.DecryptAPIKey(cipherKey)
 	if e != nil {
 		return "", e
@@ -39,7 +39,7 @@ func (p *PoloniexKeys) DecryptAPIKeyString(cipherKey []byte) (APIKey string, err
 	return string(k), nil
 }
 
-func (p *PoloniexKeys) DecryptAPISecretString(cipherKey []byte) (APISecret string, err error) {
+func (p *PoloniexKeys) DecryptAPISecretString(cipherKey [32]byte) (APISecret string, err error) {
 	k, e := p.DecryptAPISecret(cipherKey)
 	if e != nil {
 		return "", e
@@ -47,18 +47,18 @@ func (p *PoloniexKeys) DecryptAPISecretString(cipherKey []byte) (APISecret strin
 	return string(k), nil
 }
 
-func (p *PoloniexKeys) DecryptAPIKey(cipherKey []byte) (APIKey []byte, err error) {
-	return cryption.Decrypt(p.EncryptedAPIKey, cipherKey)
+func (p *PoloniexKeys) DecryptAPIKey(cipherKey [32]byte) (APIKey []byte, err error) {
+	return cryption.Decrypt(p.encryptedAPIKey, cipherKey[:])
 }
 
-func (p *PoloniexKeys) DecryptAPISecret(cipherKey []byte) (APISecret []byte, err error) {
-	return cryption.Decrypt(p.EncryptedAPISecret, cipherKey)
+func (p *PoloniexKeys) DecryptAPISecret(cipherKey [32]byte) (APISecret []byte, err error) {
+	return cryption.Decrypt(p.encryptedAPISecret, cipherKey[:])
 }
 
 func (p *PoloniexKeys) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
-	buf.Write(p.EncryptedAPIKey)
-	buf.Write(p.EncryptedAPISecret)
+	buf.Write(p.encryptedAPIKey)
+	buf.Write(p.encryptedAPISecret)
 
 	return buf.Next(buf.Len()), nil
 }
@@ -82,12 +82,12 @@ func (p *PoloniexKeys) UnmarshalBinaryData(data []byte) (newData []byte, err err
 	if err != nil {
 		return data, err
 	}
-	p.EncryptedAPIKey = b
+	p.encryptedAPIKey = b
 
 	b, newData, err = primitives.UnmarshalBinarySliceData(newData)
 	if err != nil {
 		return data, err
 	}
-	p.EncryptedAPISecret = b
+	p.encryptedAPISecret = b
 	return
 }

@@ -69,6 +69,11 @@ func (u *User) Authenticate(password string) bool {
 	return false
 }
 
+func (u *User) GetCipherKey(cipherKey [32]byte) [32]byte {
+	uhash := GetUsernameHash(u.Username)
+	return sha256.Sum256(append(cipherKey[:], uhash[:]...))
+}
+
 func (u *User) getPasswordHashFromPassword(password string) [32]byte {
 	passAndSalt := append([]byte(password), u.Salt...)
 	hash := sha256.Sum256(passAndSalt)
