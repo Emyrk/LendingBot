@@ -30,7 +30,7 @@ func filterUsername(username string) error {
 	return nil
 }
 
-func getUsernameHash(username string) [32]byte {
+func GetUsernameHash(username string) [32]byte {
 	return sha256.Sum256([]byte(strings.ToLower(username)))
 }
 
@@ -52,7 +52,7 @@ func NewUser(username string, password string) (*User, error) {
 	hash := sha256.Sum256(passAndSalt)
 	u.PasswordHash = hash
 
-	u.UsernameHash = getUsernameHash(username)
+	u.UsernameHash = GetUsernameHash(username)
 
 	u.PoloniexKeys = new(PoloniexKeys)
 	return u, nil
@@ -94,7 +94,12 @@ func (u *User) MarshalBinary() ([]byte, error) {
 	return buf.Next(buf.Len()), nil
 }
 
-func (u *User) UnmarshalBinary(data []byte) (newData []byte, err error) {
+func (u *User) UnmarshalBinary(data []byte) (err error) {
+	_, err = u.UnmarshalBinaryData(data)
+	return
+}
+
+func (u *User) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("[User] A panic has occurred while unmarshaling: %s", r)
