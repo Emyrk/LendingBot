@@ -21,7 +21,7 @@ func UnmarshalBinarySliceData(data []byte) (resp []byte, newData []byte, err err
 	}
 
 	newData = newData[4:]
-	if len(newData) <= int(u) {
+	if len(newData) < int(u) {
 		return nil, data, fmt.Errorf("need at least %d bytes, found %d", u+4, len(data))
 	}
 

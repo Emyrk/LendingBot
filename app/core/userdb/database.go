@@ -32,7 +32,6 @@ func NewMapUserDatabase() *UserDatabase {
 
 func (ud *UserDatabase) PutUser(u *User) error {
 	hash := GetUsernameHash(u.Username)
-
 	return ud.put(UsersBucket, hash[:], u)
 }
 
@@ -49,8 +48,8 @@ func (ud *UserDatabase) FetchUserIfFound(username string) (*User, error) {
 }
 
 func (ud *UserDatabase) FetchUser(username string) (*User, error) {
-	u := new(User)
-	hash := GetUsernameHash(u.Username)
+	u := NewBlankUser()
+	hash := GetUsernameHash(username)
 	f, err := ud.get(UsersBucket, hash[:], u)
 	if err != nil {
 		return nil, err

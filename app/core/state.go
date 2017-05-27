@@ -43,19 +43,20 @@ func (s *State) SetUserMinimumLoan(username string, minimumAmt float64) error {
 }
 
 func (s *State) NewUser(username string, password string) error {
-	ou, err := s.UserDB.FetchUserIfFound(username)
+	ou, err := s.UserDB.FetchUser(username)
 	if err != nil {
-		if ou != nil {
-			return fmt.Errorf("username already exists")
-		} else {
-			return fmt.Errorf("could not check if username exists: %s", err.Error())
-		}
+		return fmt.Errorf("could not check if username exists: %s", err.Error())
+	}
+
+	if ou != nil {
+		return fmt.Errorf("username already exists")
 	}
 
 	u, err := userdb.NewUser(username, password)
 	if err != nil {
 		return err
 	}
+
 	return s.UserDB.PutUser(u)
 }
 
@@ -71,7 +72,6 @@ func (s *State) SetUserKeys(username string, acessKey string, secretKey string) 
 	}
 
 	u.PoloniexKeys = pk
-
 	return s.UserDB.PutUser(u)
 }
 

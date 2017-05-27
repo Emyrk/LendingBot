@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"crypto/rand"
 	"crypto/sha256"
-	"encoding/binary"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -38,6 +38,12 @@ func GetUsernameHash(username string) [32]byte {
 	return sha256.Sum256([]byte(strings.ToLower(username)))
 }
 
+func NewBlankUser() *User {
+	u := new(User)
+	u.PoloniexKeys = NewBlankPoloniexKeys()
+	return u
+}
+
 func NewUser(username string, password string) (*User, error) {
 	u := new(User)
 
@@ -56,7 +62,8 @@ func NewUser(username string, password string) (*User, error) {
 	hash := sha256.Sum256(passAndSalt)
 	u.PasswordHash = hash
 
-	u.PoloniexKeys = new(PoloniexKeys)
+	u.PoloniexKeys = NewBlankPoloniexKeys()
+
 	u.StartTime = time.Now()
 	return u, nil
 }
@@ -78,6 +85,30 @@ func (u *User) getPasswordHashFromPassword(password string) [32]byte {
 	passAndSalt := append([]byte(password), u.Salt...)
 	hash := sha256.Sum256(passAndSalt)
 	return hash
+}
+
+func (a *User) IsSameAs(b *User) bool {
+	if a.Username != b.Username {
+		return false
+	}
+
+	if bytes.Compare(a.PasswordHash[:], b.PasswordHash[:]) != 0 {
+		return false
+	}
+
+	if bytes.Compare(a.Salt, b.Salt) != 0 {
+		return false
+	}
+
+	if a.MiniumLend != b.MiniumLend {
+		return false
+	}
+
+	if !a.PoloniexKeys.IsSameAs(b.PoloniexKeys) {
+		return false
+	}
+
+	return true
 }
 
 func (u *User) MarshalBinary() ([]byte, error) {
@@ -104,10 +135,18 @@ func (u *User) MarshalBinary() ([]byte, error) {
 	}
 	buf.Write(b)
 
-	err = binary.Write(buf, binary.BigEndian, u.MiniumLend)
+	str := strconv.FormatFloat(u.MiniumLend, 'f', 6, 64)
+	b, err = primitives.MarshalStringToBytes(str, 100)
 	if err != nil {
 		return nil, err
 	}
+	buf.Write(b)
+
+	b, err = u.PoloniexKeys.MarshalBinary()
+	if err != nil {
+		return nil, err
+	}
+	buf.Write(b)
 
 	return buf.Next(buf.Len()), nil
 }
@@ -137,6 +176,7 @@ func (u *User) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 	copy(u.PasswordHash[:], newData[:32])
 	newData = newData[32:]
 
+	u.Salt = make([]byte, SaltLength)
 	copy(u.Salt[:], newData[:SaltLength])
 	newData = newData[SaltLength:]
 
@@ -145,20 +185,28 @@ func (u *User) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 		return data, nil
 	}
 
-	err = u.StartTime.UnmarshalBinary(newData)
+	err = u.StartTime.UnmarshalBinary(newData[:15])
 	if err != nil {
 		return data, err
 	}
 	newData = newData[15:]
 
-	buf := bytes.NewBuffer(newData[:8])
-	var f *float64
-	err = binary.Read(buf, binary.BigEndian, f)
+	var resp string
+	resp, newData, err = primitives.UnmarshalStringFromBytesData(newData, 100)
 	if err != nil {
 		return data, err
 	}
-	u.MiniumLend = *f
-	newData = newData[8:]
+
+	f, err := strconv.ParseFloat(resp, 64)
+	if err != nil {
+		return data, err
+	}
+	u.MiniumLend = f
+
+	newData, err = u.PoloniexKeys.UnmarshalBinaryData(newData)
+	if err != nil {
+		return data, err
+	}
 
 	return newData, nil
 }
