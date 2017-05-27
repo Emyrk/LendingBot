@@ -27,6 +27,7 @@ func NewState() *State {
 	if err != nil {
 		panic(fmt.Sprintf("Could not generate JWT Siging Key %s", err.Error()))
 	}
+	copy(s.JWTSecret[:], jck[:])
 
 	return s
 }
