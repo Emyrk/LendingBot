@@ -9,23 +9,30 @@ import (
 
 var _ = fmt.Println
 
-func (s *State) PoloniexGetBalances(username string) (*poloniex.PoloniexBalance, error) {
+func (s *State) getAccessAndSecret(username string) (string, string, error) {
 	u, err := s.UserDB.FetchUserIfFound(username)
 	if err != nil {
-		return nil, err
+		return "", "", err
 	}
 
 	ck := u.GetCipherKey(s.CipherKey)
 	accessKey, err := u.PoloniexKeys.DecryptAPIKeyString(ck)
 	if err != nil {
-		return nil, err
+		return "", "", err
 	}
 
 	secretKey, err := u.PoloniexKeys.DecryptAPISecretString(ck)
 	if err != nil {
+		return "", "", err
+	}
+	return accessKey, secretKey, nil
+}
+
+func (s *State) PoloniexGetBalances(username string) (*poloniex.PoloniexBalance, error) {
+	accessKey, secretKey, err := s.getAccessAndSecret(username)
+	if err != nil {
 		return nil, err
 	}
-
 	return s.PoloniexAPI.GetBalances(accessKey, secretKey)
 }
 
@@ -33,18 +40,7 @@ func (s *State) PoloniexGetBalances(username string) (*poloniex.PoloniexBalance,
 //		map[string] :: key = "exchange", "lending", "margin"
 //		|-->	map[string] :: key = currency
 func (s *State) PoloniexGetAvailableBalances(username string) (map[string]map[string]float64, error) {
-	u, err := s.UserDB.FetchUserIfFound(username)
-	if err != nil {
-		return nil, err
-	}
-
-	ck := u.GetCipherKey(s.CipherKey)
-	accessKey, err := u.PoloniexKeys.DecryptAPIKeyString(ck)
-	if err != nil {
-		return nil, err
-	}
-
-	secretKey, err := u.PoloniexKeys.DecryptAPISecretString(ck)
+	accessKey, secretKey, err := s.getAccessAndSecret(username)
 	if err != nil {
 		return nil, err
 	}
@@ -54,20 +50,9 @@ func (s *State) PoloniexGetAvailableBalances(username string) (map[string]map[st
 
 // PoloniexCreateLoanOffer creates a loan offer
 func (s *State) PoloniexCreateLoanOffer(currency string, amount, rate float64, duration int, autoRenew bool, username string) (int64, error) {
-	u, err := s.UserDB.FetchUserIfFound(username)
+	accessKey, secretKey, err := s.getAccessAndSecret(username)
 	if err != nil {
-		return nil, err
-	}
-
-	ck := u.GetCipherKey(s.CipherKey)
-	accessKey, err := u.PoloniexKeys.DecryptAPIKeyString(ck)
-	if err != nil {
-		return nil, err
-	}
-
-	secretKey, err := u.PoloniexKeys.DecryptAPISecretString(ck)
-	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
 	return s.PoloniexAPI.CreateLoanOffer(currency, amount, rate, duration, autoRenew, accessKey, secretKey)
@@ -75,18 +60,7 @@ func (s *State) PoloniexCreateLoanOffer(currency string, amount, rate float64, d
 
 // PoloniecGetOpenLoanOffers returns your current loans that are not taken
 func (s *State) PoloniecGetOpenLoanOffers(username string) (map[string][]poloniex.PoloniexLoanOffer, error) {
-	u, err := s.UserDB.FetchUserIfFound(username)
-	if err != nil {
-		return nil, err
-	}
-
-	ck := u.GetCipherKey(s.CipherKey)
-	accessKey, err := u.PoloniexKeys.DecryptAPIKeyString(ck)
-	if err != nil {
-		return nil, err
-	}
-
-	secretKey, err := u.PoloniexKeys.DecryptAPISecretString(ck)
+	accessKey, secretKey, err := s.getAccessAndSecret(username)
 	if err != nil {
 		return nil, err
 	}
@@ -95,19 +69,8 @@ func (s *State) PoloniecGetOpenLoanOffers(username string) (map[string][]polonie
 }
 
 // PoloniecGetActiveLoans returns your current loans that are taken
-func (s *State) PoloniecGetActiveLoans(username string) (poloniex.PoloniexActiveLoans, error) {
-	u, err := s.UserDB.FetchUserIfFound(username)
-	if err != nil {
-		return nil, err
-	}
-
-	ck := u.GetCipherKey(s.CipherKey)
-	accessKey, err := u.PoloniexKeys.DecryptAPIKeyString(ck)
-	if err != nil {
-		return nil, err
-	}
-
-	secretKey, err := u.PoloniexKeys.DecryptAPISecretString(ck)
+func (s *State) PoloniecGetActiveLoans(username string) (*poloniex.PoloniexActiveLoans, error) {
+	accessKey, secretKey, err := s.getAccessAndSecret(username)
 	if err != nil {
 		return nil, err
 	}
@@ -115,6 +78,6 @@ func (s *State) PoloniecGetActiveLoans(username string) (poloniex.PoloniexActive
 	return s.PoloniexAPI.GetActiveLoans(accessKey, secretKey)
 }
 
-func (s *State) PoloniecGetLoanOrders(currency string) (poloniex.PoloniexLoanOrders, error) {
+func (s *State) PoloniecGetLoanOrders(currency string) (*poloniex.PoloniexLoanOrders, error) {
 	return s.PoloniexAPI.GetLoanOrders(currency)
 }

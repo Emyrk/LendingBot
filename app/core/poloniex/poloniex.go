@@ -311,15 +311,15 @@ type PoloniexLoanOrders struct {
 	Demands []PoloniexLoanOrder `json:"demands"`
 }
 
-func (p *Poloniex) GetLoanOrders(currency string) (PoloniexLoanOrders, error) {
+func (p *Poloniex) GetLoanOrders(currency string) (*PoloniexLoanOrders, error) {
 	resp := PoloniexLoanOrders{}
 	path := fmt.Sprintf("%s/public?command=returnLoanOrders&currency=%s", POLONIEX_API_URL, currency)
 	err := SendHTTPGetRequest(path, true, &resp)
 
 	if err != nil {
-		return resp, err
+		return nil, err
 	}
-	return resp, nil
+	return &resp, nil
 }
 
 type PoloniexBalance struct {
@@ -980,15 +980,15 @@ type PoloniexActiveLoans struct {
 	Used     []PoloniexLoanOffer `json:"used"`
 }
 
-func (p *Poloniex) GetActiveLoans(accessKey, secretKey string) (PoloniexActiveLoans, error) {
+func (p *Poloniex) GetActiveLoans(accessKey, secretKey string) (*PoloniexActiveLoans, error) {
 	result := PoloniexActiveLoans{}
 	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_ACTIVE_LOANS, url.Values{}, &result, accessKey, secretKey)
 
 	if err != nil {
-		return result, err
+		return nil, err
 	}
 
-	return result, nil
+	return &result, nil
 }
 
 func (p *Poloniex) ToggleAutoRenew(orderNumber int64, accessKey, secretKey string) (bool, error) {
