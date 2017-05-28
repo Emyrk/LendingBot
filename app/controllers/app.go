@@ -8,7 +8,11 @@ import (
 	"net/http"
 )
 
-var state = core.NewState()
+var state *core.State
+
+func init() {
+	state = core.NewState()
+}
 
 const (
 	JSON_DATA  = "data"
