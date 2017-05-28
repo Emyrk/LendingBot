@@ -18,6 +18,8 @@ func (u *User) Create2FA(issuer string) ([]byte, error) {
 	}
 
 	u.User2FA = tfa
+	u.Has2FA = true
+	u.Issuer = issuer
 	return u.User2FA.QR()
 }
 

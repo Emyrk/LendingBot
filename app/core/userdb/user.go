@@ -58,6 +58,7 @@ type User struct {
 	Has2FA     bool
 	Enabled2FA bool
 	User2FA    *twofactor.Totp
+	Issuer     string
 
 	PoloniexKeys *PoloniexKeys
 }
@@ -158,42 +159,59 @@ func (a *User) IsSameAs(b *User) bool {
 		return false
 	}
 
+	if a.Has2FA != b.Has2FA {
+		return false
+	}
+
+	if a.Enabled2FA != b.Enabled2FA {
+		return false
+	}
+
+	if a.User2FA == nil && b.User2FA != nil {
+		return false
+	}
+
+	if a.User2FA != nil && b.User2FA == nil {
+		return false
+	}
+
 	return true
 }
 
 func (u *User) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
 
+	// username
 	b, err := primitives.MarshalStringToBytes(u.Username, UsernameMaxLength)
 	if err != nil {
 		return nil, err
 	}
 	buf.Write(b)
 
+	// password
 	buf.Write(u.PasswordHash[:])
+	//salt
 	buf.Write(u.Salt[:])
 
-	b, err = u.PoloniexKeys.MarshalBinary()
-	if err != nil {
-		return nil, err
-	}
-	buf.Write(b)
-
+	// starttime
 	b, err = u.StartTime.MarshalBinary()
 	if err != nil {
 		return nil, err
 	}
 	buf.Write(b)
 
+	// jwttime
 	b, err = u.JWTTime.MarshalBinary()
 	if err != nil {
 		return nil, err
 	}
 	buf.Write(b)
 
+	// level
 	b = primitives.Uint32ToBytes(uint32(u.Level))
 	buf.Write(b)
 
+	// miniummlend
 	str := strconv.FormatFloat(u.MiniumLend, 'f', 6, 64)
 	b, err = primitives.MarshalStringToBytes(str, 100)
 	if err != nil {
@@ -201,24 +219,36 @@ func (u *User) MarshalBinary() ([]byte, error) {
 	}
 	buf.Write(b)
 
+	// has2fa
 	b = primitives.BoolToBytes(u.Has2FA)
 	buf.Write(b)
 
 	if u.Has2FA {
+		// 2fa enabled
 		b = primitives.BoolToBytes(u.Enabled2FA)
 		buf.Write(b)
 
-		b, err = u.User2FA.ToBytes()
+		topBytes, err := u.User2FA.ToBytes()
 		if err != nil {
 			return nil, err
 		}
 
-		l := len(b)
+		// issuer
+		b, err = primitives.MarshalStringToBytes(u.Issuer, 100)
+		if err != nil {
+			return nil, err
+		}
+		buf.Write(b)
+
+		// len 2fa
+		l := len(topBytes)
 		lb := primitives.Uint32ToBytes(uint32(l))
 		buf.Write(lb)
-		buf.Write(b)
+		// 2fa
+		buf.Write(topBytes)
 	}
 
+	// PoloniexKeys
 	b, err = u.PoloniexKeys.MarshalBinary()
 	if err != nil {
 		return nil, err
@@ -243,6 +273,7 @@ func (u *User) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 
 	newData = data
 
+	// username
 	var username string
 	username, newData, err = primitives.UnmarshalStringFromBytesData(newData, UsernameMaxLength)
 	if err != nil {
@@ -250,30 +281,30 @@ func (u *User) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 	}
 	u.Username = username
 
+	// password
 	copy(u.PasswordHash[:], newData[:32])
 	newData = newData[32:]
 
+	//salt
 	u.Salt = make([]byte, SaltLength)
 	copy(u.Salt[:], newData[:SaltLength])
 	newData = newData[SaltLength:]
 
-	newData, err = u.PoloniexKeys.UnmarshalBinaryData(newData)
-	if err != nil {
-		return data, nil
-	}
-
+	// starttime
 	err = u.StartTime.UnmarshalBinary(newData[:15])
 	if err != nil {
 		return data, err
 	}
 	newData = newData[15:]
 
+	// jwttime
 	err = u.JWTTime.UnmarshalBinary(newData[:15])
 	if err != nil {
 		return data, err
 	}
 	newData = newData[15:]
 
+	// level
 	v, err := primitives.BytesToUint32(newData[:4])
 	if err != nil {
 		return data, err
@@ -281,6 +312,7 @@ func (u *User) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 	u.Level = UserLevel(v)
 	newData = newData[4:]
 
+	// miniummlend
 	// Float64
 	var resp string
 	resp, newData, err = primitives.UnmarshalStringFromBytesData(newData, 100)
@@ -294,27 +326,40 @@ func (u *User) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 	u.MiniumLend = f
 	//
 
+	// has2fa
 	has2FA := primitives.ByteToBool(newData[0])
 	newData = newData[1:]
 	u.Has2FA = has2FA
 	if has2FA {
+		// 2fa enabled
 		enabled := primitives.ByteToBool(newData[0])
 		newData = newData[1:]
 		u.Enabled2FA = enabled
 
+		var issuer string
+		issuer, newData, err = primitives.UnmarshalStringFromBytesData(newData, 100)
+		if err != nil {
+			return data, err
+		}
+		u.Issuer = issuer
+
+		// len 2fa
 		l, err := primitives.BytesToUint32(newData[:4])
 		if err != nil {
 			return data, err
 		}
 		newData = newData[4:]
 
-		totp, err := twofactor.TOTPFromBytes(newData[:l], "Sec51")
+		// 2fa
+		totp, err := twofactor.TOTPFromBytes(newData[:l], u.Issuer)
 		if err != nil {
 			return data, err
 		}
 		u.User2FA = totp
+		newData = newData[l:]
 	}
 
+	// PoloniexKeys
 	newData, err = u.PoloniexKeys.UnmarshalBinaryData(newData)
 	if err != nil {
 		return data, err
