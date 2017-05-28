@@ -1,5 +1,12 @@
 # LendingBot
 
+## Running
+
+```
+export USER_DB=PATH_FOR_USER_DATABASE
+export SEC51_KEYPATH=PATH_FOR_2FA_KEY_STORAGE
+```
+
 # Welcome to Revel
 
 A high-productivity web framework for the [Go language](http://www.golang.org/).

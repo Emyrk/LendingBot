@@ -3,6 +3,7 @@ package core
 import (
 	"crypto/rand"
 	"fmt"
+	"os"
 
 	"github.com/Emyrk/LendingBot/app/core/poloniex"
 	"github.com/Emyrk/LendingBot/app/core/userdb"
@@ -32,7 +33,11 @@ func newState(withMap bool, fakePolo bool) *State {
 	if withMap {
 		s.UserDB = userdb.NewMapUserDatabase()
 	} else {
-		s.UserDB = userdb.NewBoltUserDatabase("UserDatabase.db")
+		v := os.Getenv("USER_DB")
+		if len(v) == 0 {
+			v = "UserDatabase.db"
+		}
+		s.UserDB = userdb.NewBoltUserDatabase(v)
 	}
 
 	if fakePolo {
