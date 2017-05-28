@@ -63,7 +63,7 @@ func (ud *UserDatabase) FetchUser(username string) (*User, error) {
 }
 
 func (ud *UserDatabase) AuthenticateUser(username string, password string) (bool, *User, error) {
-	u, err := ud.FetchUser(username)
+	u, err := ud.FetchUserIfFound(username)
 	if err != nil {
 		return false, nil, err
 	}

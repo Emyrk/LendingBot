@@ -58,8 +58,8 @@ func (s *State) PoloniexCreateLoanOffer(currency string, amount, rate float64, d
 	return s.PoloniexAPI.CreateLoanOffer(currency, amount, rate, duration, autoRenew, accessKey, secretKey)
 }
 
-// PoloniecGetOpenLoanOffers returns your current loans that are not taken
-func (s *State) PoloniecGetOpenLoanOffers(username string) (map[string][]poloniex.PoloniexLoanOffer, error) {
+// PoloniecGetInactiveLoans returns your current loans that are not taken
+func (s *State) PoloniecGetInactiveLoans(username string) (map[string][]poloniex.PoloniexLoanOffer, error) {
 	accessKey, secretKey, err := s.getAccessAndSecret(username)
 	if err != nil {
 		return nil, err
@@ -76,6 +76,15 @@ func (s *State) PoloniecGetActiveLoans(username string) (*poloniex.PoloniexActiv
 	}
 
 	return s.PoloniexAPI.GetActiveLoans(accessKey, secretKey)
+}
+
+func (s *State) PoloniexCancelLoanOffer(currency string, orderNumber int64, username string) (bool, error) {
+	accessKey, secretKey, err := s.getAccessAndSecret(username)
+	if err != nil {
+		return false, err
+	}
+
+	return s.PoloniexAPI.CancelLoanOffer(currency, orderNumber, accessKey, secretKey)
 }
 
 func (s *State) PoloniecGetLoanOrders(currency string) (*poloniex.PoloniexLoanOrders, error) {
