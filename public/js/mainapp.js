@@ -1,5 +1,6 @@
 var app = angular.module('lendingApp', ['ngMaterial']);
-app.controller('indexController', ['$scope', '$http', function($scope, $http) {
+
+app.controller('indexController', ['$scope', '$http', '$log', function($scope, $http, $log) {
 	var indexScope = $scope;
 
 	indexScope.login = function() {

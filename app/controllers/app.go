@@ -42,7 +42,7 @@ func (c App) Login() revel.Result {
 
 	stringToken, err := cryption.NewJWT(email, state.JWTSecret, cryption.JWT_EXPIRY_TIME)
 	if err != nil {
-		data[JSON_ERROR] = "Unable to create JWT"
+		data[JSON_ERROR] = fmt.Sprintf("Unable to create JWT: %s", err.Error())
 		c.Response.Status = 500
 		return c.RenderJSON(data)
 	}
@@ -62,14 +62,14 @@ func (c App) Register() revel.Result {
 
 	err := state.NewUser(email, pass)
 	if err != nil {
-		data[JSON_ERROR] = "Unable to create new user"
-		c.Response.Status = 500
+		data[JSON_ERROR] = fmt.Sprintf("Unable to create new user: %s", err.Error())
+		c.Response.Status = 400
 		return c.RenderJSON(data)
 	}
 
 	stringToken, err := cryption.NewJWT(email, state.JWTSecret, cryption.JWT_EXPIRY_TIME)
 	if err != nil {
-		data[JSON_ERROR] = "Unable to create JWT"
+		data[JSON_ERROR] = fmt.Sprintf("Unable to create JWT: %s", err.Error())
 		c.Response.Status = 500
 		return c.RenderJSON(data)
 	}
