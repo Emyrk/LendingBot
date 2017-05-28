@@ -10,7 +10,7 @@ import (
 
 type State struct {
 	UserDB      *userdb.UserDatabase
-	PoloniexAPI *poloniex.Poloniex
+	PoloniexAPI poloniex.IPoloniex
 	CipherKey   [32]byte
 	JWTSecret   [32]byte
 }

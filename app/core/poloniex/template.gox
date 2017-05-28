@@ -1,0 +1,214 @@
+type IPoloniex interface {
+
+}
+
+type Poloniex struct {
+	Name                    string
+	Enabled                 bool
+	Verbose                 bool
+	Websocket               bool
+	RESTPollingDelay        time.Duration
+	AuthenticatedAPISupport bool
+	// AccessKey, SecretKey    string
+	Fee            float64
+	BaseCurrencies []string
+	AvailablePairs []string
+	EnabledPairs   []string
+}
+
+
+SetDefaults() 
+
+
+
+GetName() string 
+
+
+
+SetEnabled(enabled bool) 
+
+
+
+IsEnabled() bool 
+
+
+
+Setup(exch Exchanges) {
+
+
+
+Start() {
+
+
+
+
+GetFee() float64 {
+
+
+
+Run() {
+
+
+
+GetTicker() (map[string]PoloniexTicker, error) {
+
+
+
+GetVolume() (interface{}, error) {
+
+
+
+
+//TO-DO: add support for individual pair depth fetching
+func (p *Poloniex) GetOrderbook(currencyPair string, depth int) (map[string]PoloniexOrderbook, error) {
+
+}
+
+
+
+func (p *Poloniex) GetTradeHistory(currencyPair, start, end string) ([]PoloniexTradeHistory, error) {
+
+}
+
+
+func (p *Poloniex) GetChartData(currencyPair, start, end, period string) ([]PoloniexChartData, error) {
+
+}
+
+type PoloniexCurrencies struct {
+
+
+func (p *Poloniex) GetCurrencies() (map[string]PoloniexCurrencies, error) {
+
+}
+
+
+
+
+func (p *Poloniex) GetLoanOrders(currency string) (*PoloniexLoanOrders, error) {
+
+
+
+
+func (p *Poloniex) GetBalances(accessKey, secretKey string) (*PoloniexBalance, error) {
+
+}
+
+
+func (p *Poloniex) GetCompleteBalances(accessKey, secretKey string) (PoloniexCompleteBalances, error) {
+
+}
+
+
+func (p *Poloniex) GetDepositAddresses(accessKey, secretKey string) (PoloniexDepositAddresses, error) {
+
+}
+
+func (p *Poloniex) GenerateNewAddress(currency string, accessKey, secretKey string) (string, error) {
+
+}
+
+
+
+func (p *Poloniex) GetDepositsWithdrawals(start, end string, accessKey, secretKey string) (PoloniexDepositsWithdrawals, error) {
+
+}
+
+
+
+func (p *Poloniex) GetOpenOrders(currency string, accessKey, secretKey string) (interface{}, error) {
+
+}
+
+
+
+func (p *Poloniex) GetAuthenticatedTradeHistory(currency, start, end string, accessKey, secretKey string) (interface{}, error) {
+
+}
+
+
+
+func (p *Poloniex) PlaceOrder(currency string, rate, amount float64, immediate, fillOrKill, buy bool, accessKey, secretKey string) (PoloniexOrderResponse, error) {
+
+}
+
+
+func (p *Poloniex) CancelOrder(orderID int64, accessKey, secretKey string) (bool, error) {
+
+}
+
+
+
+func (p *Poloniex) MoveOrder(orderID int64, rate, amount float64, accessKey, secretKey string) (PoloniexMoveOrderResponse, error) {
+
+}
+
+
+
+func (p *Poloniex) Withdraw(currency, address string, amount float64, accessKey, secretKey string) (bool, error) {
+
+}
+
+type PoloniexFee struct {
+
+}
+
+func (p *Poloniex) GetFeeInfo(accessKey, secretKey string) (PoloniexFee, error) {
+
+}
+
+func (p *Poloniex) GetTradableBalances(accessKey, secretKey string) (map[string]map[string]float64, error) {
+
+}
+
+func (p *Poloniex) GetAvilableBalances(accessKey, secretKey string) (map[string]map[string]float64, error) {
+
+}
+
+func (p *Poloniex) TransferBalance(currency, from, to string, amount float64, accessKey, secretKey string) (bool, error) {
+
+}
+
+
+func (p *Poloniex) GetMarginAccountSummary(accessKey, secretKey string) (PoloniexMargin, error) {
+
+}
+
+func (p *Poloniex) PlaceMarginOrder(currency string, rate, amount, lendingRate float64, buy bool, accessKey, secretKey string) (PoloniexOrderResponse, error) {
+
+}
+
+
+func (p *Poloniex) GetMarginPosition(currency string, accessKey, secretKey string) (interface{}, error) {
+
+}
+
+func (p *Poloniex) CloseMarginPosition(currency string, accessKey, secretKey string) (bool, error) {
+
+}
+
+func (p *Poloniex) CreateLoanOffer(currency string, amount, rate float64, duration int, autoRenew bool, accessKey, secretKey string) (int64, error) {
+
+}
+
+func (p *Poloniex) CancelLoanOffer(currency string, orderNumber int64, accessKey, secretKey string) (bool, error) {
+
+}
+
+
+func (p *Poloniex) GetOpenLoanOffers(accessKey, secretKey string) (map[string][]PoloniexLoanOffer, error) {
+
+}
+
+
+func (p *Poloniex) GetActiveLoans(accessKey, secretKey string) (*PoloniexActiveLoans, error) {
+
+}
+
+func (p *Poloniex) ToggleAutoRenew(orderNumber int64, accessKey, secretKey string) (bool, error) {
+
+}
+
+func (p *Poloniex) SendAuthenticatedHTTPRequest(method, endpoint string, values url.Values, result interface{}, accessKey, secretKey string) error {
+
+}

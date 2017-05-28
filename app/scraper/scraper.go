@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"sort"
 	"time"
 
 	"github.com/DistributedSolutions/LendingBot/app/core"
@@ -18,20 +21,26 @@ var (
 )
 
 type Scraper struct {
-	db    database.IDatabase
-	State *core.State
+	db       database.IDatabase
+	State    *core.State
+	Currency string
+
+	Api       *ApiService
+	apicloser io.Closer
+	Router    *http.ServeMux
+	Walker    *Walker
 }
 
-func NewScraper(st *core.State) *Scraper {
-	return newScraper(false, st)
+func NewScraper(st *core.State, currency string) *Scraper {
+	return newScraper(false, currency, st)
 }
 
-func NewScraperWithMap(st *core.State) *Scraper {
-	return newScraper(true, st)
+func NewScraperWithMap(st *core.State, currency string) *Scraper {
+	return newScraper(true, currency, st)
 }
 
-func NewScraperFromExising(st *core.State, boltDB string) (*Scraper, error) {
-	s := NewScraper(st)
+func NewScraperFromExising(st *core.State, currency string, boltDB string) (*Scraper, error) {
+	s := NewScraper(st, currency)
 	db := database.NewBoltDB(boltDB)
 	bucs, err := db.ListAllBuckets()
 	if err != nil {
@@ -58,24 +67,28 @@ func NewScraperFromExising(st *core.State, boltDB string) (*Scraper, error) {
 			}
 		}
 	}
+	s.Api = new(ApiService)
+	s.Api.Scraper = s
+	s.Router = NewRouter(s.Api)
 
 	return s, nil
 }
 
-func newScraper(withMap bool, st *core.State) *Scraper {
+func newScraper(withMap bool, currency string, st *core.State) *Scraper {
 	s := new(Scraper)
 	if withMap {
 		s.db = database.NewMapDB()
 	} else {
-		s.db = database.NewBoltDB("Scraper.db")
+		s.db = database.NewBoltDB("BTCScraper.db")
 	}
 	s.State = st
+	s.Currency = currency
 
 	return s
 }
 
-func (s *Scraper) Scrape(currency string) error {
-	loans, err := s.State.PoloniecGetLoanOrders(currency)
+func (s *Scraper) Scrape() error {
+	loans, err := s.State.PoloniecGetLoanOrders(s.Currency)
 	if err != nil {
 		return err
 	}
@@ -117,6 +130,7 @@ func GetSeconds(t time.Time) int {
 func (s *Scraper) NewWalker() *Walker {
 	w := new(Walker)
 	w.scraper = s
+	s.Walker = w
 
 	return w
 }
@@ -137,28 +151,79 @@ func IndentReturn(jsonData []byte, err error) (string, error) {
 
 type Walker struct {
 	scraper *Scraper
-	Day     int
-	Second  int
+	Day     []byte
+	Second  []byte
+
+	Index    int
+	TodayDay [][]byte
 }
 
-func (w *Walker) SetDay(day int) {
+func (w *Walker) SetDay(day []byte) {
 	w.Day = day
 }
 
-func (w *Walker) SetSecond(second int) {
+func (w *Walker) SetSecond(second []byte) {
 	w.Second = second
 }
 
-func (w *Walker) ReadLast() ([]byte, error) {
+func (w *Walker) GetLastDayAndSecond() (day []byte, second []byte, err error) {
 	db := w.scraper.db
 	data, err := db.Get(LastScrape, LastScrape)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if len(data) != 8 {
-		return nil, fmt.Errorf("Expect 8 bytes, found %d", len(data))
+		return nil, nil, fmt.Errorf("Expect 8 bytes, found %d", len(data))
 	}
 
-	return db.Get(data[:4], data[4:])
+	return data[:4], data[4:], nil
+}
+
+type SortableValues [][]byte
+
+func (slice SortableValues) Len() int {
+	return len(slice)
+}
+
+func (slice SortableValues) Less(i, j int) bool {
+	v1, _ := primitives.BytesToUint32(slice[i])
+	v2, _ := primitives.BytesToUint32(slice[j])
+	if v1 < v2 {
+		return true
+	}
+	return false
+}
+
+func (slice SortableValues) Swap(i, j int) {
+	slice[i], slice[j] = slice[j], slice[i]
+}
+
+func (w *Walker) LoadDay(day []byte) error {
+	keys, err := w.scraper.db.ListAllKeys(day)
+	if err != nil {
+		return err
+	}
+
+	w.Day = day
+
+	sort.Sort(SortableValues(keys))
+	w.TodayDay = keys
+	return nil
+}
+
+func (w *Walker) LoadSecond(second []byte) ([]byte, error) {
+	data, err := w.scraper.db.Get(w.Day, second)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func (w *Walker) ReadLast() ([]byte, error) {
+	day, sec, err := w.GetLastDayAndSecond()
+	if err != nil {
+		return nil, err
+	}
+	return w.scraper.db.Get(day, sec)
 }

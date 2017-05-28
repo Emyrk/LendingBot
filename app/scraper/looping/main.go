@@ -14,13 +14,15 @@ var _ = time.Now
 func main() {
 	s := core.NewStateWithMap()
 
-	sc := scraper.NewScraper(s)
-	err := sc.Scrape("BTC")
+	sc := scraper.NewScraper(s, "BTC")
+	err := sc.Scrape()
 	panicErr(err)
+
+	sc.Serve()
 
 	ticker := time.NewTicker(2 * time.Second)
 	for t := range ticker.C {
-		sc.Scrape("BTC")
+		sc.Scrape()
 		fmt.Println("Scraped ", t)
 	}
 }
