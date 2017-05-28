@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/DistributedSolutions/LendingBot/app/core/common/primitives"
-	"github.com/DistributedSolutions/LendingBot/app/core/cryption"
+	"github.com/Emyrk/LendingBot/app/core/common/primitives"
+	"github.com/Emyrk/LendingBot/app/core/cryption"
 )
 
 type PoloniexKeys struct {

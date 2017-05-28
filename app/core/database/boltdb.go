@@ -6,8 +6,11 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/DistributedSolutions/DIMWIT/common/constants"
 	"github.com/boltdb/bolt"
+)
+
+const (
+	DirectoryPermissions os.FileMode = 0777
 )
 
 type BoltDB struct {
@@ -32,13 +35,13 @@ func NewBoltDB(filename string) IDatabase {
 			for _, s := range ss {
 				dir += s + "/"
 			}
-			err := os.MkdirAll(dir, constants.DIRECTORY_PERMISSIONS)
+			err := os.MkdirAll(dir, DirectoryPermissions)
 			if err != nil {
 				panic("Database was not found, and could not be created.")
 			}
 		}
 
-		tdb, err := bolt.Open(filename, constants.FILE_PERMISSIONS, nil)
+		tdb, err := bolt.Open(filename, DirectoryPermissions, nil)
 		if err != nil {
 			panic("Database was not found, and could not be created.")
 		}

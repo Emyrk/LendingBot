@@ -6,8 +6,8 @@ import (
 	"sort"
 	"time"
 
-	"github.com/DistributedSolutions/LendingBot/app/core"
-	"github.com/DistributedSolutions/LendingBot/app/core/poloniex"
+	"github.com/Emyrk/LendingBot/app/core"
+	"github.com/Emyrk/LendingBot/app/core/poloniex"
 )
 
 func init() {

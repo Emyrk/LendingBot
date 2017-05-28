@@ -1,7 +1,7 @@
 package app
 
 import (
-	"github.com/DistributedSolutions/LendingBot/app/controllers"
+	"github.com/Emyrk/LendingBot/app/controllers"
 	"github.com/revel/revel"
 )
 

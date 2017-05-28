@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/DistributedSolutions/LendingBot/app/core/common/primitives"
 	"github.com/DistributedSolutions/twofactor"
+	"github.com/Emyrk/LendingBot/app/core/common/primitives"
 )
 
 type UserLevel uint32

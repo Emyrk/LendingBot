@@ -5,8 +5,8 @@ import (
 	"crypto/rand"
 	"time"
 
-	"github.com/DistributedSolutions/LendingBot/app/core"
-	. "github.com/DistributedSolutions/LendingBot/app/core/cryption"
+	"github.com/Emyrk/LendingBot/app/core"
+	. "github.com/Emyrk/LendingBot/app/core/cryption"
 	"testing"
 )
 

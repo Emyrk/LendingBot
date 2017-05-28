@@ -9,9 +9,9 @@ import (
 	"sort"
 	"time"
 
-	"github.com/DistributedSolutions/LendingBot/app/core"
-	"github.com/DistributedSolutions/LendingBot/app/core/common/primitives"
-	"github.com/DistributedSolutions/LendingBot/app/core/database"
+	"github.com/Emyrk/LendingBot/app/core"
+	"github.com/Emyrk/LendingBot/app/core/common/primitives"
+	"github.com/Emyrk/LendingBot/app/core/database"
 )
 
 var _ = fmt.Println

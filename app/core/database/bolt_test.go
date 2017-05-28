@@ -5,10 +5,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/DistributedSolutions/DIMWIT/common/constants"
-	"github.com/DistributedSolutions/DIMWIT/common/primitives/random"
-	. "github.com/DistributedSolutions/DIMWIT/database"
-	"github.com/DistributedSolutions/DIMWIT/util"
+	"github.com/Emyrk/DIMWIT/common/constants"
+	"github.com/Emyrk/DIMWIT/common/primitives/random"
+	. "github.com/Emyrk/DIMWIT/database"
+	"github.com/Emyrk/DIMWIT/util"
 )
 
 func TestBolt(t *testing.T) {

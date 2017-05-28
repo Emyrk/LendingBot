@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/DistributedSolutions/LendingBot/app/scraper/client"
+	"github.com/Emyrk/LendingBot/app/scraper/client"
 )
 
 var (

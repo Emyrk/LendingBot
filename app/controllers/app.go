@@ -3,8 +3,8 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/DistributedSolutions/LendingBot/app/core"
-	"github.com/DistributedSolutions/LendingBot/app/core/cryption"
+	"github.com/Emyrk/LendingBot/app/core"
+	"github.com/Emyrk/LendingBot/app/core/cryption"
 	"github.com/revel/revel"
 	"io"
 )

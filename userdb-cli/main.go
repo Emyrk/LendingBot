@@ -7,7 +7,7 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/DistributedSolutions/LendingBot/app/core/userdb"
+	"github.com/Emyrk/LendingBot/app/core/userdb"
 )
 
 func main() {
