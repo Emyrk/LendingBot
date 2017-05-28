@@ -30,6 +30,13 @@ func NewMapUserDatabase() *UserDatabase {
 	return u
 }
 
+func NewBoltUserDatabase() *UserDatabase {
+	u := new(UserDatabase)
+	u.db = database.NewBoltDB("UserDatabase.db")
+
+	return u
+}
+
 func (ud *UserDatabase) PutUser(u *User) error {
 	hash := GetUsernameHash(u.Username)
 	return ud.put(UsersBucket, hash[:], u)

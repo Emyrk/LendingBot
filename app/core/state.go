@@ -16,8 +16,17 @@ type State struct {
 }
 
 func NewState() *State {
+	return newState(false)
+}
+
+func newState(withMap bool) *State {
 	s := new(State)
-	s.UserDB = userdb.NewMapUserDatabase()
+	if withMap {
+		s.UserDB = userdb.NewMapUserDatabase()
+	} else {
+		s.UserDB = userdb.NewBoltUserDatabase()
+	}
+
 	s.PoloniexAPI = poloniex.StartPoloniex()
 	ck := make([]byte, 32)
 	copy(s.CipherKey[:], ck[:])
@@ -30,6 +39,10 @@ func NewState() *State {
 	copy(s.JWTSecret[:], jck[:])
 
 	return s
+}
+
+func NewStateWithMap() *State {
+	return newState(true)
 }
 
 func (s *State) SetUserMinimumLoan(username string, minimumAmt float64) error {
