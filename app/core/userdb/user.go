@@ -71,6 +71,8 @@ func NewUser(username string, password string) (*User, error) {
 		return nil, err
 	}
 
+	u.Level = CommonUser
+
 	passAndSalt := append([]byte(password), u.Salt...)
 	hash := sha256.Sum256(passAndSalt)
 	u.PasswordHash = hash

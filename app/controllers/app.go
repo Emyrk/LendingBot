@@ -102,6 +102,34 @@ func (c App) Register() revel.Result {
 }
 
 func (r AppAuthRequired) Dashboard() revel.Result {
+	tokenString := r.Session[cryption.COOKIE_JWT_MAP]
+	email, _ := cryption.VerifyJWT(tokenString, state.JWTSecret)
+	u, err := state.FetchUser(email)
+	if err != nil || u == nil {
+		fmt.Println("Error fetching user for dashboard")
+		return r.Redirect(App.Index)
+	}
+	r.ViewArgs["UserLevel"] = fmt.Sprintf("%d", u.Level)
+	return r.Render()
+}
+
+func (r AppAuthRequired) InfoDashboard() revel.Result {
+	return r.Render()
+}
+
+func (r AppAuthRequired) InfoAdvancedDashboard() revel.Result {
+	return r.Render()
+}
+
+func (r AppAuthRequired) SettingsDashboard() revel.Result {
+	return r.Render()
+}
+
+func (r AppAuthRequired) SysAdminDashboard() revel.Result {
+	return r.Render()
+}
+
+func (r AppAuthRequired) AdminDashboard() revel.Result {
 	return r.Render()
 }
 

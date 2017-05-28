@@ -12,6 +12,11 @@ GET     /sand                                   App.Sandbox
 POST	/login									App.Login
 POST	/register								App.Register
 GET		/dashboard								AppAuthRequired.Dashboard
+GET		/dashboard/info							AppAuthRequired.InfoDashboard
+GET		/dashboard/info/:id						AppAuthRequired.InfoAdvancedDashboard
+GET		/dashboard/settings						AppAuthRequired.SettingsDashboard
+GET		/dashboard/sysadmin						AppAuthRequired.SysAdminDashboard
+GET		/dashboard/admin						AppAuthRequired.AdminDashboard
 
 # Ignore favicon requests
 GET     /favicon.ico                            404

@@ -75,7 +75,52 @@ func main() {
 				Args: []*revel.MethodArg{ 
 				},
 				RenderArgNames: map[int][]string{ 
-					105: []string{ 
+					113: []string{ 
+					},
+				},
+			},
+			&revel.MethodType{
+				Name: "InfoDashboard",
+				Args: []*revel.MethodArg{ 
+				},
+				RenderArgNames: map[int][]string{ 
+					117: []string{ 
+					},
+				},
+			},
+			&revel.MethodType{
+				Name: "InfoAdvancedDashboard",
+				Args: []*revel.MethodArg{ 
+				},
+				RenderArgNames: map[int][]string{ 
+					121: []string{ 
+					},
+				},
+			},
+			&revel.MethodType{
+				Name: "SettingsDashboard",
+				Args: []*revel.MethodArg{ 
+				},
+				RenderArgNames: map[int][]string{ 
+					125: []string{ 
+					},
+				},
+			},
+			&revel.MethodType{
+				Name: "SysAdminDashboard",
+				Args: []*revel.MethodArg{ 
+				},
+				RenderArgNames: map[int][]string{ 
+					129: []string{ 
+					},
+				},
+			},
+			&revel.MethodType{
+				Name: "AdminDashboard",
+				Args: []*revel.MethodArg{ 
+				},
+				RenderArgNames: map[int][]string{ 
+					133: []string{ 
 					},
 				},
 			},

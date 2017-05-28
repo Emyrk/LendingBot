@@ -48,6 +48,41 @@ func (_ tAppAuthRequired) Dashboard(
 	return revel.MainRouter.Reverse("AppAuthRequired.Dashboard", args).URL
 }
 
+func (_ tAppAuthRequired) InfoDashboard(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("AppAuthRequired.InfoDashboard", args).URL
+}
+
+func (_ tAppAuthRequired) InfoAdvancedDashboard(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("AppAuthRequired.InfoAdvancedDashboard", args).URL
+}
+
+func (_ tAppAuthRequired) SettingsDashboard(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("AppAuthRequired.SettingsDashboard", args).URL
+}
+
+func (_ tAppAuthRequired) SysAdminDashboard(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("AppAuthRequired.SysAdminDashboard", args).URL
+}
+
+func (_ tAppAuthRequired) AdminDashboard(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("AppAuthRequired.AdminDashboard", args).URL
+}
+
 func (_ tAppAuthRequired) AuthUser(
 		) string {
 	args := make(map[string]string)
