@@ -25,6 +25,7 @@ type Lender struct {
 	Currency              string
 	CurrentLoanRate       float64
 	LastCalculateLoanRate time.Time
+	CalculateInterval     float64 // In seconds
 }
 
 func NewLender(s *core.State) *Lender {
@@ -33,6 +34,7 @@ func NewLender(s *core.State) *Lender {
 	l.CurrentLoanRate = 1
 	l.Currency = "BTC"
 	l.JobQueue = make(chan *Job, 1000)
+	l.CalculateInterval = 1
 
 	return l
 }
@@ -44,7 +46,7 @@ func (l *Lender) Start() {
 			l.quit <- struct{}{}
 			return
 		case j := <-l.JobQueue:
-			if time.Since(l.LastCalculateLoanRate).Seconds() > 1 {
+			if time.Since(l.LastCalculateLoanRate).Seconds() >= l.CalculateInterval {
 				l.CalculateLoanRate()
 			}
 			l.ProcessJob(j)

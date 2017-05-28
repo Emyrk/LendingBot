@@ -8,6 +8,7 @@ import (
 	_ "github.com/DistributedSolutions/LendingBot/app"
 	controllers "github.com/DistributedSolutions/LendingBot/app/controllers"
 	_ "github.com/DistributedSolutions/LendingBot/app/lender"
+	_ "github.com/DistributedSolutions/LendingBot/app/scraper/scraperGRPC"
 	tests "github.com/DistributedSolutions/LendingBot/tests"
 	controllers0 "github.com/revel/modules/static/app/controllers"
 	_ "github.com/revel/modules/testrunner/app"

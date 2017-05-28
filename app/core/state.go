@@ -15,11 +15,19 @@ type State struct {
 	JWTSecret   [32]byte
 }
 
-func NewState() *State {
-	return newState(false)
+func NewFakePoloniexState() *State {
+	return newState(true, true)
 }
 
-func newState(withMap bool) *State {
+func NewState() *State {
+	return newState(false, false)
+}
+
+func NewStateWithMap() *State {
+	return newState(true, false)
+}
+
+func newState(withMap bool, fakePolo bool) *State {
 	s := new(State)
 	if withMap {
 		s.UserDB = userdb.NewMapUserDatabase()
@@ -27,7 +35,12 @@ func newState(withMap bool) *State {
 		s.UserDB = userdb.NewBoltUserDatabase()
 	}
 
-	s.PoloniexAPI = poloniex.StartPoloniex()
+	if fakePolo {
+		s.PoloniexAPI = poloniex.StartFakePoloniex()
+	} else {
+		s.PoloniexAPI = poloniex.StartPoloniex()
+	}
+
 	ck := make([]byte, 32)
 	copy(s.CipherKey[:], ck[:])
 
@@ -39,10 +52,6 @@ func newState(withMap bool) *State {
 	copy(s.JWTSecret[:], jck[:])
 
 	return s
-}
-
-func NewStateWithMap() *State {
-	return newState(true)
 }
 
 func (s *State) SetUserMinimumLoan(username string, minimumAmt float64) error {

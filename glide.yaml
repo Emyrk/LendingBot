@@ -6,6 +6,7 @@ import:
 - package: github.com/boltdb/bolt
 - package: github.com/dgrijalva/jwt-go
 - package: github.com/golang/protobuf
+  version: 9f174c986221c608fb5143bd623b6076a71feae3
   subpackages:
   - proto
 - package: github.com/prometheus/client_golang
@@ -24,7 +25,7 @@ import:
   subpackages:
   - context
 - package: google.golang.org/grpc
-  version: master
+  version: 2739967807cc0e3199513569f58fda34252ad65e
   subpackages:
   - codes
   - credentials

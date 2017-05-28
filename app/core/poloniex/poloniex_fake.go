@@ -2,8 +2,10 @@ package poloniex
 
 import (
 	"errors"
+	"fmt"
 	"math/rand"
 	"net/url"
+	"sync"
 	"time"
 
 	"github.com/DistributedSolutions/LendingBot/app/scraper/client"
@@ -23,6 +25,13 @@ type FakeLoanStruct struct {
 	ReturnTime time.Time
 }
 
+func (fk *FakeLoanStruct) Active(t time.Time) bool {
+	if fk.TakeTime.Before(t) {
+		return true
+	}
+	return false
+}
+
 type FakePoloniex struct {
 	Name                    string
 	Enabled                 bool
@@ -37,9 +46,10 @@ type FakePoloniex struct {
 	EnabledPairs   []string
 
 	// Fake Specific
-	Scraper  *client.ScraperClient
-	MyLoans  []*FakeLoanStruct
-	Balances map[string]map[string]float64
+	Scraper       *client.ScraperClient
+	MyLoans       map[int64]*FakeLoanStruct
+	availBalLock  sync.RWMutex
+	AvailBalances map[string]map[string]float64
 }
 
 func (p *FakePoloniex) SetDefaults() {
@@ -79,11 +89,47 @@ func (p *FakePoloniex) Setup(exch Exchanges) {
 	}
 
 	p.Scraper = client.NewScraperClient("Scraper", "localhost:50051")
-	p.MyLoans = make([]*FakeLoanStruct, 0)
+	p.MyLoans = make(map[int64]*FakeLoanStruct)
+	p.AvailBalances = make(map[string]map[string]float64)
 }
 
 func (p *FakePoloniex) LoadDay(day []byte) error {
 	return p.Scraper.LoadDay(day)
+}
+
+func (p *FakePoloniex) GetLastDayAndSecond() (day []byte, second []byte, err error) {
+	return p.Scraper.GetLastDayAndSecond()
+}
+
+func (p *FakePoloniex) String() string {
+	n := time.Now()
+	header := fmt.Sprintf("-- Fake Poloniex Summary %s --", time.Now().String())
+	balance := p.GetBalanceDetails(n)
+
+	return header + balance
+}
+
+func (p *FakePoloniex) GetBalanceDetails(t time.Time) string {
+	p.CheckLoanReturns()
+	p.availBalLock.RLock()
+	availAmt := p.AvailBalances["lending"]["BTC"]
+	avail := fmt.Sprintf("%20s:%f BTC\n", "Available Balances", availAmt)
+	p.availBalLock.RUnlock()
+
+	var takenAmt, waitingAmt float64
+	for _, l := range p.MyLoans {
+		if l.Active(t) {
+			takenAmt += l.Loan.Amount
+		} else {
+			waitingAmt += l.Loan.Amount
+		}
+	}
+
+	taken := fmt.Sprintf("%20s:%f BTC\n", "Active Loan", takenAmt)
+	waiting := fmt.Sprintf("%20s:%f BTC\n", "InActive Loan", waitingAmt)
+	total := fmt.Sprintf("%20s:%f BTC\n", "Total Balance", takenAmt+waitingAmt+availAmt)
+
+	return total + avail + taken + waiting
 }
 
 //
@@ -91,31 +137,70 @@ func (p *FakePoloniex) LoadDay(day []byte) error {
 //
 
 func (p *FakePoloniex) CreateLoanOffer(currency string, amount, rate float64, duration int, autoRenew bool, accessKey, secretKey string) (int64, error) {
+	p.CheckLoanReturns()
+	p.availBalLock.RLock()
+	have := p.AvailBalances["lending"]["BTC"]
+	p.availBalLock.RUnlock()
+	if have < amount {
+		return 0, fmt.Errorf("Not enough BTC. Have %f, need %f", amount, have)
+	}
+
 	fk := new(FakeLoanStruct)
 	fk.Loan.Amount = amount
 	fk.Loan.Currency = currency
-	fk.Loan.AutoRenew = autoRenew
+	fk.Loan.AutoRenew = func() int {
+		if autoRenew {
+			return 1
+		}
+		return 0
+	}()
 	fk.Loan.Date = time.Now().String()
 	fk.Loan.Duration = duration
 	fk.Loan.ID = rand.Int63()
 	fk.Loan.Rate = rate
 
-	takeTime := time.Now().Add(rand.Intn(10) * time.Second)
+	takeTime := time.Now().Add(time.Duration(rand.Intn(10)) * time.Second)
 	fk.TakeTime = takeTime
-	fk.ReturnTime = takeTime.Add(rand.Intn(10) * time.Second)
+	fk.ReturnTime = takeTime.Add(time.Duration(rand.Intn(10)) * time.Second)
 
-	p.MyLoans = append(p.MyLoans, fk)
+	p.MyLoans[fk.Loan.ID] = fk
 	return fk.Loan.ID, nil
 }
 
-func (p *FakePoloniex) CancelLoanOffer(currency string, orderNumber int64, accessKey, secretKey string) (bool, error) {
-	for i := range p.MyLoans {
-		if p.MyLoans[i].Loan.ID == orderNumber {
-			p.MyLoans = append(p.MyLoans[:i], p.MyLoans[i+1:])
+func (p *FakePoloniex) CheckLoanReturns() {
+	n := time.Now()
+	for id, l := range p.MyLoans {
+		if n.Before(l.ReturnTime) {
+			continue
 		}
+
+		rt := time.Since(l.ReturnTime).Seconds()
+		tt := time.Since(l.TakeTime).Seconds()
+		total := rt - tt
+		totalDays := total / 86400
+
+		p.availBalLock.Lock()
+		p.AvailBalances["lending"]["BTC"] += l.Loan.Amount + (l.Loan.Amount * (l.Loan.Rate * totalDays))
+		p.availBalLock.Unlock()
+		delete(p.MyLoans, id)
+	}
+}
+
+func (p *FakePoloniex) CancelLoanOffer(currency string, orderNumber int64, accessKey, secretKey string) (bool, error) {
+	p.CheckLoanReturns()
+	if !p.removeLoan(orderNumber) {
+		return false, fmt.Errorf("Loan not found")
 	}
 
 	return true, nil
+}
+
+func (p *FakePoloniex) removeLoan(loanid int64) bool {
+	if _, ok := p.MyLoans[loanid]; ok {
+		delete(p.MyLoans, loanid)
+		return true
+	}
+	return false
 }
 
 func (p *FakePoloniex) GetLoanOrders(currency string) (*PoloniexLoanOrders, error) {
@@ -123,6 +208,7 @@ func (p *FakePoloniex) GetLoanOrders(currency string) (*PoloniexLoanOrders, erro
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(data)
 
 	ret := new(PoloniexLoanOrders)
 	err = JSONDecode(data, ret)
@@ -134,11 +220,39 @@ func (p *FakePoloniex) GetLoanOrders(currency string) (*PoloniexLoanOrders, erro
 }
 
 func (p *FakePoloniex) GetOpenLoanOffers(accessKey, secretKey string) (map[string][]PoloniexLoanOffer, error) {
-	return nil, NotImplementedError
+	p.CheckLoanReturns()
+
+	all := make([]PoloniexLoanOffer, 0)
+	open := make(map[string][]PoloniexLoanOffer)
+
+	n := time.Now()
+	for _, l := range p.MyLoans {
+		if l.TakeTime.Before(n) {
+			continue
+		}
+		all = append(all, l.Loan)
+	}
+	open["BTC"] = all
+	return open, nil
 }
 
 func (p *FakePoloniex) GetActiveLoans(accessKey, secretKey string) (*PoloniexActiveLoans, error) {
-	return nil, NotImplementedError
+	p.CheckLoanReturns()
+
+	loans := new(PoloniexActiveLoans)
+	loans.Provided = make([]PoloniexLoanOffer, 0)
+	loans.Used = make([]PoloniexLoanOffer, 0)
+
+	n := time.Now()
+	for _, l := range p.MyLoans {
+		if l.TakeTime.Before(n) {
+			loans.Used = append(loans.Used, l.Loan)
+		} else {
+			loans.Provided = append(loans.Provided, l.Loan)
+		}
+	}
+
+	return loans, nil
 }
 
 //

@@ -45,21 +45,21 @@ func (sc *GRPSScraper) LoadDay(ctx context.Context, in *pb.Message) (*pb.Empty, 
 	hexStr := in.Message
 	data, err := hex.DecodeString(hexStr)
 	if err != nil {
-		return nil, err
+		return &pb.Empty{}, err
 	}
 
 	err = sc.Sc.Walker.LoadDay(data)
-	return nil, err
+	return &pb.Empty{}, err
 }
 
 func (sc *GRPSScraper) ReadNext(ctx context.Context, in *pb.Empty) (*pb.Message, error) {
 	next, err := sc.Sc.Walker.ReadNext()
 	if err != nil {
-		return nil, err
+		return &pb.Message{}, err
 	}
 
 	m := new(pb.Message)
-	pb.Message = hex.EncodeToString(next)
+	m.Message = hex.EncodeToString(next)
 	return m, nil
 }
 

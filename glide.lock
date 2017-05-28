@@ -1,5 +1,5 @@
-hash: 6a35558cde0264402ebd2fae1329716eed9c65105a11e9a428e7e665c4b7791f
-updated: 2017-05-28T12:28:19.062705336-05:00
+hash: a9704eb6e87b6f16d20211770b97ea82a3a82d69b7fa3474ef1e9fd7a8169fa1
+updated: 2017-05-28T12:34:06.365825471-05:00
 imports:
 - name: github.com/agtorre/gocolorize
   version: 99fea4bc9517f07eea8194702cb7076f4845b7de
@@ -44,7 +44,7 @@ imports:
 - name: github.com/fatih/color
   version: 62e9147c64a1ed519147b62a56a14e83e2be02c1
 - name: github.com/golang/protobuf
-  version: 1f49d83d9aa00e6ce4fc8258c71cc7786aec968a
+  version: 9f174c986221c608fb5143bd623b6076a71feae3
   subpackages:
   - proto
   - protoc-gen-go/descriptor

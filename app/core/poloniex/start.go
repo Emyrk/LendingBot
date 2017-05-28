@@ -4,6 +4,18 @@ import ()
 
 // StartPoloniex returns a Poloniex object to begin making API calls
 func StartPoloniex() *Poloniex {
+	polo := new(Poloniex)
+	startPoloniex(polo)
+	return polo
+}
+
+func StartFakePoloniex() *FakePoloniex {
+	polo := new(FakePoloniex)
+	startPoloniex(polo)
+	return polo
+}
+
+func startPoloniex(polo IPoloniex) {
 	// Poloniex client
 	var exch Exchanges
 	exch.Enabled = true
@@ -14,8 +26,5 @@ func StartPoloniex() *Poloniex {
 	exch.EnabledPairs = "BTC_LTC,BTC_ETH,BTC_DOGE,BTC_DASH,BTC_XRP,BTC_FCT"
 	exch.BaseCurrencies = "USD"
 
-	polo := new(Poloniex)
 	polo.Setup(exch)
-
-	return polo
 }
