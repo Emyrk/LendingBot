@@ -31,9 +31,9 @@ func NewMapUserDatabase() *UserDatabase {
 	return u
 }
 
-func NewBoltUserDatabase() *UserDatabase {
+func NewBoltUserDatabase(path string) *UserDatabase {
 	u := new(UserDatabase)
-	u.db = database.NewBoltDB("UserDatabase.db")
+	u.db = database.NewBoltDB(path)
 
 	return u
 }
@@ -76,11 +76,57 @@ func (ud *UserDatabase) AuthenticateUser(username string, password string) (bool
 		return false, nil, err
 	}
 
-	if u.Authenticate(password) {
+	if u.AuthenticatePassword(password) {
 		return true, u, nil
 	}
 
 	return false, nil, nil
+}
+
+func (ud *UserDatabase) Add2FA(username string, password string) (qr []byte, err error) {
+	u, err := ud.FetchUserIfFound(username)
+	if err != nil {
+		return nil, err
+	}
+
+	if !u.AuthenticatePassword(password) {
+		return nil, fmt.Errorf("Invalid password")
+	}
+
+	qr, err = u.Create2FA()
+	if err != nil {
+		return nil, err
+	}
+
+	err = ud.PutUser(u)
+	if err != nil {
+		return nil, err
+	}
+
+	return qr, nil
+}
+
+func (ud *UserDatabase) Enable2FA(username string, password string, token string, enabled bool) error {
+	u, err := ud.FetchUserIfFound(username)
+	if err != nil {
+		return err
+	}
+
+	if !u.AuthenticatePassword(password) {
+		return fmt.Errorf("Invalid password or 2FA")
+	}
+
+	valid := ud.validate2FA(u, token)
+	if valid != nil {
+		return err
+	}
+
+	u.Enabled2FA = enabled
+	return ud.PutUser(u)
+}
+
+func (ud *UserDatabase) validate2FA(u *User, token string) error {
+	return u.Validate2FA(token)
 }
 
 func (ud *UserDatabase) UpdateJWTTime(username string, t time.Time) error {

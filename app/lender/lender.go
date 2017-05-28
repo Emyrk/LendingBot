@@ -2,6 +2,7 @@ package lender
 
 import (
 	"fmt"
+	"log"
 	"sort"
 	"time"
 
@@ -47,9 +48,15 @@ func (l *Lender) Start() {
 			return
 		case j := <-l.JobQueue:
 			if time.Since(l.LastCalculateLoanRate).Seconds() >= l.CalculateInterval {
-				l.CalculateLoanRate()
+				err := l.CalculateLoanRate()
+				if err != nil {
+					log.Println("Error in Lending:", err)
+				}
 			}
-			l.ProcessJob(j)
+			err := l.ProcessJob(j)
+			if err != nil {
+				log.Println("Error in Lending:", err)
+			}
 		}
 	}
 }
