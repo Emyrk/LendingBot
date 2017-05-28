@@ -21,6 +21,7 @@ type User struct {
 	Salt         []byte
 
 	StartTime  time.Time
+	JWTTime    time.Time
 	MiniumLend float64
 
 	PoloniexKeys *PoloniexKeys
@@ -65,6 +66,7 @@ func NewUser(username string, password string) (*User, error) {
 	u.PoloniexKeys = NewBlankPoloniexKeys()
 
 	u.StartTime = time.Now()
+	u.JWTTime = time.Now()
 	return u, nil
 }
 
@@ -135,6 +137,12 @@ func (u *User) MarshalBinary() ([]byte, error) {
 	}
 	buf.Write(b)
 
+	b, err = u.JWTTime.MarshalBinary()
+	if err != nil {
+		return nil, err
+	}
+	buf.Write(b)
+
 	str := strconv.FormatFloat(u.MiniumLend, 'f', 6, 64)
 	b, err = primitives.MarshalStringToBytes(str, 100)
 	if err != nil {
@@ -186,6 +194,12 @@ func (u *User) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 	}
 
 	err = u.StartTime.UnmarshalBinary(newData[:15])
+	if err != nil {
+		return data, err
+	}
+	newData = newData[15:]
+
+	err = u.JWTTime.UnmarshalBinary(newData[:15])
 	if err != nil {
 		return data, err
 	}

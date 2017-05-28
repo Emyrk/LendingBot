@@ -16,4 +16,6 @@
 test-results/*
 UserDatabase.db
 
+vendor/*
+
 cmd

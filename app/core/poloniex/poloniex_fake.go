@@ -5,11 +5,23 @@ import (
 	"math/rand"
 	"net/url"
 	"time"
+
+	"github.com/DistributedSolutions/LendingBot/app/scraper/client"
 )
 
 var (
 	NotImplementedError error = errors.New("Not implemented")
 )
+
+type FakeLoanStruct struct {
+	Loan PoloniexLoanOffer
+
+	// Time it takes for the loan to be active
+	TakeTime time.Time
+
+	// Time for loan to be returned
+	ReturnTime time.Time
+}
 
 type FakePoloniex struct {
 	Name                    string
@@ -23,6 +35,11 @@ type FakePoloniex struct {
 	BaseCurrencies []string
 	AvailablePairs []string
 	EnabledPairs   []string
+
+	// Fake Specific
+	Scraper  *client.ScraperClient
+	MyLoans  []*FakeLoanStruct
+	Balances map[string]map[string]float64
 }
 
 func (p *FakePoloniex) SetDefaults() {
@@ -60,6 +77,13 @@ func (p *FakePoloniex) Setup(exch Exchanges) {
 		p.AvailablePairs = SplitStrings(exch.AvailablePairs, ",")
 		p.EnabledPairs = SplitStrings(exch.EnabledPairs, ",")
 	}
+
+	p.Scraper = client.NewScraperClient("Scraper", "localhost:50051")
+	p.MyLoans = make([]*FakeLoanStruct, 0)
+}
+
+func (p *FakePoloniex) LoadDay(day []byte) error {
+	return p.Scraper.LoadDay(day)
 }
 
 //
@@ -67,15 +91,46 @@ func (p *FakePoloniex) Setup(exch Exchanges) {
 //
 
 func (p *FakePoloniex) CreateLoanOffer(currency string, amount, rate float64, duration int, autoRenew bool, accessKey, secretKey string) (int64, error) {
-	return rand.Int63(), nil
+	fk := new(FakeLoanStruct)
+	fk.Loan.Amount = amount
+	fk.Loan.Currency = currency
+	fk.Loan.AutoRenew = autoRenew
+	fk.Loan.Date = time.Now().String()
+	fk.Loan.Duration = duration
+	fk.Loan.ID = rand.Int63()
+	fk.Loan.Rate = rate
+
+	takeTime := time.Now().Add(rand.Intn(10) * time.Second)
+	fk.TakeTime = takeTime
+	fk.ReturnTime = takeTime.Add(rand.Intn(10) * time.Second)
+
+	p.MyLoans = append(p.MyLoans, fk)
+	return fk.Loan.ID, nil
 }
 
 func (p *FakePoloniex) CancelLoanOffer(currency string, orderNumber int64, accessKey, secretKey string) (bool, error) {
+	for i := range p.MyLoans {
+		if p.MyLoans[i].Loan.ID == orderNumber {
+			p.MyLoans = append(p.MyLoans[:i], p.MyLoans[i+1:])
+		}
+	}
+
 	return true, nil
 }
 
 func (p *FakePoloniex) GetLoanOrders(currency string) (*PoloniexLoanOrders, error) {
-	return nil, NotImplementedError
+	data, err := p.Scraper.ReadNext()
+	if err != nil {
+		return nil, err
+	}
+
+	ret := new(PoloniexLoanOrders)
+	err = JSONDecode(data, ret)
+	if err != nil {
+		return nil, err
+	}
+
+	return ret, nil
 }
 
 func (p *FakePoloniex) GetOpenLoanOffers(accessKey, secretKey string) (map[string][]PoloniexLoanOffer, error) {
