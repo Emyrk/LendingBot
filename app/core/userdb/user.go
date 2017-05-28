@@ -17,11 +17,11 @@ type UserLevel uint32
 
 const (
 	// UserLevel
+	SysAdmin   UserLevel = 1000
+	Admin      UserLevel = 999
+	Moderator  UserLevel = 998
+	CommonUser UserLevel = 997
 	Unassigned UserLevel = 0
-	SysAdmin   UserLevel = 1
-	Admin      UserLevel = 2
-	Moderator  UserLevel = 3
-	CommonUser UserLevel = 4
 )
 
 func LevelToString(l UserLevel) string {
