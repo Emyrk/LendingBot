@@ -4,20 +4,54 @@ app.controller('indexController', ['$scope', '$http', function($scope, $http) {
 
 	indexScope.login = function() {
 		$http({
-			email: indexScope.email
-			pass: indexScope.pass
+			method: 'POST',
+			url: '/login',
+			data : {
+				email: indexScope.login.email,
+				pass: indexScope.login.pass,
+			}
 		})
 		.then((res) => {
 			if (res.error) {
 				//error in rpc
-				$log.error("jsonRpcService: postTorrentStreamSeek: Error: [" + JSON.stringify(res.error) + "]");
+				$log.error("login: Error: [" + JSON.stringify(res.error) + "]");
 			} else {
 				//success
-				$log.info("jsonRpcService: postTorrentStreamSeek: Success.");
+				$log.info("login: Success.");
 			}
 		}, (res) => {
-			//error on call SHOULD NEVER HAPPEN
-			$log.error("jsonRpcService: Error: [" + JSON.stringify(err) + "]");
+			$log.error("login: Error: [" + JSON.stringify(err) + "]");
+		})
+		.then(() => {
+			indexScope.login.email = "";
+			indexScope.login.pass = "";	
+		});
+	}
+
+	indexScope.register = function() {
+		$http(
+		{
+			method: 'POST',
+			url: '/register',
+			data : {
+				email: indexScope.register.email,
+				pass: indexScope.register.pass,
+			}
+		})
+		.then((res) => {
+			if (res.error) {
+				//error in rpc
+				$log.error("register: Error: [" + JSON.stringify(res.error) + "]");
+			} else {
+				//success
+				$log.info("register: Success.");
+			}
+		}, (res) => {
+			$log.error("register: Error: [" + JSON.stringify(err) + "]");
+		})
+		.then(() => {
+			indexScope.register.email = "";
+			indexScope.register.pass = "";	
 		});
 	}
 }]);

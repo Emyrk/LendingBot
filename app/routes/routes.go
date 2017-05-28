@@ -22,6 +22,13 @@ func (_ tApp) Login(
 	return revel.MainRouter.Reverse("App.Login", args).URL
 }
 
+func (_ tApp) Register(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("App.Register", args).URL
+}
+
 
 type tStatic struct {}
 var Static tStatic

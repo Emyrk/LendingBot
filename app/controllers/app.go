@@ -49,3 +49,30 @@ func (c App) Login() revel.Result {
 	fmt.Printf("email: %s, pass: %s, cookie: %s\n", email, pass, stringToken)
 	return c.RenderJSON(data)
 }
+
+func (c App) Register() revel.Result {
+	email := c.Params.Route.Get("email")
+	pass := c.Params.Route.Get("pass")
+
+	data := make(map[string]interface{})
+
+	err := state.NewUser(email, pass)
+	if err != nil {
+		data[JSON_ERROR] = "Unable to create new user"
+		c.Response.Status = 500
+		return c.RenderJSON(data)
+	}
+
+	stringToken, err := cryption.NewJWT(email, state.JWTSecret, cryption.JWT_EXPIRY_TIME)
+	if err != nil {
+		data[JSON_ERROR] = "Unable to create JWT"
+		c.Response.Status = 500
+		return c.RenderJSON(data)
+	}
+
+	jwt_cookie := &http.Cookie{Name: cryption.COOKIE_JWT_MAP, Value: stringToken}
+	c.SetCookie(jwt_cookie)
+
+	fmt.Printf("email: %s, pass: %s, cookie: %s\n", email, pass, stringToken)
+	return c.RenderJSON(data)
+}

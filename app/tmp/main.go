@@ -47,6 +47,13 @@ func main() {
 				RenderArgNames: map[int][]string{ 
 				},
 			},
+			&revel.MethodType{
+				Name: "Register",
+				Args: []*revel.MethodArg{ 
+				},
+				RenderArgNames: map[int][]string{ 
+				},
+			},
 			
 		})
 	
