@@ -55,8 +55,9 @@ type User struct {
 	MiniumLend float64
 
 	// 2FA
-	Has2FA  bool
-	User2FA *twofactor.Totp
+	Has2FA     bool
+	Enabled2FA bool
+	User2FA    *twofactor.Totp
 
 	PoloniexKeys *PoloniexKeys
 }
@@ -107,7 +108,7 @@ func NewUser(username string, password string) (*User, error) {
 	return u, nil
 }
 
-func (u *User) Authenticate(password string) bool {
+func (u *User) AuthenticatePassword(password string) bool {
 	hash := u.getPasswordHashFromPassword(password)
 	if bytes.Compare(u.PasswordHash[:], hash[:]) == 0 {
 		return true
@@ -202,6 +203,9 @@ func (u *User) MarshalBinary() ([]byte, error) {
 	buf.Write(b)
 
 	if u.Has2FA {
+		b = primitives.BoolToBytes(u.Enabled2FA)
+		buf.Write(b)
+
 		b, err = u.User2FA.ToBytes()
 		if err != nil {
 			return nil, err
@@ -292,6 +296,10 @@ func (u *User) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 	newData = newData[1:]
 	u.Has2FA = has2FA
 	if has2FA {
+		enabled := primitives.ByteToBool(newData[0])
+		newData = newData[1:]
+		u.Enabled2FA = enabled
+
 		l, err := primitives.BytesToUint32(newData[:4])
 		if err != nil {
 			return data, err
