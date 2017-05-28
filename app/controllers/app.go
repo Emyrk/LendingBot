@@ -70,7 +70,7 @@ func (c App) Login() revel.Result {
 
 	c.Session[cryption.COOKIE_JWT_MAP] = stringToken
 
-	return c.Redirect(AppAuthRequired.Dashboard)
+	return c.RenderJSON(data)
 }
 
 func (c App) Register() revel.Result {
