@@ -13,7 +13,7 @@ import (
 func main() {
 	var (
 		username = flag.String("u", "", "Username to change level of")
-		level    = flag.String("l", "", "Level to set user, 'admin', 'sysadmin'")
+		level    = flag.String("l", "", "Level to set user, 'admin', 'sysadmin', user")
 	)
 
 	flag.Parse()
@@ -36,12 +36,16 @@ func main() {
 	fmt.Println("-- User Found --")
 	fmt.Println(u)
 
-	if *level == "admin" {
+	switch *level {
+	case "admin":
 		db.SetUserLevel(*username, userdb.Admin)
-	} else if *level == "sysadmin" {
+	case "sysadmin":
 		db.SetUserLevel(*username, userdb.SysAdmin)
-	} else {
-		panic("No level detected")
+	case "user":
+		db.SetUserLevel(*username, userdb.CommonUser)
+	default:
+		fmt.Println("No level detected. Expect: 'sysadmin', admin', or 'user'")
+		return
 	}
 
 	u, err = db.FetchUserIfFound(*username)

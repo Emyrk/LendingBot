@@ -18,5 +18,7 @@ UserDatabase.db
 
 vendor/*
 app/tmp/*
-
+Keys/*
 cmd
+log/*
+keys/*
