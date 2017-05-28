@@ -17,7 +17,7 @@ var (
 )
 
 func main() {
-	s := core.NewState()
+	s := core.NewStateWithMap()
 	err := s.NewUser("hello", "123")
 	panicErr(err)
 

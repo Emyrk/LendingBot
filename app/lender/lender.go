@@ -73,9 +73,6 @@ func (l *Lender) CalculateLoanRate() error {
 
 	all := GetDensityOfLoans(loans)
 	for i, orderRange := range all {
-		if orderRange.Amount > 0 {
-			fmt.Println(orderRange.String())
-		}
 		amt += orderRange.Amount
 		if amt > 1 {
 			index = i

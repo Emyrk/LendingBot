@@ -16,7 +16,6 @@ type OrderDensity struct {
 func GetDensityOfLoans(orders *poloniex.PoloniexLoanOrders) []OrderDensity {
 	all := make([]OrderDensity, 2002)
 	for _, order := range orders.Offers {
-		fmt.Println(order.Rate, order.Amount)
 		if int(order.Rate*100000) > 2000 {
 			all[2001].AddOrder(order)
 		} else {
