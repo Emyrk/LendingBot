@@ -1,10 +1,12 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/DistributedSolutions/LendingBot/app/core"
 	"github.com/DistributedSolutions/LendingBot/app/core/cryption"
 	"github.com/revel/revel"
+	"io"
 	"net/http"
 )
 
@@ -12,6 +14,11 @@ var state *core.State
 
 func init() {
 	state = core.NewState()
+}
+
+type JSONUser struct {
+	Email string `json:"email"`
+	Pass  string `json:"pass"`
 }
 
 const (
@@ -27,9 +34,19 @@ func (c App) Index() revel.Result {
 	return c.Render()
 }
 
+func (c App) unmarshalUser(body io.ReadCloser) (string, string) {
+	var jsonUser JSONUser
+	err := json.NewDecoder(body).Decode(&jsonUser)
+	if err != nil {
+		fmt.Printf("Error unmarshaling user %s", err.Error())
+		return "", ""
+	}
+	defer body.Close()
+	return jsonUser.Email, jsonUser.Pass
+}
+
 func (c App) Login() revel.Result {
-	email := c.Params.Route.Get("email")
-	pass := c.Params.Route.Get("pass")
+	email, pass := c.unmarshalUser(c.Request.Body)
 
 	data := make(map[string]interface{})
 
@@ -37,6 +54,7 @@ func (c App) Login() revel.Result {
 	if !ok {
 		fmt.Printf("Error authenticating user: %s\n", err)
 		data[JSON_ERROR] = "Invalid login"
+		c.Response.Status = 400
 		return c.RenderJSON(data)
 	}
 
@@ -50,13 +68,11 @@ func (c App) Login() revel.Result {
 	jwt_cookie := &http.Cookie{Name: cryption.COOKIE_JWT_MAP, Value: stringToken}
 	c.SetCookie(jwt_cookie)
 
-	fmt.Printf("email: %s, pass: %s, cookie: %s\n", email, pass, stringToken)
 	return c.RenderJSON(data)
 }
 
 func (c App) Register() revel.Result {
-	email := c.Params.Route.Get("email")
-	pass := c.Params.Route.Get("pass")
+	email, pass := c.unmarshalUser(c.Request.Body)
 
 	data := make(map[string]interface{})
 
@@ -77,6 +93,5 @@ func (c App) Register() revel.Result {
 	jwt_cookie := &http.Cookie{Name: cryption.COOKIE_JWT_MAP, Value: stringToken}
 	c.SetCookie(jwt_cookie)
 
-	fmt.Printf("email: %s, pass: %s, cookie: %s\n", email, pass, stringToken)
 	return c.RenderJSON(data)
 }
