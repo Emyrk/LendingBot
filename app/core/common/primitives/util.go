@@ -100,11 +100,11 @@ func BytesToUint32(data []byte) (ret uint32, err error) {
 	return
 }
 
-func Uint64ToBytes(val uint64) ([]byte, error) {
+func Uint64ToBytes(val uint64) []byte {
 	b := make([]byte, 8)
 	binary.BigEndian.PutUint64(b, val)
 
-	return b, nil
+	return b
 }
 
 func BytesToUint64(data []byte) (uint64, error) {
@@ -115,7 +115,7 @@ func BytesToUint64(data []byte) (uint64, error) {
 	return u, nil
 }
 
-func Int64ToBytes(val int64) ([]byte, error) {
+func Int64ToBytes(val int64) []byte {
 	return Uint64ToBytes(uint64(val))
 }
 
