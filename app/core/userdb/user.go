@@ -12,6 +12,17 @@ import (
 	"github.com/DistributedSolutions/LendingBot/app/core/common/primitives"
 )
 
+type UserLevel uint32
+
+const (
+	// UserLevel
+	Unassigned UserLevel = 0
+	SysAdmin   UserLevel = 1
+	Admin      UserLevel = 2
+	Moderator  UserLevel = 3
+	CommonUser UserLevel = 4
+)
+
 const UsernameMaxLength int = 100
 const SaltLength int = 5
 
@@ -22,6 +33,7 @@ type User struct {
 
 	StartTime  time.Time
 	JWTTime    time.Time
+	Level      UserLevel
 	MiniumLend float64
 
 	PoloniexKeys *PoloniexKeys
@@ -67,6 +79,7 @@ func NewUser(username string, password string) (*User, error) {
 
 	u.StartTime = time.Now()
 	u.JWTTime = time.Now()
+	u.Level = CommonUser
 	return u, nil
 }
 
@@ -110,6 +123,10 @@ func (a *User) IsSameAs(b *User) bool {
 		return false
 	}
 
+	if a.Level != b.Level {
+		return false
+	}
+
 	return true
 }
 
@@ -141,6 +158,9 @@ func (u *User) MarshalBinary() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	buf.Write(b)
+
+	b = primitives.Uint32ToBytes(uint32(u.Level))
 	buf.Write(b)
 
 	str := strconv.FormatFloat(u.MiniumLend, 'f', 6, 64)
@@ -205,17 +225,25 @@ func (u *User) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 	}
 	newData = newData[15:]
 
+	v, err := primitives.BytesToUint32(newData[:4])
+	if err != nil {
+		return data, err
+	}
+	u.Level = UserLevel(v)
+	newData = newData[4:]
+
+	// Float64
 	var resp string
 	resp, newData, err = primitives.UnmarshalStringFromBytesData(newData, 100)
 	if err != nil {
 		return data, err
 	}
-
 	f, err := strconv.ParseFloat(resp, 64)
 	if err != nil {
 		return data, err
 	}
 	u.MiniumLend = f
+	//
 
 	newData, err = u.PoloniexKeys.UnmarshalBinaryData(newData)
 	if err != nil {
