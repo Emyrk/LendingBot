@@ -16,7 +16,7 @@ app.config(['$routeProvider', '$locationProvider', function($routeProvider, $loc
 	})
 	.when("/sysadmin",{
 		templateUrl : "/dashboard/sysadmin",
-		controller : "sysAdminController"
+		controller : "dashSysAdminController"
 	})
 	.when("/admin",{
 		templateUrl : "/dashboard/admin",
