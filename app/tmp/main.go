@@ -38,8 +38,6 @@ func main() {
 				Args: []*revel.MethodArg{ 
 				},
 				RenderArgNames: map[int][]string{ 
-					37: []string{ 
-					},
 				},
 			},
 			&revel.MethodType{
@@ -80,12 +78,17 @@ func main() {
 				},
 			},
 			&revel.MethodType{
+				Name: "Logout",
+				Args: []*revel.MethodArg{ 
+				},
+				RenderArgNames: map[int][]string{ 
+				},
+			},
+			&revel.MethodType{
 				Name: "InfoDashboard",
 				Args: []*revel.MethodArg{ 
 				},
 				RenderArgNames: map[int][]string{ 
-					117: []string{ 
-					},
 				},
 			},
 			&revel.MethodType{
@@ -93,8 +96,6 @@ func main() {
 				Args: []*revel.MethodArg{ 
 				},
 				RenderArgNames: map[int][]string{ 
-					121: []string{ 
-					},
 				},
 			},
 			&revel.MethodType{
@@ -102,8 +103,6 @@ func main() {
 				Args: []*revel.MethodArg{ 
 				},
 				RenderArgNames: map[int][]string{ 
-					125: []string{ 
-					},
 				},
 			},
 			&revel.MethodType{
@@ -111,8 +110,6 @@ func main() {
 				Args: []*revel.MethodArg{ 
 				},
 				RenderArgNames: map[int][]string{ 
-					129: []string{ 
-					},
 				},
 			},
 			&revel.MethodType{
@@ -120,8 +117,6 @@ func main() {
 				Args: []*revel.MethodArg{ 
 				},
 				RenderArgNames: map[int][]string{ 
-					133: []string{ 
-					},
 				},
 			},
 			&revel.MethodType{

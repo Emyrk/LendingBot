@@ -34,7 +34,7 @@ type AppAuthRequired struct {
 }
 
 func (c App) Sandbox() revel.Result {
-	return c.Render()
+	return c.RenderTemplate("App/Index.html")
 }
 
 func (c App) Index() revel.Result {
@@ -113,24 +113,29 @@ func (r AppAuthRequired) Dashboard() revel.Result {
 	return r.Render()
 }
 
+func (r AppAuthRequired) Logout() revel.Result {
+	r.Session[cryption.COOKIE_JWT_MAP] = ""
+	return r.Redirect(App.Index)
+}
+
 func (r AppAuthRequired) InfoDashboard() revel.Result {
-	return r.Render()
+	return r.RenderTemplate("AppAuthRequired/InfoDashboard.html")
 }
 
 func (r AppAuthRequired) InfoAdvancedDashboard() revel.Result {
-	return r.Render()
+	return r.RenderTemplate("AppAuthRequired/InfoAdvancedDashboard.html")
 }
 
 func (r AppAuthRequired) SettingsDashboard() revel.Result {
-	return r.Render()
+	return r.RenderTemplate("AppAuthRequired/SettingsDashboard.html")
 }
 
 func (r AppAuthRequired) SysAdminDashboard() revel.Result {
-	return r.Render()
+	return r.RenderTemplate("AppAuthRequired/SysAdminDashboard.html")
 }
 
 func (r AppAuthRequired) AdminDashboard() revel.Result {
-	return r.Render()
+	return r.RenderTemplate("AppAuthRequired/AdminDashboard.html")
 }
 
 //called before any auth required function

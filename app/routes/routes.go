@@ -48,6 +48,13 @@ func (_ tAppAuthRequired) Dashboard(
 	return revel.MainRouter.Reverse("AppAuthRequired.Dashboard", args).URL
 }
 
+func (_ tAppAuthRequired) Logout(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("AppAuthRequired.Logout", args).URL
+}
+
 func (_ tAppAuthRequired) InfoDashboard(
 		) string {
 	args := make(map[string]string)

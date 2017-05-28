@@ -3,18 +3,18 @@
 
 <div ng-controller="dashBaseController">
 	<ul>
-		<li><a href="#!/"><span>DashBoard</span></a></li>
-		<li><a href="#!/settings"><span>Settings</span></a></li>
+		<li><a href="#/"><span>DashBoard</span></a></li>
+		<li><a href="#/settings"><span>Settings</span></a></li>
 		[[if eq .UserLevel "1"]]
-		<li><a href="#!/sysadmin"><span>Sys Admin</span></a></li>
+		<li><a href="#/sysadmin"><span>Sys Admin</span></a></li>
 		[[end]]
 		[[if eq .UserLevel "2"]]
-		<li><a href="#!/admin"><span>Admin</span></a></li>
+		<li><a href="#/admin"><span>Admin</span></a></li>
 		[[end]]
 		[[if eq .UserLevel "3"]]
-		<li><a href="#!/moderator"><span>Moderator</span></a></li>
+		<li><a href="#/moderator"><span>Moderator</span></a></li>
 		[[end]]
-		<li><a href="" ng-click="logout()"><span>Logout</span></a></li>
+		<li><a href="/logout"><span>Logout</span></a></li>
 	</ul>
 	<h1>
 		You are on the dashboard
