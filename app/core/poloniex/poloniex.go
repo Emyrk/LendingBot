@@ -946,6 +946,23 @@ func (p *Poloniex) CancelLoanOffer(currency string, orderNumber int64, accessKey
 	return true, nil
 }
 
+type PoloniexLoanOfferArray []PoloniexLoanOffer
+
+func (slice PoloniexLoanOfferArray) Len() int {
+	return len(slice)
+}
+
+func (slice PoloniexLoanOfferArray) Less(i, j int) bool {
+	if slice[i].Rate < slice[j].Rate {
+		return true
+	}
+	return false
+}
+
+func (slice PoloniexLoanOfferArray) Swap(i, j int) {
+	slice[i], slice[j] = slice[j], slice[i]
+}
+
 type PoloniexLoanOffer struct {
 	ID        int64   `json:"id"`
 	Currency  string  `json:"currency"`
