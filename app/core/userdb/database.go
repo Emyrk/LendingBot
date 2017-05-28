@@ -38,6 +38,10 @@ func NewBoltUserDatabase(path string) *UserDatabase {
 	return u
 }
 
+func (ud *UserDatabase) Close() error {
+	return ud.db.Close()
+}
+
 func (ud *UserDatabase) PutUser(u *User) error {
 	hash := GetUsernameHash(u.Username)
 	return ud.put(UsersBucket, hash[:], u)
@@ -70,14 +74,22 @@ func (ud *UserDatabase) FetchUser(username string) (*User, error) {
 	return u, nil
 }
 
-func (ud *UserDatabase) AuthenticateUser(username string, password string) (bool, *User, error) {
+func (ud *UserDatabase) AuthenticateUser(username string, password string, token string) (bool, *User, error) {
 	u, err := ud.FetchUserIfFound(username)
 	if err != nil {
 		return false, nil, err
 	}
 
-	if u.AuthenticatePassword(password) {
-		return true, u, nil
+	if !u.AuthenticatePassword(password) {
+		return false, nil, nil
+	}
+
+	// Passed Password Auth
+	if u.Enabled2FA {
+		err = ud.validate2FA(u, token)
+		if err != nil {
+			return false, nil, err
+		}
 	}
 
 	return false, nil, nil
@@ -87,6 +99,10 @@ func (ud *UserDatabase) Add2FA(username string, password string) (qr []byte, err
 	u, err := ud.FetchUserIfFound(username)
 	if err != nil {
 		return nil, err
+	}
+
+	if u.Enabled2FA {
+		return nil, fmt.Errorf("2FA is already enabled. Disable to generate a new barcode")
 	}
 
 	if !u.AuthenticatePassword(password) {

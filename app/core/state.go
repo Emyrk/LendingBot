@@ -59,6 +59,10 @@ func newState(withMap bool, fakePolo bool) *State {
 	return s
 }
 
+func (s *State) Close() error {
+	return s.UserDB.Close()
+}
+
 func (s *State) SetUserMinimumLoan(username string, minimumAmt float64) error {
 	u, err := s.UserDB.FetchUserIfFound(username)
 	if err != nil {
@@ -107,5 +111,9 @@ func (s *State) FetchUser(username string) (*userdb.User, error) {
 }
 
 func (s *State) AuthenticateUser(username string, password string) (bool, *userdb.User, error) {
-	return s.UserDB.AuthenticateUser(username, password)
+	return s.UserDB.AuthenticateUser(username, password, "")
+}
+
+func (s *State) AuthenticateUser2FA(username string, password string, token string) (bool, *userdb.User, error) {
+	return s.UserDB.AuthenticateUser(username, password, token)
 }
