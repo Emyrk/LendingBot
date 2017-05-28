@@ -205,6 +205,7 @@ func (w *Walker) LoadDay(day []byte) error {
 
 	sort.Sort(SortableValues(keys))
 	w.TodayDay = keys
+	w.Index = 0
 	return nil
 }
 
@@ -216,9 +217,48 @@ func (w *Walker) LoadSecond(second []byte) ([]byte, error) {
 	return data, nil
 }
 
+// ReadNext reads the next loan order book in line. It will go to the next
+// day if we run out of data points on this day
 func (w *Walker) ReadNext() ([]byte, error) {
+	if w.Index >= len(w.TodayDay) {
+		// Load a new day
+		u, err := primitives.BytesToUint32(w.Day)
+		if err != nil {
+			return nil, err
+		}
 
-	return nil, nil
+		lastDay, _, err := w.GetLastDayAndSecond()
+		if err != nil {
+			return nil, err
+		}
+		lastU, err := primitives.BytesToUint32(lastDay)
+		if err != nil {
+			return nil, err
+		}
+
+		for {
+			if u > lastU {
+				return nil, fmt.Errorf("Out of data to read from. On day %d, last day is %d", u, lastU)
+			}
+			u++
+			b := primitives.Uint32ToBytes(u)
+			keys, err := w.scraper.db.ListAllKeys(b)
+			if err != nil {
+				continue
+			}
+
+			if len(keys) > 0 {
+				w.LoadDay(b)
+				break
+			}
+		}
+
+	}
+
+	data := w.TodayDay[w.Index]
+	w.Index++
+
+	return data, nil
 }
 
 func (w *Walker) ReadLast() ([]byte, error) {

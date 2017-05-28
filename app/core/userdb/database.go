@@ -82,6 +82,17 @@ func (ud *UserDatabase) AuthenticateUser(username string, password string) (bool
 	return false, nil, nil
 }
 
+func (ud *UserDatabase) UpdateJWTTime(username string, t time.Time) error {
+	u, err := ud.FetchUserIfFound(username)
+	if err != nil {
+		return err
+	}
+
+	u.JWTTime = t
+
+	return ud.PutUser(u)
+}
+
 func (ud *UserDatabase) put(bucket []byte, key []byte, obj BinaryMarshalable) error {
 	data, err := obj.MarshalBinary()
 	if err != nil {
