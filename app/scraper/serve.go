@@ -5,7 +5,7 @@ import (
 	"log"
 	"net"
 
-	pb "github.com/DistributedSolutions/LendingBot/app/scraper/scraperGRPC"
+	pb "github.com/Emyrk/LendingBot/app/scraper/scraperGRPC"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"

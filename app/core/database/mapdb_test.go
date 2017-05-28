@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/DistributedSolutions/DIMWIT/common/primitives/random"
-	. "github.com/DistributedSolutions/DIMWIT/database"
+	"github.com/Emyrk/DIMWIT/common/primitives/random"
+	. "github.com/Emyrk/DIMWIT/database"
 )
 
 var _ = fmt.Sprintf("")

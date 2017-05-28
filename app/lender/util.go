@@ -3,7 +3,7 @@ package lender
 import (
 	"fmt"
 
-	"github.com/DistributedSolutions/LendingBot/app/core/poloniex"
+	"github.com/Emyrk/LendingBot/app/core/poloniex"
 )
 
 type OrderDensity struct {

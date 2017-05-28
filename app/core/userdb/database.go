@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/DistributedSolutions/LendingBot/app/core/database"
+	"github.com/Emyrk/LendingBot/app/core/database"
 )
 
 var _ = fmt.Println

@@ -1,7 +1,7 @@
 package lender
 
 import (
-	user "github.com/DistributedSolutions/LendingBot/app/core/userdb"
+	user "github.com/Emyrk/LendingBot/app/core/userdb"
 )
 
 type Job struct {

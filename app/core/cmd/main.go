@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/DistributedSolutions/LendingBot/app/core"
+	"github.com/Emyrk/LendingBot/app/core"
 )
 
 var _ = fmt.Println

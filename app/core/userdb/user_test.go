@@ -3,7 +3,7 @@ package userdb_test
 import (
 	"testing"
 
-	. "github.com/DistributedSolutions/LendingBot/app/core/userdb"
+	. "github.com/Emyrk/LendingBot/app/core/userdb"
 )
 
 func TestUserMarshal(t *testing.T) {

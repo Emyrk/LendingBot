@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/DistributedSolutions/LendingBot/app/core"
-	"github.com/DistributedSolutions/LendingBot/app/lender"
+	"github.com/Emyrk/LendingBot/app/core"
+	"github.com/Emyrk/LendingBot/app/lender"
 )
 
 var _ = time.Second

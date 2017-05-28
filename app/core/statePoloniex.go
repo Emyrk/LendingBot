@@ -3,8 +3,8 @@ package core
 import (
 	"fmt"
 
-	"github.com/DistributedSolutions/LendingBot/app/core/poloniex"
-	//"github.com/DistributedSolutions/LendingBot/app/core/userdb"
+	"github.com/Emyrk/LendingBot/app/core/poloniex"
+	//"github.com/Emyrk/LendingBot/app/core/userdb"
 )
 
 var _ = fmt.Println
