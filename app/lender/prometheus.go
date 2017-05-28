@@ -6,22 +6,22 @@ import (
 
 var (
 	CurrentLoanRate = prometheus.NewGauge(prometheus.GaugeOpts{
-		Name: "lending_lender_current_lend_rate",
+		Name: "hodlzone_lender_current_lend_rate",
 		Help: "Shows the current lending rate when it is calculated",
 	})
 
 	LoansCreated = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "lending_lender_loans_created_count",
+		Name: "hodlzone_lender_loans_created_count",
 		Help: "Count of loans created",
 	})
 
 	LoansCanceled = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "lending_lender_loans_canceled_count",
+		Name: "hodlzone_lender_loans_canceled_count",
 		Help: "Count of loans created",
 	})
 
 	JobsDone = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "lending_lender_jobs_complete",
+		Name: "hodlzone_lender_jobs_complete",
 		Help: "The counter of how many jobs are done",
 	})
 )

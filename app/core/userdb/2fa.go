@@ -7,12 +7,12 @@ import (
 	"github.com/DistributedSolutions/twofactor"
 )
 
-func (u *User) Create2FA() ([]byte, error) {
+func (u *User) Create2FA(issuer string) ([]byte, error) {
 	if u.Has2FA {
 		return nil, fmt.Errorf("2FA is already enabled")
 	}
 
-	tfa, err := twofactor.NewTOTP(u.Username, "HodlZone", crypto.SHA256, 8)
+	tfa, err := twofactor.NewTOTP(u.Username, issuer, crypto.SHA256, 8)
 	if err != nil {
 		return nil, err
 	}

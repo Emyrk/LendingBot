@@ -74,6 +74,25 @@ func (ud *UserDatabase) FetchUser(username string) (*User, error) {
 	return u, nil
 }
 
+func (ud *UserDatabase) FetchAllUsers() ([]User, error) {
+	var all []User
+
+	keys, err := ud.db.ListAllKeys(UsersBucket)
+	if err != nil {
+		return all, err
+	}
+
+	for _, k := range keys {
+		u := NewBlankUser()
+		f, err := ud.get(UsersBucket, k, u)
+		if f && err == nil {
+			all = append(all, *u)
+		}
+	}
+
+	return all, nil
+}
+
 func (ud *UserDatabase) AuthenticateUser(username string, password string, token string) (bool, *User, error) {
 	u, err := ud.FetchUserIfFound(username)
 	if err != nil {
@@ -109,7 +128,7 @@ func (ud *UserDatabase) Add2FA(username string, password string) (qr []byte, err
 		return nil, fmt.Errorf("Invalid password")
 	}
 
-	qr, err = u.Create2FA()
+	qr, err = u.Create2FA("HodlZone")
 	if err != nil {
 		return nil, err
 	}

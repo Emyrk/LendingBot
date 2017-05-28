@@ -110,10 +110,6 @@ func (s *State) FetchUser(username string) (*userdb.User, error) {
 	return s.UserDB.FetchUser(username)
 }
 
-func (s *State) AuthenticateUser(username string, password string) (bool, *userdb.User, error) {
-	return s.UserDB.AuthenticateUser(username, password, "")
-}
-
-func (s *State) AuthenticateUser2FA(username string, password string, token string) (bool, *userdb.User, error) {
-	return s.UserDB.AuthenticateUser(username, password, token)
+func (s *State) FetchAllUsers() ([]userdb.User, error) {
+	return s.UserDB.FetchAllUsers()
 }

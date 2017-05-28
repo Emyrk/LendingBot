@@ -2,12 +2,22 @@ package core
 
 import (
 	"encoding/base64"
+
+	"github.com/Emyrk/LendingBot/app/core/userdb"
 )
+
+func (s *State) AuthenticateUser(username string, password string) (bool, *userdb.User, error) {
+	return s.UserDB.AuthenticateUser(username, password, "")
+}
+
+func (s *State) AuthenticateUser2FA(username string, password string, token string) (bool, *userdb.User, error) {
+	return s.UserDB.AuthenticateUser(username, password, token)
+}
 
 func (s *State) Add2FA(username string, password string) (qr64 string, err error) {
 	qrRaw, err := s.UserDB.Add2FA(username, password)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	qr64 = base64.StdEncoding.EncodeToString(qrRaw)

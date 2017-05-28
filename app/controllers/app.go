@@ -3,16 +3,41 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+
+	"io"
+
 	"github.com/Emyrk/LendingBot/app/core"
 	"github.com/Emyrk/LendingBot/app/core/cryption"
+	"github.com/Emyrk/LendingBot/app/lender"
+	"github.com/Emyrk/LendingBot/app/queuer"
 	"github.com/revel/revel"
-	"io"
+
+	// For Prometheus
+	"github.com/prometheus/client_golang/prometheus"
+	"net/http"
 )
 
 var state *core.State
 
 func init() {
+	// Prometheus
+	lender.RegisterPrometheus()
+	queuer.RegisterPrometheus()
+
 	state = core.NewState()
+	lenderBot := lender.NewLender(state)
+	queuerBot := queuer.NewQueuer(state, lenderBot)
+
+	return
+	// Start go lending
+	go lenderBot.Start()
+	go queuerBot.Start()
+	go launchPrometheus(9911)
+}
+
+func launchPrometheus(port int) {
+	http.Handle("/metrics", prometheus.Handler())
+	go http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 }
 
 type JSONUser struct {

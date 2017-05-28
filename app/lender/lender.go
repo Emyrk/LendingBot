@@ -70,6 +70,10 @@ func (l *Lender) AddJob(j *Job) error {
 	return nil
 }
 
+func (l *Lender) JobQueueLength() int {
+	return len(l.JobQueue)
+}
+
 func (l *Lender) CalculateLoanRate() error {
 	s := l.State
 	loans, err := s.PoloniecGetLoanOrders(l.Currency)
