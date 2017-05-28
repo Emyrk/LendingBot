@@ -31,9 +31,9 @@ func NewMapUserDatabase() *UserDatabase {
 	return u
 }
 
-func NewBoltUserDatabase() *UserDatabase {
+func NewBoltUserDatabase(path string) *UserDatabase {
 	u := new(UserDatabase)
-	u.db = database.NewBoltDB("UserDatabase.db")
+	u.db = database.NewBoltDB(path)
 
 	return u
 }

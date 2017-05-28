@@ -23,6 +23,23 @@ const (
 	CommonUser UserLevel = 4
 )
 
+func LevelToString(l UserLevel) string {
+	switch l {
+	case Unassigned:
+		return "Unassigned"
+	case SysAdmin:
+		return "SysAdmin"
+	case Admin:
+		return "Admin"
+	case Moderator:
+		return "Moderator"
+	case CommonUser:
+		return "CommonUser"
+	default:
+		return "???"
+	}
+}
+
 const UsernameMaxLength int = 100
 const SaltLength int = 5
 
@@ -100,6 +117,10 @@ func (u *User) getPasswordHashFromPassword(password string) [32]byte {
 	passAndSalt := append([]byte(password), u.Salt...)
 	hash := sha256.Sum256(passAndSalt)
 	return hash
+}
+
+func (u *User) String() string {
+	return fmt.Sprintf("UserName: %s, Level: %s", u.Username, LevelToString(u.Level))
 }
 
 func (a *User) IsSameAs(b *User) bool {

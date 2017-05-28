@@ -8,8 +8,7 @@ var _ = fmt.Println
 
 func main() {
 	s := NewSimulator()
-	orders, err := s.Polo.GetLoanOrders("BTC")
-	fmt.Println(orders, err)
+	s.Start()
 
 	var _ = s
 }

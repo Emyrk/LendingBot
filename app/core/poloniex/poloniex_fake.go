@@ -91,6 +91,20 @@ func (p *FakePoloniex) Setup(exch Exchanges) {
 	p.Scraper = client.NewScraperClient("Scraper", "localhost:50051")
 	p.MyLoans = make(map[int64]*FakeLoanStruct)
 	p.AvailBalances = make(map[string]map[string]float64)
+	p.AvailBalances["lending"] = make(map[string]float64)
+	p.AvailBalances["margin"] = make(map[string]float64)
+	p.AvailBalances["exchange"] = make(map[string]float64)
+
+	for k, _ := range p.AvailBalances {
+		p.AvailBalances[k]["BTC"] = 0
+	}
+}
+
+func (p *FakePoloniex) AddFunds(currency string, amt float64) {
+	p.availBalLock.Lock()
+	p.AvailBalances["lending"][currency] += amt
+	p.availBalLock.Unlock()
+	return
 }
 
 func (p *FakePoloniex) LoadDay(day []byte) error {
@@ -136,6 +150,21 @@ func (p *FakePoloniex) GetBalanceDetails(t time.Time) string {
 // Fake These
 //
 
+func (p *FakePoloniex) GetAvilableBalances(accessKey, secretKey string) (map[string]map[string]float64, error) {
+	newMap := make(map[string]map[string]float64)
+	p.availBalLock.Lock()
+	for k, v := range p.AvailBalances {
+		newMap[k] = make(map[string]float64)
+		for k2, v2 := range v {
+			newMap[k][k2] = v2
+		}
+	}
+	p.availBalLock.Unlock()
+
+	return newMap, nil
+
+}
+
 func (p *FakePoloniex) CreateLoanOffer(currency string, amount, rate float64, duration int, autoRenew bool, accessKey, secretKey string) (int64, error) {
 	p.CheckLoanReturns()
 	p.availBalLock.RLock()
@@ -164,6 +193,11 @@ func (p *FakePoloniex) CreateLoanOffer(currency string, amount, rate float64, du
 	fk.ReturnTime = takeTime.Add(time.Duration(rand.Intn(10)) * time.Second)
 
 	p.MyLoans[fk.Loan.ID] = fk
+
+	p.availBalLock.Lock()
+	p.AvailBalances["lending"]["BTC"] -= amount
+	p.availBalLock.Unlock()
+
 	return fk.Loan.ID, nil
 }
 
@@ -208,7 +242,6 @@ func (p *FakePoloniex) GetLoanOrders(currency string) (*PoloniexLoanOrders, erro
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(data)
 
 	ret := new(PoloniexLoanOrders)
 	err = JSONDecode(data, ret)
@@ -346,11 +379,6 @@ func (p *FakePoloniex) GetFeeInfo(accessKey, secretKey string) (PoloniexFee, err
 
 func (p *FakePoloniex) GetTradableBalances(accessKey, secretKey string) (map[string]map[string]float64, error) {
 	return nil, NotImplementedError
-}
-
-func (p *FakePoloniex) GetAvilableBalances(accessKey, secretKey string) (map[string]map[string]float64, error) {
-	return nil, NotImplementedError
-
 }
 
 func (p *FakePoloniex) TransferBalance(currency, from, to string, amount float64, accessKey, secretKey string) (bool, error) {

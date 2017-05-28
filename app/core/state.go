@@ -32,7 +32,7 @@ func newState(withMap bool, fakePolo bool) *State {
 	if withMap {
 		s.UserDB = userdb.NewMapUserDatabase()
 	} else {
-		s.UserDB = userdb.NewBoltUserDatabase()
+		s.UserDB = userdb.NewBoltUserDatabase("UserDatabase.db")
 	}
 
 	if fakePolo {
