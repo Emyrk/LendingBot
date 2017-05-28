@@ -2,6 +2,7 @@ package userdb
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/DistributedSolutions/LendingBot/app/core/database"
 )
