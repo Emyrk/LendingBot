@@ -94,6 +94,17 @@ func (ud *UserDatabase) UpdateJWTTime(username string, t time.Time) error {
 	return ud.PutUser(u)
 }
 
+func (ud *UserDatabase) SetUserLevel(username string, level UserLevel) error {
+	u, err := ud.FetchUserIfFound(username)
+	if err != nil {
+		return err
+	}
+
+	u.Level = level
+
+	return ud.PutUser(u)
+}
+
 func (ud *UserDatabase) put(bucket []byte, key []byte, obj BinaryMarshalable) error {
 	data, err := obj.MarshalBinary()
 	if err != nil {
