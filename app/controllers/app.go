@@ -7,7 +7,6 @@ import (
 	"github.com/DistributedSolutions/LendingBot/app/core/cryption"
 	"github.com/revel/revel"
 	"io"
-	"net/http"
 )
 
 var state *core.State
@@ -27,6 +26,10 @@ const (
 )
 
 type App struct {
+	*revel.Controller
+}
+
+type AppAuthRequired struct {
 	*revel.Controller
 }
 
@@ -65,10 +68,9 @@ func (c App) Login() revel.Result {
 		return c.RenderJSON(data)
 	}
 
-	jwt_cookie := &http.Cookie{Name: cryption.COOKIE_JWT_MAP, Value: stringToken}
-	c.SetCookie(jwt_cookie)
+	c.Session[cryption.COOKIE_JWT_MAP] = stringToken
 
-	return c.RenderJSON(data)
+	return c.Redirect(AppAuthRequired.Dashboard)
 }
 
 func (c App) Register() revel.Result {
@@ -90,8 +92,22 @@ func (c App) Register() revel.Result {
 		return c.RenderJSON(data)
 	}
 
-	jwt_cookie := &http.Cookie{Name: cryption.COOKIE_JWT_MAP, Value: stringToken}
-	c.SetCookie(jwt_cookie)
+	c.Session[cryption.COOKIE_JWT_MAP] = stringToken
 
 	return c.RenderJSON(data)
+}
+
+func (r AppAuthRequired) Dashboard() revel.Result {
+	return r.Render()
+}
+
+//called before any auth required function
+func (r AppAuthRequired) AuthUser() revel.Result {
+	tokenString := r.Session[cryption.COOKIE_JWT_MAP]
+	_, err := cryption.VerifyJWT(tokenString, state.JWTSecret)
+	if err != nil {
+		fmt.Printf("WARNING: AuthUser failed JWT Token: %s\n", tokenString)
+		return r.Redirect(App.Index)
+	}
+	return nil
 }
