@@ -1,0 +1,27 @@
+package: github.com/DistributedSolutions/LendingBot
+import:
+- package: github.com/DistributedSolutions/DIMWIT
+  subpackages:
+  - common/constants
+- package: github.com/boltdb/bolt
+- package: github.com/dgrijalva/jwt-go
+- package: github.com/golang/protobuf
+  subpackages:
+  - proto
+- package: github.com/prometheus/client_golang
+  subpackages:
+  - prometheus
+- package: github.com/revel/modules
+  subpackages:
+  - static/app/controllers
+  - testrunner/app
+  - testrunner/app/controllers
+- package: github.com/revel/revel
+  subpackages:
+  - testing
+- package: golang.org/x/net
+  subpackages:
+  - context
+- package: google.golang.org/grpc
+  subpackages:
+  - reflection
