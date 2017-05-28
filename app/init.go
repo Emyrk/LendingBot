@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/DistributedSolutions/LendingBot/app/controllers"
 	"github.com/revel/revel"
 )
 
@@ -28,7 +29,7 @@ func init() {
 		revel.CompressFilter,          // Compress the result.
 		revel.ActionInvoker,           // Invoke the action.
 	}
-
+	revel.InterceptMethod(controllers.AppAuthRequired.AuthUser, revel.BEFORE)
 	// register startup functions with OnAppStart
 	// revel.DevMode and revel.RunMode only work inside of OnAppStart. See Example Startup Script
 	// ( order dependent )
