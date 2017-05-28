@@ -1,0 +1,89 @@
+.navbar-fixed-bottom, .navbar-fixed-top {
+   position: fixed;
+   right: 0;
+   left: 0;
+   z-index: 1030;
+}
+ 
+.navbar {
+   padding: 20px 40px;
+   width: 100%;
+   box-sizing: border-box;
+   background: rgba(33, 119, 225, 0);
+   margin-bottom: 0;
+}
+
+#hero {
+   background: url(../img/bg-2-min.jpg) center;
+   height: 100% !important;
+   background-size: cover;
+   padding-top: 145px;
+   padding: 0px;
+}
+
+
+
+
+
+
+
+/*
+.hero-section {
+  background: url("http://www.zurb.com/blog/system/images/1698/original/ZB_F5Yeti_8-06.png?1441395222") 50% no-repeat;
+  background-size: cover;
+  height: 80vh;
+  text-align: center;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-align-items: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-justify-content: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+}
+
+.hero-section .hero-section-text {
+  color: #fefefe;
+  text-shadow: 1px 1px 2px #0a0a0a;
+}
+
+ .size-12 { font-size: 12px; }
+      .size-14 { font-size: 14px; }
+      .size-16 { font-size: 16px; }
+      .size-18 { font-size: 18px; }
+      .size-21 { font-size: 21px; }
+      .size-24 { font-size: 24px; }
+      .size-36 { font-size: 36px; }
+      .size-48 { font-size: 48px; }
+      .size-60 { font-size: 60px; }
+      .size-72 { font-size: 72px; }
+      .size-102 { font-size: 102px; }
+      
+      i.medium { font-size: 48px;}
+      i.large { font-size: 72px;}
+      i.xlarge { font-size: 102px;}
+
+  .hero {
+    background: url("http://dreamicus.com/data/wall/wall-01.jpg") 50% no-repeat;
+  background-size: cover;
+  height: 80vh;
+  text-align: center;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-align-items: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-justify-content: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  }
+
+  .hero .hero-text {
+  color: #fefefe;
+  /*text-shadow: 1px 1px 2px #0a0a0a;*/
+}
+
+*/

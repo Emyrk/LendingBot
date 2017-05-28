@@ -8,6 +8,13 @@ type tApp struct {}
 var App tApp
 
 
+func (_ tApp) Sandbox(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("App.Sandbox", args).URL
+}
+
 func (_ tApp) Index(
 		) string {
 	args := make(map[string]string)
