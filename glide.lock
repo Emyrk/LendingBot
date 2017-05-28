@@ -1,5 +1,5 @@
-hash: 83886c6ad023a2f6f5acc57fc58b271b03b82412ddcc37629888d1e144eabd41
-updated: 2017-05-28T12:08:47.628718464-05:00
+hash: 6a35558cde0264402ebd2fae1329716eed9c65105a11e9a428e7e665c4b7791f
+updated: 2017-05-28T12:28:19.062705336-05:00
 imports:
 - name: github.com/agtorre/gocolorize
   version: 99fea4bc9517f07eea8194702cb7076f4845b7de
@@ -105,7 +105,7 @@ imports:
   - ed25519
   - ed25519/internal/edwards25519
 - name: golang.org/x/net
-  version: 007e530097ad7f954752df63046b4036f98ba6a6
+  version: 48359f4f600b3a2d5cf657458e3f940021631a56
   subpackages:
   - context
   - http2
@@ -119,6 +119,13 @@ imports:
   version: 7a6e5648d140666db5d920909e082ca00a87ba2c
   subpackages:
   - unix
+- name: golang.org/x/text
+  version: 19e51611da83d6be54ddafce4a4af510cb3e9ea4
+  subpackages:
+  - secure/bidirule
+  - transform
+  - unicode/bidi
+  - unicode/norm
 - name: google.golang.org/genproto
   version: d80a6e20e776b0b17a324d0ba1ab50a39c8e8944
   subpackages:

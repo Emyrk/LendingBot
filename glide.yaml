@@ -20,8 +20,24 @@ import:
   subpackages:
   - testing
 - package: golang.org/x/net
+  version: 48359f4f600b3a2d5cf657458e3f940021631a56
   subpackages:
   - context
 - package: google.golang.org/grpc
+  version: master
   subpackages:
+  - codes
+  - credentials
+  - grpclb/grpc_lb_v1
+  - grpclog
+  - internal
+  - keepalive
+  - metadata
+  - naming
+  - peer
   - reflection
+  - reflection/grpc_reflection_v1alpha
+  - stats
+  - status
+  - tap
+  - transport
