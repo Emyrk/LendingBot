@@ -30,15 +30,7 @@ app.config(['$routeProvider', '$locationProvider', function($routeProvider, $loc
 app.controller('dashBaseController', ['$scope', '$http', '$log',
 	function($scope, $http, $log) {
 		var dashBaseScope = $scope;
-
-		//removes all cookies and then redirects to index
-		dashBaseScope.logout = function() {
-			var cookies = $.cookie();
-			for(var cookie in cookies) {
-				$.removeCookie(cookie);
-			}
-			window.location = LOC;
-		}
+		dashBaseScope.logout = LOC + "/logout"
 	}]);
 
 app.controller('dashInfoController', ['$scope', '$http', '$log',

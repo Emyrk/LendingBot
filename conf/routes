@@ -10,6 +10,7 @@ module:testrunner
 GET     /                                       App.Index
 GET     /sand                                   App.Sandbox
 POST	/login									App.Login
+GET		/logout									AppAuthRequired.Logout
 POST	/register								App.Register
 GET		/dashboard								AppAuthRequired.Dashboard
 GET		/dashboard/info							AppAuthRequired.InfoDashboard

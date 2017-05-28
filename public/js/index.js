@@ -18,7 +18,7 @@ app.controller('indexController', ['$scope', '$http', '$log',
 			//success
 			$log.info("login: Success.");
 			window.location = LOC + '/dashboard';
-		}, (data, status, headers, config) => {
+		}, (err, status, headers, config) => {
 			//error
 			$log.error("login: Error: [" + JSON.stringify(err) + "] Status [" + status + "]");
 		})
@@ -43,7 +43,7 @@ app.controller('indexController', ['$scope', '$http', '$log',
 			//success
 			$log.info("register: Success.");
 			window.location = LOC + '/dashboard';
-		}, (data, status, headers, config) => {
+		}, (err, status, headers, config) => {
 			//error
 			$log.error("register: Error: [" + JSON.stringify(err) + "] Status [" + status + "]");
 		})
