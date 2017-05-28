@@ -1,11 +1,11 @@
 package scraper
 
+// protoc -I ./scraper/ ./scraper/scraperGRPC/scraper.proto --go_out=plugins=grpc:scraper
+
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"sort"
 	"time"
 
@@ -25,10 +25,7 @@ type Scraper struct {
 	State    *core.State
 	Currency string
 
-	Api       *ApiService
-	apicloser io.Closer
-	Router    *http.ServeMux
-	Walker    *Walker
+	Walker *Walker
 }
 
 func NewScraper(st *core.State, currency string) *Scraper {
@@ -67,9 +64,6 @@ func NewScraperFromExising(st *core.State, currency string, boltDB string) (*Scr
 			}
 		}
 	}
-	s.Api = new(ApiService)
-	s.Api.Scraper = s
-	s.Router = NewRouter(s.Api)
 
 	return s, nil
 }
@@ -83,6 +77,8 @@ func newScraper(withMap bool, currency string, st *core.State) *Scraper {
 	}
 	s.State = st
 	s.Currency = currency
+
+	s.Walker = s.NewWalker()
 
 	return s
 }
@@ -218,6 +214,11 @@ func (w *Walker) LoadSecond(second []byte) ([]byte, error) {
 		return nil, err
 	}
 	return data, nil
+}
+
+func (w *Walker) ReadNext() ([]byte, error) {
+
+	return nil, nil
 }
 
 func (w *Walker) ReadLast() ([]byte, error) {

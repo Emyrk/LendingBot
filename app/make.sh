@@ -1,0 +1,1 @@
+protoc -I ./scraper/ ./scraper/scraperGRPC/scraper.proto --go_out=plugins=grpc:scraper
