@@ -1,5 +1,8 @@
 package main
 
+// Usage
+//		userdb-cli -u USERNAME -l admin
+
 import (
 	"flag"
 	"fmt"
