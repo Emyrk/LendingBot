@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/DistributedSolutions/LendingBot/app/core/common/primitives"
+	"github.com/DistributedSolutions/twofactor"
 )
 
 type UserLevel uint32
@@ -52,6 +53,10 @@ type User struct {
 	JWTTime    time.Time
 	Level      UserLevel
 	MiniumLend float64
+
+	// 2FA
+	Has2FA  bool
+	User2FA *twofactor.Totp
 
 	PoloniexKeys *PoloniexKeys
 }
@@ -97,6 +102,8 @@ func NewUser(username string, password string) (*User, error) {
 	u.StartTime = time.Now()
 	u.JWTTime = time.Now()
 	u.Level = CommonUser
+	u.Has2FA = false
+
 	return u, nil
 }
 
@@ -191,6 +198,21 @@ func (u *User) MarshalBinary() ([]byte, error) {
 	}
 	buf.Write(b)
 
+	b = primitives.BoolToBytes(u.Has2FA)
+	buf.Write(b)
+
+	if u.Has2FA {
+		b, err = u.User2FA.ToBytes()
+		if err != nil {
+			return nil, err
+		}
+
+		l := len(b)
+		lb := primitives.Uint32ToBytes(uint32(l))
+		buf.Write(lb)
+		buf.Write(b)
+	}
+
 	b, err = u.PoloniexKeys.MarshalBinary()
 	if err != nil {
 		return nil, err
@@ -265,6 +287,23 @@ func (u *User) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 	}
 	u.MiniumLend = f
 	//
+
+	has2FA := primitives.ByteToBool(newData[0])
+	newData = newData[1:]
+	u.Has2FA = has2FA
+	if has2FA {
+		l, err := primitives.BytesToUint32(newData[:4])
+		if err != nil {
+			return data, err
+		}
+		newData = newData[4:]
+
+		totp, err := twofactor.TOTPFromBytes(newData[:l], "Sec51")
+		if err != nil {
+			return data, err
+		}
+		u.User2FA = totp
+	}
 
 	newData, err = u.PoloniexKeys.UnmarshalBinaryData(newData)
 	if err != nil {
