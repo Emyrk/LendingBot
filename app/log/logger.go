@@ -66,7 +66,7 @@ func ExportLogs() (string, error) {
 	LogFile = f
 
 	// Write the logs that were collected in buffer
-	f.Write(buf)
+	f.Write(buf.Bytes())
 
 	// Set output
 	log.SetOutput(f)
