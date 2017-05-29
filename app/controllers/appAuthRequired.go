@@ -13,8 +13,25 @@ type AppAuthRequired struct {
 	*revel.Controller
 }
 
+type Enable2fa struct {
+	Pass   string `json:"pass"`
+	Enable string `json:"enable"`
+	Token  string `json:"token"`
+}
+
 type Pass struct {
 	Pass string `json:"pass"`
+}
+
+func (r AppAuthRequired) unmarshal2fa(body io.ReadCloser) Enable2fa {
+	var json2fa Pass
+	err := json.NewDecoder(body).Decode(&json2fa)
+	if err != nil {
+		fmt.Printf("Error unmarshaling pass: %s", err.Error())
+		return ""
+	}
+	defer body.Close()
+	return json2fa
 }
 
 func (r AppAuthRequired) unmarshalPass(body io.ReadCloser) string {
@@ -47,6 +64,26 @@ func (r AppAuthRequired) Logout() revel.Result {
 
 func (r AppAuthRequired) InfoDashboard() revel.Result {
 	return r.RenderTemplate("AppAuthRequired/InfoDashboard.html")
+}
+
+func (r AppAuthRequired) Enable2FA() revel.Result {
+	json2fa := r.unmarshal2fa(r.Request.Body)
+	email, _ := cryption.VerifyJWT(r.Session[cryption.COOKIE_JWT_MAP], state.JWTSecret)
+
+	data := make(map[string]interface{})
+
+	qr, err := state.UserDB.Enable2FA(email, json2fa.Pass, json2fa.Token, json2fa.Enable)
+	if err != nil {
+		fmt.Printf("Error enabling 2fa err: %s\n", err.Error())
+		data[JSON_ERROR] = "Error with 2fa"
+		r.Response.Status = 400
+		return r.RenderJSON(data)
+	}
+
+	u, _ := state.UserDB.FetchUser(email)
+	data[JSON_DATA] = fmt.Sprintf("%t", u.Enabled2FA)
+
+	return r.RenderJSON(data)
 }
 
 func (r AppAuthRequired) InfoAdvancedDashboard() revel.Result {
