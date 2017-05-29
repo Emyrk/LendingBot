@@ -15,6 +15,8 @@ func TestUserMarshal(t *testing.T) {
 		t.Error(err)
 	}
 
+	u.PoloniexEnabled = true
+
 	data, err := u.MarshalBinary()
 	if err != nil {
 		t.Error(err)
