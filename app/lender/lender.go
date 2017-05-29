@@ -159,6 +159,10 @@ func (l *Lender) ProcessJob(j *Job) error {
 		amt = avail
 	}
 
+	// To little for a loan
+	if amt < 0.01 {
+		return nil
+	}
 	_, err = s.PoloniexCreateLoanOffer(l.Currency, amt, l.CurrentLoanRate, 2, false, j.Username)
 	if err != nil {
 		return err

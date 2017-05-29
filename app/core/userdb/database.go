@@ -2,7 +2,6 @@ package userdb
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/Emyrk/LendingBot/app/core/database"
 )
@@ -17,7 +16,8 @@ type BinaryMarshalable interface {
 
 // Buckets
 var (
-	UsersBucket []byte = []byte("UserByHash")
+	UsersBucket  []byte = []byte("UserByHash")
+	VerifyBucket []byte = []byte("VerifyEmails")
 )
 
 type UserDatabase struct {
@@ -87,92 +87,11 @@ func (ud *UserDatabase) FetchAllUsers() ([]User, error) {
 		f, err := ud.get(UsersBucket, k, u)
 		if f && err == nil {
 			all = append(all, *u)
+			continue
 		}
 	}
 
 	return all, nil
-}
-
-func (ud *UserDatabase) AuthenticateUser(username string, password string, token string) (bool, *User, error) {
-	u, err := ud.FetchUserIfFound(username)
-	if err != nil {
-		return false, nil, err
-	}
-
-	if !u.AuthenticatePassword(password) {
-		return false, nil, nil
-	}
-
-	// Passed Password Auth
-	if u.Enabled2FA {
-		err = ud.validate2FA(u, token)
-		if err != nil {
-			return false, nil, err
-		}
-	}
-
-	return false, nil, nil
-}
-
-func (ud *UserDatabase) Add2FA(username string, password string) (qr []byte, err error) {
-	u, err := ud.FetchUserIfFound(username)
-	if err != nil {
-		return nil, err
-	}
-
-	if u.Enabled2FA {
-		return nil, fmt.Errorf("2FA is already enabled. Disable to generate a new barcode")
-	}
-
-	if !u.AuthenticatePassword(password) {
-		return nil, fmt.Errorf("Invalid password")
-	}
-
-	qr, err = u.Create2FA("HodlZone")
-	if err != nil {
-		return nil, err
-	}
-
-	err = ud.PutUser(u)
-	if err != nil {
-		return nil, err
-	}
-
-	return qr, nil
-}
-
-func (ud *UserDatabase) Enable2FA(username string, password string, token string, enabled bool) error {
-	u, err := ud.FetchUserIfFound(username)
-	if err != nil {
-		return err
-	}
-
-	if !u.AuthenticatePassword(password) {
-		return fmt.Errorf("Invalid password or 2FA")
-	}
-
-	valid := ud.validate2FA(u, token)
-	if valid != nil {
-		return err
-	}
-
-	u.Enabled2FA = enabled
-	return ud.PutUser(u)
-}
-
-func (ud *UserDatabase) validate2FA(u *User, token string) error {
-	return u.Validate2FA(token)
-}
-
-func (ud *UserDatabase) UpdateJWTTime(username string, t time.Time) error {
-	u, err := ud.FetchUserIfFound(username)
-	if err != nil {
-		return err
-	}
-
-	u.JWTTime = t
-
-	return ud.PutUser(u)
 }
 
 func (ud *UserDatabase) SetUserLevel(username string, level UserLevel) error {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"strconv"
 	"strings"
@@ -41,6 +42,7 @@ func LevelToString(l UserLevel) string {
 	}
 }
 
+const VerifyLength int = 64
 const UsernameMaxLength int = 100
 const SaltLength int = 5
 
@@ -59,6 +61,10 @@ type User struct {
 	Enabled2FA bool
 	User2FA    *twofactor.Totp
 	Issuer     string
+
+	// Email Verify
+	Verified     bool
+	VerifyString string
 
 	PoloniexKeys *PoloniexKeys
 }
@@ -107,6 +113,15 @@ func NewUser(username string, password string) (*User, error) {
 	u.JWTTime = time.Now()
 	u.Level = CommonUser
 	u.Has2FA = false
+
+	verifyBytes := make([]byte, 32)
+	_, err = rand.Read(verifyBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	u.Verified = false
+	u.VerifyString = hex.EncodeToString(verifyBytes)
 
 	return u, nil
 }
@@ -172,6 +187,14 @@ func (a *User) IsSameAs(b *User) bool {
 	}
 
 	if a.User2FA != nil && b.User2FA == nil {
+		return false
+	}
+
+	if a.Verified != b.Verified {
+		return false
+	}
+
+	if a.VerifyString != b.VerifyString {
 		return false
 	}
 
@@ -247,6 +270,17 @@ func (u *User) MarshalBinary() ([]byte, error) {
 		// 2fa
 		buf.Write(topBytes)
 	}
+
+	// Email Verified
+	b = primitives.BoolToBytes(u.Verified)
+	buf.Write(b)
+
+	// Verify String
+	b, err = primitives.MarshalStringToBytes(u.VerifyString, 64)
+	if err != nil {
+		return nil, err
+	}
+	buf.Write(b)
 
 	// PoloniexKeys
 	b, err = u.PoloniexKeys.MarshalBinary()
@@ -358,6 +392,19 @@ func (u *User) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 		u.User2FA = totp
 		newData = newData[l:]
 	}
+
+	// Verified
+	verified := primitives.ByteToBool(newData[0])
+	newData = newData[1:]
+	u.Verified = verified
+
+	// VerifyString
+	var vrystr string
+	vrystr, newData, err = primitives.UnmarshalStringFromBytesData(newData, 64)
+	if err != nil {
+		return data, nil
+	}
+	u.VerifyString = vrystr
 
 	// PoloniexKeys
 	newData, err = u.PoloniexKeys.UnmarshalBinaryData(newData)

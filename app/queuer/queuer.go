@@ -64,6 +64,7 @@ func (q *Queuer) Close() error {
 func (q *Queuer) Start() {
 	ticker := time.NewTicker(time.Second * 1)
 	interval := 0
+	q.LoadUsers()
 
 	for {
 		select {
@@ -81,7 +82,7 @@ func (q *Queuer) Start() {
 				interval = 0
 			}
 
-			log.Println("Have %d users to make jobs for", len(q.AllUsers))
+			log.Printf("Have %d users to make jobs for", len(q.AllUsers))
 			q.AddJobs()
 		}
 	}

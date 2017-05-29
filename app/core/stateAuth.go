@@ -6,6 +6,10 @@ import (
 	"github.com/Emyrk/LendingBot/app/core/userdb"
 )
 
+func (s *State) VerifyEmail(verifyString string) error {
+	return s.UserDB.VerifyEmail(verifyString)
+}
+
 func (s *State) AuthenticateUser(username string, password string) (bool, *userdb.User, error) {
 	return s.UserDB.AuthenticateUser(username, password, "")
 }
