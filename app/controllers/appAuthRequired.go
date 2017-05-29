@@ -46,6 +46,7 @@ func (r AppAuthRequired) unmarshalPass(body io.ReadCloser) string {
 }
 
 func (r AppAuthRequired) Dashboard() revel.Result {
+	fmt.Println("A11111")
 	tokenString := r.Session[cryption.COOKIE_JWT_MAP]
 	email, _ := cryption.VerifyJWT(tokenString, state.JWTSecret)
 	u, err := state.FetchUser(email)
@@ -54,6 +55,7 @@ func (r AppAuthRequired) Dashboard() revel.Result {
 		return r.Redirect(App.Index)
 	}
 	r.ViewArgs["UserLevel"] = fmt.Sprintf("%d", u.Level)
+	fmt.Println("ASDSASD")
 	return r.Render()
 }
 
@@ -111,7 +113,7 @@ func (r AppAuthRequired) Create2FA() revel.Result {
 
 	data := make(map[string]interface{})
 
-	qr, err := state.UserDB.Add2FA(email, pass)
+	qr, err := state.Add2FA(email, pass)
 	if err != nil {
 		fmt.Printf("Error authenticating 2fa err: %s\n", err.Error())
 		data[JSON_ERROR] = "Error with 2fa"
@@ -119,7 +121,7 @@ func (r AppAuthRequired) Create2FA() revel.Result {
 		return r.RenderJSON(data)
 	}
 
-	data[JSON_DATA] = fmt.Sprintf("%s", qr)
+	data[JSON_DATA] = qr
 
 	return r.RenderJSON(data)
 }
