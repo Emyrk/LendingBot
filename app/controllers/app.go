@@ -15,6 +15,9 @@ import (
 	// For Prometheus
 	"github.com/prometheus/client_golang/prometheus"
 	"net/http"
+
+	// Init logger
+	_ "github.com/Emyrk/LendingBot/app/log"
 )
 
 var state *core.State

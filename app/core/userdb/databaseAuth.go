@@ -4,6 +4,8 @@ import (
 	"encoding/hex"
 	"fmt"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var _ = fmt.Println
@@ -85,6 +87,8 @@ func (ud *UserDatabase) Add2FA(username string, password string) (qr []byte, err
 	}
 
 	if !u.AuthenticatePassword(password) {
+		// Only warn if they fail X times
+		log.Warnf("%s failed to authenticate", username)
 		return nil, fmt.Errorf("Invalid password")
 	}
 
