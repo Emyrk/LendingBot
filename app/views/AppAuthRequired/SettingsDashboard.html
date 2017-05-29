@@ -16,7 +16,7 @@ Enabled2FA: {{enabled2FA}}
 		<button ng-click="create2FA()">Create 2FA</button>
 	</div>
 </div>
-<img ng-show="qrcode" ng-src="qrcode"/>
+<img ng-show="qrcode" ng-src="{{qrcode}}"/>
 
 <div ng-init="enabled2FA = [[.enabled2FA]]">
 	<!-- Enable qrcode -->
