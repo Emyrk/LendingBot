@@ -20,13 +20,13 @@ Enabled2FA: {{enabled2FA}}
 
 <div ng-init="enabled2FA = [[.enabled2FA]]">
 	<!-- Enable qrcode -->
-	<div ng-show="has2FA && enabled2FA">
+	<div ng-show="has2FA && !enabled2FA">
 		<input type="password" ng-model="enablePass">
 		<button ng-click="enable2FA(true)">Enable 2FA</button>
 	</div>
 
 	<!-- Disable qrcode -->
-	<div ng-show="has2FA && !enabled2FA">
+	<div ng-show="has2FA && enabled2FA">
 		<input type="password" ng-model="disablePass">
 		<button ng-click="enable2FA(false)">Disable 2FA</button>
 	</div>
