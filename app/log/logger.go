@@ -41,7 +41,7 @@ func ReadLogs(string, error) {
 		return "", err
 	}
 
-	return string(logs)
+	return string(logs), nil
 }
 
 func ExportLogs() (string, error) {
