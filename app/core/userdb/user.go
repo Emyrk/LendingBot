@@ -66,7 +66,8 @@ type User struct {
 	Verified     bool
 	VerifyString string
 
-	PoloniexKeys *PoloniexKeys
+	PoloniexEnabled bool
+	PoloniexKeys    *PoloniexKeys
 }
 
 // filterUsername returns false if illegal characters
@@ -198,6 +199,10 @@ func (a *User) IsSameAs(b *User) bool {
 		return false
 	}
 
+	if a.PoloniexEnabled != b.PoloniexEnabled {
+		return false
+	}
+
 	return true
 }
 
@@ -280,6 +285,10 @@ func (u *User) MarshalBinary() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	buf.Write(b)
+
+	// PoloniexKeys
+	b = primitives.BoolToBytes(u.PoloniexEnabled)
 	buf.Write(b)
 
 	// PoloniexKeys
@@ -405,6 +414,11 @@ func (u *User) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 		return data, nil
 	}
 	u.VerifyString = vrystr
+
+	// PoloniexEnabled
+	poloniexEnabled := primitives.ByteToBool(newData[0])
+	newData = newData[1:]
+	u.PoloniexEnabled = poloniexEnabled
 
 	// PoloniexKeys
 	newData, err = u.PoloniexKeys.UnmarshalBinaryData(newData)
