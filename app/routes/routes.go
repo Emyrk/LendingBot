@@ -4,6 +4,39 @@ package routes
 import "github.com/revel/revel"
 
 
+type tApp struct {}
+var App tApp
+
+
+func (_ tApp) Sandbox(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("App.Sandbox", args).URL
+}
+
+func (_ tApp) Index(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("App.Index", args).URL
+}
+
+func (_ tApp) Login(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("App.Login", args).URL
+}
+
+func (_ tApp) Register(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("App.Register", args).URL
+}
+
+
 type tAppSysAdmin struct {}
 var AppSysAdmin tAppSysAdmin
 
@@ -62,6 +95,13 @@ func (_ tAppAuthRequired) InfoDashboard(
 	return revel.MainRouter.Reverse("AppAuthRequired.InfoDashboard", args).URL
 }
 
+func (_ tAppAuthRequired) Enable2FA(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("AppAuthRequired.Enable2FA", args).URL
+}
+
 func (_ tAppAuthRequired) InfoAdvancedDashboard(
 		) string {
 	args := make(map[string]string)
@@ -91,36 +131,32 @@ func (_ tAppAuthRequired) AuthUser(
 }
 
 
-type tApp struct {}
-var App tApp
+type tStatic struct {}
+var Static tStatic
 
 
-func (_ tApp) Sandbox(
+func (_ tStatic) Serve(
+		prefix string,
+		filepath string,
 		) string {
 	args := make(map[string]string)
 	
-	return revel.MainRouter.Reverse("App.Sandbox", args).URL
+	revel.Unbind(args, "prefix", prefix)
+	revel.Unbind(args, "filepath", filepath)
+	return revel.MainRouter.Reverse("Static.Serve", args).URL
 }
 
-func (_ tApp) Index(
+func (_ tStatic) ServeModule(
+		moduleName string,
+		prefix string,
+		filepath string,
 		) string {
 	args := make(map[string]string)
 	
-	return revel.MainRouter.Reverse("App.Index", args).URL
-}
-
-func (_ tApp) Login(
-		) string {
-	args := make(map[string]string)
-	
-	return revel.MainRouter.Reverse("App.Login", args).URL
-}
-
-func (_ tApp) Register(
-		) string {
-	args := make(map[string]string)
-	
-	return revel.MainRouter.Reverse("App.Register", args).URL
+	revel.Unbind(args, "moduleName", moduleName)
+	revel.Unbind(args, "prefix", prefix)
+	revel.Unbind(args, "filepath", filepath)
+	return revel.MainRouter.Reverse("Static.ServeModule", args).URL
 }
 
 
@@ -160,35 +196,6 @@ func (_ tTestRunner) List(
 	args := make(map[string]string)
 	
 	return revel.MainRouter.Reverse("TestRunner.List", args).URL
-}
-
-
-type tStatic struct {}
-var Static tStatic
-
-
-func (_ tStatic) Serve(
-		prefix string,
-		filepath string,
-		) string {
-	args := make(map[string]string)
-	
-	revel.Unbind(args, "prefix", prefix)
-	revel.Unbind(args, "filepath", filepath)
-	return revel.MainRouter.Reverse("Static.Serve", args).URL
-}
-
-func (_ tStatic) ServeModule(
-		moduleName string,
-		prefix string,
-		filepath string,
-		) string {
-	args := make(map[string]string)
-	
-	revel.Unbind(args, "moduleName", moduleName)
-	revel.Unbind(args, "prefix", prefix)
-	revel.Unbind(args, "filepath", filepath)
-	return revel.MainRouter.Reverse("Static.ServeModule", args).URL
 }
 
 

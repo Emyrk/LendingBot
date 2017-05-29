@@ -72,20 +72,22 @@ app.controller('dashSettingsController', ['$scope', '$http', '$log',
 			});
 		}
 
-		dashSettingsScope.swap2FA = function() {
+		dashSettingsScope.enable2FA = function(bool) {
 			$http(
 			{
 				method: 'POST',
-				url: '/dashboard/2fa/create2fa',
+				url: '/dashboard/2fa/enable2fa',
 				data : {
 					pass: dashSettingsScope.pass2FA,
+					token: dashSettingsScope.token,
+					enable: bool,
 				},
 				withCredentials: true
 			})
 			.then((res, status, headers, config) => {
 				//success
 				$log.info("2FA: Success.");
-				dashSettingsScope.qrcode = 'data:image/png;base64,' + res.data.data
+				dashSettingsScope.enable = res.data.data
 				dashSettingsScope.has2FA = true;
 			}, (err, status, headers, config) => {
 				//error
