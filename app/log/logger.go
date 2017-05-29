@@ -31,7 +31,7 @@ func Close() {
 	LogFile.Close()
 }
 
-func ReadLogs(string, error) {
+func ReadLogs() (string, error) {
 	if !UsingFile {
 		return "", fmt.Errorf("Cannot read logs unless its going to a file")
 	}
