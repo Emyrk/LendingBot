@@ -12,7 +12,7 @@ func (u *User) Create2FA(issuer string) ([]byte, error) {
 		return nil, fmt.Errorf("2FA is already enabled")
 	}
 
-	tfa, err := twofactor.NewTOTP(u.Username, issuer, crypto.SHA256, 8)
+	tfa, err := twofactor.NewTOTP(u.Username, issuer, crypto.SHA1, 6)
 	if err != nil {
 		return nil, err
 	}
