@@ -31,7 +31,7 @@ func Close() {
 	LogFile.Close()
 }
 
-func ReadLogs(string, error) {
+func ReadLogs() (string, error) {
 	if !UsingFile {
 		return "", fmt.Errorf("Cannot read logs unless its going to a file")
 	}
@@ -41,7 +41,7 @@ func ReadLogs(string, error) {
 		return "", err
 	}
 
-	return string(logs)
+	return string(logs), nil
 }
 
 func ExportLogs() (string, error) {
@@ -66,7 +66,7 @@ func ExportLogs() (string, error) {
 	LogFile = f
 
 	// Write the logs that were collected in buffer
-	f.Write(buf)
+	f.Write(buf.Bytes())
 
 	// Set output
 	log.SetOutput(f)
