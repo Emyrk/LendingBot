@@ -67,11 +67,11 @@ func (ud *UserDatabase) AuthenticateUser(username string, password string, token
 	if u.Enabled2FA {
 		err = ud.validate2FA(u, token)
 		if err != nil {
-			return false, nil, err
+			return false, u, err
 		}
 	}
 
-	return false, nil, nil
+	return true, u, nil
 }
 
 func (ud *UserDatabase) Add2FA(username string, password string) (qr []byte, err error) {

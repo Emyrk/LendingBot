@@ -5,22 +5,22 @@
 	<ul>
 		<li><a href="#/"><span>DashBoard</span></a></li>
 		<li><a href="#/settings"><span>Settings</span></a></li>
-		[[if eq .UserLevel "1"]]
-		<li><a href="#/sysadmin"><span>Sys Admin</span></a></li>
-		<li><a href="#/admin"><span>Admin</span></a></li>
-		<li><a href="#/moderator"><span>Moderator</span></a></li>
+		[[set . "yes" .UserLevel]]
+
+		[[if gt "999" .UserLevel]]
+		<!-- Sys Admin -->
+		<li><a href="#/logs"><span>Logs</span></a></li>x
 		[[end]]
-		[[if eq .UserLevel "2"]]
-		<li><a href="#/admin"><span>Admin</span></a></li>
-		<li><a href="#/moderator"><span>Moderator</span></a></li>
+		[[if gt "998" .UserLevel]]
+		<!-- Admin -->
 		[[end]]
-		[[if eq .UserLevel "3"]]
-		<li><a href="#/moderator"><span>Moderator</span></a></li>
+		[[if gt "997" .UserLevel]]
+		<!-- Moderator -->
 		[[end]]
 		<li><a href="/logout"><span>Logout</span></a></li>
 	</ul>
 	<h1>
-		You are on the dashboard
+		You are on the dashboard. User Level: [[.yes]]
 	</h1>
 	<hr />
 	<!-- Where pages go to -->

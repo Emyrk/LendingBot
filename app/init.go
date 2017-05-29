@@ -30,6 +30,7 @@ func init() {
 		revel.ActionInvoker,           // Invoke the action.
 	}
 	revel.InterceptMethod(controllers.AppAuthRequired.AuthUser, revel.BEFORE)
+	revel.InterceptMethod(controllers.AppSysAdmin.AuthUserSysAdmin, revel.BEFORE)
 	// register startup functions with OnAppStart
 	// revel.DevMode and revel.RunMode only work inside of OnAppStart. See Example Startup Script
 	// ( order dependent )

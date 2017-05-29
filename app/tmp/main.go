@@ -7,7 +7,6 @@ import (
 	"github.com/revel/revel"
 	_ "github.com/Emyrk/LendingBot/app"
 	controllers "github.com/Emyrk/LendingBot/app/controllers"
-	_ "github.com/Emyrk/LendingBot/app/lender"
 	_ "github.com/Emyrk/LendingBot/app/scraper/scraperGRPC"
 	tests "github.com/Emyrk/LendingBot/tests"
 	controllers1 "github.com/revel/modules/static/app/controllers"
@@ -31,41 +30,6 @@ func main() {
 	revel.Init(*runMode, *importPath, *srcPath)
 	revel.INFO.Println("Running revel server")
 	
-	revel.RegisterController((*controllers.App)(nil),
-		[]*revel.MethodType{
-			&revel.MethodType{
-				Name: "Sandbox",
-				Args: []*revel.MethodArg{ 
-				},
-				RenderArgNames: map[int][]string{ 
-				},
-			},
-			&revel.MethodType{
-				Name: "Index",
-				Args: []*revel.MethodArg{ 
-				},
-				RenderArgNames: map[int][]string{ 
-					64: []string{ 
-					},
-				},
-			},
-			&revel.MethodType{
-				Name: "Login",
-				Args: []*revel.MethodArg{ 
-				},
-				RenderArgNames: map[int][]string{ 
-				},
-			},
-			&revel.MethodType{
-				Name: "Register",
-				Args: []*revel.MethodArg{ 
-				},
-				RenderArgNames: map[int][]string{ 
-				},
-			},
-			
-		})
-	
 	revel.RegisterController((*controllers.AppAuthRequired)(nil),
 		[]*revel.MethodType{
 			&revel.MethodType{
@@ -73,7 +37,7 @@ func main() {
 				Args: []*revel.MethodArg{ 
 				},
 				RenderArgNames: map[int][]string{ 
-					136: []string{ 
+					23: []string{ 
 					},
 				},
 			},
@@ -106,21 +70,79 @@ func main() {
 				},
 			},
 			&revel.MethodType{
-				Name: "SysAdminDashboard",
-				Args: []*revel.MethodArg{ 
-				},
-				RenderArgNames: map[int][]string{ 
-				},
-			},
-			&revel.MethodType{
-				Name: "AdminDashboard",
-				Args: []*revel.MethodArg{ 
-				},
-				RenderArgNames: map[int][]string{ 
-				},
-			},
-			&revel.MethodType{
 				Name: "AuthUser",
+				Args: []*revel.MethodArg{ 
+				},
+				RenderArgNames: map[int][]string{ 
+				},
+			},
+			
+		})
+	
+	revel.RegisterController((*controllers.App)(nil),
+		[]*revel.MethodType{
+			&revel.MethodType{
+				Name: "Sandbox",
+				Args: []*revel.MethodArg{ 
+				},
+				RenderArgNames: map[int][]string{ 
+				},
+			},
+			&revel.MethodType{
+				Name: "Index",
+				Args: []*revel.MethodArg{ 
+				},
+				RenderArgNames: map[int][]string{ 
+					62: []string{ 
+					},
+				},
+			},
+			&revel.MethodType{
+				Name: "Login",
+				Args: []*revel.MethodArg{ 
+				},
+				RenderArgNames: map[int][]string{ 
+				},
+			},
+			&revel.MethodType{
+				Name: "Register",
+				Args: []*revel.MethodArg{ 
+				},
+				RenderArgNames: map[int][]string{ 
+				},
+			},
+			
+		})
+	
+	revel.RegisterController((*controllers.AppSysAdmin)(nil),
+		[]*revel.MethodType{
+			&revel.MethodType{
+				Name: "LogsDashboard",
+				Args: []*revel.MethodArg{ 
+				},
+				RenderArgNames: map[int][]string{ 
+				},
+			},
+			&revel.MethodType{
+				Name: "ExportLogs",
+				Args: []*revel.MethodArg{ 
+				},
+				RenderArgNames: map[int][]string{ 
+					21: []string{ 
+					},
+				},
+			},
+			&revel.MethodType{
+				Name: "DeleteLogs",
+				Args: []*revel.MethodArg{ 
+				},
+				RenderArgNames: map[int][]string{ 
+					25: []string{ 
+					},
+				},
+			},
+			&revel.MethodType{
+				Name: "AuthUserSysAdmin",
 				Args: []*revel.MethodArg{ 
 				},
 				RenderArgNames: map[int][]string{ 

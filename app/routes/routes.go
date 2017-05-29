@@ -4,39 +4,6 @@ package routes
 import "github.com/revel/revel"
 
 
-type tApp struct {}
-var App tApp
-
-
-func (_ tApp) Sandbox(
-		) string {
-	args := make(map[string]string)
-	
-	return revel.MainRouter.Reverse("App.Sandbox", args).URL
-}
-
-func (_ tApp) Index(
-		) string {
-	args := make(map[string]string)
-	
-	return revel.MainRouter.Reverse("App.Index", args).URL
-}
-
-func (_ tApp) Login(
-		) string {
-	args := make(map[string]string)
-	
-	return revel.MainRouter.Reverse("App.Login", args).URL
-}
-
-func (_ tApp) Register(
-		) string {
-	args := make(map[string]string)
-	
-	return revel.MainRouter.Reverse("App.Register", args).URL
-}
-
-
 type tAppAuthRequired struct {}
 var AppAuthRequired tAppAuthRequired
 
@@ -76,25 +43,77 @@ func (_ tAppAuthRequired) SettingsDashboard(
 	return revel.MainRouter.Reverse("AppAuthRequired.SettingsDashboard", args).URL
 }
 
-func (_ tAppAuthRequired) SysAdminDashboard(
-		) string {
-	args := make(map[string]string)
-	
-	return revel.MainRouter.Reverse("AppAuthRequired.SysAdminDashboard", args).URL
-}
-
-func (_ tAppAuthRequired) AdminDashboard(
-		) string {
-	args := make(map[string]string)
-	
-	return revel.MainRouter.Reverse("AppAuthRequired.AdminDashboard", args).URL
-}
-
 func (_ tAppAuthRequired) AuthUser(
 		) string {
 	args := make(map[string]string)
 	
 	return revel.MainRouter.Reverse("AppAuthRequired.AuthUser", args).URL
+}
+
+
+type tApp struct {}
+var App tApp
+
+
+func (_ tApp) Sandbox(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("App.Sandbox", args).URL
+}
+
+func (_ tApp) Index(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("App.Index", args).URL
+}
+
+func (_ tApp) Login(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("App.Login", args).URL
+}
+
+func (_ tApp) Register(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("App.Register", args).URL
+}
+
+
+type tAppSysAdmin struct {}
+var AppSysAdmin tAppSysAdmin
+
+
+func (_ tAppSysAdmin) LogsDashboard(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("AppSysAdmin.LogsDashboard", args).URL
+}
+
+func (_ tAppSysAdmin) ExportLogs(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("AppSysAdmin.ExportLogs", args).URL
+}
+
+func (_ tAppSysAdmin) DeleteLogs(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("AppSysAdmin.DeleteLogs", args).URL
+}
+
+func (_ tAppSysAdmin) AuthUserSysAdmin(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("AppSysAdmin.AuthUserSysAdmin", args).URL
 }
 
 

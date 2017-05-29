@@ -54,10 +54,6 @@ type App struct {
 	*revel.Controller
 }
 
-type AppAuthRequired struct {
-	*revel.Controller
-}
-
 func (c App) Sandbox() revel.Result {
 	return c.RenderTemplate("App/Index.html")
 }
@@ -83,8 +79,14 @@ func (c App) Login() revel.Result {
 	data := make(map[string]interface{})
 
 	ok, _, err := state.AuthenticateUser(email, pass)
+	if err != nil {
+		fmt.Printf("Error authenticating err: %s\n", err.Error())
+		data[JSON_ERROR] = "Error login"
+		c.Response.Status = 500
+		return c.RenderJSON(data)
+	}
 	if !ok {
-		fmt.Printf("Error authenticating user: %s\n", err)
+		fmt.Printf("Error authenticating email: %s pass: %s\n", email, pass)
 		data[JSON_ERROR] = "Invalid login"
 		c.Response.Status = 400
 		return c.RenderJSON(data)
@@ -124,52 +126,4 @@ func (c App) Register() revel.Result {
 	c.Session[cryption.COOKIE_JWT_MAP] = stringToken
 
 	return c.RenderJSON(data)
-}
-
-func (r AppAuthRequired) Dashboard() revel.Result {
-	tokenString := r.Session[cryption.COOKIE_JWT_MAP]
-	email, _ := cryption.VerifyJWT(tokenString, state.JWTSecret)
-	u, err := state.FetchUser(email)
-	if err != nil || u == nil {
-		fmt.Println("Error fetching user for dashboard")
-		return r.Redirect(App.Index)
-	}
-	r.ViewArgs["UserLevel"] = fmt.Sprintf("%d", u.Level)
-	return r.Render()
-}
-
-func (r AppAuthRequired) Logout() revel.Result {
-	r.Session[cryption.COOKIE_JWT_MAP] = ""
-	return r.Redirect(App.Index)
-}
-
-func (r AppAuthRequired) InfoDashboard() revel.Result {
-	return r.RenderTemplate("AppAuthRequired/InfoDashboard.html")
-}
-
-func (r AppAuthRequired) InfoAdvancedDashboard() revel.Result {
-	return r.RenderTemplate("AppAuthRequired/InfoAdvancedDashboard.html")
-}
-
-func (r AppAuthRequired) SettingsDashboard() revel.Result {
-	return r.RenderTemplate("AppAuthRequired/SettingsDashboard.html")
-}
-
-func (r AppAuthRequired) SysAdminDashboard() revel.Result {
-	return r.RenderTemplate("AppAuthRequired/SysAdminDashboard.html")
-}
-
-func (r AppAuthRequired) AdminDashboard() revel.Result {
-	return r.RenderTemplate("AppAuthRequired/AdminDashboard.html")
-}
-
-//called before any auth required function
-func (r AppAuthRequired) AuthUser() revel.Result {
-	tokenString := r.Session[cryption.COOKIE_JWT_MAP]
-	_, err := cryption.VerifyJWT(tokenString, state.JWTSecret)
-	if err != nil {
-		fmt.Printf("WARNING: AuthUser failed JWT Token: %s\n", tokenString)
-		return r.Redirect(App.Index)
-	}
-	return nil
 }

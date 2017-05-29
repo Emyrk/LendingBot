@@ -14,13 +14,9 @@ app.config(['$routeProvider', '$locationProvider', function($routeProvider, $loc
 		templateUrl : "/dashboard/settings",
 		controller : "dashSettingsController"
 	})
-	.when("/sysadmin",{
-		templateUrl : "/dashboard/sysadmin",
-		controller : "dashSysAdminController"
-	})
-	.when("/admin",{
-		templateUrl : "/dashboard/admin",
-		controller : "dashAdminController"
+	.when("/logs",{
+		templateUrl : "/dashboard/logs",
+		controller : "dashLogsController"
 	})
 	.otherwise({redirectTo:'/'});
 	
@@ -45,16 +41,23 @@ app.controller('dashInfoAdvancedController', ['$scope', '$http', '$log',
 
 app.controller('dashSettingsController', ['$scope', '$http', '$log',
 	function($scope, $http, $log) {
+		// init
 		var dashSettingsScope = $scope;
-		$log.info("HERE");
+		dashSettingsScope.pass = '';
+		//-----
+
+		dashSettingsScope.enable2FA = function() {
+			
+			dashSettingsScope.enablePass = '';
+		}
+
+		dashSettingsScope.disable2FA = function() {
+			
+			dashSettingsScope.disablePass = '';
+		}
 	}]);
 
-app.controller('dashSysAdminController', ['$scope', '$http', '$log',
+app.controller('dashLogsController', ['$scope', '$http', '$log',
 	function($scope, $http, $log) {
-		var dashSysAdminScope = $scope;
-	}]);
-
-app.controller('dashAdminController', ['$scope', '$http', '$log',
-	function($scope, $http, $log) {
-		var adminScope = $scope;
+		var dashLogsScope = $scope;
 	}]);

@@ -16,8 +16,9 @@ GET		/dashboard								AppAuthRequired.Dashboard
 GET		/dashboard/info							AppAuthRequired.InfoDashboard
 GET		/dashboard/info/:id						AppAuthRequired.InfoAdvancedDashboard
 GET		/dashboard/settings						AppAuthRequired.SettingsDashboard
-GET		/dashboard/sysadmin						AppAuthRequired.SysAdminDashboard
-GET		/dashboard/admin						AppAuthRequired.AdminDashboard
+GET		/dashboard/logs							AppSysAdmin.LogsDashboard
+GET		/dashboard/logs/export					AppSysAdmin.ExportLogs
+GET		/dashboard/logs/delete					AppSysAdmin.DeleteLogs
 
 # Ignore favicon requests
 GET     /favicon.ico                            404

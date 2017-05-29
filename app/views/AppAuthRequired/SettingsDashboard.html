@@ -1,3 +1,23 @@
 <h1>
 Settings Dashboard
 </h1>
+
+<h2>
+	Setup 2FA
+</h2>
+<!-- Create qrcode -->
+{{has2FA}}
+<button ng-init="has2FA = [[.has2FA]]" ng-if="!has2FA" ng-click="create2FA()">Create 2FA</button>
+<img ng-if="qrcode" data-ng-src="{{'data:image/png;base64,' + qrcode}}"/>
+
+<!-- Enable qrcode -->
+<div ng-if="has2FA && enabled2FA" ng-init="enabled2FA = [[.enabled2FA]]">
+	<input type="password" ng-model="enablePass">
+	<button ng-click="enable2FA()">Enable 2FA</button>
+</div>
+
+<!-- Disable qrcode -->
+<div ng-if="has2FA && !enabled2FA" ng-init="enabled2FA = [[.enabled2FA]]">
+	<input type="password" ng-model="disablePass">
+	<button ng-click="enable2FA()">Disable 2FA</button>
+</div>
