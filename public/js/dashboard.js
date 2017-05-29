@@ -41,14 +41,35 @@ app.controller('dashInfoAdvancedController', ['$scope', '$http', '$log',
 
 app.controller('dashSettingsController', ['$scope', '$http', '$log',
 	function($scope, $http, $log) {
-		// init
+		//init
 		var dashSettingsScope = $scope;
-		dashSettingsScope.pass = '';
+		dashSettingsScope.pass2fa = '';
+		dashSettingsScope.enablePass = '';
+		dashSettingsScope.disablePass = '';
+		dashSettingsScope.qrcode = '';
 		//-----
-
-		dashSettingsScope.enable2FA = function() {
-			
-			dashSettingsScope.enablePass = '';
+		dashSettingsScope.create2FA = function() {
+			$http(
+			{
+				method: 'POST',
+				url: '/dashboard/2fa/create2fa',
+				data : {
+					pass: dashSettingsScope.pass2fa,
+				},
+				withCredentials: true
+			})
+			.then((res, status, headers, config) => {
+				//success
+				$log.info("2fa: Success.");
+				dashSettingsScope.qrcode = 'data:image/png;base64,' + res.data.data
+				dashSettingsScope.has2FA = true;
+			}, (err, status, headers, config) => {
+				//error
+				$log.error("2fa: Error: [" + JSON.stringify(err) + "] Status [" + status + "]");
+			})
+			.then(() => {
+				dashSettingsScope.pass2fa = '';
+			});
 		}
 
 		dashSettingsScope.disable2FA = function() {

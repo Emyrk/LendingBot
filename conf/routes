@@ -12,10 +12,13 @@ GET     /sand                                   App.Sandbox
 POST	/login									App.Login
 GET		/logout									AppAuthRequired.Logout
 POST	/register								App.Register
+
 GET		/dashboard								AppAuthRequired.Dashboard
 GET		/dashboard/info							AppAuthRequired.InfoDashboard
 GET		/dashboard/info/:id						AppAuthRequired.InfoAdvancedDashboard
 GET		/dashboard/settings						AppAuthRequired.SettingsDashboard
+POST	/dashboard/2fa/create2fa				AppAuthRequired.Create2FA
+
 GET		/dashboard/logs							AppSysAdmin.LogsDashboard
 GET		/dashboard/logs/export					AppSysAdmin.ExportLogs
 GET		/dashboard/logs/delete					AppSysAdmin.DeleteLogs

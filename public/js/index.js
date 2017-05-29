@@ -15,13 +15,13 @@ app.controller('indexController', ['$scope', '$http', '$log',
 				withCredentials: true
 			})
 			.then((res, status, headers, config) => {
-			//success
-			$log.info("login: Success.");
-			window.location = LOC + '/dashboard';
-		}, (err, status, headers, config) => {
-			//error
-			$log.error("login: Error: [" + JSON.stringify(err) + "] Status [" + status + "]");
-		})
+				//success
+				$log.info("login: Success.");
+				window.location = LOC + '/dashboard';
+			}, (err, status, headers, config) => {
+				//error
+				$log.error("login: Error: [" + JSON.stringify(err) + "] Status [" + status + "]");
+			})
 			.then(() => {
 				indexScope.login.email = "";
 				indexScope.login.pass = "";	
@@ -40,13 +40,13 @@ app.controller('indexController', ['$scope', '$http', '$log',
 				withCredentials: true
 			})
 			.then((res, status, headers, config) => {
-			//success
-			$log.info("register: Success.");
-			window.location = LOC + '/dashboard';
-		}, (err, status, headers, config) => {
-			//error
-			$log.error("register: Error: [" + JSON.stringify(err) + "] Status [" + status + "]");
-		})
+				//success
+				$log.info("register: Success.");
+				window.location = LOC + '/dashboard';
+			}, (err, status, headers, config) => {
+				//error
+				$log.error("register: Error: [" + JSON.stringify(err) + "] Status [" + status + "]");
+			})
 			.then(() => {
 				indexScope.register.email = "";
 				indexScope.register.pass = "";	

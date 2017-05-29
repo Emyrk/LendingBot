@@ -6,18 +6,28 @@ Settings Dashboard
 	Setup 2FA
 </h2>
 <!-- Create qrcode -->
-{{has2FA}}
-<button ng-init="has2FA = [[.has2FA]]" ng-if="!has2FA" ng-click="create2FA()">Create 2FA</button>
-<img ng-if="qrcode" data-ng-src="{{'data:image/png;base64,' + qrcode}}"/>
-
-<!-- Enable qrcode -->
-<div ng-if="has2FA && enabled2FA" ng-init="enabled2FA = [[.enabled2FA]]">
-	<input type="password" ng-model="enablePass">
-	<button ng-click="enable2FA()">Enable 2FA</button>
+<p>
+Has2fa: {{has2FA}} <br>
+Enabled2fa: {{enabled2FA}}
+</p>
+<div ng-init="has2FA = [[.has2FA]]">
+	<div ng-show="!has2FA">
+		<input type="password" ng-model="pass2fa">
+		<button ng-click="create2FA()">Create 2FA</button>
+	</div>
 </div>
+<img ng-show="qrcode" ng-src="qrcode"/>
 
-<!-- Disable qrcode -->
-<div ng-if="has2FA && !enabled2FA" ng-init="enabled2FA = [[.enabled2FA]]">
-	<input type="password" ng-model="disablePass">
-	<button ng-click="enable2FA()">Disable 2FA</button>
+<div ng-init="enabled2FA = [[.enabled2FA]]">
+	<!-- Enable qrcode -->
+	<div ng-show="has2FA && enabled2FA">
+		<input type="password" ng-model="enablePass">
+		<button ng-click="enable2FA()">Enable 2FA</button>
+	</div>
+
+	<!-- Disable qrcode -->
+	<div ng-show="has2FA && !enabled2FA">
+		<input type="password" ng-model="disablePass">
+		<button ng-click="enable2FA()">Disable 2FA</button>
+	</div>
 </div>
