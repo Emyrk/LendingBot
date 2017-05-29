@@ -106,6 +106,16 @@ func (s *State) SetUserKeys(username string, acessKey string, secretKey string) 
 	return s.UserDB.PutUser(u)
 }
 
+func (s *State) EnableUserLending(username string, enabled bool) error {
+	u, err := s.UserDB.FetchUserIfFound(username)
+	if err != nil {
+		return err
+	}
+
+	u.PoloniexEnabled = enabled
+	return s.UserDB.PutUser(u)
+}
+
 func (s *State) FetchUser(username string) (*userdb.User, error) {
 	return s.UserDB.FetchUser(username)
 }

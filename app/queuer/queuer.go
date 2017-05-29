@@ -104,7 +104,9 @@ func (q *Queuer) LoadUsers() error {
 
 	var newAll []*SingleUser
 	for _, u := range all {
-		newAll = append(newAll, &SingleUser{Username: u.Username, MiniumumLoanAmt: u.MiniumLend})
+		if u.PoloniexEnabled {
+			newAll = append(newAll, &SingleUser{Username: u.Username, MiniumumLoanAmt: u.MiniumLend})
+		}
 	}
 
 	sort.Sort(UserList(newAll))
