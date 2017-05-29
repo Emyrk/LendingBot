@@ -1,48 +1,22 @@
 hash: a9704eb6e87b6f16d20211770b97ea82a3a82d69b7fa3474ef1e9fd7a8169fa1
-updated: 2017-05-28T12:34:06.365825471-05:00
+updated: 2017-05-28T22:17:24.949771175-05:00
 imports:
 - name: github.com/agtorre/gocolorize
   version: 99fea4bc9517f07eea8194702cb7076f4845b7de
-- name: github.com/anacrolix/missinggo
-  version: 7d1b77890fe200fb3e8097af511af1890420b1e0
-  subpackages:
-  - slices
-- name: github.com/anacrolix/torrent
-  version: 40b96d0e4e5df84afb90181e679804638ef8e82e
-  subpackages:
-  - bencode
-  - iplist
-  - logonce
-  - metainfo
-  - mmap_span
-  - mse
-  - peer_protocol
-  - storage
-  - tracker
-  - util
 - name: github.com/beorn7/perks
   version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
   subpackages:
   - quantile
 - name: github.com/boltdb/bolt
   version: 583e8937c61f1af6513608ccc75c97b6abdf4ff9
-- name: github.com/bradfitz/iter
-  version: 454541ec3da2a73fc34fd049b19ee5777bf19345
 - name: github.com/dgrijalva/jwt-go
   version: 6c8dedd55f8a2e41f605de6d5d66e51ed1f299fc
 - name: github.com/DistributedSolutions/DIMWIT
   version: 844fad700c42d8ae563defbbfb5588945218e56e
   subpackages:
-  - common
   - common/constants
-  - common/primitives
-  - common/primitives/random
-  - database
-  - util
-- name: github.com/dustin/go-humanize
-  version: 259d2a102b871d17f30e3cd9881a642961a1e486
-- name: github.com/fatih/color
-  version: 62e9147c64a1ed519147b62a56a14e83e2be02c1
+- name: github.com/DistributedSolutions/twofactor
+  version: 70189459dfeb9c4b243763440e51a29ad0452147
 - name: github.com/golang/protobuf
   version: 9f174c986221c608fb5143bd623b6076a71feae3
   subpackages:
@@ -57,14 +31,6 @@ imports:
   - zlib
 - name: github.com/klauspost/cpuid
   version: 09cded8978dc9e80714c4d85b0322337b0a1e5e0
-- name: github.com/mattn/go-colorable
-  version: 5411d3eea5978e6cdc258b30de592b60df6aba96
-  repo: https://github.com/mattn/go-colorable
-- name: github.com/mattn/go-isatty
-  version: 57fdcb988a5c543893cc61bce354a6e24ab70022
-  repo: https://github.com/mattn/go-isatty
-- name: github.com/mattn/go-sqlite3
-  version: ca5e3819723d8eeaf170ad510e7da1d6d2e94a08
 - name: github.com/matttproud/golang_protobuf_extensions
   version: c12348ce28de40eed0136aa2b644d0ee0650e56c
   subpackages:
@@ -99,11 +65,28 @@ imports:
   - testing
 - name: github.com/robfig/pathtree
   version: 41257a1839e945fce74afd070e02bab2ea2c776a
-- name: golang.org/x/crypto
-  version: bed12803fa9663d7aa2c2346b0c634ad2dcd43b7
+- name: github.com/sec51/convert
+  version: 8ed1f399b5e0a9a9620c74cfd5aec3682d8328ab
   subpackages:
-  - ed25519
-  - ed25519/internal/edwards25519
+  - bigendian
+  - smallendian
+- name: github.com/sec51/cryptoengine
+  version: 11617a465c082a1e82359b3c059f018f8dcbfc93
+- name: github.com/sec51/gf256
+  version: 2454accbeb9e6b0e2e53b01e1d641c7157251ed4
+- name: github.com/sec51/qrcode
+  version: b7779abbcaf1ec4de65f586a85fe24db31d45e7c
+  subpackages:
+  - coding
+- name: golang.org/x/crypto
+  version: beef0f4390813b96e8e68fd78570396d0f4751fc
+  subpackages:
+  - curve25519
+  - hkdf
+  - nacl/box
+  - nacl/secretbox
+  - poly1305
+  - salsa20/salsa
 - name: golang.org/x/net
   version: 48359f4f600b3a2d5cf657458e3f940021631a56
   subpackages:

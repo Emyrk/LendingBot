@@ -10,9 +10,7 @@ import (
 	"github.com/Emyrk/LendingBot/app/core/poloniex"
 )
 
-func init() {
-	RegisterPrometheus()
-}
+var _ = fmt.Print
 
 var (
 	MaxLendAmt float64 = .1
@@ -123,9 +121,10 @@ func (l *Lender) ProcessJob(j *Job) error {
 	}
 
 	avail, ok := bals["lending"][l.Currency]
-	if !ok {
-		return fmt.Errorf("could not get available balances. Keys: %s, %s", "lending", l.Currency)
-	}
+	var _ = ok
+	// if !ok {
+	// 	return fmt.Errorf("could not get available balances. Keys: %s, %s", "lending", l.Currency)
+	// }
 
 	if avail < MaxLendAmt {
 		need := MaxLendAmt - avail
