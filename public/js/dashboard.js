@@ -43,7 +43,7 @@ app.controller('dashSettingsController', ['$scope', '$http', '$log',
 	function($scope, $http, $log) {
 		//init
 		var dashSettingsScope = $scope;
-		dashSettingsScope.pass2fa = '';
+		dashSettingsScope.pass2FA = '';
 		dashSettingsScope.enablePass = '';
 		dashSettingsScope.disablePass = '';
 		dashSettingsScope.qrcode = '';
@@ -54,26 +54,46 @@ app.controller('dashSettingsController', ['$scope', '$http', '$log',
 				method: 'POST',
 				url: '/dashboard/2fa/create2fa',
 				data : {
-					pass: dashSettingsScope.pass2fa,
+					pass: dashSettingsScope.pass2FA,
 				},
 				withCredentials: true
 			})
 			.then((res, status, headers, config) => {
 				//success
-				$log.info("2fa: Success.");
+				$log.info("2FA: Success.");
 				dashSettingsScope.qrcode = 'data:image/png;base64,' + res.data.data
 				dashSettingsScope.has2FA = true;
 			}, (err, status, headers, config) => {
 				//error
-				$log.error("2fa: Error: [" + JSON.stringify(err) + "] Status [" + status + "]");
+				$log.error("2FA: Error: [" + JSON.stringify(err) + "] Status [" + status + "]");
 			})
 			.then(() => {
-				dashSettingsScope.pass2fa = '';
+				dashSettingsScope.pass2FA = '';
 			});
 		}
 
-		dashSettingsScope.disable2FA = function() {
-			
+		dashSettingsScope.swap2FA = function() {
+			$http(
+			{
+				method: 'POST',
+				url: '/dashboard/2fa/create2fa',
+				data : {
+					pass: dashSettingsScope.pass2FA,
+				},
+				withCredentials: true
+			})
+			.then((res, status, headers, config) => {
+				//success
+				$log.info("2FA: Success.");
+				dashSettingsScope.qrcode = 'data:image/png;base64,' + res.data.data
+				dashSettingsScope.has2FA = true;
+			}, (err, status, headers, config) => {
+				//error
+				$log.error("2FA: Error: [" + JSON.stringify(err) + "] Status [" + status + "]");
+			})
+			.then(() => {
+				dashSettingsScope.pass2FA = '';
+			});
 			dashSettingsScope.disablePass = '';
 		}
 	}]);
