@@ -6,10 +6,13 @@
 <h2>
 	Poloniex Keys
 </h2>
-<div ng-init="poloniexKey = [[.poloniexKey]]; poloniexSecret = [[.poloniexSecret]];" ng-show="has2FA">
+<div ng-init="poloniexKey = '[[.poloniexKey]]'; poloniexSecret = '[[.poloniexSecret]]';" ng-show="has2FA">
+	<h4>Poloniex Key: {{poloniexKey}}</h4>
+	<h4>Poloniex SecretKey: {{poloniexSecret}}</h4>
+
 	<input type="text" ng-model="poloniexKey">
 	<input type="text" ng-model="poloniexSecret">
-	<button ng-click="enable2FA(!enabled2FA)">
+	<button ng-click="setPoloniexKeys()">
 		Set Keys
 	</button>
 </div>

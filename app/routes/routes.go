@@ -4,6 +4,39 @@ package routes
 import "github.com/revel/revel"
 
 
+type tAppSysAdmin struct {}
+var AppSysAdmin tAppSysAdmin
+
+
+func (_ tAppSysAdmin) LogsDashboard(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("AppSysAdmin.LogsDashboard", args).URL
+}
+
+func (_ tAppSysAdmin) ExportLogs(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("AppSysAdmin.ExportLogs", args).URL
+}
+
+func (_ tAppSysAdmin) DeleteLogs(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("AppSysAdmin.DeleteLogs", args).URL
+}
+
+func (_ tAppSysAdmin) AuthUserSysAdmin(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("AppSysAdmin.AuthUserSysAdmin", args).URL
+}
+
+
 type tAppAuthRequired struct {}
 var AppAuthRequired tAppAuthRequired
 
@@ -41,6 +74,13 @@ func (_ tAppAuthRequired) InfoAdvancedDashboard(
 	args := make(map[string]string)
 	
 	return revel.MainRouter.Reverse("AppAuthRequired.InfoAdvancedDashboard", args).URL
+}
+
+func (_ tAppAuthRequired) SetPoloniexKeys(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("AppAuthRequired.SetPoloniexKeys", args).URL
 }
 
 func (_ tAppAuthRequired) SettingsDashboard(
@@ -95,39 +135,6 @@ func (_ tApp) Register(
 	args := make(map[string]string)
 	
 	return revel.MainRouter.Reverse("App.Register", args).URL
-}
-
-
-type tAppSysAdmin struct {}
-var AppSysAdmin tAppSysAdmin
-
-
-func (_ tAppSysAdmin) LogsDashboard(
-		) string {
-	args := make(map[string]string)
-	
-	return revel.MainRouter.Reverse("AppSysAdmin.LogsDashboard", args).URL
-}
-
-func (_ tAppSysAdmin) ExportLogs(
-		) string {
-	args := make(map[string]string)
-	
-	return revel.MainRouter.Reverse("AppSysAdmin.ExportLogs", args).URL
-}
-
-func (_ tAppSysAdmin) DeleteLogs(
-		) string {
-	args := make(map[string]string)
-	
-	return revel.MainRouter.Reverse("AppSysAdmin.DeleteLogs", args).URL
-}
-
-func (_ tAppSysAdmin) AuthUserSysAdmin(
-		) string {
-	args := make(map[string]string)
-	
-	return revel.MainRouter.Reverse("AppSysAdmin.AuthUserSysAdmin", args).URL
 }
 
 

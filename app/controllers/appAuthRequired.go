@@ -28,12 +28,23 @@ type Pass struct {
 	Pass string `json:"pass"`
 }
 
+func (r AppAuthRequired) unmarshalPoloniexKeys(body io.ReadCloser) *PoloniexKeys {
+	var jsonPoloniexKeys PoloniexKeys
+	err := json.NewDecoder(body).Decode(&jsonPoloniexKeys)
+	if err != nil {
+		fmt.Printf("Error unmarshaling json poloniex keys: %s\n", err.Error())
+		return nil
+	}
+	defer body.Close()
+	return &jsonPoloniexKeys
+}
+
 func (r AppAuthRequired) unmarshal2fa(body io.ReadCloser) *Enable2fa {
 	var json2fa Enable2fa
 	err := json.NewDecoder(body).Decode(&json2fa)
 	if err != nil {
-		fmt.Printf("Error unmarshaling pass: %s", err.Error())
-		return &json2fa
+		fmt.Printf("Error unmarshaling 2fa: %s\n", err.Error())
+		return nil
 	}
 	defer body.Close()
 	return &json2fa
@@ -43,7 +54,7 @@ func (r AppAuthRequired) unmarshalPass(body io.ReadCloser) string {
 	var jsonPass Pass
 	err := json.NewDecoder(body).Decode(&jsonPass)
 	if err != nil {
-		fmt.Printf("Error unmarshaling pass: %s", err.Error())
+		fmt.Printf("Error unmarshaling pass: %s\n", err.Error())
 		return ""
 	}
 	defer body.Close()
@@ -100,14 +111,63 @@ func (r AppAuthRequired) InfoAdvancedDashboard() revel.Result {
 	return r.RenderTemplate("AppAuthRequired/InfoAdvancedDashboard.html")
 }
 
+func (r AppAuthRequired) SetPoloniexKeys() revel.Result {
+	data := make(map[string]interface{})
+
+	poloniexKeys := r.unmarshalPoloniexKeys(r.Request.Body)
+	if poloniexKeys == nil {
+		fmt.Println("Error unmarshalling poloniex keys")
+		data[JSON_ERROR] = "Error with request"
+		r.Response.Status = 400
+		return r.RenderJSON(data)
+	}
+	email, _ := cryption.VerifyJWT(r.Session[cryption.COOKIE_JWT_MAP], state.JWTSecret)
+
+	err := state.SetUserKeys(email, poloniexKeys.PoloniexKey, poloniexKeys.PoloniexSecret)
+	if err != nil {
+		fmt.Printf("Error authenticating setting Poloniex Keys err: %s\n", err.Error())
+		data[JSON_ERROR] = "Error with Setting Poloniex Keys"
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+
+	poloniexKeys.PoloniexSecret = "********"
+
+	d, err := json.Marshal(poloniexKeys)
+	if err != nil {
+		fmt.Printf("Error marshalling poloniex keys, err: %s\n", err.Error())
+		data[JSON_ERROR] = "Error marshalling keys"
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+
+	data[JSON_DATA] = fmt.Sprintf("%s", d)
+	return r.RenderJSON(data)
+}
+
 func (r AppAuthRequired) SettingsDashboard() revel.Result {
 	email, _ := cryption.VerifyJWT(r.Session[cryption.COOKIE_JWT_MAP], state.JWTSecret)
 	u, _ := state.FetchUser(email)
 
 	r.ViewArgs["has2FA"] = fmt.Sprintf("%t", u.Has2FA)
 	r.ViewArgs["enabled2FA"] = fmt.Sprintf("%t", u.Enabled2FA)
-	r.ViewArgs["poloniexKey"] = fmt.Sprintf("%s", u.PoloniexKeys.DecryptAPIKeyString(state.CipherKey))
-	r.ViewArgs["poloniexSecret"] = fmt.Sprintf("********")
+
+	if u.PoloniexKeys.APIKeyEmpty() {
+		r.ViewArgs["poloniexKey"] = ""
+	} else {
+		s, err := u.PoloniexKeys.DecryptAPIKeyString(u.GetCipherKey(state.CipherKey))
+		if err != nil {
+			fmt.Printf("Error decrypting Api Keys String: %s\n", err.Error())
+			s = ""
+		}
+		r.ViewArgs["poloniexKey"] = s
+	}
+
+	if u.PoloniexKeys.SecretKeyEmpty() {
+		r.ViewArgs["poloniexSecret"] = ""
+	} else {
+		r.ViewArgs["poloniexSecret"] = "********"
+	}
 
 	return r.RenderTemplate("AppAuthRequired/SettingsDashboard.html")
 }

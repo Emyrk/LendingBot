@@ -97,7 +97,7 @@ app.controller('dashSettingsController', ['$scope', '$http', '$log',
 			});
 		}
 
-		dashSettingsScope.setPoloniexKeys = function(bool) {
+		dashSettingsScope.setPoloniexKeys = function() {
 			$http(
 			{
 				method: 'POST',
@@ -110,12 +110,13 @@ app.controller('dashSettingsController', ['$scope', '$http', '$log',
 			})
 			.then((res, status, headers, config) => {
 				//success
-				$log.info("2FA: Success.");
-				dashSettingsScope.poloniexKey = res.data.data.poloniexkey;
-				dashSettingsScope.poloniexSecret = es.data.data.poloniexsecret;
+				$log.info("SetPoloniexKeys: Success.");
+				var tempData = JSON.parse(res.data.data);
+				dashSettingsScope.poloniexKey = tempData.poloniexkey;
+				dashSettingsScope.poloniexSecret = tempData.poloniexsecret;
 			}, (err, status, headers, config) => {
 				//error
-				$log.error("2FA: Error: [" + JSON.stringify(err) + "] Status [" + status + "]");
+				$log.error("SetPoloniexKeys: Error: [" + JSON.stringify(err) + "] Status [" + status + "]");
 			});
 		}
 	}]);

@@ -7,6 +7,7 @@ import (
 	"github.com/revel/revel"
 	_ "github.com/Emyrk/LendingBot/app"
 	controllers "github.com/Emyrk/LendingBot/app/controllers"
+	_ "github.com/Emyrk/LendingBot/app/log"
 	_ "github.com/Emyrk/LendingBot/app/scraper/scraperGRPC"
 	tests "github.com/Emyrk/LendingBot/tests"
 	controllers0 "github.com/revel/modules/static/app/controllers"
@@ -30,6 +31,43 @@ func main() {
 	revel.Init(*runMode, *importPath, *srcPath)
 	revel.INFO.Println("Running revel server")
 	
+	revel.RegisterController((*controllers.AppSysAdmin)(nil),
+		[]*revel.MethodType{
+			&revel.MethodType{
+				Name: "LogsDashboard",
+				Args: []*revel.MethodArg{ 
+				},
+				RenderArgNames: map[int][]string{ 
+				},
+			},
+			&revel.MethodType{
+				Name: "ExportLogs",
+				Args: []*revel.MethodArg{ 
+				},
+				RenderArgNames: map[int][]string{ 
+					21: []string{ 
+					},
+				},
+			},
+			&revel.MethodType{
+				Name: "DeleteLogs",
+				Args: []*revel.MethodArg{ 
+				},
+				RenderArgNames: map[int][]string{ 
+					25: []string{ 
+					},
+				},
+			},
+			&revel.MethodType{
+				Name: "AuthUserSysAdmin",
+				Args: []*revel.MethodArg{ 
+				},
+				RenderArgNames: map[int][]string{ 
+				},
+			},
+			
+		})
+	
 	revel.RegisterController((*controllers.AppAuthRequired)(nil),
 		[]*revel.MethodType{
 			&revel.MethodType{
@@ -37,7 +75,7 @@ func main() {
 				Args: []*revel.MethodArg{ 
 				},
 				RenderArgNames: map[int][]string{ 
-					57: []string{ 
+					73: []string{ 
 					},
 				},
 			},
@@ -64,6 +102,13 @@ func main() {
 			},
 			&revel.MethodType{
 				Name: "InfoAdvancedDashboard",
+				Args: []*revel.MethodArg{ 
+				},
+				RenderArgNames: map[int][]string{ 
+				},
+			},
+			&revel.MethodType{
+				Name: "SetPoloniexKeys",
 				Args: []*revel.MethodArg{ 
 				},
 				RenderArgNames: map[int][]string{ 
@@ -122,43 +167,6 @@ func main() {
 			},
 			&revel.MethodType{
 				Name: "Register",
-				Args: []*revel.MethodArg{ 
-				},
-				RenderArgNames: map[int][]string{ 
-				},
-			},
-			
-		})
-	
-	revel.RegisterController((*controllers.AppSysAdmin)(nil),
-		[]*revel.MethodType{
-			&revel.MethodType{
-				Name: "LogsDashboard",
-				Args: []*revel.MethodArg{ 
-				},
-				RenderArgNames: map[int][]string{ 
-				},
-			},
-			&revel.MethodType{
-				Name: "ExportLogs",
-				Args: []*revel.MethodArg{ 
-				},
-				RenderArgNames: map[int][]string{ 
-					21: []string{ 
-					},
-				},
-			},
-			&revel.MethodType{
-				Name: "DeleteLogs",
-				Args: []*revel.MethodArg{ 
-				},
-				RenderArgNames: map[int][]string{ 
-					25: []string{ 
-					},
-				},
-			},
-			&revel.MethodType{
-				Name: "AuthUserSysAdmin",
 				Args: []*revel.MethodArg{ 
 				},
 				RenderArgNames: map[int][]string{ 
