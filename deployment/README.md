@@ -29,6 +29,13 @@ server {
 Nginx `/etc/nginx/sites-available/hodl.zone.conf`
 
 ```
+server {
+  server_name  metrics.hodl.zone;
+  location / {
+    return 301 http://http://ec2-52-88-153-69.us-west-2.compute.amazonaws.com:30080/;
+  }
+}
+
 # www.hodl.zone --> hodl.zone
 server {
     server_name www.hodl.zone;
