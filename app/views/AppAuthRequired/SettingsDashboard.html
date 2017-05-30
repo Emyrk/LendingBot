@@ -2,13 +2,25 @@
 	Settings Dashboard
 </h1>
 
+<hr/>
 <h2>
-	Setup 2FA
+	Poloniex Keys
+</h2>
+<div ng-init="poloniexKey = [[.poloniexKey]]; poloniexSecret = [[.poloniexSecret]];" ng-show="has2FA">
+	<input type="text" ng-model="poloniexKey">
+	<input type="text" ng-model="poloniexSecret">
+	<button ng-click="enable2FA(!enabled2FA)">
+		Set Keys
+	</button>
+</div>
+<hr/>
+<h2>
+	2FA
 </h2>
 <!-- Create qrcode -->
 <p>
 	Has2FA: {{has2FA}} <br>
-	Enabled2FA: {{enabled2FA === true}}
+	Enabled2FA: {{enabled2FA}}
 </p>
 <div ng-init="has2FA = [[.has2FA]]">
 	<div ng-show="!has2FA">

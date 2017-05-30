@@ -17,8 +17,9 @@ GET		/dashboard								AppAuthRequired.Dashboard
 GET		/dashboard/info							AppAuthRequired.InfoDashboard
 GET		/dashboard/info/:id						AppAuthRequired.InfoAdvancedDashboard
 GET		/dashboard/settings						AppAuthRequired.SettingsDashboard
-POST	/dashboard/2fa/create2fa				AppAuthRequired.Create2FA
-POST	/dashboard/2fa/enable2fa				AppAuthRequired.Enable2FA
+POST	/dashboard/settings/create2fa			AppAuthRequired.Create2FA
+POST	/dashboard/settings/enable2fa			AppAuthRequired.Enable2FA
+POST	/dashboard/settings/setpoloniexkeys		AppAuthRequired.SetPoloniexKeys
 
 GET		/dashboard/logs							AppSysAdmin.LogsDashboard
 GET		/dashboard/logs/export					AppSysAdmin.ExportLogs

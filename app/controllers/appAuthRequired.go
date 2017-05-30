@@ -13,6 +13,11 @@ type AppAuthRequired struct {
 	*revel.Controller
 }
 
+type PoloniexKeys struct {
+	PoloniexKey    string `json:"poloniexkey"`
+	PoloniexSecret string `json:"poloniexsecret"`
+}
+
 type Enable2fa struct {
 	Pass   string `json:"pass"`
 	Enable bool   `json:"enable"`
@@ -101,6 +106,8 @@ func (r AppAuthRequired) SettingsDashboard() revel.Result {
 
 	r.ViewArgs["has2FA"] = fmt.Sprintf("%t", u.Has2FA)
 	r.ViewArgs["enabled2FA"] = fmt.Sprintf("%t", u.Enabled2FA)
+	r.ViewArgs["poloniexKey"] = fmt.Sprintf("%s", u.PoloniexKeys.DecryptAPIKeyString(state.CipherKey))
+	r.ViewArgs["poloniexSecret"] = fmt.Sprintf("********")
 
 	return r.RenderTemplate("AppAuthRequired/SettingsDashboard.html")
 }

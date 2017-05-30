@@ -7,14 +7,14 @@
 		<li><a href="#/settings"><span>Settings</span></a></li>
 		[[set . "yes" .UserLevel]]
 
-		[[if gt "999" .UserLevel]]
+		[[if eq "1000" .UserLevel]]
 		<!-- Sys Admin -->
-		<li><a href="#/logs"><span>Logs</span></a></li>x
+		<li><a href="#/logs"><span>Logs</span></a></li>
 		[[end]]
-		[[if gt "998" .UserLevel]]
+		[[if eq "999" .UserLevel]]
 		<!-- Admin -->
 		[[end]]
-		[[if gt "997" .UserLevel]]
+		[[if eq "998" .UserLevel]]
 		<!-- Moderator -->
 		[[end]]
 		<li><a href="/logout"><span>Logout</span></a></li>

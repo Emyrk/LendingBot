@@ -46,11 +46,12 @@ app.controller('dashSettingsController', ['$scope', '$http', '$log',
 		dashSettingsScope.pass2FA = '';
 		dashSettingsScope.token = '';
 		//-----
+
 		dashSettingsScope.create2FA = function() {
 			$http(
 			{
 				method: 'POST',
-				url: '/dashboard/2fa/create2fa',
+				url: '/dashboard/settings/create2fa',
 				data : {
 					pass: dashSettingsScope.pass2FA,
 				},
@@ -74,7 +75,7 @@ app.controller('dashSettingsController', ['$scope', '$http', '$log',
 			$http(
 			{
 				method: 'POST',
-				url: '/dashboard/2fa/enable2fa',
+				url: '/dashboard/settings/enable2fa',
 				data : {
 					pass: dashSettingsScope.pass2FA,
 					token: dashSettingsScope.token,
@@ -93,6 +94,28 @@ app.controller('dashSettingsController', ['$scope', '$http', '$log',
 			.then(() => {
 				dashSettingsScope.pass2FA = '';
 				dashSettingsScope.token = '';
+			});
+		}
+
+		dashSettingsScope.setPoloniexKeys = function(bool) {
+			$http(
+			{
+				method: 'POST',
+				url: '/dashboard/settings/setpoloniexkeys',
+				data : {
+					poloniexkey: dashSettingsScope.poloniexKey,
+					poloniexsecret: dashSettingsScope.poloniexSecret,
+				},
+				withCredentials: true
+			})
+			.then((res, status, headers, config) => {
+				//success
+				$log.info("2FA: Success.");
+				dashSettingsScope.poloniexKey = res.data.data.poloniexkey;
+				dashSettingsScope.poloniexSecret = es.data.data.poloniexsecret;
+			}, (err, status, headers, config) => {
+				//error
+				$log.error("2FA: Error: [" + JSON.stringify(err) + "] Status [" + status + "]");
 			});
 		}
 	}]);
