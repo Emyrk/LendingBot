@@ -58,7 +58,7 @@ type App struct {
 }
 
 func (c App) Sandbox() revel.Result {
-	return c.RenderTemplate("App/Index.html")
+	return c.Render()
 }
 
 func (c App) Index() revel.Result {

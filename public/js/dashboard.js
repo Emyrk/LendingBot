@@ -44,9 +44,7 @@ app.controller('dashSettingsController', ['$scope', '$http', '$log',
 		//init
 		var dashSettingsScope = $scope;
 		dashSettingsScope.pass2FA = '';
-		dashSettingsScope.enablePass = '';
-		dashSettingsScope.disablePass = '';
-		dashSettingsScope.qrcode = '';
+		dashSettingsScope.token = '';
 		//-----
 		dashSettingsScope.create2FA = function() {
 			$http(
@@ -87,16 +85,15 @@ app.controller('dashSettingsController', ['$scope', '$http', '$log',
 			.then((res, status, headers, config) => {
 				//success
 				$log.info("2FA: Success.");
-				dashSettingsScope.enable = res.data.data
-				dashSettingsScope.has2FA = true;
+				dashSettingsScope.enabled2FA = (res.data.data === 'true')
 			}, (err, status, headers, config) => {
 				//error
 				$log.error("2FA: Error: [" + JSON.stringify(err) + "] Status [" + status + "]");
 			})
 			.then(() => {
 				dashSettingsScope.pass2FA = '';
+				dashSettingsScope.token = '';
 			});
-			dashSettingsScope.disablePass = '';
 		}
 	}]);
 
