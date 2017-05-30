@@ -22,6 +22,13 @@ func (_ tApp) Index(
 	return revel.MainRouter.Reverse("App.Index", args).URL
 }
 
+func (_ tApp) Landing(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("App.Landing", args).URL
+}
+
 func (_ tApp) Login(
 		) string {
 	args := make(map[string]string)
@@ -34,39 +41,6 @@ func (_ tApp) Register(
 	args := make(map[string]string)
 	
 	return revel.MainRouter.Reverse("App.Register", args).URL
-}
-
-
-type tAppSysAdmin struct {}
-var AppSysAdmin tAppSysAdmin
-
-
-func (_ tAppSysAdmin) LogsDashboard(
-		) string {
-	args := make(map[string]string)
-	
-	return revel.MainRouter.Reverse("AppSysAdmin.LogsDashboard", args).URL
-}
-
-func (_ tAppSysAdmin) ExportLogs(
-		) string {
-	args := make(map[string]string)
-	
-	return revel.MainRouter.Reverse("AppSysAdmin.ExportLogs", args).URL
-}
-
-func (_ tAppSysAdmin) DeleteLogs(
-		) string {
-	args := make(map[string]string)
-	
-	return revel.MainRouter.Reverse("AppSysAdmin.DeleteLogs", args).URL
-}
-
-func (_ tAppSysAdmin) AuthUserSysAdmin(
-		) string {
-	args := make(map[string]string)
-	
-	return revel.MainRouter.Reverse("AppSysAdmin.AuthUserSysAdmin", args).URL
 }
 
 
@@ -128,6 +102,39 @@ func (_ tAppAuthRequired) AuthUser(
 	args := make(map[string]string)
 	
 	return revel.MainRouter.Reverse("AppAuthRequired.AuthUser", args).URL
+}
+
+
+type tAppSysAdmin struct {}
+var AppSysAdmin tAppSysAdmin
+
+
+func (_ tAppSysAdmin) LogsDashboard(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("AppSysAdmin.LogsDashboard", args).URL
+}
+
+func (_ tAppSysAdmin) ExportLogs(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("AppSysAdmin.ExportLogs", args).URL
+}
+
+func (_ tAppSysAdmin) DeleteLogs(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("AppSysAdmin.DeleteLogs", args).URL
+}
+
+func (_ tAppSysAdmin) AuthUserSysAdmin(
+		) string {
+	args := make(map[string]string)
+	
+	return revel.MainRouter.Reverse("AppSysAdmin.AuthUserSysAdmin", args).URL
 }
 
 

@@ -65,6 +65,10 @@ func (c App) Index() revel.Result {
 	return c.Render()
 }
 
+func (c App) Landing() revel.Result {
+	return c.Render()
+}
+
 func (c App) unmarshalUser(body io.ReadCloser) (string, string) {
 	var jsonUser JSONUser
 	err := json.NewDecoder(body).Decode(&jsonUser)
