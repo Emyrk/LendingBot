@@ -47,6 +47,14 @@ func NewPoloniexKeys(apiKey string, secret string, cipherKey [32]byte) (*Polonie
 	return pk, nil
 }
 
+func (p *PoloniexKeys) APIKeyEmpty() bool {
+	return bytes.Compare(p.encryptedAPIKey, []byte{0x00}) == 0
+}
+
+func (p *PoloniexKeys) SecretKeyEmpty() bool {
+	return bytes.Compare(p.encryptedAPISecret, []byte{0x00}) == 0
+}
+
 func (p *PoloniexKeys) DecryptAPIKeyString(cipherKey [32]byte) (APIKey string, err error) {
 	k, e := p.DecryptAPIKey(cipherKey)
 	if e != nil {

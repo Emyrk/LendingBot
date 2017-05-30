@@ -6,6 +6,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 
 	"github.com/Emyrk/LendingBot/app/core/userdb"
 )
@@ -14,6 +15,7 @@ func main() {
 	var (
 		username = flag.String("u", "", "Username to change level of")
 		level    = flag.String("l", "", "Level to set user, 'admin', 'sysadmin', user")
+		auth     = flag.String("a", "", "2fa auth")
 	)
 
 	flag.Parse()
@@ -35,6 +37,22 @@ func main() {
 
 	fmt.Println("-- User Found --")
 	fmt.Println(u)
+
+	if *auth != "" {
+		err := u.Validate2FA(*auth)
+		if err != nil {
+			p, _ := u.User2FA.OTP()
+			fmt.Println("Error:", err.Error())
+			fmt.Printf("Should be: %s\n", p)
+			f, _ := os.OpenFile("qr.png", os.O_CREATE|os.O_RDWR, 0777)
+			b, _ := u.User2FA.QR()
+			f.Write(b)
+			f.Close()
+		} else {
+			fmt.Println("Successfully authenticated via 2fa!")
+		}
+		return
+	}
 
 	switch *level {
 	case "admin":
