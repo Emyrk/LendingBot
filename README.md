@@ -5,6 +5,7 @@
 ```
 export USER_DB=PATH_FOR_USER_DATABASE
 export SEC51_KEYPATH=PATH_FOR_2FA_KEY_STORAGE
+export LOG_PATH=NON_REVEL_LOGS
 ```
 
 # Welcome to Revel
