@@ -10,7 +10,7 @@ import (
 var _ = fmt.Println
 
 func (s *State) getAccessAndSecret(username string) (string, string, error) {
-	u, err := s.UserDB.FetchUserIfFound(username)
+	u, err := s.userDB.FetchUserIfFound(username)
 	if err != nil {
 		return "", "", err
 	}

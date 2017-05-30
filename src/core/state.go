@@ -10,7 +10,7 @@ import (
 )
 
 type State struct {
-	UserDB      *userdb.UserDatabase
+	userDB      *userdb.UserDatabase
 	PoloniexAPI poloniex.IPoloniex
 	CipherKey   [32]byte
 	JWTSecret   [32]byte
@@ -31,13 +31,13 @@ func NewStateWithMap() *State {
 func newState(withMap bool, fakePolo bool) *State {
 	s := new(State)
 	if withMap {
-		s.UserDB = userdb.NewMapUserDatabase()
+		s.userDB = userdb.NewMapUserDatabase()
 	} else {
 		v := os.Getenv("USER_DB")
 		if len(v) == 0 {
 			v = "UserDatabase.db"
 		}
-		s.UserDB = userdb.NewBoltUserDatabase(v)
+		s.userDB = userdb.NewBoltUserDatabase(v)
 	}
 
 	if fakePolo {
@@ -60,21 +60,21 @@ func newState(withMap bool, fakePolo bool) *State {
 }
 
 func (s *State) Close() error {
-	return s.UserDB.Close()
+	return s.userDB.Close()
 }
 
 func (s *State) SetUserMinimumLoan(username string, minimumAmt float64) error {
-	u, err := s.UserDB.FetchUserIfFound(username)
+	u, err := s.userDB.FetchUserIfFound(username)
 	if err != nil {
 		return err
 	}
 
 	u.MiniumLend = minimumAmt
-	return s.UserDB.PutUser(u)
+	return s.userDB.PutUser(u)
 }
 
 func (s *State) NewUser(username string, password string) error {
-	ou, err := s.UserDB.FetchUser(username)
+	ou, err := s.userDB.FetchUser(username)
 	if err != nil {
 		return fmt.Errorf("could not check if username exists: %s", err.Error())
 	}
@@ -88,11 +88,11 @@ func (s *State) NewUser(username string, password string) error {
 		return err
 	}
 
-	return s.UserDB.PutUser(u)
+	return s.userDB.PutUser(u)
 }
 
 func (s *State) SetUserKeys(username string, acessKey string, secretKey string) error {
-	u, err := s.UserDB.FetchUserIfFound(username)
+	u, err := s.userDB.FetchUserIfFound(username)
 	if err != nil {
 		return err
 	}
@@ -105,23 +105,23 @@ func (s *State) SetUserKeys(username string, acessKey string, secretKey string) 
 	u.PoloniexKeys = pk
 	// TODO: Make this a separate action
 	u.PoloniexEnabled = true
-	return s.UserDB.PutUser(u)
+	return s.userDB.PutUser(u)
 }
 
 func (s *State) EnableUserLending(username string, enabled bool) error {
-	u, err := s.UserDB.FetchUserIfFound(username)
+	u, err := s.userDB.FetchUserIfFound(username)
 	if err != nil {
 		return err
 	}
 
 	u.PoloniexEnabled = enabled
-	return s.UserDB.PutUser(u)
+	return s.userDB.PutUser(u)
 }
 
 func (s *State) FetchUser(username string) (*userdb.User, error) {
-	return s.UserDB.FetchUser(username)
+	return s.userDB.FetchUser(username)
 }
 
 func (s *State) FetchAllUsers() ([]userdb.User, error) {
-	return s.UserDB.FetchAllUsers()
+	return s.userDB.FetchAllUsers()
 }

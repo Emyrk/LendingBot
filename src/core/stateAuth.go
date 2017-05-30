@@ -7,19 +7,19 @@ import (
 )
 
 func (s *State) VerifyEmail(verifyString string) error {
-	return s.UserDB.VerifyEmail(verifyString)
+	return s.userDB.VerifyEmail(verifyString)
 }
 
 func (s *State) AuthenticateUser(username string, password string) (bool, *userdb.User, error) {
-	return s.UserDB.AuthenticateUser(username, password, "")
+	return s.userDB.AuthenticateUser(username, password, "")
 }
 
 func (s *State) AuthenticateUser2FA(username string, password string, token string) (bool, *userdb.User, error) {
-	return s.UserDB.AuthenticateUser(username, password, token)
+	return s.userDB.AuthenticateUser(username, password, token)
 }
 
 func (s *State) Add2FA(username string, password string) (qr64 string, err error) {
-	qrRaw, err := s.UserDB.Add2FA(username, password)
+	qrRaw, err := s.userDB.Add2FA(username, password)
 	if err != nil {
 		return "", err
 	}
@@ -29,5 +29,5 @@ func (s *State) Add2FA(username string, password string) (qr64 string, err error
 }
 
 func (s *State) Enable2FA(username string, password string, token string, enabled bool) error {
-	return s.UserDB.Enable2FA(username, password, token, enabled)
+	return s.userDB.Enable2FA(username, password, token, enabled)
 }

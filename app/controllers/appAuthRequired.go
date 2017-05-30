@@ -101,7 +101,7 @@ func (r AppAuthRequired) Enable2FA() revel.Result {
 		return r.RenderJSON(data)
 	}
 
-	u, _ := state.UserDB.FetchUser(email)
+	u, _ := state.FetchUser(email)
 	data[JSON_DATA] = fmt.Sprintf("%t", u.Enabled2FA)
 
 	return r.RenderJSON(data)
