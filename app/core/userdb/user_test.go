@@ -22,6 +22,14 @@ func TestUserMarshal(t *testing.T) {
 		t.Error(err)
 	}
 
+	if !u.PoloniexKeys.APIKeyEmpty() {
+		t.Error("Should be empty")
+	}
+
+	if !u.PoloniexKeys.SecretKeyEmpty() {
+		t.Error("Should be empty")
+	}
+
 	u2 := NewBlankUser()
 	nd, err := u2.UnmarshalBinaryData(data)
 	if err != nil {
