@@ -12,6 +12,7 @@ GET     /sand                                   App.Sandbox
 POST	/login									App.Login
 GET		/logout									AppAuthRequired.Logout
 POST	/register								App.Register
+GET		/landing								App.Landing
 
 GET		/dashboard								AppAuthRequired.Dashboard
 GET		/dashboard/info							AppAuthRequired.InfoDashboard

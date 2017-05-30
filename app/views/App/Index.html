@@ -1,79 +1,82 @@
 [[set . "title" "Home"]]
 [[template "indexHeader.html" .]]
+[[template "hero.html" .]]
 <h1>
 HI
 </h1>
-<div ng-controller="indexController" ng-cloak="ng-cloak">
-  <md-content layout="row" layout-align="space-around" layout-padding="layout-padding">
-    <md-card flex="flex" flex-gt-sm="50" flex-gt-md="33">
-      <md-toolbar>
-        <div class="md-toolbar-tools">
-          <h2><span>Login Form</span></h2>
-        </div>
-      </md-toolbar>
-      <md-card-content>
-        <form name="LoginForm">
-          <md-input-container class="md-block">
-            <label>Login Email</label>
-            <input type="text" name="email" ng-model="login.email" placeholder="email" required=""/>
-            <div ng-messages="LoginForm.email.$error" role="alert" multiple="">
-              <div ng-message="required" class="my-message">Please enter your email.</div>
-            </div>
-          </md-input-container>
-          <md-input-container class="md-block">
-            <label>Password</label>
-            <input type="password" name="password" ng-model="login.pass" placeholder="password" required="" md-maxlength="30"/>
-            <div ng-messages="LoginForm.password.$error" role="alert" multiple="">
-              <div ng-message="required" class="my-message">Please enter your password.</div>
-              <div ng-message="md-maxlength" class="my-message">Too long.</div>
-            </div>
-          </md-input-container>
-          <md-button ng-disabled="!LoginForm.$valid" ng-click="login()" class="md-raised md-primary">&nbsp Login &nbsp</md-button>
-        </form>
-      </md-card-content>
-    </md-card>
-  </md-content>
+<section id="authentication-form">
+  <div ng-controller="indexController" ng-cloak="ng-cloak">
+    <md-content layout="row" layout-align="space-around" layout-padding="layout-padding">
+      <md-card flex="flex" flex-gt-sm="50" flex-gt-md="33">
+        <md-toolbar>
+          <div class="md-toolbar-tools">
+            <h2><span>Login Form</span></h2>
+          </div>
+        </md-toolbar>
+        <md-card-content>
+          <form name="LoginForm">
+            <md-input-container class="md-block">
+              <label>Login Email</label>
+              <input type="text" name="email" ng-model="login.email" placeholder="email" required=""/>
+              <div ng-messages="LoginForm.email.$error" role="alert" multiple="">
+                <div ng-message="required" class="my-message">Please enter your email.</div>
+              </div>
+            </md-input-container>
+            <md-input-container class="md-block">
+              <label>Password</label>
+              <input type="password" name="password" ng-model="login.pass" placeholder="password" required="" md-maxlength="30"/>
+              <div ng-messages="LoginForm.password.$error" role="alert" multiple="">
+                <div ng-message="required" class="my-message">Please enter your password.</div>
+                <div ng-message="md-maxlength" class="my-message">Too long.</div>
+              </div>
+            </md-input-container>
+            <md-button ng-disabled="!LoginForm.$valid" ng-click="login()" class="md-raised md-primary">&nbsp Login &nbsp</md-button>
+          </form>
+        </md-card-content>
+      </md-card>
+    </md-content>
 
 
 
-  <md-content layout="row" layout-align="space-around" layout-padding="layout-padding">
-    <md-card flex="flex" flex-gt-sm="50" flex-gt-md="33">
-      <md-toolbar>
-        <div class="md-toolbar-tools">
-          <h2><span>Register Form</span></h2>
-        </div>
-      </md-toolbar>
-      <md-card-content>
-        <form name="RegisterForm">
-          <md-input-container class="md-block">
-            <label>Register Email</label>
-            <input type="text" name="email" ng-model="register.email" placeholder="email" required=""/>
-            <div ng-messages="RegisterForm.email.$error" role="alert" multiple="">
-              <div ng-message="required" class="my-message">Please enter your email.</div>
-            </div>
-          </md-input-container>
-          <md-input-container class="md-block">
-            <label>Password</label>
-            <input type="password" name="password" ng-model="register.pass" placeholder="password" required="" md-maxlength="30"/>
-            <div ng-messages="RegisterForm.password.$error" role="alert" multiple="">
-              <div ng-message="required" class="my-message">Please enter your password.</div>
-              <div ng-message="md-maxlength" class="my-message">Too long.</div>
-            </div>
-          </md-input-container>
+    <md-content layout="row" layout-align="space-around" layout-padding="layout-padding">
+      <md-card flex="flex" flex-gt-sm="50" flex-gt-md="33">
+        <md-toolbar>
+          <div class="md-toolbar-tools">
+            <h2><span>Register Form</span></h2>
+          </div>
+        </md-toolbar>
+        <md-card-content>
+          <form name="RegisterForm">
+            <md-input-container class="md-block">
+              <label>Register Email</label>
+              <input type="text" name="email" ng-model="register.email" placeholder="email" required=""/>
+              <div ng-messages="RegisterForm.email.$error" role="alert" multiple="">
+                <div ng-message="required" class="my-message">Please enter your email.</div>
+              </div>
+            </md-input-container>
+            <md-input-container class="md-block">
+              <label>Password</label>
+              <input type="password" name="password" ng-model="register.pass" placeholder="password" required="" md-maxlength="30"/>
+              <div ng-messages="RegisterForm.password.$error" role="alert" multiple="">
+                <div ng-message="required" class="my-message">Please enter your password.</div>
+                <div ng-message="md-maxlength" class="my-message">Too long.</div>
+              </div>
+            </md-input-container>
 
-          <md-input-container class="md-block">
-            <input type="password" name="duppassword" ng-model="register.duppass" placeholder="password" required="" md-maxlength="30" ng-pattern="{{register.pass}}"/>
-            <div ng-messages="RegisterForm.duppassword.$error" role="alert" multiple="">
-              <div ng-message="pattern" class="my-message">Passwords do not match.</div>
-            </div>
-          </md-input-container>
-          <md-button ng-disabled="!RegisterForm.$valid" ng-click="register()" class="md-raised md-primary">&nbsp Login &nbsp</md-button>
-        </form>
-      </md-card-content>
-    </md-card>
-  </md-content>
+            <md-input-container class="md-block">
+              <input type="password" name="duppassword" ng-model="register.duppass" placeholder="password" required="" md-maxlength="30" ng-pattern="{{register.pass}}"/>
+              <div ng-messages="RegisterForm.duppassword.$error" role="alert" multiple="">
+                <div ng-message="pattern" class="my-message">Passwords do not match.</div>
+              </div>
+            </md-input-container>
+            <md-button ng-disabled="!RegisterForm.$valid" ng-click="register()" class="md-raised md-primary">&nbsp Login &nbsp</md-button>
+          </form>
+        </md-card-content>
+      </md-card>
+    </md-content>
 
-</div>
+  </div>
+</section> 
 
 <div class="container">
   <div class="row">
