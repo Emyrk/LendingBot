@@ -27,7 +27,7 @@ func (ud *UserDatabase) PutVerifystring(usernameHash [32]byte, verifystring stri
 	return ud.db.Put(VerifyBucket, key, usernameHash[:])
 }
 
-func (ud *UserDatabase) VerifyEmail(verifyString string) error {
+func (ud *UserDatabase) VerifyEmail(email, verifyString string) error {
 	key, err := hex.DecodeString(verifyString)
 	if err != nil {
 		return err
@@ -48,7 +48,7 @@ func (ud *UserDatabase) VerifyEmail(verifyString string) error {
 		return fmt.Errorf("User for that string not found")
 	}
 
-	if u.VerifyString == verifyString {
+	if u.VerifyString == verifyString && u.Username == email {
 		u.Verified = true
 		return ud.PutUser(u)
 	}
