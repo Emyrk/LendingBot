@@ -62,7 +62,7 @@ func (c App) Sandbox() revel.Result {
 }
 
 func (c App) Index() revel.Result {
-	return c.Render()
+	return c.RenderTemplate("App/Index.html")
 }
 
 func (c App) Landing() revel.Result {
