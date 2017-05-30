@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/Emyrk/LendingBot/app/core/cryption"
+	"github.com/Emyrk/LendingBot/src/core/cryption"
 	"github.com/revel/revel"
 )
 

@@ -3,8 +3,8 @@ package controllers
 import (
 	"fmt"
 
-	"github.com/Emyrk/LendingBot/app/core/cryption"
-	"github.com/Emyrk/LendingBot/app/core/userdb"
+	"github.com/Emyrk/LendingBot/src/core/cryption"
+	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"github.com/revel/revel"
 )
 

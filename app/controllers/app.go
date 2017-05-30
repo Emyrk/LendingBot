@@ -6,10 +6,10 @@ import (
 
 	"io"
 
-	"github.com/Emyrk/LendingBot/app/core"
-	"github.com/Emyrk/LendingBot/app/core/cryption"
-	"github.com/Emyrk/LendingBot/app/lender"
-	"github.com/Emyrk/LendingBot/app/queuer"
+	"github.com/Emyrk/LendingBot/src/core"
+	"github.com/Emyrk/LendingBot/src/core/cryption"
+	"github.com/Emyrk/LendingBot/src/lender"
+	"github.com/Emyrk/LendingBot/src/queuer"
 	"github.com/revel/revel"
 
 	// For Prometheus
@@ -17,7 +17,7 @@ import (
 	"net/http"
 
 	// Init logger
-	_ "github.com/Emyrk/LendingBot/app/log"
+	_ "github.com/Emyrk/LendingBot/src/log"
 )
 
 var state *core.State

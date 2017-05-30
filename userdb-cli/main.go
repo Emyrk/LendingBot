@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Emyrk/LendingBot/app/core/userdb"
+	"github.com/Emyrk/LendingBot/src/core/userdb"
 )
 
 func main() {
