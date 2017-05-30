@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -17,7 +18,10 @@ func init() {
 	log.SetOutput(os.Stdout)
 	logPath := os.Getenv("LOG_PATH")
 	if len(logPath) > 0 {
-		logPath = logPath
+		// Rename any existing file
+		ext := fmt.Sprintf("-%d.back", time.Now().Unix())
+		os.Rename(logPath, logPath+ext)
+
 		f, err := os.OpenFile(logPath, os.O_CREATE|os.O_RDWR, 0666)
 		if err == nil {
 			log.SetOutput(f)

@@ -68,7 +68,7 @@ export PATH=$PATH:$GOPATH/bin
 # LendingBot App paths
 export USER_DB=$HOME/database/users/UserDB.db
 export SEC51_KEYPATH=$HOME/database/keys/
-export LOG_PATH=$HOME/database/log/
+export LOG_PATH=$HOME/database/log/hodlzone.log
 
 # Convenience path
 export HODL=$GOPATH/src/github.com/Emyrk/LendingBot                                                          
