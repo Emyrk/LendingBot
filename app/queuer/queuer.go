@@ -66,6 +66,8 @@ func (q *Queuer) Start() {
 	interval := 0
 	q.LoadUsers()
 
+	last := time.Now()
+
 	for {
 		select {
 		case <-q.quit:
@@ -82,7 +84,10 @@ func (q *Queuer) Start() {
 				interval = 0
 			}
 
-			log.Printf("Have %d users to make jobs for", len(q.AllUsers))
+			if time.Since(last).Seconds() > 60 {
+				log.Printf("Have %d users to make jobs for", len(q.AllUsers))
+				last = time.Now()
+			}
 			q.AddJobs()
 		}
 	}
