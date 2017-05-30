@@ -16,8 +16,8 @@ var LogPath string
 func init() {
 	log.SetOutput(os.Stdout)
 	logPath := os.Getenv("LOG_PATH")
-	if len(logPath) == 0 {
-		logPath = logPath + "hodl.log"
+	if len(logPath) > 0 {
+		logPath = logPath
 		f, err := os.OpenFile(logPath, os.O_CREATE|os.O_RDWR, 0666)
 		if err == nil {
 			log.SetOutput(f)
