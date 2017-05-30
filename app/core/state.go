@@ -103,6 +103,8 @@ func (s *State) SetUserKeys(username string, acessKey string, secretKey string) 
 	}
 
 	u.PoloniexKeys = pk
+	// TODO: Make this a separate action
+	u.PoloniexEnabled = true
 	return s.UserDB.PutUser(u)
 }
 
