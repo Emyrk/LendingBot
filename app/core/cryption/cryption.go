@@ -15,7 +15,7 @@ import (
 const (
 	COOKIE_JWT_MAP            = "jwt-cookie"
 	JWT_EXPIRY_TIME           = 1 * time.Hour
-	JWT_EXPIRY_TIME_TEST_FAIL = 1 * time.Second
+	JWT_EXPIRY_TIME_TEST_FAIL = 5 * time.Minute
 )
 
 func Encrypt(plaintext []byte, key []byte) ([]byte, error) {
