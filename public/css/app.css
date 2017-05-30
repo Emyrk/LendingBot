@@ -63,19 +63,19 @@ body, html {
 }
 
 .hero-center-button {
-  margin: 20px;
-  margin-top: 40px;
-  font-size: 3em;
-
-
+  width: 60%;
+  margin: 40px auto;
   -webkit-border-radius: 16;
   -moz-border-radius: 16;
   border-radius: 16px;
   font-family: Arial;
-  color: #000000;
   font-size: 20px;
   background: #8ed4aa;
   padding: 10px 20px 10px 20px;
+}
+
+.hero-center-button a {
+  color: #000000;  
   text-decoration: none;
 }
 
