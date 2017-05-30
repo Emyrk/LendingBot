@@ -69,6 +69,7 @@ export PATH=$PATH:$GOPATH/bin
 export USER_DB=$HOME/database/users/UserDB.db
 export SEC51_KEYPATH=$HOME/database/keys/
 export LOG_PATH=$HOME/database/log/hodlzone.log
+export REVEL_LOG=$HOME/database/
 
 # Convenience path
 export HODL=$GOPATH/src/github.com/Emyrk/LendingBot                                                          
