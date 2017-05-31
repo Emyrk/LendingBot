@@ -23,6 +23,11 @@ scrape_configs:
     static_configs:
       - targets: ['hodl.zone:9911']
 
+  - job_name: 'hodl-node'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['hodl.zone:9100']
+
   - job_name: "node"
     scrape_interval: "15s"
     static_configs:

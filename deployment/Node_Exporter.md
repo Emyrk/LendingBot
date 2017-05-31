@@ -10,18 +10,18 @@ $ sudo vim /etc/systemd/system/node_exporter.service
 Description=Node Exporter
 
 [Service]
-User=vxx
-ExecStart=/home/vxx/Prometheus/node_exporter/node_exporter
+User=ubuntu
+ExecStart=/home/ubuntu/Prometheus/node_exporter/node_exporter
 
 [Install]
 WantedBy=default.target
 ```
 
 ```
-$ sudo systemctl daemon-reload
-$ sudo systemctl enable node_exporter.service
-$ sudo systemctl start node_exporter.service
-$ sudo systemctl status node_exporter.service
+ sudo systemctl daemon-reload
+ sudo systemctl enable node_exporter.service
+ sudo systemctl start node_exporter.service
+ sudo systemctl status node_exporter.service
 ```
 
 https://vexxhost.com/resources/tutorials/how-to-use-prometheus-to-monitor-your-centos-7-server/
