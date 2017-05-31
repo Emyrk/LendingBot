@@ -140,66 +140,7 @@ body, html {
     /*background-color: #111111;*/
 }
 
-
-
-
-/*
-.hero-section {
-  background: url("http://www.zurb.com/blog/system/images/1698/original/ZB_F5Yeti_8-06.png?1441395222") 50% no-repeat;
-  background-size: cover;
-  height: 80vh;
-  text-align: center;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-align-items: center;
-      -ms-flex-align: center;
-          align-items: center;
-  -webkit-justify-content: center;
-      -ms-flex-pack: center;
-          justify-content: center;
+.resize {
+  max-width: 20%;
+  height: auto;
 }
-
-.hero-section .hero-section-text {
-  color: #fefefe;
-  text-shadow: 1px 1px 2px #0a0a0a;
-}
-
- .size-12 { font-size: 12px; }
-      .size-14 { font-size: 14px; }
-      .size-16 { font-size: 16px; }
-      .size-18 { font-size: 18px; }
-      .size-21 { font-size: 21px; }
-      .size-24 { font-size: 24px; }
-      .size-36 { font-size: 36px; }
-      .size-48 { font-size: 48px; }
-      .size-60 { font-size: 60px; }
-      .size-72 { font-size: 72px; }
-      .size-102 { font-size: 102px; }
-      
-      i.medium { font-size: 48px;}
-      i.large { font-size: 72px;}
-      i.xlarge { font-size: 102px;}
-
-  .hero {
-    background: url("http://dreamicus.com/data/wall/wall-01.jpg") 50% no-repeat;
-  background-size: cover;
-  height: 80vh;
-  text-align: center;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-align-items: center;
-      -ms-flex-align: center;
-          align-items: center;
-  -webkit-justify-content: center;
-      -ms-flex-pack: center;
-          justify-content: center;
-  }
-
-  .hero .hero-text {
-  color: #fefefe;
-  /*text-shadow: 1px 1px 2px #0a0a0a;*/
-}
-
-*/
