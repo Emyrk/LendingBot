@@ -128,6 +128,11 @@ func (l *Lender) ProcessJob(j *Job) error {
 	// 	return fmt.Errorf("could not get available balances. Keys: %s, %s", "lending", l.Currency)
 	// }
 
+	j.MinimumLend = 0.0008
+	if l.CurrentLoanRate < j.MinimumLend {
+		return nil
+	}
+
 	if avail < MaxLendAmt {
 		need := MaxLendAmt - avail
 		loans, err := s.PoloniexGetInactiveLoans(j.Username)
