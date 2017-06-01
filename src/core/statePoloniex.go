@@ -69,7 +69,7 @@ func (s *State) PoloniexGetInactiveLoans(username string) (map[string][]poloniex
 }
 
 // PoloniecGetActiveLoans returns your current loans that are taken
-func (s *State) PoloniecGetActiveLoans(username string) (*poloniex.PoloniexActiveLoans, error) {
+func (s *State) PoloniexGetActiveLoans(username string) (*poloniex.PoloniexActiveLoans, error) {
 	accessKey, secretKey, err := s.getAccessAndSecret(username)
 	if err != nil {
 		return nil, err

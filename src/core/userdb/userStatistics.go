@@ -11,17 +11,32 @@ import (
 )
 
 var (
-	CurrentDayBucket []byte = []byte("CurrentDay")
+	UserStatisticDBMetaDataBucket = []byte("UserStatisticsDBMeta")
+	CurrentDayKey                 = []byte("CurrentDay")
+	CurrentIndex                  = []byte("CurrentIndex")
+)
+
+var (
+	Currencies []string = []string{"BTC"}
 )
 
 type UserStatisticsDB struct {
 	db database.IDatabase
 
-	CurrentDay   int
-	CurrentIndex int // 0 to 30
+	LastCalculate time.Time
+	CurrentDay    int
+	CurrentIndex  int // 0 to 30
 }
 
-func NewUserStatisticsDB() *UserStatisticsDB {
+func NewUserStatisticsMapDB() (*UserStatisticsDB, error) {
+	return newUserStatisticsDB(true)
+}
+
+func NewUserStatisticsDB() (*UserStatisticsDB, error) {
+	return newUserStatisticsDB(false)
+}
+
+func newUserStatisticsDB(mapDB bool) (*UserStatisticsDB, error) {
 	u := new(UserStatisticsDB)
 
 	userStatsPath := os.Getenv("USER_STATS_DB")
@@ -29,16 +44,39 @@ func NewUserStatisticsDB() *UserStatisticsDB {
 		userStatsPath = "UserStats.db"
 	}
 
-	u.db = database.NewBoltDB(userStatsPath)
-	return u
+	if mapDB {
+		u.db = database.NewMapDB()
+	} else {
+		u.db = database.NewBoltDB(userStatsPath)
+	}
+
+	err := u.loadCurrentIndex()
+	if err != nil {
+		return u, err
+	}
+
+	err = u.CalculateCurrentIndex()
+	if err != nil {
+		return u, err
+	}
+
+	u.LastCalculate = time.Now()
+	u.startDB()
+
+	return u, nil
 }
 
 type UserStatistic struct {
-	Username          string
-	AvailableBalance  float64
-	ActiveLentBalance float64
-	OnOrderBalance    float64
-	Time              time.Time
+	Username           string    `json:"username"`
+	AvailableBalance   float64   `json:"availbal"`
+	ActiveLentBalance  float64   `json:"availlent"`
+	OnOrderBalance     float64   `json:"onorder"`
+	AverageActiveRate  float64   `json:"activerate"`
+	AverageOnOrderRate float64   `json:"onorderrate"`
+	Time               time.Time `json:"time"`
+	Currency           string    `json:"currency"`
+
+	day int
 }
 
 func (s *UserStatistic) MarshalBinary() ([]byte, error) {
@@ -67,7 +105,28 @@ func (s *UserStatistic) MarshalBinary() ([]byte, error) {
 	}
 	buf.Write(b)
 
+	b, err = primitives.Float64ToBytes(s.AverageActiveRate)
+	if err != nil {
+		return nil, err
+	}
+	buf.Write(b)
+
+	b, err = primitives.Float64ToBytes(s.AverageOnOrderRate)
+	if err != nil {
+		return nil, err
+	}
+	buf.Write(b)
+
+	b = primitives.Uint32ToBytes(uint32(s.day))
+	buf.Write(b)
+
 	b, err = s.Time.MarshalBinary()
+	if err != nil {
+		return nil, err
+	}
+	buf.Write(b)
+
+	b, err = primitives.MarshalStringToBytes(s.Currency, 5)
 	if err != nil {
 		return nil, err
 	}
@@ -111,6 +170,24 @@ func (s *UserStatistic) UnmarshalBinaryData(data []byte) (newData []byte, err er
 		return nil, err
 	}
 
+	s.AverageActiveRate, newData, err = primitives.BytesToFloat64Data(newData)
+	if err != nil {
+		return nil, err
+	}
+
+	s.AverageOnOrderRate, newData, err = primitives.BytesToFloat64Data(newData)
+	if err != nil {
+		return nil, err
+	}
+
+	var u uint32
+	u, err = primitives.BytesToUint32(newData)
+	if err != nil {
+		return nil, err
+	}
+	s.day = int(u)
+	newData = newData[4:]
+
 	td := newData[:15]
 	newData = newData[15:]
 	err = s.Time.UnmarshalBinary(td)
@@ -118,23 +195,97 @@ func (s *UserStatistic) UnmarshalBinaryData(data []byte) (newData []byte, err er
 		return nil, err
 	}
 
+	s.Currency, newData, err = primitives.UnmarshalStringFromBytesData(newData, 5)
+	if err != nil {
+		return nil, err
+	}
+
 	return
 }
 
-func (us *UserStatisticsDB) RecordData(stats *UserStatistic) {
-	//seconds := GetSeconds(stats.Time)
-	//data := nil
-	//us.putStats(stats.Username, seconds, data)
+func (us *UserStatisticsDB) startDB() {
+	us.db.Put(UserStatisticDBMetaDataBucket, CurrentIndex, primitives.Uint32ToBytes(0))
+	us.db.Put(UserStatisticDBMetaDataBucket, CurrentDayKey, primitives.Uint32ToBytes(0))
+}
+
+func (us *UserStatisticsDB) loadCurrentIndex() error {
+	data, err := us.db.Get(UserStatisticDBMetaDataBucket, CurrentIndex)
+	if err != nil {
+		return nil
+	}
+
+	u, err := primitives.BytesToUint32(data)
+	if err != nil {
+		return err
+	}
+
+	us.CurrentIndex = int(u)
+	return nil
+}
+
+func (us *UserStatisticsDB) CalculateCurrentIndex() (err error) {
+	data, err := us.db.Get(UserStatisticDBMetaDataBucket, CurrentDayKey)
+	if err != nil {
+		return err
+	}
+
+	u, err := primitives.BytesToUint32(data)
+	if err != nil {
+		return err
+	}
+
+	day := GetDay(time.Now())
+	oldDay := int(u)
+	if day > oldDay {
+		err = us.db.Put(UserStatisticDBMetaDataBucket, CurrentDayKey, primitives.Uint32ToBytes(uint32(day)))
+		if err != nil {
+			return err
+		}
+
+		us.CurrentIndex++
+		if us.CurrentIndex > 30 {
+			us.CurrentIndex = 0
+		}
+
+		return us.db.Put(UserStatisticDBMetaDataBucket, CurrentIndex, primitives.Uint32ToBytes(uint32(us.CurrentIndex)))
+	}
+
+	return nil
+}
+
+func (us *UserStatisticsDB) RecordData(stats *UserStatistic) error {
+	seconds := GetSeconds(stats.Time)
+	stats.day = GetDay(stats.Time)
+
+	data, err := stats.MarshalBinary()
+	if err != nil {
+		return err
+	}
+
+	return us.putStats(stats.Username, seconds, data)
 }
 
 func (us *UserStatisticsDB) putStats(username string, seconds int, data []byte) error {
+	buc := us.getBucket(username)
 	key := primitives.Uint32ToBytes(uint32(seconds))
-	return us.db.Put(us.getBucket(username), key, data)
+	us.db.Clear(us.getNextBucket(username))
+	return us.db.Put(buc, key, data)
 }
 
 func (us *UserStatisticsDB) getBucket(username string) []byte {
 	hash := GetUsernameHash(username)
 	index := primitives.Uint32ToBytes(uint32(us.CurrentIndex))
+	return append(hash[:], index...)
+}
+
+func (us *UserStatisticsDB) getNextBucket(username string) []byte {
+	i := us.CurrentIndex + 1
+	if i > 30 {
+		i = 0
+	}
+
+	hash := GetUsernameHash(username)
+	index := primitives.Uint32ToBytes(uint32(i))
 	return append(hash[:], index...)
 }
 

@@ -10,10 +10,11 @@ import (
 )
 
 type State struct {
-	userDB      *userdb.UserDatabase
-	PoloniexAPI poloniex.IPoloniex
-	CipherKey   [32]byte
-	JWTSecret   [32]byte
+	userDB        *userdb.UserDatabase
+	userStatistic *userdb.UserStatisticsDB
+	PoloniexAPI   poloniex.IPoloniex
+	CipherKey     [32]byte
+	JWTSecret     [32]byte
 }
 
 func NewFakePoloniexState() *State {
@@ -55,6 +56,11 @@ func newState(withMap bool, fakePolo bool) *State {
 		panic(fmt.Sprintf("Could not generate JWT Siging Key %s", err.Error()))
 	}
 	copy(s.JWTSecret[:], jck[:])
+	/*
+		s.userStatistic, err = userdb.NewUserStatisticsMapDB()
+		if err != nil {
+			panic(fmt.Sprintf("Could create user statistic database %s", err.Error()))
+		}*/
 
 	return s
 }
@@ -84,6 +90,11 @@ func (s *State) NewUser(username string, password string) error {
 	}
 
 	u, err := userdb.NewUser(username, password)
+	if err != nil {
+		return err
+	}
+
+	err = s.userDB.PutVerifystring(userdb.GetUsernameHash(username), u.VerifyString)
 	if err != nil {
 		return err
 	}
@@ -124,4 +135,13 @@ func (s *State) FetchUser(username string) (*userdb.User, error) {
 
 func (s *State) FetchAllUsers() ([]userdb.User, error) {
 	return s.userDB.FetchAllUsers()
+}
+
+func (s *State) RecordStatistics(stats *userdb.UserStatistic) error {
+	err := s.userStatistic.RecordData(stats)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
