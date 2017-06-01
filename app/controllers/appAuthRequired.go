@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/url"
 
 	"github.com/Emyrk/LendingBot/src/core/cryption"
+	"github.com/Emyrk/LendingBot/src/core/email"
 	"github.com/revel/revel"
 )
 
@@ -149,6 +151,7 @@ func (r AppAuthRequired) SettingsDashboard() revel.Result {
 	email, _ := cryption.VerifyJWT(r.Session[cryption.COOKIE_JWT_MAP], state.JWTSecret)
 	u, _ := state.FetchUser(email)
 
+	r.ViewArgs["verified"] = fmt.Sprintf("%t", u.Verified)
 	r.ViewArgs["has2FA"] = fmt.Sprintf("%t", u.Has2FA)
 	r.ViewArgs["enabled2FA"] = fmt.Sprintf("%t", u.Enabled2FA)
 
@@ -191,6 +194,52 @@ func (r AppAuthRequired) Create2FA() revel.Result {
 	return r.RenderJSON(data)
 }
 
+func (r AppAuthRequired) RequestEmailVerification() revel.Result {
+	e, _ := cryption.VerifyJWT(r.Session[cryption.COOKIE_JWT_MAP], state.JWTSecret)
+	u, _ := state.FetchUser(e)
+
+	data := make(map[string]interface{})
+
+	if u.Verified {
+		fmt.Printf("WARNING: User already verified: %s\n", e)
+		data[JSON_ERROR] = "Bad Request"
+		r.Response.Status = 400
+		return r.RenderJSON(data)
+	}
+
+	var link string
+	if revel.DevMode {
+		link = "http://localhost:9000/verifyemail/" + url.QueryEscape(u.Username) + "/" + u.VerifyString
+	} else {
+		link = "https://www.hodl.zone/verifyemail/" + url.QueryEscape(u.Username) + "/" + u.VerifyString
+	}
+
+	emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_USER, []string{
+		e,
+	}, "This is a test email")
+
+	err := emailRequest.ParseTemplate("verify.html", struct {
+		Link string
+	}{
+		link,
+	})
+	fmt.Printf("Template %s\n", emailRequest.Body)
+	if err != nil {
+		fmt.Printf("ERROR: Parsing template: %s\n", err)
+		data[JSON_ERROR] = "Internal Error"
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+
+	if err = emailRequest.SendEmail(); err != nil {
+		fmt.Printf("ERROR: Sending email: %s\n", err)
+		data[JSON_ERROR] = "Internal Error"
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+	return r.RenderJSON(data)
+}
+
 //called before any auth required function
 func (r AppAuthRequired) AuthUser() revel.Result {
 	tokenString := r.Session[cryption.COOKIE_JWT_MAP]
@@ -205,6 +254,7 @@ func (r AppAuthRequired) AuthUser() revel.Result {
 		fmt.Printf("WARNING: AuthUser failed to fetch user: %s\n", tokenString)
 		return r.Redirect(App.Index)
 	}
+	fmt.Println("FINSHED WIHT AUTH USER")
 
 	return nil
 }

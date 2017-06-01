@@ -134,3 +134,16 @@ func (c App) Register() revel.Result {
 
 	return c.RenderJSON(data)
 }
+
+func (c App) VerifyEmail() revel.Result {
+	email := c.Params.Route.Get("email")
+	hash := c.Params.Route.Get("hash")
+
+	err := state.VerifyEmail(email, hash)
+	if err != nil {
+		fmt.Printf("WARNING: Attempt to verify email: %s hash: %s, error: %s\n", email, hash, err.Error())
+		return c.NotFound("Invalid link. Please verify your email again.")
+	}
+	c.ViewArgs["email"] = email
+	return c.RenderTemplate("App/verifiedEmailSuccess.html")
+}
