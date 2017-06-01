@@ -1,7 +1,9 @@
 package cryption
 
 import (
-	"github.com/dgrijalva/jwt-go"
+	"github.com/SermoDigital/jose/crypto"
+	"github.com/SermoDigital/jose/jws"
+	"github.com/SermoDigital/jose/jwt"
 
 	"crypto/aes"
 	"crypto/cipher"
@@ -9,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 )
 
@@ -16,6 +19,7 @@ const (
 	COOKIE_JWT_MAP            = "jwt-cookie"
 	JWT_EXPIRY_TIME           = 1 * time.Hour
 	JWT_EXPIRY_TIME_TEST_FAIL = 5 * time.Minute
+	JWT_EXPIRY_TIME_NEW_PASS  = 10 * time.Minute
 )
 
 func Encrypt(plaintext []byte, key []byte) ([]byte, error) {
@@ -57,39 +61,53 @@ func Decrypt(ciphertext []byte, key []byte) ([]byte, error) {
 	return gcm.Open(nil, nonce, ciphertext, nil)
 }
 
-func NewJWT(email string, hmacSecret [32]byte, waitTime time.Duration) (tokenString string, err error) {
+func NewJWTString(email string, hmacSecret [32]byte, waitTime time.Duration) (string, error) {
 	loc, _ := time.LoadLocation("UTC")
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"uid": email,
-		"nbf": time.Now().In(loc).Unix(),
-		"exp": time.Now().In(loc).Add(waitTime).Unix(),
-	})
+	claims := jws.Claims{
+		"email": email,
+	}
+	claims.SetNotBefore(time.Now().In(loc))
+	claims.SetExpiration(time.Now().In(loc).Add(waitTime))
+
+	token := jws.NewJWT(claims, crypto.SigningMethodHS256)
 
 	// Sign and get the complete encoded token as a string using the secret
-	return token.SignedString(hmacSecret[:])
+	tokenString, err := token.Serialize(hmacSecret)
+	return string(tokenString), err
 }
 
-func VerifyJWT(tokenString string, hmacSecret [32]byte) (email string, err error) {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// Don't forget to validate the alg is what you expect:
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
-		}
-
-		// hmacSecret is a []byte containing your secret
-		return hmacSecret[:], nil
-	})
-
+func VerifyJWTGetEmail(tokenString string, hmacSecret [32]byte) (string, error) {
+	token, err := VerifyJWT(tokenString, hmacSecret)
 	if err != nil {
-		return "", fmt.Errorf("ERROR Failed Verify JWT %s", err.Error())
-	}
-
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		fmt.Println(claims["uid"], claims["nbf"], claims["exp"])
-		return claims["uid"].(string), nil
-	} else {
-		fmt.Printf("ERROR Verifying JWT: %s\n", err.Error())
 		return "", err
 	}
+	email, ok := token.Claims().Get("email").(string)
+	if !ok {
+		return "", fmt.Errorf("Error Retrieving email from JWT: %s\n", err.Error())
+	}
+	return email, nil
+}
+
+func VerifyJWT(tokenString string, hmacSecret [32]byte) (jwt.JWT, error) {
+	token, err := jws.ParseJWT([]byte(tokenString))
+	if err != nil {
+		return nil, fmt.Errorf("ERROR Failed Verify JWT %s", err.Error())
+	}
+	if err := token.Validate(tokenString, crypto.SigningMethodHS256); err != nil {
+		return nil, fmt.Errorf("ERROR Verifying JWT: %s\n", err.Error())
+	}
+	return token, nil
+}
+
+func ParseJWT(tokenString string) (jwt.JWT, error) {
+	return jws.ParseJWT([]byte(tokenString))
+}
+
+func GetJWTSignature(tokenString string) (string, error) {
+	arr := strings.Split(tokenString, ".")
+	if len(arr) != 3 {
+		return "", fmt.Errorf("Error with jwt, not proper size: %s\n", len(arr))
+	}
+	return arr[2], nil
 }

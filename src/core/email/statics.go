@@ -23,6 +23,13 @@ type staticFilesFile struct {
 }
 
 var staticFiles = map[string]*staticFilesFile{
+	"newpassword.html": {
+		data:  "<h1>Seems you dropped something...</h1>\n<p>No worries pick up your new password <a href=\"{{.Link}}\">here</a>.</p>",
+		hash:  "38838cf9c3fad0861817912e7ed4ef23b693a4c832ba98055ac91c39b0fc024b",
+		mime:  "text/html; charset=utf-8",
+		mtime: time.Unix(1496283935, 0),
+		size:  0,
+	},
 	"test.html": {
 		data:  "<h1>\n\tHey {{.NameOne}}\n</h1>\n<h1>\n\tHey {{.NameTwo}}\n</h1>",
 		hash:  "87b1a1ef3ef8b8ea69ed2f3d54ed24bb6d37d4f73d9863c999e98eefcd379e93",

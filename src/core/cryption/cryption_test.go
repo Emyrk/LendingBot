@@ -40,7 +40,7 @@ func TestJWT(t *testing.T) {
 	start := core.NewState()
 
 	email := "bla@gmail.com"
-	tokenString, err := NewJWT(email, start.JWTSecret, JWT_EXPIRY_TIME)
+	tokenString, err := NewJWTString(email, start.JWTSecret, JWT_EXPIRY_TIME)
 	if err != nil {
 		t.Errorf("Error creating jwt: %s\n", err.Error())
 	}
@@ -53,7 +53,7 @@ func TestJWT(t *testing.T) {
 		t.Errorf("Error emails do not match: %s, %s\n", jwtEmail, email)
 	}
 
-	tokenString, _ = NewJWT(email, start.JWTSecret, JWT_EXPIRY_TIME_TEST_FAIL)
+	tokenString, _ = NewJWTString(email, start.JWTSecret, JWT_EXPIRY_TIME_TEST_FAIL)
 
 	time.Sleep(3 * time.Second)
 

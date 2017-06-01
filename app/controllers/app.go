@@ -99,7 +99,7 @@ func (c App) Login() revel.Result {
 		return c.RenderJSON(data)
 	}
 
-	stringToken, err := cryption.NewJWT(email, state.JWTSecret, cryption.JWT_EXPIRY_TIME)
+	stringToken, err := cryption.NewJWTString(email, state.JWTSecret, cryption.JWT_EXPIRY_TIME)
 	if err != nil {
 		data[JSON_ERROR] = fmt.Sprintf("Unable to create JWT: %s", err.Error())
 		c.Response.Status = 500
@@ -123,7 +123,7 @@ func (c App) Register() revel.Result {
 		return c.RenderJSON(data)
 	}
 
-	stringToken, err := cryption.NewJWT(email, state.JWTSecret, cryption.JWT_EXPIRY_TIME)
+	stringToken, err := cryption.NewJWTString(email, state.JWTSecret, cryption.JWT_EXPIRY_TIME)
 	if err != nil {
 		data[JSON_ERROR] = fmt.Sprintf("Unable to create JWT: %s", err.Error())
 		c.Response.Status = 500
@@ -146,4 +146,44 @@ func (c App) VerifyEmail() revel.Result {
 	}
 	c.ViewArgs["email"] = email
 	return c.RenderTemplate("App/verifiedEmailSuccess.html")
+}
+
+func (c App) NewPassRequest() revel.Result {
+	email := c.Params.Route.Get("email")
+
+	data := make(map[string]interface{})
+
+	emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_USER, []string{
+		e,
+	}, "Reset Password")
+
+	err := emailRequest.ParseTemplate("newpassword.html", struct {
+		Link string
+	}{
+		link,
+	})
+	fmt.Printf("Template %s\n", emailRequest.Body)
+	if err != nil {
+		fmt.Printf("ERROR: Parsing template: %s\n", err)
+		data[JSON_ERROR] = "Internal Error"
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+
+	if err = emailRequest.SendEmail(); err != nil {
+		fmt.Printf("ERROR: Sending email: %s\n", err)
+		data[JSON_ERROR] = "Internal Error"
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+
+	state
+
+	return c.RenderJSON(data)
+}
+
+func (c App) NewPassResponse() revel.Result {
+	jwt := c.Params.Route.Get("jwt")
+
+	return c.RenderJSON(data)
 }

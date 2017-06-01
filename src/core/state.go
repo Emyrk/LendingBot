@@ -2,9 +2,11 @@ package core
 
 import (
 	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"os"
 
+	"github.com/Emyrk/LendingBot/src/core/cryption"
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 )
@@ -144,4 +146,48 @@ func (s *State) RecordStatistics(stats *userdb.UserStatistic) error {
 	}
 
 	return nil
+}
+
+func (s *State) UpdateJWTOTP(username string) error {
+	tokenString, err := cryption.NewJWTString(username, s.JWTSecret, cryption.JWT_EXPIRY_TIME_NEW_PASS)
+	if err != nil {
+		return err
+	}
+	sig, err := cryption.GetJWTSignature(tokenString)
+	if err != nil {
+		return err
+	}
+
+	var b [32]byte
+	copy(b[:], sig)
+	return s.userDB.UpdateJWTOTP(username, b)
+}
+
+func (s *State) CompareClearJWTOTP(tokenString string) bool {
+	token, err := cryption.VerifyJWT(tokenString, s.JWTSecret)
+	if err != nil {
+		fmt.Printf("Error comparing JWT for pass reset: %s\n", err.Error())
+		return false
+	}
+
+	email, ok := token.Claims().Get("email").(string)
+	if !ok {
+		fmt.Printf("Error Retrieving email for pass reset: %s\n", err.Error())
+		return false
+	}
+
+	b, ok := s.userDB.GetJWTOTP(email)
+	if !ok {
+		fmt.Printf("Error with getting Token for user for pass reset: %s\n", err.Error())
+		return false
+	}
+
+	tokenSig, err := cryption.GetJWTSignature(tokenString)
+	if err != nil {
+		fmt.Printf("Error retrieving sig for JWT for pass reset: %s\n", err)
+		return false
+	}
+	userSig := hex.EncodeToString(b[:])
+
+	return userSig == tokenSig
 }

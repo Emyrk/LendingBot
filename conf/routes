@@ -17,6 +17,10 @@ GET		/landing								App.Landing
 GET		/verifyemail/:email/:hash				App.VerifyEmail
 GET		/verify/request                         AppAuthRequired.RequestEmailVerification
 
+POST	/newpass/request/:email                 App.NewPassRequest
+GET		/newpass/response/:jwt	          		App.NewPassResponseGet
+POST	/newpass/response/:jwt	          		App.NewPassResponsePost
+
 GET		/dashboard								AppAuthRequired.Dashboard
 GET		/dashboard/info							AppAuthRequired.InfoDashboard
 GET		/dashboard/info/:id						AppAuthRequired.InfoAdvancedDashboard
