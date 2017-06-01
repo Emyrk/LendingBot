@@ -2,6 +2,8 @@ package core
 
 import (
 	"fmt"
+	"sync"
+	"time"
 
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
 	//"github.com/Emyrk/LendingBot/src/core/userdb"
@@ -9,7 +11,67 @@ import (
 
 var _ = fmt.Println
 
+type PoloniexAccessCache struct {
+	Cache map[string]PoloniexAccessStruct
+	sync.RWMutex
+
+	Remove chan string
+}
+
+func NewPoloniexAccessCache() *PoloniexAccessCache {
+	p := new(PoloniexAccessCache)
+	p.Cache = make(map[string]PoloniexAccessStruct)
+
+	return p
+}
+
+type PoloniexAccessStruct struct {
+	Username string
+	APIKey   string
+	Secret   string
+
+	LastStatsUpdate time.Time
+}
+
+func (p *PoloniexAccessCache) shouldRecordStats(username string) bool {
+	p.Lock()
+	defer p.Unlock()
+	if v, ok := p.Cache[username]; ok {
+		if time.Since(v.LastStatsUpdate).Seconds() > 60 {
+			v.LastStatsUpdate = time.Now()
+			p.Cache[username] = v
+			return true
+		}
+	}
+	return false
+}
+
+func (s *State) removeFromPoloniexCache(username string) {
+	s.poloniexCache.Remove <- username
+}
+
+func (s *State) updateCache() {
+	for {
+		select {
+		case u := <-s.poloniexCache.Remove:
+			s.poloniexCache.Lock()
+			delete(s.poloniexCache.Cache, u)
+			s.poloniexCache.Unlock()
+		default:
+			return
+		}
+	}
+}
+
 func (s *State) getAccessAndSecret(username string) (string, string, error) {
+	s.updateCache()
+	s.poloniexCache.RLock()
+	c, ok := s.poloniexCache.Cache[username]
+	s.poloniexCache.RUnlock()
+	if ok {
+		return c.APIKey, c.Secret, nil
+	}
+
 	u, err := s.userDB.FetchUserIfFound(username)
 	if err != nil {
 		return "", "", err
@@ -25,6 +87,14 @@ func (s *State) getAccessAndSecret(username string) (string, string, error) {
 	if err != nil {
 		return "", "", err
 	}
+	s.poloniexCache.Lock()
+	var tmp PoloniexAccessStruct
+	tmp.Username = username
+	tmp.APIKey = accessKey
+	tmp.Secret = secretKey
+	s.poloniexCache.Cache[username] = tmp
+	s.poloniexCache.Unlock()
+
 	return accessKey, secretKey, nil
 }
 

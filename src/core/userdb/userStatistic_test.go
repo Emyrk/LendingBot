@@ -1,47 +1,50 @@
 package userdb_test
 
 import (
-	"crypto"
-	"fmt"
-	"os"
+	//"crypto"
+	// "fmt"
+	//"os"
 	"testing"
 
-	"github.com/DistributedSolutions/twofactor"
+	//"github.com/DistributedSolutions/twofactor"
 	. "github.com/Emyrk/LendingBot/src/core/userdb"
 )
 
 func TestUserStat(t *testing.T) {
-	u, err := new(UserStatistic)
-	if err != nil {
-		t.Error(err)
-	}
-
-	u.PoloniexEnabled = true
-
+	u := new(UserStatistic)
 	data, err := u.MarshalBinary()
 	if err != nil {
 		t.Error(err)
 	}
 
-	if !u.PoloniexKeys.APIKeyEmpty() {
-		t.Error("Should be empty")
-	}
-
-	if !u.PoloniexKeys.SecretKeyEmpty() {
-		t.Error("Should be empty")
-	}
-
-	u2 := NewBlankUser()
-	nd, err := u2.UnmarshalBinaryData(data)
+	u2 := new(UserStatistic)
+	data, err = u2.UnmarshalBinaryData(data)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if len(nd) != 0 {
-		t.Errorf("%d bytes left", len(nd))
-	}
-
-	if !u.IsSameAs(u2) {
-		t.Error("Should be same")
+	if len(data) > 0 {
+		t.Error("Should be length 0")
 	}
 }
+
+// func TestThisThing(t *testing.T) {
+// 	thingy := func(i int, offset int) int {
+// 		i += offset
+// 		if i > 30 {
+// 			overFlow := i - 30
+// 			i = -1 + overFlow
+// 		}
+
+// 		if i < 0 {
+// 			underFlow := i * -1
+// 			i = 31 - underFlow
+// 		}
+// 		return i
+// 	}
+
+// 	for i := 0; i < 100; i++ {
+// 		fmt.Println(thingy(1, -1*(i%30)))
+// 	}
+
+// }

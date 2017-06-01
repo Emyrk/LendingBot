@@ -15,6 +15,9 @@ type State struct {
 	PoloniexAPI   poloniex.IPoloniex
 	CipherKey     [32]byte
 	JWTSecret     [32]byte
+
+	// Poloniex Cache
+	poloniexCache *PoloniexAccessCache
 }
 
 func NewFakePoloniexState() *State {
@@ -57,10 +60,16 @@ func newState(withMap bool, fakePolo bool) *State {
 	}
 	copy(s.JWTSecret[:], jck[:])
 
-	s.userStatistic, err = userdb.NewUserStatisticsMapDB()
+	if withMap {
+		s.userStatistic, err = userdb.NewUserStatisticsMapDB()
+	} else {
+		s.userStatistic, err = userdb.NewUserStatisticsDB()
+	}
 	if err != nil {
 		panic(fmt.Sprintf("Could create user statistic database %s", err.Error()))
 	}
+
+	s.poloniexCache = NewPoloniexAccessCache()
 
 	return s
 }
@@ -119,6 +128,10 @@ func (s *State) SetUserKeys(username string, acessKey string, secretKey string) 
 	return s.userDB.PutUser(u)
 }
 
+func (s *State) GetStatistics(username string, dayRange int) ([][]*userdb.UserStatistic, error) {
+	return s.userStatistic.GetStatistics(username, dayRange)
+}
+
 func (s *State) EnableUserLending(username string, enabled bool) error {
 	u, err := s.userDB.FetchUserIfFound(username)
 	if err != nil {
@@ -138,6 +151,9 @@ func (s *State) FetchAllUsers() ([]userdb.User, error) {
 }
 
 func (s *State) RecordStatistics(stats *userdb.UserStatistic) error {
+	if !s.poloniexCache.shouldRecordStats(stats.Username) {
+		return nil
+	}
 	err := s.userStatistic.RecordData(stats)
 	if err != nil {
 		return err

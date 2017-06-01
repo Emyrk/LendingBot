@@ -114,7 +114,7 @@ func abs(v float64) float64 {
 }
 
 func (l *Lender) recordStatistics(username string, bals map[string]map[string]float64,
-	inact map[string][]poloniex.PoloniexLoanOffer, activeLoan *poloniex.PoloniexActiveLoans) {
+	inact map[string][]poloniex.PoloniexLoanOffer, activeLoan *poloniex.PoloniexActiveLoans) error {
 
 	stats := new(userdb.UserStatistic)
 	stats.Time = time.Now()
@@ -170,9 +170,9 @@ func (l *Lender) ProcessJob(j *Job) error {
 		return err
 	}
 
-	inactiveLoans, _ := s.PoloniexGetInactiveLoans(username)
+	inactiveLoans, _ := s.PoloniexGetInactiveLoans(j.Username)
 
-	activeLoans, err := s.PoloniexGetActiveLoans(username)
+	activeLoans, err := s.PoloniexGetActiveLoans(j.Username)
 	if err == nil && activeLoans != nil {
 		err := l.recordStatistics(j.Username, bals, inactiveLoans, activeLoans)
 		if err != nil {
@@ -189,7 +189,7 @@ func (l *Lender) ProcessJob(j *Job) error {
 	if avail < MaxLendAmt {
 		need := MaxLendAmt - avail
 		if inactiveLoans != nil {
-			currencyLoans := loans[l.Currency]
+			currencyLoans := inactiveLoans[l.Currency]
 			sort.Sort(poloniex.PoloniexLoanOfferArray(currencyLoans))
 			for _, loan := range currencyLoans {
 				if need < 0 {
