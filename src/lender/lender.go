@@ -8,6 +8,7 @@ import (
 
 	"github.com/Emyrk/LendingBot/src/core"
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
+	"github.com/Emyrk/LendingBot/src/core/userdb"
 )
 
 var _ = fmt.Print
@@ -112,6 +113,53 @@ func abs(v float64) float64 {
 	return v
 }
 
+func (l *Lender) recordStatistics(username string, bals map[string]map[string]float64,
+	inact map[string][]poloniex.PoloniexLoanOffer, activeLoan *poloniex.PoloniexActiveLoans) {
+
+	stats := new(userdb.UserStatistic)
+	stats.Time = time.Now()
+	stats.Username = username
+	stats.Currency = "BTC"
+
+	// Avail balance
+	avail, ok := bals["lending"]["BTC"]
+	var _ = ok
+	stats.AvailableBalance = avail
+
+	// Active
+	activeLentBal := float64(0)
+	activeLentTotalRate := float64(0)
+	activeLentCount := float64(0)
+	for _, l := range activeLoan.Used {
+		if l.Currency == "BTC" {
+			activeLentBal += l.Amount
+			activeLentTotalRate += l.Rate
+			activeLentCount++
+		}
+	}
+
+	stats.ActiveLentBalance = activeLentBal
+	stats.AverageActiveRate = activeLentTotalRate / activeLentCount
+
+	// On Order
+
+	inactiveLentBal := float64(0)
+	inactiveLentTotalRate := float64(0)
+	inactiveLentCount := float64(0)
+	for _, l := range inact["BTC"] {
+		if l.Currency == "BTC" {
+			inactiveLentBal += l.Amount
+			inactiveLentTotalRate += l.Rate
+			inactiveLentCount++
+		}
+	}
+
+	stats.OnOrderBalance = inactiveLentBal
+	stats.AverageOnOrderRate = inactiveLentTotalRate / inactiveLentCount
+
+	return l.State.RecordStatistics(stats)
+}
+
 // ProcessJob will calculate the newest loan rate, then it create a loan for 0.1 btc at that rate
 // for the user in the Job
 func (l *Lender) ProcessJob(j *Job) error {
@@ -122,6 +170,16 @@ func (l *Lender) ProcessJob(j *Job) error {
 		return err
 	}
 
+	inactiveLoans, _ := s.PoloniexGetInactiveLoans(username)
+
+	activeLoans, err := s.PoloniexGetActiveLoans(username)
+	if err == nil && activeLoans != nil {
+		err := l.recordStatistics(j.Username, bals, inactiveLoans, activeLoans)
+		if err != nil {
+			log.Printf("Error in calculating statistic for %s: %s", j.Username, err.Error())
+		}
+	}
+
 	avail, ok := bals["lending"][l.Currency]
 	var _ = ok
 	// if !ok {
@@ -130,8 +188,7 @@ func (l *Lender) ProcessJob(j *Job) error {
 
 	if avail < MaxLendAmt {
 		need := MaxLendAmt - avail
-		loans, err := s.PoloniexGetInactiveLoans(j.Username)
-		if err == nil {
+		if inactiveLoans != nil {
 			currencyLoans := loans[l.Currency]
 			sort.Sort(poloniex.PoloniexLoanOfferArray(currencyLoans))
 			for _, loan := range currencyLoans {

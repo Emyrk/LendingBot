@@ -46,7 +46,14 @@ func newUserStatisticsDB(mapDB bool) (*UserStatisticsDB, error) {
 
 	if mapDB {
 		u.db = database.NewMapDB()
+		u.startDB()
 	} else {
+		if _, err := os.Stat(userStatsPath); os.IsNotExist(err) {
+			u.startDB()
+		} else {
+			return nil, err
+		}
+
 		u.db = database.NewBoltDB(userStatsPath)
 	}
 
@@ -61,7 +68,6 @@ func newUserStatisticsDB(mapDB bool) (*UserStatisticsDB, error) {
 	}
 
 	u.LastCalculate = time.Now()
-	u.startDB()
 
 	return u, nil
 }

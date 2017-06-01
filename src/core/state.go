@@ -56,11 +56,11 @@ func newState(withMap bool, fakePolo bool) *State {
 		panic(fmt.Sprintf("Could not generate JWT Siging Key %s", err.Error()))
 	}
 	copy(s.JWTSecret[:], jck[:])
-	/*
-		s.userStatistic, err = userdb.NewUserStatisticsMapDB()
-		if err != nil {
-			panic(fmt.Sprintf("Could create user statistic database %s", err.Error()))
-		}*/
+
+	s.userStatistic, err = userdb.NewUserStatisticsMapDB()
+	if err != nil {
+		panic(fmt.Sprintf("Could create user statistic database %s", err.Error()))
+	}
 
 	return s
 }
