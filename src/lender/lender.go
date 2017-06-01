@@ -30,7 +30,7 @@ type Lender struct {
 func NewLender(s *core.State) *Lender {
 	l := new(Lender)
 	l.State = s
-	l.CurrentLoanRate = 1
+	l.CurrentLoanRate = 2.1
 	l.Currency = "BTC"
 	l.JobQueue = make(chan *Job, 1000)
 	l.CalculateInterval = 1
@@ -91,7 +91,7 @@ func (l *Lender) CalculateLoanRate() error {
 		}
 	}
 
-	lowest := float64(2)
+	lowest := float64(2.1)
 	for _, o := range all[index].Orders {
 		if o.Rate < lowest {
 			lowest = o.Rate
@@ -99,7 +99,9 @@ func (l *Lender) CalculateLoanRate() error {
 	}
 
 	l.CurrentLoanRate = lowest
-	CurrentLoanRate.Set(l.CurrentLoanRate) // Prometheus
+	if l.CurrentLoanRate < 2 {
+		CurrentLoanRate.Set(l.CurrentLoanRate) // Prometheus
+	}
 	return nil
 }
 

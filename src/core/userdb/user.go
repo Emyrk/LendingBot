@@ -62,6 +62,9 @@ type User struct {
 	User2FA    *twofactor.Totp
 	Issuer     string
 
+	// JWT Change Pass
+	JWTOTP [32]byte
+
 	// Email Verify
 	Verified     bool
 	VerifyString string
@@ -125,6 +128,26 @@ func NewUser(username string, password string) (*User, error) {
 	u.VerifyString = hex.EncodeToString(verifyBytes)
 
 	return u, nil
+}
+
+func (u *User) ClearJWTOTP() {
+	var tmp [32]byte
+	u.JWTOTP = tmp
+}
+
+func (u *User) SetJWTOTP(jwtOTP [32]byte) error {
+	if _, found := u.GetJWTOTP(); found {
+		return fmt.Errorf("User already has a JWTOTP")
+	}
+	u.JWTOTP = jwtOTP
+	return nil
+}
+
+func (u *User) GetJWTOTP() (jwtOTP [32]byte, found bool) {
+	if bytes.Compare(u.JWTOTP[:], make([]byte, 32)) == 0 {
+		return jwtOTP, false
+	}
+	return u.JWTOTP, true
 }
 
 func (u *User) AuthenticatePassword(password string) bool {
@@ -192,6 +215,10 @@ func (a *User) IsSameAs(b *User) bool {
 	}
 
 	if a.Verified != b.Verified {
+		return false
+	}
+
+	if bytes.Compare(a.JWTOTP[:], b.JWTOTP[:]) != 0 {
 		return false
 	}
 
@@ -275,6 +302,9 @@ func (u *User) MarshalBinary() ([]byte, error) {
 		// 2fa
 		buf.Write(topBytes)
 	}
+
+	// JWTOTP
+	buf.Write(u.JWTOTP[:32])
 
 	// Email Verified
 	b = primitives.BoolToBytes(u.Verified)
@@ -401,6 +431,9 @@ func (u *User) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 		u.User2FA = totp
 		newData = newData[l:]
 	}
+
+	copy(u.JWTOTP[:32], newData[:32])
+	newData = newData[32:]
 
 	// Verified
 	verified := primitives.ByteToBool(newData[0])
