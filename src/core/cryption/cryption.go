@@ -86,7 +86,7 @@ func VerifyJWT(tokenString string, hmacSecret [32]byte) (email string, err error
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		fmt.Println(claims["uid"], claims["nbf"], claims["exp"])
+		// fmt.Println(claims["uid"], claims["nbf"], claims["exp"])
 		return claims["uid"].(string), nil
 	} else {
 		fmt.Printf("ERROR Verifying JWT: %s\n", err.Error())
