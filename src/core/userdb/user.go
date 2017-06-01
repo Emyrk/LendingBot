@@ -130,6 +130,25 @@ func NewUser(username string, password string) (*User, error) {
 	return u, nil
 }
 
+func (u *User) ClearJWTOTP() {
+	var tmp [32]byte
+	u.JWTOTP = tmp
+}
+
+func (u *User) SetJWTOTP(jwtOTP [32]byte) error {
+	if _, found := u.GetJWTOTP(); found {
+		return fmt.Errorf("User already has a JWTOTP")
+	}
+	u.JWTOTP = jwtOTP
+}
+
+func (u *User) GetJWTOTP() (jwtOTP [32]byte, found bool) {
+	if bytes.Compare(u.JWTOTP[:], make([]byte, 32)) {
+		return jwtOTP, false
+	}
+	return u.JWTOTP, true
+}
+
 func (u *User) AuthenticatePassword(password string) bool {
 	hash := u.getPasswordHashFromPassword(password)
 	if bytes.Compare(u.PasswordHash[:], hash[:]) == 0 {
