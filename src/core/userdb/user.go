@@ -62,6 +62,9 @@ type User struct {
 	User2FA    *twofactor.Totp
 	Issuer     string
 
+	// JWT Change Pass
+	JWTOTP [32]byte
+
 	// Email Verify
 	Verified     bool
 	VerifyString string
@@ -195,6 +198,10 @@ func (a *User) IsSameAs(b *User) bool {
 		return false
 	}
 
+	if bytes.Compare(a.JWTOTP[:], b.JWTOTP[:]) != 0 {
+		return false
+	}
+
 	if a.VerifyString != b.VerifyString {
 		return false
 	}
@@ -275,6 +282,9 @@ func (u *User) MarshalBinary() ([]byte, error) {
 		// 2fa
 		buf.Write(topBytes)
 	}
+
+	// JWTOTP
+	buf.Write(u.JWTOTP[:32])
 
 	// Email Verified
 	b = primitives.BoolToBytes(u.Verified)
@@ -401,6 +411,9 @@ func (u *User) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 		u.User2FA = totp
 		newData = newData[l:]
 	}
+
+	copy(u.JWTOTP[:32], newData[:32])
+	newData = newData[32:]
 
 	// Verified
 	verified := primitives.ByteToBool(newData[0])
