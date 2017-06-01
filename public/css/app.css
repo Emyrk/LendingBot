@@ -1,146 +1,89 @@
-.navbar-fixed-bottom, .navbar-fixed-top {
-   position: fixed;
-   right: 0;
-   left: 0;
-   z-index: 1030;
-}
- 
-.navbar {
-   padding: 20px 40px;
-   width: 100%;
-   box-sizing: border-box;
-   background: rgba(33, 119, 225, 0);
-   margin-bottom: 0;
+* {
+  box-sizing: border-box;;
 }
 
-body, html {
-    width: 100%;
-    height: 100%;
-    margin: 0px;
-    padding: 0px;
-    overflow-x: hidden; 
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, Verdana, sans-serif;
 }
 
-/* The hero image */
-.hero-image {
-    /* The image used */
-    background-image: url("/public/img/hero.jpg");
-
-    /* Set a specific height */
-    height: 65%;
-
-    /* Position and center the image to scale nicely on all screens */
-    background-position: center;
+#hero {
+  width: 100%;
+  height: 700px;
+  background: url('../img/hero.jpg');
+  background-color: rgba(131, 204, 243, .85);
+    background-blend-mode: soft-light;
+  background-size: cover; 
     background-repeat: no-repeat;
-    background-size: cover;
-    position: relative;
-}
-
-/* Hero Tint */
-.hero-image:before {
-  content: "";
-  position: absolute;
-  left: 0; right: 0;
-  top: 0; bottom: 0;
-  /* Hero tint rgb */
-  /* TODO: Dean, correct this color;  */
-  background: rgba(26, 209, 255,.5);
-}
-
-/* Place text in the middle of the image */
-.hero-center {
-    text-align: center;
-    position: absolute;
-    top: 60%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: white;
-}
-
-.hero-center-text {
-  font-size: 1.5em;
+    background-position: center center;
   color: white;
 }
 
-.hero-center-button {
-  width: 60%;
-  margin: 40px auto;
-  -webkit-border-radius: 16;
-  -moz-border-radius: 16;
-  border-radius: 16px;
-  font-family: Arial;
-  font-size: 20px;
-  background: #8ed4aa;
-  padding: 10px 20px 10px 20px;
-}
-
-.hero-center-button a {
-  color: #000000;  
-  text-decoration: none;
-}
-
-.hero-center-button:hover {
-  background: #62ba85;
-  background-image: -webkit-linear-gradient(top, #62ba85, #8ed4aa);
-  background-image: -moz-linear-gradient(top, #62ba85, #8ed4aa);
-  background-image: -ms-linear-gradient(top, #62ba85, #8ed4aa);
-  background-image: -o-linear-gradient(top, #62ba85, #8ed4aa);
-  background-image: linear-gradient(to bottom, #62ba85, #8ed4aa);
-  text-decoration: none;
-}
-
-/* Place text in the middle of the image */
-.hero-title {
-    text-align: left;
-    position: absolute;
-   /* top: 0%;
-    left: 0%;*/
-    font-size: 1.7em;
-    width: 100%;
-    color: white;
-    padding: 10px;
-}
-
-.hero-title-left {
-  font-size: 2em;
-  float: left;
-}
-
-.hero-title-right {
-  float: right;
-}
-
-.hero-title-link {
-  margin-right: 5px;
-  margin-left: 5px;
-}
-.hero-image ul {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-  /*  background-color: #333333;*/
-}
-
-.hero-image li {
-    float: left;
-}
-
-.hero-image li a {
-    display: block;
-    color: white;
-    text-align: center;
-    padding: 16px;
-    text-decoration: none;
-}
-
-.hero-image li a:hover {
-  color: #E9F6A7;
-  text-shadow: 2px 2px #A1B5B4;
-    /*background-color: #111111;*/
-}
-
-.resize {
-  max-width: 20%;
+#hero > #top-bar {
+  display: flex;
+  padding-left: 40px;
+  padding-right: 40px;
+  padding-top: 20px;
+  padding-bottom: 20px;
   height: auto;
+  clear: both;
+  width: 100%;
+}
+
+#hero > #top-bar > #logo {
+  position: relative;
+  font-size: 36px;
+  left: 0;
+}
+
+#hero > #top-bar > #nav {
+  position: absolute;
+  display: flex;
+  list-style-type: none;
+  right: 30px;
+}
+
+#hero > #top-bar > #nav > li {
+  font-size: 20px;
+  display: inline-block;
+  float: right;
+  text-align: center;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+#hero > #tag-line-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  margin-top: 300px;
+}
+
+#hero > #tag-line-box #tagline {
+  display: flex;
+  height: auto;
+  clear: both;
+  width: 100%;
+  text-align: center;
+  font-size: 40px;
+}
+
+#hero > #tag-line-box #tagline > b {
+  padding-right: 10px;
+  padding-left: 10px;
+}
+
+#hero > #tag-line-box #start-lending {
+  margin-top: 75px;
+  padding: 15px 40px;
+  background-color: seagreen;
+  border: none;
+  background-color: rgba(208, 255, 255, .9);
+  color: rgba(54, 132, 169, .65);
+  font-size: 28px;
+  -webkit-border-radius: 30px;
+  -moz-border-radius: 20px;
+  border-radius: 20px;
 }

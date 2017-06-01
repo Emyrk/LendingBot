@@ -50,13 +50,17 @@ func newUserStatisticsDB(mapDB bool) (*UserStatisticsDB, error) {
 		u.db = database.NewMapDB()
 		u.startDB()
 	} else {
+		var newDB bool
 		if _, err := os.Stat(userStatsPath); os.IsNotExist(err) {
-			u.startDB()
+			newDB = false
 		} else {
-			return nil, err
+			newDB = true
 		}
 
 		u.db = database.NewBoltDB(userStatsPath)
+		if !newDB {
+			u.startDB()
+		}
 	}
 
 	err := u.loadCurrentIndex()
