@@ -206,13 +206,15 @@ func (c App) NewPassResponseGet() revel.Result {
 
 func (c App) NewPassResponsePost() revel.Result {
 	tokenString := c.Params.Route.Get("jwt")
+	pass := c.Params.Form.Get("pass")
 	c.ViewArgs["get"] = false
 
 	c.ViewArgs["success"] = true
-	if !state.CompareClearJWTOTP(tokenString) {
+	if !state.SetNewPasswordJWTOTP(tokenString, pass) {
 		c.ViewArgs["success"] = false
 		fmt.Printf("ERROR: with new pass request JWTOTP: %s\n", tokenString)
 		c.Response.Status = 400
 	}
+
 	return c.RenderTemplate("App/NewPass.html")
 }

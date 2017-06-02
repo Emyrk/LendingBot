@@ -63,7 +63,7 @@ type User struct {
 	Issuer     string
 
 	// JWT Change Pass
-	JWTOTP [32]byte
+	JWTOTP [43]byte
 
 	// Email Verify
 	Verified     bool
@@ -131,11 +131,11 @@ func NewUser(username string, password string) (*User, error) {
 }
 
 func (u *User) ClearJWTOTP() {
-	var tmp [32]byte
+	var tmp [43]byte
 	u.JWTOTP = tmp
 }
 
-func (u *User) SetJWTOTP(jwtOTP [32]byte) error {
+func (u *User) SetJWTOTP(jwtOTP [43]byte) error {
 	if _, found := u.GetJWTOTP(); found {
 		return fmt.Errorf("User already has a JWTOTP")
 	}
@@ -143,8 +143,8 @@ func (u *User) SetJWTOTP(jwtOTP [32]byte) error {
 	return nil
 }
 
-func (u *User) GetJWTOTP() (jwtOTP [32]byte, found bool) {
-	if bytes.Compare(u.JWTOTP[:], make([]byte, 32)) == 0 {
+func (u *User) GetJWTOTP() (jwtOTP [43]byte, found bool) {
+	if bytes.Compare(u.JWTOTP[:], make([]byte, 43)) == 0 {
 		return jwtOTP, false
 	}
 	return u.JWTOTP, true
@@ -304,7 +304,7 @@ func (u *User) MarshalBinary() ([]byte, error) {
 	}
 
 	// JWTOTP
-	buf.Write(u.JWTOTP[:32])
+	buf.Write(u.JWTOTP[:43])
 
 	// Email Verified
 	b = primitives.BoolToBytes(u.Verified)
@@ -432,8 +432,8 @@ func (u *User) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 		newData = newData[l:]
 	}
 
-	copy(u.JWTOTP[:32], newData[:32])
-	newData = newData[32:]
+	copy(u.JWTOTP[:43], newData[:43])
+	newData = newData[43:]
 
 	// Verified
 	verified := primitives.ByteToBool(newData[0])

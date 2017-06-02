@@ -207,7 +207,7 @@ func (r AppAuthRequired) RequestEmailVerification() revel.Result {
 		return r.RenderJSON(data)
 	}
 
-	link := MakeURL("verifyemail" + url.QueryEscape(u.Username) + "/" + u.VerifyString)
+	link := MakeURL("verifyemail/" + url.QueryEscape(u.Username) + "/" + url.QueryEscape(u.VerifyString))
 
 	emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_USER, []string{
 		e,

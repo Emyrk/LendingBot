@@ -139,7 +139,7 @@ func (ud *UserDatabase) UpdateJWTTime(username string, t time.Time) error {
 	return ud.PutUser(u)
 }
 
-func (ud *UserDatabase) UpdateJWTOTP(username string, b [32]byte) error {
+func (ud *UserDatabase) UpdateJWTOTP(username string, b [43]byte) error {
 	u, err := ud.FetchUserIfFound(username)
 	if err != nil {
 		return err
@@ -155,10 +155,10 @@ func (ud *UserDatabase) UpdateJWTOTP(username string, b [32]byte) error {
 	return ud.PutUser(u)
 }
 
-func (ud *UserDatabase) GetJWTOTP(username string) ([32]byte, bool) {
+func (ud *UserDatabase) GetJWTOTP(username string) ([43]byte, bool) {
 	u, err := ud.FetchUserIfFound(username)
 	if err != nil {
-		var ret [32]byte
+		var ret [43]byte
 		return ret, false
 	}
 
