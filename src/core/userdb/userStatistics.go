@@ -78,6 +78,23 @@ func newUserStatisticsDB(mapDB bool) (*UserStatisticsDB, error) {
 	return u, nil
 }
 
+type UserStatisticList []UserStatistic
+
+func (slice UserStatisticList) Len() int {
+	return len(slice)
+}
+
+func (slice UserStatisticList) Less(i, j int) bool {
+	if slice[i].Time.Before(slice[j].Time) {
+		return true
+	}
+	return false
+}
+
+func (slice UserStatisticList) Swap(i, j int) {
+	slice[i], slice[j] = slice[j], slice[i]
+}
+
 type UserStatistic struct {
 	Username           string    `json:"username"`
 	AvailableBalance   float64   `json:"availbal"`
@@ -355,12 +372,12 @@ func (us *UserStatisticsDB) RecordPoloniexStatistic(rate float64) error {
 	return us.db.Put(buck, secBytes, data)
 }
 
-func (us *UserStatisticsDB) GetStatistics(username string, dayRange int) ([][]*UserStatistic, error) {
+func (us *UserStatisticsDB) GetStatistics(username string, dayRange int) ([][]UserStatistic, error) {
 	if dayRange > 30 {
 		return nil, fmt.Errorf("Day range must be less than 30")
 	}
 
-	stats := make([][]*UserStatistic, 30)
+	stats := make([][]UserStatistic, 30)
 	for i := 0; i < dayRange; i++ {
 		buc := us.getBucketPlusX(username, i*-1)
 		statlist := us.getStatsFromBucket(buc)
@@ -370,21 +387,23 @@ func (us *UserStatisticsDB) GetStatistics(username string, dayRange int) ([][]*U
 	return stats, nil
 }
 
-func (us *UserStatisticsDB) getStatsFromBucket(bucket []byte) []*UserStatistic {
-	var resp []*UserStatistic
+func (us *UserStatisticsDB) getStatsFromBucket(bucket []byte) []UserStatistic {
+	var resp []UserStatistic
 	_, values, err := us.db.GetAll(bucket)
 	if err != nil {
 		return resp
 	}
 
 	for _, data := range values {
-		tmp := new(UserStatistic)
+		var tmp UserStatistic
 		err := tmp.UnmarshalBinary(data)
 		if err != nil {
 			continue
 		}
 		resp = append(resp, tmp)
 	}
+
+	sort.Sort(UserStatisticList(resp))
 
 	return resp
 }

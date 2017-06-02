@@ -253,3 +253,64 @@ func (r AppAuthRequired) AuthUser() revel.Result {
 
 	return nil
 }
+
+// Struct to UserDash
+type UserDashStructure struct {
+}
+
+type UserDashRow0 struct {
+	LoanRate       float64
+	BTCLent        float64
+	BTCNotLent     float64
+	LendingPercent float64
+
+	// From poloniex call
+	BTCEarned float64
+}
+
+/*
+type UserStatistic struct {
+	Username           string    `json:"username"`
+	AvailableBalance   float64   `json:"availbal"`
+	ActiveLentBalance  float64   `json:"availlent"`
+	OnOrderBalance     float64   `json:"onorder"`
+	AverageActiveRate  float64   `json:"activerate"`
+	AverageOnOrderRate float64   `json:"onorderrate"`
+	Time               time.Time `json:"time"`
+	Currency           string    `json:"currency"`
+
+	day int
+}
+*/
+
+// UserDashboard is the main page for users that have poloniex lending setup
+func (r AppAuthRequired) UserDashboard() revel.Result {
+	tokenString := r.Session[cryption.COOKIE_JWT_MAP]
+	email, _ := cryption.VerifyJWTGetEmail(tokenString, state.JWTSecret)
+	u, err := state.FetchUser(email)
+
+	if err != nil || u == nil {
+		fmt.Println("Error fetching user for dashboard")
+		return r.Redirect(App.Index)
+	}
+
+	userStats, err := state.GetUserStatistics(u.Username, 2)
+	if err != nil {
+		// HANDLE
+	}
+
+	var today UserDashRow0
+	l := len(userStats)
+	if l > 0 {
+		now := userStats[0][len(userStats)-1]
+		today.LoanRate = now.AverageActiveRate
+		today.BTCLent = now.ActiveLentBalance
+		today.BTCNotLent = now.AverageOnOrderRate + now.AvailableBalance
+		today.LendingPercent = today.BTCLent / (today.BTCLent + today.BTCNotLent)
+	}
+
+	var _ = userStats
+
+	r.ViewArgs["Today"] = today
+	return r.Render()
+}

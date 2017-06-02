@@ -131,7 +131,7 @@ func (s *State) SetUserKeys(username string, acessKey string, secretKey string) 
 	return s.userDB.PutUser(u)
 }
 
-func (s *State) GetStatistics(username string, dayRange int) ([][]*userdb.UserStatistic, error) {
+func (s *State) GetUserStatistics(username string, dayRange int) ([][]userdb.UserStatistic, error) {
 	return s.userStatistic.GetStatistics(username, dayRange)
 }
 
