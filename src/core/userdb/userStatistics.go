@@ -426,6 +426,58 @@ func (us *UserStatisticsDB) GetStatistics(username string, dayRange int) ([][]Us
 	return stats, nil
 }
 
+type DayAvg struct {
+	LoanRate       float64
+	BTCLent        float64
+	BTCNotLent     float64
+	LendingPercent float64
+}
+
+func (da *DayAvg) String() string {
+	return fmt.Sprintf("LoanRate: %f, BTCLent: %f, BTCNotLent: %f, LendingPercent: %f\n",
+		da.LoanRate, da.BTCLent, da.BTCNotLent, da.LendingPercent)
+}
+
+func GetDayAvg(dayStats []UserStatistic) *DayAvg {
+	da := new(DayAvg)
+	da.LoanRate = float64(0)
+	da.BTCLent = float64(0)
+	da.BTCNotLent = float64(0)
+	da.LendingPercent = float64(0)
+
+	if len(dayStats) == 0 {
+		return nil
+	}
+
+	var diff float64
+	last := dayStats[0].Time
+	totalSeconds := float64(0)
+
+	for _, s := range dayStats {
+		diff = timeDiff(last, s.Time)
+		da.LoanRate += diff * s.AverageActiveRate
+		da.BTCLent += diff * s.ActiveLentBalance
+		da.BTCNotLent += diff * (s.AvailableBalance + s.OnOrderBalance)
+		da.LendingPercent += diff * (s.ActiveLentBalance / (s.AvailableBalance + s.OnOrderBalance + s.ActiveLentBalance))
+		totalSeconds += diff
+	}
+
+	da.LoanRate = da.LoanRate / totalSeconds
+	da.BTCLent = da.BTCLent / totalSeconds
+	da.BTCNotLent = da.BTCNotLent / totalSeconds
+	da.LendingPercent = da.LendingPercent / totalSeconds
+
+	return da
+}
+
+func timeDiff(a time.Time, b time.Time) float64 {
+	d := a.Sub(b).Seconds()
+	if d < 0 {
+		return d * -1
+	}
+	return d
+}
+
 func (us *UserStatisticsDB) getStatsFromBucket(bucket []byte) []UserStatistic {
 	var resp []UserStatistic
 	values, _, err := us.db.GetAll(bucket)

@@ -58,32 +58,58 @@ type UserStatistic struct {
 }
 */
 
+func TestGetDayAvg(t *testing.T) {
+	u, _ := NewUserStatisticsMapDB()
+	var _ = u
+
+	stats := NewUserStatistic()
+	stats.Username = "steven"
+	stats.AvailableBalance = 0
+	stats.ActiveLentBalance = 100
+	stats.OnOrderBalance = 0
+	stats.AverageActiveRate = .4
+	stats.AverageOnOrderRate = .1
+	stats.Time = time.Now()
+	var _ = stats
+
+	u.RecordData(stats)
+	stats.AvailableBalance = 0
+	stats.Time = stats.Time.Add(5 * time.Second)
+	u.RecordData(stats)
+	// u.RecordData(stats)
+
+	ustats, _ := u.GetStatistics("steven", 1)
+	da := GetDayAvg(ustats[0])
+	if da.LendingPercent != 1 {
+		t.Error("Should be 1")
+	}
+}
+
 func TestStats(t *testing.T) {
 	u, _ := NewUserStatisticsMapDB()
 	var _ = u
 
 	stats := NewUserStatistic()
 	stats.Username = "steven"
-	stats.AvailableBalance = 100
+	stats.AvailableBalance = 0
 	stats.ActiveLentBalance = 100
-	stats.OnOrderBalance = 100
+	stats.OnOrderBalance = 0
 	stats.AverageActiveRate = .4
 	stats.AverageOnOrderRate = .1
 	stats.Time = time.Now()
 	var _ = stats
 
+	u.RecordData(stats)
+	stats.AvailableBalance = 0
+	stats.Time = stats.Time.Add(5 * time.Second)
+	u.RecordData(stats)
 	// u.RecordData(stats)
 
-	// ss, _ := u.GetStatistics("steven", 1)
-	// for _, nes := range ss {
-	// 	for _, asd := range nes {
-	// 		if asd.AvailableBalance == 100 {
-	// 			fmt.Println(asd)
-	// 		} else {
-	// 			fmt.Println(asd.AvailableBalance)
-	// 		}
-	// 	}
-	// }
+	ustats, _ := u.GetStatistics("steven", 1)
+	fmt.Println(ustats)
+	da := GetDayAvg(ustats[0])
+
+	fmt.Println(da)
 }
 
 // func TestThisThing(t *testing.T) {
