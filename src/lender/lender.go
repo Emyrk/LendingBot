@@ -118,7 +118,7 @@ func abs(v float64) float64 {
 func (l *Lender) recordStatistics(username string, bals map[string]map[string]float64,
 	inact map[string][]poloniex.PoloniexLoanOffer, activeLoan *poloniex.PoloniexActiveLoans) error {
 
-	stats := new(userdb.UserStatistic)
+	stats := userdb.NewUserStatistic()
 	stats.Time = time.Now()
 	stats.Username = username
 	stats.Currency = "BTC"

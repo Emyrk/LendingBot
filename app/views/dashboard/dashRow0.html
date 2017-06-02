@@ -2,30 +2,78 @@
   <!-- top tiles -->
   <div class="row tile_count">
     <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
+    <!-- Current Daily -->
       <span class="count_top"><i class="fa fa-user"></i> Current Daily Rate</span>
-      <div class="count">0.1102</div>
-      <span class="count_bottom"><i class="green">0.001% </i> From last Week</span>
+      <div class="count">[[.Today.LoanRate]]%</div>
+      <!-- Change -->
+      [[if floateq 0 .Today.LoanRateChange]] [[else]]
+        <span class="count_bottom">
+        [[if floatge .Today.LoanRateChange 0]]
+            <i class="green"><i class="fa fa-sort-asc">
+          [[else]]
+            <i class="red"><i class="fa fa-sort-desc">
+        [[end]]
+        </i> [[.Today.LoanRateChange]] </i> From last Week</span>
+      [[end]]
     </div>
+
+    <!-- Current BTC Lent -->
     <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
       <span class="count_top"><i class="fa fa-clock-o"></i> Current BTC Lent</span>
-      <div class="count">123.50</div>
-      <span class="count_bottom"><i class="green"><i class="fa fa-sort-asc"></i>3% </i> From last Week</span>
+      <div class="count green">[[.Today.BTCLent]]</div>
+      <!-- Change -->
+      [[if floateq 0 .Today.BTCLentChange]] [[else]]
+        <span class="count_bottom">
+        [[if floatge .Today.BTCLentChange 0]]
+            <i class="green"><i class="fa fa-sort-asc">
+          [[else]]
+            <i class="red"><i class="fa fa-sort-desc">
+        [[end]]
+        </i> [[.Today.BTCLentChange]] </i> From last Week</span>
+      [[end]]
     </div>
+
+    <!-- Current Not Lent -->
     <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
       <span class="count_top"><i class="fa fa-user"></i> Current Not Lent</span>
-      <div class="count green">2,500</div>
-      <span class="count_bottom"><i class="green"><i class="fa fa-sort-asc"></i>34% </i> From last Week</span>
+      <div class="count red">[[.Today.BTCNotLent]]</div>
+       <!-- Change -->
+       [[if floateq 0 .Today.BTCNotLentChange]] [[else]]
+        <span class="count_bottom">
+        [[if floatge .Today.BTCNotLentChange 0]]
+            <i class="green"><i class="fa fa-sort-asc">
+          [[else]]
+            <i class="red"><i class="fa fa-sort-desc">
+        [[end]]
+        </i> [[.Today.BTCNotLentChange]] </i> From last Week</span>
+      [[end]]
     </div>
+
+    <!-- Daily BTC Earnings -->
     <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
       <span class="count_top"><i class="fa fa-user"></i> Daily BTC Earning</span>
-      <div class="count">4,567</div>
+      <div class="count">0000</div>
+       <!-- Change -->
       <span class="count_bottom"><i class="red"><i class="fa fa-sort-desc"></i>12% </i> From last Week</span>
     </div>
+
+    <!-- Lending Uptime -->
     <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
       <span class="count_top"><i class="fa fa-user"></i> Lending Uptime</span>
-      <div class="count">86%</div>
-      <span class="count_bottom"><i class="green"><i class="fa fa-sort-asc"></i>34% </i> From last Week</span>
+      <div class="count">[[formatFloat .Today.LendingPercent 3]]%</div>
+       <!-- Change -->
+      [[if floateq 0 .Today.LendingPercentChange]] [[else]]
+        <span class="count_bottom">
+        [[if floatge .Today.LendingPercentChange 0]]
+            <i class="green"><i class="fa fa-sort-asc">
+          [[else]]
+            <i class="red"><i class="fa fa-sort-desc">
+        [[end]]
+        </i> [[.Today.LendingPercentChange]] </i> From last Week</span>
+      [[end]]
     </div>
+
+    <!-- Happiness :) -->
     <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
       <span class="count_top"><i class="fa fa-user"></i> Happiness</span>
       <div class="count">110%</div>

@@ -5,11 +5,15 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"time"
 
 	"github.com/Emyrk/LendingBot/src/core/cryption"
 	"github.com/Emyrk/LendingBot/src/core/email"
+	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"github.com/revel/revel"
 )
+
+var SkipAuth = false
 
 type AppAuthRequired struct {
 	*revel.Controller
@@ -237,6 +241,9 @@ func (r AppAuthRequired) RequestEmailVerification() revel.Result {
 
 //called before any auth required function
 func (r AppAuthRequired) AuthUser() revel.Result {
+	if SkipAuth {
+		return nil
+	}
 	tokenString := r.Session[cryption.COOKIE_JWT_MAP]
 	email, err := cryption.VerifyJWTGetEmail(tokenString, state.JWTSecret)
 	if err != nil {
@@ -264,8 +271,29 @@ type UserDashRow0 struct {
 	BTCNotLent     float64
 	LendingPercent float64
 
+	LoanRateChange       float64
+	BTCLentChange        float64
+	BTCNotLentChange     float64
+	LendingPercentChange float64
+
 	// From poloniex call
 	BTCEarned float64
+}
+
+func newUserDashRow0() *UserDashRow0 {
+	r := new(UserDashRow0)
+	r.LoanRate = 0
+	r.BTCLent = 0
+	r.BTCNotLent = 0
+	r.LendingPercent = 0
+	r.BTCEarned = 0
+
+	r.LoanRateChange = 0
+	r.BTCLentChange = 0
+	r.BTCNotLentChange = 0
+	r.LendingPercentChange = 0
+
+	return r
 }
 
 /*
@@ -299,18 +327,76 @@ func (r AppAuthRequired) UserDashboard() revel.Result {
 		// HANDLE
 	}
 
-	var today UserDashRow0
+	today := newUserDashRow0()
 	l := len(userStats)
-	if l > 0 {
-		now := userStats[0][len(userStats)-1]
+	if l > 0 && len(userStats[0]) > 0 {
+		now := userStats[0][0]
 		today.LoanRate = now.AverageActiveRate
 		today.BTCLent = now.ActiveLentBalance
 		today.BTCNotLent = now.AverageOnOrderRate + now.AvailableBalance
 		today.LendingPercent = today.BTCLent / (today.BTCLent + today.BTCNotLent)
-	}
 
-	var _ = userStats
+		yesterday := getDayAvg(userStats[1])
+		if yesterday != nil {
+			today.LoanRateChange = percentChange(yesterday.LoanRate, today.LoanRate)
+			today.BTCLentChange = percentChange(yesterday.BTCLent, today.BTCLent)
+			today.BTCNotLentChange = percentChange(yesterday.BTCNotLent, today.BTCNotLent)
+			today.LendingPercentChange = percentChange(yesterday.LendingPercent, today.LendingPercent)
+		}
+	}
 
 	r.ViewArgs["Today"] = today
 	return r.Render()
+}
+
+type DayAvg struct {
+	LoanRate       float64
+	BTCLent        float64
+	BTCNotLent     float64
+	LendingPercent float64
+}
+
+func getDayAvg(dayStats []userdb.UserStatistic) *DayAvg {
+	da := new(DayAvg)
+	da.LoanRate = float64(0)
+	da.BTCLent = float64(0)
+	da.BTCNotLent = float64(0)
+	da.LendingPercent = float64(0)
+
+	if len(dayStats) == 0 {
+		return nil
+	}
+
+	var diff float64
+	last := dayStats[0].Time
+	totalSeconds := float64(0)
+
+	for _, s := range dayStats {
+		diff = timeDiff(last, s.Time)
+		totalSeconds += diff
+		da.LoanRate += diff * s.AverageActiveRate
+		da.BTCLent += diff * s.ActiveLentBalance
+		da.BTCNotLent += diff * (s.AvailableBalance + s.OnOrderBalance)
+		da.LendingPercent += diff * (s.ActiveLentBalance / (s.AvailableBalance + s.OnOrderBalance + s.ActiveLentBalance))
+		totalSeconds += diff
+	}
+
+	da.LoanRate = da.LoanRate / totalSeconds
+	da.BTCLent = da.BTCLent / totalSeconds
+	da.BTCNotLent = da.BTCNotLent / totalSeconds
+	da.LendingPercent = da.LendingPercent / totalSeconds
+
+	return da
+}
+
+func percentChange(a float64, b float64) float64 {
+	return ((a - b) / a) * 100
+}
+
+func timeDiff(a time.Time, b time.Time) float64 {
+	d := a.Sub(b).Seconds()
+	if d < 0 {
+		return d * -1
+	}
+	return d
 }

@@ -85,7 +85,7 @@ func (slice UserStatisticList) Len() int {
 }
 
 func (slice UserStatisticList) Less(i, j int) bool {
-	if slice[i].Time.Before(slice[j].Time) {
+	if !slice[i].Time.Before(slice[j].Time) {
 		return true
 	}
 	return false
@@ -106,6 +106,44 @@ type UserStatistic struct {
 	Currency           string    `json:"currency"`
 
 	day int
+}
+
+func NewUserStatistic() *UserStatistic {
+	us := new(UserStatistic)
+	us.Username = ""
+	us.AvailableBalance = 0
+	us.ActiveLentBalance = 0
+	us.OnOrderBalance = 0
+	us.AverageActiveRate = 0
+	us.AverageOnOrderRate = 0
+	us.Currency = ""
+
+	return us
+}
+
+func (a *UserStatistic) IsSameAs(b *UserStatistic) bool {
+	if a.Username != b.Username {
+		return false
+	}
+	if a.AvailableBalance != b.AvailableBalance {
+		return false
+	}
+	if a.ActiveLentBalance != b.ActiveLentBalance {
+		return false
+	}
+	if a.OnOrderBalance != b.OnOrderBalance {
+		return false
+	}
+	if a.AverageActiveRate != b.AverageActiveRate {
+		return false
+	}
+	if a.AverageOnOrderRate != b.AverageOnOrderRate {
+		return false
+	}
+	if a.Currency != b.Currency {
+		return false
+	}
+	return true
 }
 
 func (s *UserStatistic) MarshalBinary() ([]byte, error) {
@@ -306,7 +344,7 @@ func (slice PoloniexRateSamples) Len() int {
 }
 
 func (slice PoloniexRateSamples) Less(i, j int) bool {
-	if slice[i].SecondsPastMidnight < slice[j].SecondsPastMidnight {
+	if slice[i].SecondsPastMidnight > slice[j].SecondsPastMidnight {
 		return true
 	}
 	return false
@@ -325,6 +363,7 @@ func (us *UserStatisticsDB) GetPoloniexDataLastXDays(dayRange int) [][]PoloniexR
 	for i := 0; i < dayRange; i++ {
 		day := start - i
 		bucket := primitives.Uint32ToBytes(uint32(day))
+		bucket = append(PoloniexPrefix, bucket...)
 		datas, keys, err := us.db.GetAll(bucket)
 		if err != nil {
 			continue
@@ -377,7 +416,7 @@ func (us *UserStatisticsDB) GetStatistics(username string, dayRange int) ([][]Us
 		return nil, fmt.Errorf("Day range must be less than 30")
 	}
 
-	stats := make([][]UserStatistic, 30)
+	stats := make([][]UserStatistic, dayRange)
 	for i := 0; i < dayRange; i++ {
 		buc := us.getBucketPlusX(username, i*-1)
 		statlist := us.getStatsFromBucket(buc)
@@ -389,7 +428,7 @@ func (us *UserStatisticsDB) GetStatistics(username string, dayRange int) ([][]Us
 
 func (us *UserStatisticsDB) getStatsFromBucket(bucket []byte) []UserStatistic {
 	var resp []UserStatistic
-	_, values, err := us.db.GetAll(bucket)
+	values, _, err := us.db.GetAll(bucket)
 	if err != nil {
 		return resp
 	}
