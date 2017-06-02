@@ -155,6 +155,10 @@ func (s *State) RecordPoloniexStatistics(rate float64) error {
 	return s.userStatistic.RecordPoloniexStatistic(rate)
 }
 
+func (s *State) GetPoloniexStatsPastXDays(dayRange int) [][]userdb.PoloniexRateSample {
+	return s.userStatistic.GetPoloniexDataLastXDays(dayRange)
+}
+
 // RecordStatistics is for recording an individual user's statistics at a given time
 func (s *State) RecordStatistics(stats *userdb.UserStatistic) error {
 	if !s.poloniexCache.shouldRecordStats(stats.Username) {
