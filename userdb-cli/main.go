@@ -16,17 +16,31 @@ func main() {
 		username = flag.String("u", "", "Username to change level of")
 		level    = flag.String("l", "", "Level to set user, 'admin', 'sysadmin', user")
 		auth     = flag.String("a", "", "2fa auth")
+		listall  = flag.Bool("la", false, "List all users")
 	)
 
 	flag.Parse()
-	if *username == "" {
+	la := *listall
+	if *username == "" && !la {
 		panic("No username chosen")
 	}
-	fmt.Println("Asd")
 
 	db := userdb.NewBoltUserDatabase("UserDatabase.db")
 	if db == nil {
 		panic("DB not opened")
+	}
+
+	if *listall {
+		users, err := db.FetchAllUsers()
+		if err != nil {
+			fmt.Printf("Error when loading users: %s\n", err.Error())
+			panic(err)
+		}
+
+		for _, u := range users {
+			fmt.Println(u.Username)
+		}
+		return
 	}
 
 	u, err := db.FetchUserIfFound(*username)
