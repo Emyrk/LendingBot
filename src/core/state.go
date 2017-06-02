@@ -150,6 +150,12 @@ func (s *State) FetchAllUsers() ([]userdb.User, error) {
 	return s.userDB.FetchAllUsers()
 }
 
+// RecordPoloniexStatistics is for recording the current lending rate on poloniex
+func (s *State) RecordPoloniexStatistics(rate float64) error {
+	return s.userStatistic.RecordPoloniexStatistic(rate)
+}
+
+// RecordStatistics is for recording an individual user's statistics at a given time
 func (s *State) RecordStatistics(stats *userdb.UserStatistic) error {
 	if !s.poloniexCache.shouldRecordStats(stats.Username) {
 		return nil
