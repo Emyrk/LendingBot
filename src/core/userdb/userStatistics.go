@@ -10,6 +10,8 @@ import (
 	"github.com/Emyrk/LendingBot/src/core/database"
 )
 
+var _ = fmt.Println
+
 var (
 	UserStatisticDBMetaDataBucket = []byte("UserStatisticsDBMeta")
 	CurrentDayKey                 = []byte("CurrentDay")
@@ -48,13 +50,17 @@ func newUserStatisticsDB(mapDB bool) (*UserStatisticsDB, error) {
 		u.db = database.NewMapDB()
 		u.startDB()
 	} else {
+		var newDB bool
 		if _, err := os.Stat(userStatsPath); os.IsNotExist(err) {
-			u.startDB()
+			newDB = false
 		} else {
-			return nil, err
+			newDB = true
 		}
 
 		u.db = database.NewBoltDB(userStatsPath)
+		if !newDB {
+			u.startDB()
+		}
 	}
 
 	err := u.loadCurrentIndex()
@@ -271,6 +277,40 @@ func (us *UserStatisticsDB) RecordData(stats *UserStatistic) error {
 	return us.putStats(stats.Username, seconds, data)
 }
 
+func (us *UserStatisticsDB) GetStatistics(username string, dayRange int) ([][]*UserStatistic, error) {
+	if dayRange > 30 {
+		return nil, fmt.Errorf("Day range must be less than 30")
+	}
+
+	stats := make([][]*UserStatistic, 30)
+	for i := 0; i < dayRange; i++ {
+		buc := us.getBucketPlusX(username, i*-1)
+		statlist := us.getStatsFromBucket(buc)
+		stats[i] = statlist
+	}
+
+	return stats, nil
+}
+
+func (us *UserStatisticsDB) getStatsFromBucket(bucket []byte) []*UserStatistic {
+	var resp []*UserStatistic
+	_, values, err := us.db.GetAll(bucket)
+	if err != nil {
+		return resp
+	}
+
+	for _, data := range values {
+		tmp := new(UserStatistic)
+		err := tmp.UnmarshalBinary(data)
+		if err != nil {
+			continue
+		}
+		resp = append(resp, tmp)
+	}
+
+	return resp
+}
+
 func (us *UserStatisticsDB) putStats(username string, seconds int, data []byte) error {
 	buc := us.getBucket(username)
 	key := primitives.Uint32ToBytes(uint32(seconds))
@@ -288,6 +328,24 @@ func (us *UserStatisticsDB) getNextBucket(username string) []byte {
 	i := us.CurrentIndex + 1
 	if i > 30 {
 		i = 0
+	}
+
+	hash := GetUsernameHash(username)
+	index := primitives.Uint32ToBytes(uint32(i))
+	return append(hash[:], index...)
+}
+
+func (us *UserStatisticsDB) getBucketPlusX(username string, offset int) []byte {
+	i := us.CurrentIndex + offset
+
+	if i > 30 {
+		overFlow := i - 30
+		i = -1 + overFlow
+	}
+
+	if i < 0 {
+		underFlow := i * -1
+		i = 31 - underFlow
 	}
 
 	hash := GetUsernameHash(username)

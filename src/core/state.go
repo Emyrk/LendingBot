@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/Emyrk/LendingBot/src/core/cryption"
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
@@ -17,6 +18,9 @@ type State struct {
 	PoloniexAPI   poloniex.IPoloniex
 	CipherKey     [32]byte
 	JWTSecret     [32]byte
+
+	// Poloniex Cache
+	poloniexCache *PoloniexAccessCache
 }
 
 func NewFakePoloniexState() *State {
@@ -59,10 +63,16 @@ func newState(withMap bool, fakePolo bool) *State {
 	}
 	copy(s.JWTSecret[:], jck[:])
 
-	s.userStatistic, err = userdb.NewUserStatisticsMapDB()
+	if withMap {
+		s.userStatistic, err = userdb.NewUserStatisticsMapDB()
+	} else {
+		s.userStatistic, err = userdb.NewUserStatisticsDB()
+	}
 	if err != nil {
 		panic(fmt.Sprintf("Could create user statistic database %s", err.Error()))
 	}
+
+	s.poloniexCache = NewPoloniexAccessCache()
 
 	return s
 }
@@ -121,6 +131,10 @@ func (s *State) SetUserKeys(username string, acessKey string, secretKey string) 
 	return s.userDB.PutUser(u)
 }
 
+func (s *State) GetStatistics(username string, dayRange int) ([][]*userdb.UserStatistic, error) {
+	return s.userStatistic.GetStatistics(username, dayRange)
+}
+
 func (s *State) EnableUserLending(username string, enabled bool) error {
 	u, err := s.userDB.FetchUserIfFound(username)
 	if err != nil {
@@ -140,6 +154,9 @@ func (s *State) FetchAllUsers() ([]userdb.User, error) {
 }
 
 func (s *State) RecordStatistics(stats *userdb.UserStatistic) error {
+	if !s.poloniexCache.shouldRecordStats(stats.Username) {
+		return nil
+	}
 	err := s.userStatistic.RecordData(stats)
 	if err != nil {
 		return err
@@ -148,19 +165,26 @@ func (s *State) RecordStatistics(stats *userdb.UserStatistic) error {
 	return nil
 }
 
-func (s *State) UpdateJWTOTP(username string) error {
-	tokenString, err := cryption.NewJWTString(username, s.JWTSecret, cryption.JWT_EXPIRY_TIME_NEW_PASS)
+func (s *State) GetNewJWTOTP(username string) (string, error) {
+	return s.setupNewJWTOTP(username, cryption.JWT_EXPIRY_TIME_NEW_PASS)
+}
+
+func (s *State) setupNewJWTOTP(username string, t time.Duration) (string, error) {
+	tokenString, err := cryption.NewJWTString(username, s.JWTSecret, t)
 	if err != nil {
-		return err
+		return "", err
 	}
 	sig, err := cryption.GetJWTSignature(tokenString)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	var b [32]byte
 	copy(b[:], sig)
-	return s.userDB.UpdateJWTOTP(username, b)
+	if err = s.userDB.UpdateJWTOTP(username, b); err != nil {
+		return "", err
+	}
+	return tokenString, nil
 }
 
 func (s *State) CompareClearJWTOTP(tokenString string) bool {

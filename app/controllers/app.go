@@ -8,6 +8,7 @@ import (
 
 	"github.com/Emyrk/LendingBot/src/core"
 	"github.com/Emyrk/LendingBot/src/core/cryption"
+	"github.com/Emyrk/LendingBot/src/core/email"
 	"github.com/Emyrk/LendingBot/src/lender"
 	"github.com/Emyrk/LendingBot/src/queuer"
 	"github.com/revel/revel"
@@ -55,6 +56,14 @@ const (
 
 type App struct {
 	*revel.Controller
+}
+
+func MakeURL(safeUrl string) string {
+	if revel.DevMode {
+		return "http://localhost:9000/" + safeUrl
+	} else {
+		return "https://www.hodl.zone/" + safeUrl
+	}
 }
 
 func (c App) Sandbox() revel.Result {
@@ -148,42 +157,62 @@ func (c App) VerifyEmail() revel.Result {
 	return c.RenderTemplate("App/verifiedEmailSuccess.html")
 }
 
-func (c App) NewPassRequest() revel.Result {
-	email := c.Params.Route.Get("email")
+func (c App) NewPassRequestGET() revel.Result {
+	c.ViewArgs["get"] = true
+	return c.RenderTemplate("App/NewPassRequest.html")
+}
 
-	data := make(map[string]interface{})
+func (c App) NewPassRequestPOST() revel.Result {
+	e := c.Params.Form.Get("email")
+
+	tokenString, err := state.GetNewJWTOTP(e)
+	if err != nil {
+		fmt.Printf("ERROR: getting new JWTOTP email: [%s] error:%s\n", err.Error())
+		c.Response.Status = 500
+		return c.RenderTemplate("errors/500.html")
+	}
 
 	emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_USER, []string{
 		e,
 	}, "Reset Password")
 
-	err := emailRequest.ParseTemplate("newpassword.html", struct {
+	err = emailRequest.ParseTemplate("newpassword.html", struct {
 		Link string
 	}{
-		link,
+		MakeURL("newpass/response/" + tokenString),
 	})
-	fmt.Printf("Template %s\n", emailRequest.Body)
+
 	if err != nil {
-		fmt.Printf("ERROR: Parsing template: %s\n", err)
-		data[JSON_ERROR] = "Internal Error"
-		r.Response.Status = 500
-		return r.RenderJSON(data)
+		fmt.Printf("ERROR: Parsing template: %s\n", err.Error())
+		c.Response.Status = 500
+		return c.RenderTemplate("errors/500.html")
 	}
 
 	if err = emailRequest.SendEmail(); err != nil {
-		fmt.Printf("ERROR: Sending email: %s\n", err)
-		data[JSON_ERROR] = "Internal Error"
-		r.Response.Status = 500
-		return r.RenderJSON(data)
+		fmt.Printf("ERROR: Sending new password email: %s\n", err.Error())
+		c.Response.Status = 500
+		return c.RenderTemplate("errors/500.html")
 	}
 
-	state
-
-	return c.RenderJSON(data)
+	c.ViewArgs["get"] = false
+	return c.RenderTemplate("App/NewPassRequest.html")
 }
 
-func (c App) NewPassResponse() revel.Result {
-	jwt := c.Params.Route.Get("jwt")
+func (c App) NewPassResponseGet() revel.Result {
+	c.ViewArgs["get"] = true
+	c.ViewArgs["tokenString"] = c.Params.Route.Get("jwt")
+	return c.RenderTemplate("App/NewPass.html")
+}
 
-	return c.RenderJSON(data)
+func (c App) NewPassResponsePost() revel.Result {
+	tokenString := c.Params.Route.Get("jwt")
+	c.ViewArgs["get"] = false
+
+	c.ViewArgs["success"] = true
+	if !state.CompareClearJWTOTP(tokenString) {
+		c.ViewArgs["success"] = false
+		fmt.Printf("ERROR: with new pass request JWTOTP: %s\n", tokenString)
+		c.Response.Status = 400
+	}
+	return c.RenderTemplate("App/NewPass.html")
 }

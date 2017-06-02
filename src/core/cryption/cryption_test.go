@@ -45,7 +45,7 @@ func TestJWT(t *testing.T) {
 		t.Errorf("Error creating jwt: %s\n", err.Error())
 	}
 
-	jwtEmail, err := VerifyJWT(tokenString, start.JWTSecret)
+	jwtEmail, err := VerifyJWTGetEmail(tokenString, start.JWTSecret)
 	if err != nil {
 		t.Errorf("Error verifying jwt: %s\n", err.Error())
 	}
@@ -57,7 +57,7 @@ func TestJWT(t *testing.T) {
 
 	time.Sleep(3 * time.Second)
 
-	jwtEmail, err = VerifyJWT(tokenString, start.JWTSecret)
+	jwtEmail, err = VerifyJWTGetEmail(tokenString, start.JWTSecret)
 	if err == nil {
 		t.Error("Error should have produced an error")
 	}

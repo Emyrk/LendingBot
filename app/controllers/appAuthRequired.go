@@ -207,12 +207,7 @@ func (r AppAuthRequired) RequestEmailVerification() revel.Result {
 		return r.RenderJSON(data)
 	}
 
-	var link string
-	if revel.DevMode {
-		link = "http://localhost:9000/verifyemail/" + url.QueryEscape(u.Username) + "/" + u.VerifyString
-	} else {
-		link = "https://www.hodl.zone/verifyemail/" + url.QueryEscape(u.Username) + "/" + u.VerifyString
-	}
+	link := MakeURL("verifyemail" + url.QueryEscape(u.Username) + "/" + u.VerifyString)
 
 	emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_USER, []string{
 		e,

@@ -17,7 +17,8 @@ GET		/landing								App.Landing
 GET		/verifyemail/:email/:hash				App.VerifyEmail
 GET		/verify/request                         AppAuthRequired.RequestEmailVerification
 
-POST	/newpass/request/:email                 App.NewPassRequest
+GET		/newpass/request	                 	App.NewPassRequestGET
+POST	/newpass/request	                    App.NewPassRequestPOST
 GET		/newpass/response/:jwt	          		App.NewPassResponseGet
 POST	/newpass/response/:jwt	          		App.NewPassResponsePost
 
