@@ -107,9 +107,7 @@ func NewUser(username string, password string) (*User, error) {
 
 	u.Level = CommonUser
 
-	passAndSalt := append([]byte(password), u.Salt...)
-	hash := sha256.Sum256(passAndSalt)
-	u.PasswordHash = hash
+	u.PasswordHash = u.MakePasswordHash(password)
 
 	u.PoloniexKeys = NewBlankPoloniexKeys()
 
@@ -128,6 +126,12 @@ func NewUser(username string, password string) (*User, error) {
 	u.VerifyString = hex.EncodeToString(verifyBytes)
 
 	return u, nil
+}
+
+func (u *User) MakePasswordHash(password string) [32]byte {
+	passAndSalt := append([]byte(password), u.Salt...)
+	hash := sha256.Sum256(passAndSalt)
+	return hash
 }
 
 func (u *User) ClearJWTOTP() {
