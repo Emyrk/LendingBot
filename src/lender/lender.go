@@ -102,7 +102,9 @@ func (l *Lender) CalculateLoanRate() error {
 	l.CurrentLoanRate = lowest
 	if l.CurrentLoanRate < 2 {
 		CurrentLoanRate.Set(l.CurrentLoanRate) // Prometheus
+		s.RecordPoloniexStatistics(l.CurrentLoanRate)
 	}
+
 	return nil
 }
 

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"sort"
 	"time"
 
 	"github.com/Emyrk/LendingBot/src/core/common/primitives"
@@ -16,6 +17,7 @@ var (
 	UserStatisticDBMetaDataBucket = []byte("UserStatisticsDBMeta")
 	CurrentDayKey                 = []byte("CurrentDay")
 	CurrentIndex                  = []byte("CurrentIndex")
+	PoloniexPrefix                = []byte("PoloniexBucket")
 )
 
 var (
@@ -25,9 +27,9 @@ var (
 type UserStatisticsDB struct {
 	db database.IDatabase
 
-	LastCalculate time.Time
-	CurrentDay    int
-	CurrentIndex  int // 0 to 30
+	LastPoloniexRateSave time.Time
+	CurrentDay           int
+	CurrentIndex         int // 0 to 30
 }
 
 func NewUserStatisticsMapDB() (*UserStatisticsDB, error) {
@@ -72,8 +74,6 @@ func newUserStatisticsDB(mapDB bool) (*UserStatisticsDB, error) {
 	if err != nil {
 		return u, err
 	}
-
-	u.LastCalculate = time.Now()
 
 	return u, nil
 }
@@ -275,6 +275,84 @@ func (us *UserStatisticsDB) RecordData(stats *UserStatistic) error {
 	}
 
 	return us.putStats(stats.Username, seconds, data)
+}
+
+type PoloniexRateSample struct {
+	SecondsPastMidnight int
+	Rate                float64
+}
+
+type PoloniexRateSamples []PoloniexRateSample
+
+func (slice PoloniexRateSamples) Len() int {
+	return len(slice)
+}
+
+func (slice PoloniexRateSamples) Less(i, j int) bool {
+	if slice[i].SecondsPastMidnight < slice[j].SecondsPastMidnight {
+		return true
+	}
+	return false
+}
+
+func (slice PoloniexRateSamples) Swap(i, j int) {
+	slice[i], slice[j] = slice[j], slice[i]
+}
+
+// GetPoloniexDataLastXDays returns a 2D array:
+//		[x][y]PoloniexRateSample
+//			x  = x days past, E.g 0 = today
+func (us *UserStatisticsDB) GetPoloniexDataLastXDays(dayRange int) [][]PoloniexRateSample {
+	historyStats := make([][]PoloniexRateSample, dayRange)
+	start := GetDay(time.Now())
+	for i := 0; i < dayRange; i++ {
+		day := start - i
+		bucket := primitives.Uint32ToBytes(uint32(day))
+		datas, keys, err := us.db.GetAll(bucket)
+		if err != nil {
+			continue
+		}
+
+		stats := make([]PoloniexRateSample, 0)
+		for i, data := range datas {
+			rate, err := primitives.BytesToFloat64(data)
+			if err != nil {
+				continue
+			}
+
+			secondsPast, err := primitives.BytesToUint32(keys[i])
+			if err != nil {
+				continue
+			}
+
+			stats = append(stats, PoloniexRateSample{SecondsPastMidnight: int(secondsPast), Rate: rate})
+		}
+
+		sort.Sort(PoloniexRateSamples(stats))
+		historyStats[i] = stats
+	}
+	return historyStats
+}
+
+func (us *UserStatisticsDB) RecordPoloniexStatistic(rate float64) error {
+	if time.Since(us.LastPoloniexRateSave).Seconds() < 10 {
+		return nil
+	}
+
+	t := time.Now()
+	day := GetDay(t)
+	sec := GetSeconds(t)
+	dayBytes := primitives.Uint32ToBytes(uint32(day))
+	buck := append(PoloniexPrefix, dayBytes...)
+
+	secBytes := primitives.Uint32ToBytes(uint32(sec))
+	data, err := primitives.Float64ToBytes(rate)
+	if err != nil {
+		return err
+	}
+
+	us.LastPoloniexRateSave = time.Now()
+	return us.db.Put(buck, secBytes, data)
 }
 
 func (us *UserStatisticsDB) GetStatistics(username string, dayRange int) ([][]*UserStatistic, error) {
