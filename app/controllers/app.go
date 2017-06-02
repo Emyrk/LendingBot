@@ -8,6 +8,7 @@ import (
 
 	"github.com/Emyrk/LendingBot/src/core"
 	"github.com/Emyrk/LendingBot/src/core/cryption"
+	"github.com/Emyrk/LendingBot/src/core/email"
 	"github.com/Emyrk/LendingBot/src/lender"
 	"github.com/Emyrk/LendingBot/src/queuer"
 	"github.com/revel/revel"
@@ -57,6 +58,14 @@ type App struct {
 	*revel.Controller
 }
 
+func MakeURL(safeUrl string) string {
+	if revel.DevMode {
+		return "http://localhost:9000/" + safeUrl
+	} else {
+		return "https://www.hodl.zone/" + safeUrl
+	}
+}
+
 func (c App) Sandbox() revel.Result {
 	return c.Render()
 }
@@ -99,7 +108,7 @@ func (c App) Login() revel.Result {
 		return c.RenderJSON(data)
 	}
 
-	stringToken, err := cryption.NewJWT(email, state.JWTSecret, cryption.JWT_EXPIRY_TIME)
+	stringToken, err := cryption.NewJWTString(email, state.JWTSecret, cryption.JWT_EXPIRY_TIME)
 	if err != nil {
 		data[JSON_ERROR] = fmt.Sprintf("Unable to create JWT: %s", err.Error())
 		c.Response.Status = 500
@@ -123,7 +132,7 @@ func (c App) Register() revel.Result {
 		return c.RenderJSON(data)
 	}
 
-	stringToken, err := cryption.NewJWT(email, state.JWTSecret, cryption.JWT_EXPIRY_TIME)
+	stringToken, err := cryption.NewJWTString(email, state.JWTSecret, cryption.JWT_EXPIRY_TIME)
 	if err != nil {
 		data[JSON_ERROR] = fmt.Sprintf("Unable to create JWT: %s", err.Error())
 		c.Response.Status = 500
@@ -133,4 +142,77 @@ func (c App) Register() revel.Result {
 	c.Session[cryption.COOKIE_JWT_MAP] = stringToken
 
 	return c.RenderJSON(data)
+}
+
+func (c App) VerifyEmail() revel.Result {
+	email := c.Params.Route.Get("email")
+	hash := c.Params.Route.Get("hash")
+
+	err := state.VerifyEmail(email, hash)
+	if err != nil {
+		fmt.Printf("WARNING: Attempt to verify email: %s hash: %s, error: %s\n", email, hash, err.Error())
+		return c.NotFound("Invalid link. Please verify your email again.")
+	}
+	c.ViewArgs["email"] = email
+	return c.RenderTemplate("App/verifiedEmailSuccess.html")
+}
+
+func (c App) NewPassRequestGET() revel.Result {
+	c.ViewArgs["get"] = true
+	return c.RenderTemplate("App/NewPassRequest.html")
+}
+
+func (c App) NewPassRequestPOST() revel.Result {
+	e := c.Params.Form.Get("email")
+
+	tokenString, err := state.GetNewJWTOTP(e)
+	if err != nil {
+		fmt.Printf("ERROR: getting new JWTOTP email: [%s] error:%s\n", err.Error())
+		c.Response.Status = 500
+		return c.RenderTemplate("errors/500.html")
+	}
+
+	emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_USER, []string{
+		e,
+	}, "Reset Password")
+
+	err = emailRequest.ParseTemplate("newpassword.html", struct {
+		Link string
+	}{
+		MakeURL("newpass/response/" + tokenString),
+	})
+
+	if err != nil {
+		fmt.Printf("ERROR: Parsing template: %s\n", err.Error())
+		c.Response.Status = 500
+		return c.RenderTemplate("errors/500.html")
+	}
+
+	if err = emailRequest.SendEmail(); err != nil {
+		fmt.Printf("ERROR: Sending new password email: %s\n", err.Error())
+		c.Response.Status = 500
+		return c.RenderTemplate("errors/500.html")
+	}
+
+	c.ViewArgs["get"] = false
+	return c.RenderTemplate("App/NewPassRequest.html")
+}
+
+func (c App) NewPassResponseGet() revel.Result {
+	c.ViewArgs["get"] = true
+	c.ViewArgs["tokenString"] = c.Params.Route.Get("jwt")
+	return c.RenderTemplate("App/NewPass.html")
+}
+
+func (c App) NewPassResponsePost() revel.Result {
+	tokenString := c.Params.Route.Get("jwt")
+	c.ViewArgs["get"] = false
+
+	c.ViewArgs["success"] = true
+	if !state.CompareClearJWTOTP(tokenString) {
+		c.ViewArgs["success"] = false
+		fmt.Printf("ERROR: with new pass request JWTOTP: %s\n", tokenString)
+		c.Response.Status = 400
+	}
+	return c.RenderTemplate("App/NewPass.html")
 }

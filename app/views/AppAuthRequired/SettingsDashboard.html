@@ -3,6 +3,20 @@
 </h1>
 
 <hr/>
+
+<!-- Verify Email -->
+<div ng-init="verified = [[.verified]]" ng-hide="verified">
+	<h2>
+		Verify Email
+	</h2>
+	<h4>Verified: {{verified}}</h4>
+	<button ng-click="verifyEmail()">
+		Verify Email
+	</button>
+</div>
+<hr/>
+
+<!-- Poloniex Keys -->
 <h2>
 	Poloniex Keys
 </h2>

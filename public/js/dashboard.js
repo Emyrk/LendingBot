@@ -119,6 +119,23 @@ app.controller('dashSettingsController', ['$scope', '$http', '$log',
 				$log.error("SetPoloniexKeys: Error: [" + JSON.stringify(err) + "] Status [" + status + "]");
 			});
 		}
+
+		dashSettingsScope.verifyEmail = function() {
+			$http(
+			{
+				method: 'GET',
+				url: '/verify/request',
+				withCredentials: true
+			})
+			.then((res, status, headers, config) => {
+				//success
+				$log.info("VerifyEmail: Success.");
+				dashSettingsScope.verifyEmail = true;
+			}, (err, status, headers, config) => {
+				//error
+				$log.error("VerifyEmail: Error: [" + JSON.stringify(err) + "] Status [" + status + "]");
+			});
+		}
 	}]);
 
 app.controller('dashLogsController', ['$scope', '$http', '$log',

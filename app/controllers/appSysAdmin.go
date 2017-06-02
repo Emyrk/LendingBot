@@ -28,7 +28,7 @@ func (s AppSysAdmin) DeleteLogs() revel.Result {
 //called before any auth required function
 func (s AppSysAdmin) AuthUserSysAdmin() revel.Result {
 	tokenString := s.Session[cryption.COOKIE_JWT_MAP]
-	email, err := cryption.VerifyJWT(tokenString, state.JWTSecret)
+	email, err := cryption.VerifyJWTGetEmail(tokenString, state.JWTSecret)
 	if err != nil {
 		fmt.Printf("WARNING: AuthUser SysAdmin failed JWT Token: %s\n", tokenString)
 		return s.Redirect(App.Index)

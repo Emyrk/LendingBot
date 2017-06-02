@@ -14,6 +14,14 @@ GET		/logout									AppAuthRequired.Logout
 POST	/register								App.Register
 GET		/landing								App.Landing
 
+GET		/verifyemail/:email/:hash				App.VerifyEmail
+GET		/verify/request                         AppAuthRequired.RequestEmailVerification
+
+GET		/newpass/request	                 	App.NewPassRequestGET
+POST	/newpass/request	                    App.NewPassRequestPOST
+GET		/newpass/response/:jwt	          		App.NewPassResponseGet
+POST	/newpass/response/:jwt	          		App.NewPassResponsePost
+
 GET		/dashboard								AppAuthRequired.Dashboard
 GET		/dashboard/info							AppAuthRequired.InfoDashboard
 GET		/dashboard/info/:id						AppAuthRequired.InfoAdvancedDashboard

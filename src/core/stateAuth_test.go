@@ -32,6 +32,11 @@ func TestUserAuth(t *testing.T) {
 			t.Error("User is not the same")
 		}
 	}
+
+	err = s.VerifyEmail("testing", u.VerifyString)
+	if err != nil {
+		t.Error(err)
+	}
 }
 
 func TestUserKeys(t *testing.T) {

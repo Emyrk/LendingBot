@@ -6,7 +6,8 @@
 	<body>
 [[if eq .RunMode "dev"]]
 [[template "errors/404-dev.html" .]]
-[[else]]
+<hr />
+[[end]]
 	[[with .Error]]
 	<h1>
 		[[.Title]]
@@ -15,6 +16,5 @@
 		[[.Description]]
 	</p>
 	[[end]]
-[[end]]
 	</body>
 </html>
