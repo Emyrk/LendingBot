@@ -2,7 +2,6 @@ package core
 
 import (
 	"crypto/rand"
-	"encoding/hex"
 	"fmt"
 	"os"
 	"time"
@@ -189,15 +188,16 @@ func (s *State) setupNewJWTOTP(username string, t time.Duration) (string, error)
 		return "", err
 	}
 
-	var b [32]byte
+	var b [43]byte
 	copy(b[:], sig)
 	if err = s.userDB.UpdateJWTOTP(username, b); err != nil {
 		return "", err
 	}
+
 	return tokenString, nil
 }
 
-func (s *State) CompareClearJWTOTP(tokenString string) bool {
+func (s *State) SetNewPasswordJWTOTP(tokenString string, password string) bool {
 	token, err := cryption.VerifyJWT(tokenString, s.JWTSecret)
 	if err != nil {
 		fmt.Printf("Error comparing JWT for pass reset: %s\n", err.Error())
@@ -210,7 +210,7 @@ func (s *State) CompareClearJWTOTP(tokenString string) bool {
 		return false
 	}
 
-	b, ok := s.userDB.GetJWTOTP(email)
+	userSig, ok := s.userDB.GetJWTOTP(email)
 	if !ok {
 		fmt.Printf("Error with getting Token for user for pass reset: %s\n", err.Error())
 		return false
@@ -221,7 +221,20 @@ func (s *State) CompareClearJWTOTP(tokenString string) bool {
 		fmt.Printf("Error retrieving sig for JWT for pass reset: %s\n", err)
 		return false
 	}
-	userSig := hex.EncodeToString(b[:])
 
-	return userSig == tokenSig
+	s.SetUserPass(email, password)
+
+	return string(userSig[:]) == tokenSig
+}
+
+func (s *State) SetUserPass(username string, password string) error {
+	u, err := s.userDB.FetchUserIfFound(username)
+	if err != nil {
+		return err
+	}
+
+	hash := u.MakePasswordHash(password)
+	u.PasswordHash = hash
+
+	return s.userDB.PutUser(u)
 }

@@ -1,0 +1,14 @@
+[[if .get]]
+<h1>
+	New Password
+</h1>
+<form action="/newpass/request" method="POST">
+  <label>Email</label>
+  <input type="text" name="email" value="">
+  <br><br>
+  <input type="submit" value="Submit">
+</form> 
+[[else]]
+	<h1>Congrats! An email has been sent if user exists.<br>
+	</h1>
+[[end]]

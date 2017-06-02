@@ -1,0 +1,21 @@
+[[if .get]]
+<h1>
+	New Password
+</h1>
+<form action="/newpass/response/[[.tokenString]]" method="POST">
+  <label>New Password</label>
+  <input type="password" name="pass" value="">
+  <br><br>
+  <input type="submit" value="Submit">
+</form> 
+[[else]]
+	[[if .success]]
+		<p>Congrats! Your password has been changed!<br>
+			Click <a href="/">here</a> to go home.
+		</p>
+	[[else]]
+		<p>Oh no, the link you send is dead :( You will have to make a new request.<br>
+			Click <a href="[[url "App.Index"]]">here</a> to go home.
+		</p>
+	[[end]]
+[[end]]
