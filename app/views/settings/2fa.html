@@ -1,0 +1,17 @@
+<div id="overlay">
+	<div class="alertDiv" id="twoFaDiv" style="display: block;">
+	    <div class="message">
+	        <h2 id="twoFaAlertHeader">Confirm Action</h2>
+	        <span id="twoFaAlertText" style="display: inline;">Please enter your six-digit Google Authenticator code.</span>
+	        <span id="twoFaAlertError" style="display: none;">Invalid 2FA code.</span>
+	    </div>
+	    <div class="col-md-8 col-sm-8 col-xs-8 col-sm-offset-2">
+          <input type="text" class="2fa-input form-control" data-inputmask="'mask': '999999'" style="text-align: center;">
+        </div>
+        <br /><br />
+	    <div class="action">
+	        <button type="button" class="btn btn-primary">Cancel</button>
+	        <button type="button" class="btn btn-success">Confirm</button>
+	    </div>           
+	</div>
+</div>

@@ -1,0 +1,70 @@
+<h1>
+	Settings Dashboard
+</h1>
+
+<hr/>
+
+<!-- Verify Email -->
+<div ng-init="verified = [[.verified]]" ng-hide="verified">
+	<h2>
+		Verify Email
+	</h2>
+	<h4>Verified: {{verified}}</h4>
+	<button ng-click="verifyEmail()">
+		Verify Email
+	</button>
+</div>
+<hr/>
+
+<!-- Poloniex Keys -->
+<h2>
+	Poloniex Keys
+</h2>
+<div ng-init="poloniexKey = '[[.poloniexKey]]'; poloniexSecret = '[[.poloniexSecret]]';">
+	<h4>Poloniex Key: {{poloniexKey}}</h4>
+	<h4>Poloniex SecretKey: {{poloniexSecret}}</h4>
+
+	<label>Poloniex Key:</label>
+	<input type="text" ng-model="poloniexKey">
+	<br/>
+	<label>Poloniex Secret:</label>
+	<input type="text" ng-model="poloniexSecret">
+	<br/>
+	<button ng-click="setPoloniexKeys()">
+		Set Keys
+	</button>
+</div>
+<hr/>
+<h2>
+	2FA
+</h2>
+<!-- Create qrcode -->
+<p>
+	Has2FA: {{has2FA}} <br>
+	Enabled2FA: {{enabled2FA}}
+</p>
+<div ng-init="has2FA = [[.has2FA]]">
+	<div ng-show="!has2FA">
+		<label>Password:</label>
+		<input type="password" ng-model="pass2FA" placeholder="Password...">
+		<br/>
+		<button ng-click="create2FA()">Create 2FA</button>
+	</div>
+</div>
+
+<div ng-show="qrcode">
+	<h2>HEY COPY THIS CODE IN ORDER TO LINK YOUR QR</h2>
+<img  ng-src="{{qrcode}}"/>
+</div>
+
+<div ng-init="enabled2FA = [[.enabled2FA]]" ng-show="has2FA">
+	<label>Password:</label>
+	<input type="password" ng-model="pass2FA" placeholder="Password...">
+	<br/>
+	<label>Token:</label>
+	<input type="number" ng-model="token" placeholder="Token...">
+	<br/>
+	<button ng-click="enable2FA(!enabled2FA)">
+		{{(!enabled2FA ? 'Enable' : 'Disable') + '2FA'}}
+	</button>
+</div>
