@@ -75,6 +75,7 @@ func (r AppAuthRequired) Dashboard() revel.Result {
 		return r.Redirect(App.Index)
 	}
 	r.ViewArgs["UserLevel"] = fmt.Sprintf("%d", u.Level)
+	r.ViewArgs["email"] = u.Username
 	return r.Render()
 }
 

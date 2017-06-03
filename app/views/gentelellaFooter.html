@@ -64,6 +64,8 @@
     <script src="public/vendors/jszip/dist/jszip.min.js"></script>
     <script src="public/vendors/pdfmake/build/pdfmake.min.js"></script>
     <script src="public/vendors/pdfmake/build/vfs_fonts.js"></script>
-	
+  [[if eq .RunMode "dev"]]
+    [[template "debug.html" .]]
+  [[end]]
   </body>
 </html>

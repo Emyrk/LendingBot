@@ -13,13 +13,13 @@ type UserDashStructure struct {
 
 type CurrentUserStatistics struct {
 	LoanRate       float64 `json:"loanrate"`
-	BTCLent        float64 `json:"btcent"`
+	BTCLent        float64 `json:"btclent"`
 	BTCNotLent     float64 `json:"btcnotlent"`
 	LendingPercent float64 `json:"lendingpercent"`
 
 	LoanRateChange       float64 `json:"loanratechange"`
 	BTCLentChange        float64 `json:"btclentchange"`
-	BTCNotLentChange     float64 `json:"btclotlentchange"`
+	BTCNotLentChange     float64 `json:"btcnotlentchange"`
 	LendingPercentChange float64 `json:"lendingpercentchange"`
 
 	// From poloniex call
@@ -112,11 +112,6 @@ func (r AppAuthRequired) CurrentUserStats() revel.Result {
 
 	data["CurrentUserStats"] = stats
 	data["Balances"] = balanceBreakdown
-	return r.RenderJSON(data)
-}
-
-func (r AppAuthRequired) CurrentBalanceBreakdown() revel.Result {
-	data := make(map[string]interface{})
 	return r.RenderJSON(data)
 }
 

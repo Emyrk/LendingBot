@@ -23,11 +23,37 @@ app.config(['$routeProvider', '$locationProvider', function($routeProvider, $loc
 	$locationProvider.html5Mode({enabled: false, requireBase: false});
 }]);
 
-app.controller('dashBaseController', ['$scope', '$http', '$log', "$templateCache",
-	function($scope, $http, $log, $templateCache, $cacheFactory) {
+app.controller('dashBaseController', ['$scope', '$http', '$log',
+	function($scope, $http, $log) {
 		var dashBaseScope = $scope;
-		$templateCache.removeAll()
-		dashBaseScope.logout = LOC + "/logout"
+
+		dashBaseScope.getCurrentUserStats = function() {
+			$http(
+			{
+				method: 'GET',
+				url: '/dashboard/data/currentuserstats',
+				data : {
+				},
+				withCredentials: true
+			})
+			.then((res) => {
+				//success
+				console.log(res.data)
+				dashBaseScope.currentUserStats = res.data.CurrentUserStats;
+				dashBaseScope.Balances = res.data.Balances;
+				console.log(Math.abs(dashBaseScope.currentUserStats.loanratechange).toFixed(3) <= 0.00)
+			}, (err) => {
+				//error
+				$log.error("CurrentUserStats: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+			})
+			.then(() => {
+			});
+		}
+
+		//init
+		dashBaseScope.logout = LOC + "/logout";
+		dashBaseScope.getCurrentUserStats();
+		//----
 	}]);
 
 app.controller('dashInfoController', ['$scope', '$http', '$log',

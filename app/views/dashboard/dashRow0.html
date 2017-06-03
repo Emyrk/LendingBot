@@ -4,49 +4,31 @@
     <div class="col-md-3 col-sm-6 col-xs-6 tile_stats_count">
     <!-- Current Daily -->
       <span class="count_top"><i class="fa fa-user"></i> Current Daily Rate</span>
-      <div class="count">[[formatFloatPercent .Today.LoanRate 5]]%</div>
+      <div class="count">{{currentUserStats.loanrate | number : 5}}%</div>
       <!-- Change -->
-      [[if floateq 0 .Today.LoanRateChange]] [[else]]
-        <span class="count_bottom">
-        [[if floatge .Today.LoanRateChange 0]]
-            <i class="green"><i class="fa fa-sort-asc">
-          [[else]]
-            <i class="red"><i class="fa fa-sort-desc">
-        [[end]]
-        </i> [[formatFloat .Today.LoanRateChange 2]]% </i> From last Week</span>
-      [[end]]
+        <span ng-hide="Math.abs(currentUserStats.loanratechange).toFixed(3) <= 0.00" class="count_bottom">
+            <i ng-class="currentUserStats.loanratechange > 0.0 ? 'green' : 'red'"><i class="fa fa-sort-asc">
+        </i> {{currentUserStats.loanratechange | number : 2}}% </i> From last Week</span>
     </div>
 
     <!-- Current BTC Lent -->
     <div class="col-md-3 col-sm-6 col-xs-6 tile_stats_count">
       <span class="count_top"><i class="fa fa-clock-o"></i> Current BTC Lent</span>
-      <div class="count green">[[formatFloat .Today.BTCLent 3]] BTC</div>
+      <div class="count green">{{currentUserStats.btclent | number : 3}} BTC</div>
       <!-- Change -->
-      [[if floateq 0 .Today.BTCLentChange]] [[else]]
-        <span class="count_bottom">
-        [[if floatge .Today.BTCLentChange 0]]
-            <i class="green"><i class="fa fa-sort-asc">
-          [[else]]
-            <i class="red"><i class="fa fa-sort-desc">
-        [[end]]
-        </i> [[formatFloat .Today.BTCLentChange 2]]% </i> From last Week</span>
-      [[end]]
+        <span ng-hide="Math.abs(currentUserStats.btclentchange).toFixed(3) <= 0.00" class="count_bottom">
+            <i ng-class="currentUserStats.btclentchange > 0.0 ? 'green' : 'red'"><i class="fa fa-sort-asc">
+        </i> {{currentUserStats.btclentchange | number : 2}}% </i> From last Week</span>
     </div>
 
     <!-- Current Not Lent -->
     <div class="col-md-3 col-sm-6 col-xs-6 tile_stats_count">
       <span class="count_top"><i class="fa fa-user"></i> Current Not Lent</span>
-      <div class="count red">[[formatFloat .Today.BTCNotLent 3]] BTC</div>
+      <div class="count red">{{currentUserStats.btcnotlent | number : 3}} BTC</div>
        <!-- Change -->
-       [[if floateq 0 .Today.BTCNotLentChange]] [[else]]
-        <span class="count_bottom">
-        [[if floatge .Today.BTCNotLentChange 0]]
-            <i class="red"><i class="fa fa-sort-desc">
-          [[else]]
-            <i class="green"><i class="fa fa-sort-asc">
-        [[end]]
-        </i> [[formatFloat .Today.BTCNotLentChange 2]]% </i> From last Week</span>
-      [[end]]
+        <span ng-hide="Math.abs(currentUserStats.btcnotlentchange).toFixed(3) <= 0.00" class="count_bottom">
+            <i ng-class="currentUserStats.btcnotlentchange > 0.0 ? 'red' : 'green'"><i class="fa fa-sort-desc">
+        </i> {{currentUserStats.btcnotlentchange | number : 2}}% </i> From last Week</span>
     </div>
 
     <!-- Daily BTC Earnings -->
@@ -60,17 +42,11 @@
     <!-- Lending Uptime -->
     <div class="col-md-3 col-sm-6 col-xs-6 tile_stats_count">
       <span class="count_top"><i class="fa fa-user"></i> Lending Uptime</span>
-      <div class="count">[[formatFloatPercent .Today.LendingPercent 3]]%</div>
+      <div class="count">{{currentUserStats.lendingpercent | number : 3}}%</div>
        <!-- Change -->
-      [[if floateq 0 .Today.LendingPercentChange]] [[else]]
-        <span class="count_bottom">
-        [[if floatge .Today.LendingPercentChange 0]]
-            <i class="green"><i class="fa fa-sort-asc">
-          [[else]]
-            <i class="red"><i class="fa fa-sort-desc">
-        [[end]]
-        </i> [[formatFloat .Today.LendingPercentChange 2]]% </i> From last Week</span>
-      [[end]]
+        <span ng-hide="Math.abs(currentUserStats.lendingpercentchange).toFixed(3) <= 0.00" class="count_bottom">
+            <i ng-class="currentUserStats.lendingpercentchange > 0.0 ? 'green' : 'red'"><i class="fa fa-sort-asc">
+        </i> {{currentUserStats.lendingpercentchange | number : 2}}% </i> From last Week</span>
     </div>
 
     <!-- Happiness :) -->

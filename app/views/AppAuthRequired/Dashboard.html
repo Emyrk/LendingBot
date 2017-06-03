@@ -1,29 +1,11 @@
-[[set . "title" "Home"]]
-[[template "dashboardHeader.html" .]]
-
-<div ng-controller="dashBaseController">
-	<ul>
-		<li><a href="#/"><span>DashBoard</span></a></li>
-		<li><a href="#/settings"><span>Settings</span></a></li>
-		[[set . "yes" .UserLevel]]
-
-		[[if eq "1000" .UserLevel]]
-		<!-- Sys Admin -->
-		<li><a href="#/logs"><span>Logs</span></a></li>
-		[[end]]
-		[[if eq "999" .UserLevel]]
-		<!-- Admin -->
-		[[end]]
-		[[if eq "998" .UserLevel]]
-		<!-- Moderator -->
-		[[end]]
-		<li><a href="/logout"><span>Logout</span></a></li>
-	</ul>
-	<h1>
-		You are on the dashboard. User Level: [[.yes]]
-	</h1>
-	<hr />
+[[set . "title" "Dash"]]
+[[template "gentelellaHeader.html" .]]
+  [[template "dashboard/sidenav.html" .]]
+  [[template "dashboard/topnav.html" .]]
+<div ng-app="lendingApp" ng-controller="dashBaseController">
+    [[template "dashboard/dashRow0.html" .]]
+    [[template "dashboard/dashRow1.html" .]]
 	<!-- Where pages go to -->
 	<div ng-view></div>
 </div>
-[[template "footer.html" .]]
+[[template "gentelellaFooter.html" .]]

@@ -16,7 +16,7 @@
             </div>
             <div class="profile_info">
               <span>Welcome,</span>
-              <h2>John Doe</h2>
+              <h2>[[.email]]</h2>
             </div>
           </div>
           <!-- /menu profile quick info -->
@@ -28,15 +28,20 @@
             <div class="menu_section">
               <h3>General</h3>
               <ul class="nav side-menu">
-                <li><a href="/userdashboard"><i class="fa fa-home"></i> Home</a>
+                <li><a href="#/"><i class="fa fa-home"></i>Home</a>
                 </li>
-                <li><a><i class="fa fa-cogs"></i>Settings <span class="fa fa-chevron-down"></span></a>
+                [[if eq "1000" .UserLevel]]
+                <!-- Sys Admin -->
+                <li><a href="#/logs"><i class="fa fa-home"></i>Logs</a>
+                </li>
+                [[end]]
+                <li><a><i class="fa fa-cogs"></i>Settings<span class="fa fa-chevron-down"></span></a>
                   <ul class="nav child_menu">
-                    <li><a href="fixed_sidebar.html">User Settings</a></li>
-                    <li><a href="fixed_footer.html">Lending Settings</a></li>
+                    <li><a href="#/settings/user">User Settings</a></li>
+                    <li><a href="#/settings/lending">Lending Settings</a></li>
                   </ul>
                 </li>
-                <li><a><i class="fa fa-desktop"></i> Currencies<span class="label label-success pull-right">Coming Soon</span></a></a>
+                <li><a><i class="fa fa-desktop"></i>Currencies<span class="label label-success pull-right">Coming Soon</span></a></a>
                   <!-- <ul class="nav child_menu">
                     <li><a href="general_elements.html">General Elements</a></li>
                     <li><a href="media_gallery.html">Media Gallery</a></li>

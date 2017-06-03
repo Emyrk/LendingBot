@@ -25,7 +25,8 @@ POST	/newpass/response/:jwt	          		App.NewPassResponsePost
 GET		/dashboard								AppAuthRequired.Dashboard
 GET		/dashboard/info							AppAuthRequired.InfoDashboard
 GET		/dashboard/info/:id						AppAuthRequired.InfoAdvancedDashboard
-GET		/dashboard/settings						AppAuthRequired.SettingsDashboard
+GET		/dashboard/settings/user				AppAuthRequired.SettingsDashboard
+GET		/dashboard/settings/lending				AppAuthRequired.SettingsDashboard
 POST	/dashboard/settings/create2fa			AppAuthRequired.Create2FA
 POST	/dashboard/settings/enable2fa			AppAuthRequired.Enable2FA
 POST	/dashboard/settings/setpoloniexkeys		AppAuthRequired.SetPoloniexKeys
@@ -37,7 +38,6 @@ GET		/dashboard/logs/export					AppSysAdmin.ExportLogs
 GET		/dashboard/logs/delete					AppSysAdmin.DeleteLogs
 
 GET 	/dashboard/data/currentuserstats		AppAuthRequired.CurrentUserStats
-GET 	/dashboard/data/currentbalancebreakdown AppAuthRequired.CurrentBalanceBreakdown
 GET 	/dashboard/data/lendinghistory			AppAuthRequired.LendingHistory
 
 # Ignore favicon requests
