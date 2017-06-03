@@ -233,7 +233,8 @@ func (s *State) SetUserPass(username string, password string) error {
 		return err
 	}
 
-	///STEVE HERE
+	hash := u.MakePasswordHash(password)
+	u.PasswordHash = hash
 
 	return s.userDB.PutUser(u)
 }
