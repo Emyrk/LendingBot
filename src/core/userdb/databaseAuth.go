@@ -1,14 +1,42 @@
 package userdb
 
 import (
+	"bytes"
 	"encoding/hex"
 	"fmt"
 	"time"
 
+	"github.com/Emyrk/LendingBot/src/core/cryption"
 	log "github.com/sirupsen/logrus"
 )
 
 var _ = fmt.Println
+
+var (
+	VerifyDataBaseKey []byte = []byte("Verify_Database")
+)
+
+func (ud *UserDatabase) VerifyDatabase(key [32]byte) error {
+	msg := []byte("Constant_String_For_Verifying")
+	v, err := ud.db.Get(VerifyDataBaseKey, VerifyDataBaseKey)
+	if v == nil || err != nil {
+		data, err := cryption.Encrypt(msg, key[:])
+		if err != nil {
+			return err
+		}
+		return ud.db.Put(VerifyDataBaseKey, VerifyDataBaseKey, data)
+	}
+
+	pt, err := cryption.Decrypt(v, key[:])
+	if err != nil {
+		return err
+	}
+
+	if bytes.Compare(pt, msg) != 0 {
+		return fmt.Errorf("Provided the incorrect key")
+	}
+	return nil
+}
 
 func (ud *UserDatabase) GetVerifyString(username string) (string, error) {
 	u, err := ud.FetchUserIfFound(username)

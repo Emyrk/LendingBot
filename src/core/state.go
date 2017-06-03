@@ -9,6 +9,7 @@ import (
 	"github.com/Emyrk/LendingBot/src/core/cryption"
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
+	"github.com/badoux/checkmail"
 )
 
 type State struct {
@@ -32,6 +33,10 @@ func NewState() *State {
 
 func NewStateWithMap() *State {
 	return newState(true, false)
+}
+
+func (s *State) VerifyState() error {
+	return s.userDB.VerifyDatabase(s.CipherKey)
 }
 
 func newState(withMap bool, fakePolo bool) *State {
@@ -100,6 +105,10 @@ func (s *State) NewUser(username string, password string) error {
 		return fmt.Errorf("username already exists")
 	}
 
+	if err := ValidateEmail(username); err != nil {
+		return err
+	}
+
 	u, err := userdb.NewUser(username, password)
 	if err != nil {
 		return err
@@ -111,6 +120,10 @@ func (s *State) NewUser(username string, password string) error {
 	}
 
 	return s.userDB.PutUser(u)
+}
+
+func ValidateEmail(email string) error {
+	return checkmail.ValidateFormat(email)
 }
 
 func (s *State) SetUserKeys(username string, acessKey string, secretKey string) error {
