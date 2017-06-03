@@ -12,7 +12,7 @@ import (
 	"github.com/revel/revel"
 )
 
-var SkipAuth = true
+var SkipAuth = false
 
 type AppAuthRequired struct {
 	*revel.Controller
@@ -295,27 +295,35 @@ func newUserDashRow0() *UserDashRow0 {
 	return r
 }
 
-/*
-type UserStatistic struct {
-	Username           string    `json:"username"`
-	AvailableBalance   float64   `json:"availbal"`
-	ActiveLentBalance  float64   `json:"availlent"`
-	OnOrderBalance     float64   `json:"onorder"`
-	AverageActiveRate  float64   `json:"activerate"`
-	AverageOnOrderRate float64   `json:"onorderrate"`
-	Time               time.Time `json:"time"`
-	Currency           string    `json:"currency"`
-
-	day int
+// UserBalanceDetails is their current lending balances
+type UserBalanceDetails struct {
+	CurrencyMap map[string]float64
+	Percent     map[string]float64
 }
-*/
+
+func newUserBalanceDetails() *UserBalanceDetails {
+	u := new(UserBalanceDetails)
+	u.CurrencyMap = make(map[string]float64)
+	u.Percent = make(map[string]float64)
+	return u
+}
+
+func (u *UserBalanceDetails) compute() {
+	total := float64(0)
+	for _, v := range u.CurrencyMap {
+		total += v
+	}
+
+	for k, v := range u.CurrencyMap {
+		u.Percent[k] = v / total
+	}
+}
 
 // UserDashboard is the main page for users that have poloniex lending setup
 func (r AppAuthRequired) UserDashboard() revel.Result {
-	/*tokenString := r.Session[cryption.COOKIE_JWT_MAP]
-	email, _ := cryption.VerifyJWTGetEmail(tokenString, state.JWTSecret)*/
-	//u, err := state.FetchUser("email")
-	u, err := state.FetchUser("steven")
+	tokenString := r.Session[cryption.COOKIE_JWT_MAP]
+	email, _ := cryption.VerifyJWTGetEmail(tokenString, state.JWTSecret)
+	u, err := state.FetchUser("email")
 	if err != nil || u == nil {
 		fmt.Println("Error fetching user for dashboard")
 		return r.Redirect(App.Index)
@@ -326,10 +334,15 @@ func (r AppAuthRequired) UserDashboard() revel.Result {
 		// HANDLE
 	}
 
+	balanceDetails := newUserBalanceDetails()
 	today := newUserDashRow0()
 	l := len(userStats)
 	if l > 0 && len(userStats[0]) > 0 {
 		now := userStats[0][0]
+		// Set balance ratios
+		balanceDetails.CurrencyMap = now.TotalCurrencyMap
+		balanceDetails.compute()
+
 		today.LoanRate = now.AverageActiveRate
 		today.BTCLent = now.ActiveLentBalance
 		today.BTCNotLent = now.AverageOnOrderRate + now.AvailableBalance
@@ -337,10 +350,10 @@ func (r AppAuthRequired) UserDashboard() revel.Result {
 
 		yesterday := userdb.GetDayAvg(userStats[1])
 		if yesterday != nil {
-			today.LoanRateChange = percentChange(yesterday.LoanRate, today.LoanRate)
-			today.BTCLentChange = percentChange(yesterday.BTCLent, today.BTCLent)
-			today.BTCNotLentChange = percentChange(yesterday.BTCNotLent, today.BTCNotLent)
-			today.LendingPercentChange = percentChange(yesterday.LendingPercent, today.LendingPercent)
+			today.LoanRateChange = percentChange(today.LoanRate, yesterday.LoanRate)
+			today.BTCLentChange = percentChange(today.BTCLent, yesterday.BTCLent)
+			today.BTCNotLentChange = percentChange(today.BTCNotLent, yesterday.BTCNotLent)
+			today.LendingPercentChange = percentChange(today.LendingPercent, yesterday.LendingPercent)
 		}
 	}
 
@@ -351,6 +364,7 @@ func (r AppAuthRequired) UserDashboard() revel.Result {
 	}
 	r.ViewArgs["CompleteLoans"] = completeLoans.Data
 	r.ViewArgs["Today"] = today
+	r.ViewArgs["Balances"] = balanceDetails
 	return r.Render()
 }
 

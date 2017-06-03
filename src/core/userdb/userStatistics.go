@@ -108,6 +108,8 @@ type UserStatistic struct {
 	Time               time.Time `json:"time"`
 	Currency           string    `json:"currency"`
 
+	TotalCurrencyMap map[string]float64
+
 	day int
 }
 
@@ -120,6 +122,8 @@ func NewUserStatistic() *UserStatistic {
 	us.AverageActiveRate = 0
 	us.AverageOnOrderRate = 0
 	us.Currency = ""
+
+	us.TotalCurrencyMap = make(map[string]float64)
 
 	return us
 }
@@ -168,6 +172,17 @@ func (a *UserStatistic) IsSameAs(b *UserStatistic) bool {
 	if a.Currency != b.Currency {
 		return false
 	}
+
+	if len(a.TotalCurrencyMap) != len(b.TotalCurrencyMap) {
+		return false
+	}
+
+	for k, v := range a.TotalCurrencyMap {
+		if b.TotalCurrencyMap[k] != v {
+			return false
+		}
+	}
+
 	return true
 }
 
@@ -223,6 +238,23 @@ func (s *UserStatistic) MarshalBinary() ([]byte, error) {
 		return nil, err
 	}
 	buf.Write(b)
+
+	l := len(s.TotalCurrencyMap)
+	buf.Write(primitives.Uint32ToBytes(uint32(l)))
+
+	for k, v := range s.TotalCurrencyMap {
+		data, err := primitives.MarshalStringToBytes(k, 5)
+		if err != nil {
+			return nil, err
+		}
+		buf.Write(data)
+
+		data, err = primitives.Float64ToBytes(v)
+		if err != nil {
+			return nil, err
+		}
+		buf.Write(data)
+	}
 
 	return buf.Next(buf.Len()), nil
 }
@@ -292,6 +324,27 @@ func (s *UserStatistic) UnmarshalBinaryData(data []byte) (newData []byte, err er
 		return nil, err
 	}
 
+	l, err := primitives.BytesToUint32(newData[:4])
+	if err != nil {
+		return nil, err
+	}
+	newData = newData[4:]
+
+	s.TotalCurrencyMap = make(map[string]float64)
+	for i := 0; i < int(l); i++ {
+		var key string
+		key, newData, err = primitives.UnmarshalStringFromBytesData(newData, 5)
+		if err != nil {
+			return nil, err
+		}
+
+		var v float64
+		v, newData, err = primitives.BytesToFloat64Data(newData)
+		if err != nil {
+			return nil, err
+		}
+		s.TotalCurrencyMap[key] = v
+	}
 	s.Scrub()
 
 	return
@@ -480,10 +533,12 @@ func GetDayAvg(dayStats []UserStatistic) *DayAvg {
 	if len(dayStats) == 0 {
 		return nil
 	}
-
 	var diff float64
 	last := dayStats[0].Time
 	totalSeconds := float64(0)
+	if len(dayStats) == 1 {
+		last = last.Add(-1 * time.Second)
+	}
 
 	for _, s := range dayStats {
 		diff = timeDiff(last, s.Time)

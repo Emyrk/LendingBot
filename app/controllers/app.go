@@ -3,8 +3,8 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-
 	"io"
+	"strconv"
 
 	"github.com/Emyrk/LendingBot/src/core"
 	"github.com/Emyrk/LendingBot/src/core/cryption"
@@ -23,6 +23,22 @@ import (
 
 var state *core.State
 
+func formatFloat(a float64, precision int) string {
+	switch precision {
+	case 1:
+		return fmt.Sprintf("%.1f", a)
+	case 2:
+		return fmt.Sprintf("%.2f", a)
+	case 3:
+		return fmt.Sprintf("%.3f", a)
+	case 4:
+		return fmt.Sprintf("%.4f", a)
+	case 5:
+		return fmt.Sprintf("%.5f", a)
+	}
+	return fmt.Sprintf("%f", a)
+}
+
 func init() {
 	// Revel custom funcs
 	revel.TemplateFuncs["floateq"] = func(a float64, b float64) bool {
@@ -37,37 +53,23 @@ func init() {
 		return a%2 == 0
 	}
 
-	revel.TemplateFuncs["formatFloat"] = func(a float64, precision int) string {
-		switch precision {
-		case 1:
-			return fmt.Sprintf("%.1f", a)
-		case 2:
-			return fmt.Sprintf("%.2f", a)
-		case 3:
-			return fmt.Sprintf("%.3f", a)
-		case 4:
-			return fmt.Sprintf("%.4f", a)
-		case 5:
-			return fmt.Sprintf("%.5f", a)
+	revel.TemplateFuncs["formatPercentString"] = func(a string, precision int) string {
+		s, err := strconv.ParseFloat(a, 64)
+		if err != nil {
+			fmt.Println(err)
+			return a
 		}
-		return fmt.Sprintf("%f", a)
+		s = s * 100
+		return formatFloat(s, precision)
+	}
+
+	revel.TemplateFuncs["formatFloat"] = func(a float64, precision int) string {
+		return formatFloat(a, precision)
 	}
 
 	revel.TemplateFuncs["formatFloatPercent"] = func(a float64, precision int) string {
 		a = a * 100
-		switch precision {
-		case 1:
-			return fmt.Sprintf("%.1f", a)
-		case 2:
-			return fmt.Sprintf("%.2f", a)
-		case 3:
-			return fmt.Sprintf("%.3f", a)
-		case 4:
-			return fmt.Sprintf("%.4f", a)
-		case 5:
-			return fmt.Sprintf("%.5f", a)
-		}
-		return fmt.Sprintf("%f", a)
+		return formatFloat(a, precision)
 	}
 
 	// Prometheus

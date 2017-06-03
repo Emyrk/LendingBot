@@ -23,6 +23,8 @@ func TestUserStat(t *testing.T) {
 	stats.AverageActiveRate = .4
 	stats.AverageOnOrderRate = .1
 
+	stats.TotalCurrencyMap["BTC"] = 1.2
+
 	data, err := stats.MarshalBinary()
 	if err != nil {
 		t.Error(err)
@@ -106,10 +108,9 @@ func TestStats(t *testing.T) {
 	// u.RecordData(stats)
 
 	ustats, _ := u.GetStatistics("steven", 1)
-	fmt.Println(ustats)
 	da := GetDayAvg(ustats[0])
 
-	fmt.Println(da)
+	var _ = da
 }
 
 // func TestThisThing(t *testing.T) {

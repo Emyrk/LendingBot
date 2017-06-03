@@ -13,7 +13,7 @@
           [[else]]
             <i class="red"><i class="fa fa-sort-desc">
         [[end]]
-        </i> [[formatFloat .Today.LoanRateChange 3]] </i> From last Week</span>
+        </i> [[formatFloat .Today.LoanRateChange 2]]% </i> From last Week</span>
       [[end]]
     </div>
 
@@ -29,7 +29,7 @@
           [[else]]
             <i class="red"><i class="fa fa-sort-desc">
         [[end]]
-        </i> [[formatFloat .Today.BTCLentChange 3]] </i> From last Week</span>
+        </i> [[formatFloat .Today.BTCLentChange 2]]% </i> From last Week</span>
       [[end]]
     </div>
 
@@ -41,11 +41,11 @@
        [[if floateq 0 .Today.BTCNotLentChange]] [[else]]
         <span class="count_bottom">
         [[if floatge .Today.BTCNotLentChange 0]]
-            <i class="green"><i class="fa fa-sort-asc">
-          [[else]]
             <i class="red"><i class="fa fa-sort-desc">
+          [[else]]
+            <i class="green"><i class="fa fa-sort-asc">
         [[end]]
-        </i> [[formatFloat .Today.BTCNotLentChange 3]] </i> From last Week</span>
+        </i> [[formatFloat .Today.BTCNotLentChange 2]]% </i> From last Week</span>
       [[end]]
     </div>
 
@@ -69,7 +69,7 @@
           [[else]]
             <i class="red"><i class="fa fa-sort-desc">
         [[end]]
-        </i> [[formatFloat .Today.LendingPercentChange 3]] </i> From last Week</span>
+        </i> [[formatFloat .Today.LendingPercentChange 2]]% </i> From last Week</span>
       [[end]]
     </div>
 

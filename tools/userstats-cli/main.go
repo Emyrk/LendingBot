@@ -13,6 +13,8 @@ import (
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 )
 
+var TotalAmt = float64(10)
+
 var _, _ = fmt.Println, os.Readlink
 
 func main() {
@@ -48,6 +50,8 @@ func Populate(username string, db *userdb.UserStatisticsDB) {
 		stats.Time = time.Now().Add(100 * time.Duration(i) * time.Second)
 		stats.Currency = "BTC"
 		db.CurrentIndex = i
+		stats.TotalCurrencyMap["BTC"] = 1
+		stats.TotalCurrencyMap["FCT"] = 0.5
 		db.RecordData(stats)
 		stats.Time = time.Now().Add(500 * time.Duration(i) * time.Second)
 		db.RecordData(stats)
@@ -87,12 +91,25 @@ type UserStatistic struct {
 */
 
 func RandStats() *userdb.UserStatistic {
+	left := TotalAmt
+
 	stats := userdb.NewUserStatistic()
-	stats.AvailableBalance = rand.Float64()
-	stats.ActiveLentBalance = rand.Float64()
-	stats.OnOrderBalance = rand.Float64()
-	stats.AverageActiveRate = rand.Float64()
-	stats.AverageOnOrderRate = rand.Float64()
+	p := randomFloat(0, left*100) / 100
+	left -= p
+	stats.AvailableBalance = p
+
+	p = randomFloat(0, left*100) / 100
+	left -= p
+	stats.ActiveLentBalance = p
+
+	stats.OnOrderBalance = left
+
+	stats.AverageActiveRate = randomFloat(0.001, 0.002)
+	stats.AverageOnOrderRate = randomFloat(0.002, 0.0025)
 
 	return stats
+}
+
+func randomFloat(min, max float64) float64 {
+	return rand.Float64()*(max-min) + min
 }
