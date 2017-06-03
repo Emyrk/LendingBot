@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/url"
-	"time"
 
 	"github.com/Emyrk/LendingBot/src/core/cryption"
 	"github.com/Emyrk/LendingBot/src/core/email"
@@ -336,7 +335,7 @@ func (r AppAuthRequired) UserDashboard() revel.Result {
 		today.BTCNotLent = now.AverageOnOrderRate + now.AvailableBalance
 		today.LendingPercent = today.BTCLent / (today.BTCLent + today.BTCNotLent)
 
-		yesterday := getDayAvg(userStats[1])
+		yesterday := userdb.GetDayAvg(userStats[1])
 		if yesterday != nil {
 			today.LoanRateChange = percentChange(yesterday.LoanRate, today.LoanRate)
 			today.BTCLentChange = percentChange(yesterday.BTCLent, today.BTCLent)
@@ -349,54 +348,6 @@ func (r AppAuthRequired) UserDashboard() revel.Result {
 	return r.Render()
 }
 
-type DayAvg struct {
-	LoanRate       float64
-	BTCLent        float64
-	BTCNotLent     float64
-	LendingPercent float64
-}
-
-func getDayAvg(dayStats []userdb.UserStatistic) *DayAvg {
-	da := new(DayAvg)
-	da.LoanRate = float64(0)
-	da.BTCLent = float64(0)
-	da.BTCNotLent = float64(0)
-	da.LendingPercent = float64(0)
-
-	if len(dayStats) == 0 {
-		return nil
-	}
-
-	var diff float64
-	last := dayStats[0].Time
-	totalSeconds := float64(0)
-
-	for _, s := range dayStats {
-		diff = timeDiff(last, s.Time)
-		totalSeconds += diff
-		da.LoanRate += diff * s.AverageActiveRate
-		da.BTCLent += diff * s.ActiveLentBalance
-		da.BTCNotLent += diff * (s.AvailableBalance + s.OnOrderBalance)
-		da.LendingPercent += diff * (s.ActiveLentBalance / (s.AvailableBalance + s.OnOrderBalance + s.ActiveLentBalance))
-		totalSeconds += diff
-	}
-
-	da.LoanRate = da.LoanRate / totalSeconds
-	da.BTCLent = da.BTCLent / totalSeconds
-	da.BTCNotLent = da.BTCNotLent / totalSeconds
-	da.LendingPercent = da.LendingPercent / totalSeconds
-
-	return da
-}
-
 func percentChange(a float64, b float64) float64 {
 	return ((a - b) / a) * 100
-}
-
-func timeDiff(a time.Time, b time.Time) float64 {
-	d := a.Sub(b).Seconds()
-	if d < 0 {
-		return d * -1
-	}
-	return d
 }
