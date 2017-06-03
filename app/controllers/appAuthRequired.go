@@ -12,7 +12,7 @@ import (
 	"github.com/revel/revel"
 )
 
-var SkipAuth = true
+var SkipAuth = false
 
 type AppAuthRequired struct {
 	*revel.Controller
@@ -323,7 +323,6 @@ func (u *UserBalanceDetails) compute() {
 func (r AppAuthRequired) UserDashboard() revel.Result {
 	tokenString := r.Session[cryption.COOKIE_JWT_MAP]
 	email, _ := cryption.VerifyJWTGetEmail(tokenString, state.JWTSecret)
-	email = "steven"
 	u, err := state.FetchUser(email)
 	if err != nil || u == nil {
 		fmt.Println("Error fetching user for dashboard")
