@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	CACHE_TIME      = 10 * time.Minute
-	CACHE_TIME_TEST = 1 * time.Second
-	SESSION_EMAIL   = "email"
+	CACHE_TIME          = 10 * time.Minute
+	CACHE_TIME_POLONIEX = 15 * time.Minute
+	SESSION_EMAIL       = "email"
 )
 
 func DeleteCacheToken(sessionId string) error {

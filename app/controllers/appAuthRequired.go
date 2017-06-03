@@ -352,6 +352,7 @@ func (r AppAuthRequired) UserDashboard() revel.Result {
 		}
 	}
 
+	//to cache
 	completeLoans, err := state.PoloniexAuthenticatedLendingHistory(u.Username, "", "")
 	dataShort := completeLoans.Data
 	if len(dataShort) > 5 {

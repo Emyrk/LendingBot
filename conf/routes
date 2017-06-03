@@ -36,6 +36,10 @@ GET		/dashboard/logs							AppSysAdmin.LogsDashboard
 GET		/dashboard/logs/export					AppSysAdmin.ExportLogs
 GET		/dashboard/logs/delete					AppSysAdmin.DeleteLogs
 
+GET 	/dashboard/data/currentuserstats		AppAuthRequired.CurrentUserStats
+GET 	/dashboard/data/currentbalancebreakdown AppAuthRequired.CurrentBalanceBreakdown
+GET 	/dashboard/data/lendinghistory			AppAuthRequired.LendingHistory
+
 # Ignore favicon requests
 GET     /favicon.ico                            404
 
