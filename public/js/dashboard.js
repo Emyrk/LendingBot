@@ -40,9 +40,8 @@ app.controller('dashBaseController', ['$scope', '$http', '$log',
 				//success
 				console.log(res.data)
 				dashBaseScope.currentUserStats = res.data.CurrentUserStats;
-				dashBaseScope.Balances = res.data.Balances;
-
-				console.log(Math.abs(dashBaseScope.currentUserStats.loanratechange).toFixed(3) <= 0.00)
+				dashBaseScope.balances = res.data.Balances;
+				init_chart_doughnut(dashBaseScope.balances.currencymap)
 			}, (err) => {
 				//error
 				$log.error("CurrentUserStats: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
@@ -51,9 +50,35 @@ app.controller('dashBaseController', ['$scope', '$http', '$log',
 			});
 		}
 
+		dashBaseScope.getLendingHistory = function() {
+			$http(
+			{
+				method: 'GET',
+				url: '/dashboard/data/lendinghistory',
+				data : {
+				},
+				withCredentials: true
+			})
+			.then((res) => {
+				//success
+				console.log(res.data)
+				dashBaseScope.lendHist = res.data.CompleteLoans
+				if (dashBaseScope.lendHist == null) {
+					dashBaseScope.lendHist = [];
+				}
+			}, (err) => {
+				//error
+				$log.error("LendingHistory: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+			})
+			.then(() => {
+			});
+		}
+
 		//init
 		dashBaseScope.logout = LOC + "/logout";
 		dashBaseScope.getCurrentUserStats();
+		dashBaseScope.getLendingHistory();
+		dashBaseScope.backgroundColor = backgroundColor;
 		//----
 	}]);
 
@@ -180,34 +205,14 @@ function init_chart_doughnut(data){
 		console.log('init_chart_doughnut');
 	 
 		if ($('.canvasDoughnut').length){
-			
 		var chart_doughnut_settings = {
 				type: 'doughnut',
 				tooltipFillColor: "rgba(51, 51, 51, 0.55)",
 				data: {
-					labels: [
-						"Symbian",
-						"Blackberry",
-						"Other",
-						"Android",
-						"IOS"
-					],
+					labels: Object.keys(data),
 					datasets: [{
-						data: [15, 20, 30, 10, 30],
-						backgroundColor: [
-							"#BDC3C7",
-							"#9B59B6",
-							"#E74C3C",
-							"#26B99A",
-							"#3498DB"
-						],
-						hoverBackgroundColor: [
-							"#CFD4D8",
-							"#B370CF",
-							"#E95E4F",
-							"#36CAAB",
-							"#49A9EA"
-						]
+						data: Object.values(data),
+						backgroundColor: backgroundColor,
 					}]
 				},
 				options: { 
@@ -226,3 +231,17 @@ function init_chart_doughnut(data){
 		}  
 	   
 	}
+
+var backgroundColor =[
+	"#00BFFF",
+	"#FF69B4",
+	"#7CFC00",
+	"#800000",
+	"#FFA500",
+	"#FF4500",
+	"#800080",
+	"#00FF7F",
+	"#FFFF00",
+	"#9ACD32",
+	"#FF6347"
+]

@@ -19,7 +19,7 @@
     </div>
     <div class="x_content">
       <p class="text-muted font-13 m-b-30">
-        Responsive is an extension for DataTables that resolves that problem by optimising the table's layout for different screen sizes through the dynamic insertion and removal of columns from the table.
+        Responsive is an extension for DataTables that resolves that problem by optimising the table's layout for different screen sizes through the dynamic insertion and removal of columns from the table. {{lendHist.length == 0}}
       </p>
 
       <table id="datatable-responsive" class="table table-striped table-bordered dt-responsive nowrap" cellspacing="0" width="100%">
@@ -34,19 +34,15 @@
             <th>Duration</th>
           </tr>
         </thead>
-        <tbody>
-        [[ range $index, $value := .CompleteLoans ]]
-          <tr>
-            <td>[[ $value.Currency ]]</td>
-            <td>[[ formatPercentString $value.Rate 4 ]]%</td>
-            <td>[[ $value.Amount ]]</td>
-            <td>[[ $value.Earned ]]</td>
-            <td>[[ $value.Fee ]]</td>
-            <td>[[ $value.Close ]]</td>
-            <td>[[ $value.Duration ]]</td>
-
+          <tr ng-repeat="h in lendHist track by id" ng-hide="lendHist.length == 0">
+            <td>{{h.currency}}</td>
+            <td>{{h.rate | number: 4}}</td>
+            <td>{{h.amount}}</td>
+            <td>{{h.earned}}</td>
+            <td>{{h.fee}}</td>
+            <td>{{h.close}}</td>
+            <td>{{h.duration}}</td>
           </tr>
-        [[ end ]]
         </tbody>
       </table>
 
