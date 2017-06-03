@@ -12,7 +12,7 @@ import (
 	"github.com/revel/revel"
 )
 
-var SkipAuth = false
+var SkipAuth = true
 
 type AppAuthRequired struct {
 	*revel.Controller
@@ -312,10 +312,10 @@ type UserStatistic struct {
 
 // UserDashboard is the main page for users that have poloniex lending setup
 func (r AppAuthRequired) UserDashboard() revel.Result {
-	tokenString := r.Session[cryption.COOKIE_JWT_MAP]
-	email, _ := cryption.VerifyJWTGetEmail(tokenString, state.JWTSecret)
-	u, err := state.FetchUser(email)
-
+	/*tokenString := r.Session[cryption.COOKIE_JWT_MAP]
+	email, _ := cryption.VerifyJWTGetEmail(tokenString, state.JWTSecret)*/
+	//u, err := state.FetchUser("email")
+	u, err := state.FetchUser("steven")
 	if err != nil || u == nil {
 		fmt.Println("Error fetching user for dashboard")
 		return r.Redirect(App.Index)
@@ -341,11 +341,15 @@ func (r AppAuthRequired) UserDashboard() revel.Result {
 			today.BTCLentChange = percentChange(yesterday.BTCLent, today.BTCLent)
 			today.BTCNotLentChange = percentChange(yesterday.BTCNotLent, today.BTCNotLent)
 			today.LendingPercentChange = percentChange(yesterday.LendingPercent, today.LendingPercent)
-
-			fmt.Println(today.LoanRateChange, yesterday.LoanRate, today.LoanRate)
 		}
 	}
 
+	completeLoans, err := state.PoloniexAuthenticatedLendingHistory(u.Username, "", "")
+	dataShort := completeLoans.Data
+	if len(dataShort) > 5 {
+		dataShort = dataShort[:5]
+	}
+	r.ViewArgs["CompleteLoans"] = completeLoans.Data
 	r.ViewArgs["Today"] = today
 	return r.Render()
 }

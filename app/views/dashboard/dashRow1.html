@@ -123,8 +123,14 @@
                 </th>
               </tr>
             </thead>
+  
 
             <tbody>
+              [[ range $value, $key := .CompleteLoans ]]
+               <!--  <tr class="even pointer"> -->
+                   <li><strong>[[ $key ]]</strong>: [[ $value ]]</li>
+                <!-- </tr> -->
+              [[ end ]]
               <tr class="even pointer">
                 <td class="a-center ">
                   <input type="checkbox" class="flat" name="table_records">
@@ -135,7 +141,7 @@
                 <td class="green-shade-text">0.00000567</td>
                 <td class=" ">0.00001020</td>
                 <td class="a-right a-right ">2017-06-02 01:49:59</td>
-                </td>
+   
               </tr>
               <tr class="odd pointer">
                 <td class="a-center ">

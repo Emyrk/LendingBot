@@ -200,6 +200,9 @@ func (l *Lender) ProcessJob(j *Job) error {
 			currencyLoans := inactiveLoans[l.Currency]
 			sort.Sort(poloniex.PoloniexLoanOfferArray(currencyLoans))
 			for _, loan := range currencyLoans {
+				if loan.Currency != "BTC" {
+					continue
+				}
 				if need < 0 {
 					break
 				}

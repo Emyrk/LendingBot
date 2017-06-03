@@ -21,6 +21,7 @@ const (
 	POLONIEX_DEPOSITS_WITHDRAWALS   = "returnDepositsWithdrawals"
 	POLONIEX_ORDERS                 = "returnOpenOrders"
 	POLONIEX_TRADE_HISTORY          = "returnTradeHistory"
+	POLONIEX_LENDING_HISTORY        = "returnLendingHistory"
 	POLONIEX_ORDER_BUY              = "buy"
 	POLONIEX_ORDER_SELL             = "sell"
 	POLONIEX_ORDER_CANCEL           = "cancelOrder"
@@ -534,6 +535,44 @@ type PoloniexAuthenticatedTradeHistoryAll struct {
 
 type PoloniexAuthenticatedTradeHistoryResponse struct {
 	Data []PoloniexOrder
+}
+
+type PoloniexAuthentictedLendingHistoryRespone struct {
+	Data []PoloniexAuthentictedLendingHistory
+}
+
+type PoloniexAuthentictedLendingHistory struct {
+	ID       int    `json:"id"`
+	Currency string `json:"currency"`
+	Rate     string `json:"rate"`
+	Amount   string `json:"amount"`
+	Duration string `json:"duration"`
+	Interest string `json:"interest"`
+	Fee      string `json:"fee"`
+	Earned   string `json:"earned"`
+	Open     string `json:"open"`
+	Close    string `json:"close"`
+}
+
+func (p *Poloniex) GetAuthenticatedLendingHistory(start, end string, accessKey, secretKey string) (PoloniexAuthentictedLendingHistoryRespone, error) {
+	values := url.Values{}
+
+	if start != "" {
+		values.Set("start", start)
+	}
+
+	if end != "" {
+		values.Set("end", end)
+	}
+
+	result := PoloniexAuthentictedLendingHistoryRespone{}
+	err := p.SendAuthenticatedHTTPRequest("POST", POLONIEX_LENDING_HISTORY, values, &result.Data, accessKey, secretKey)
+
+	if err != nil {
+		return result, err
+	}
+
+	return result, nil
 }
 
 func (p *Poloniex) GetAuthenticatedTradeHistory(currency, start, end string, accessKey, secretKey string) (interface{}, error) {

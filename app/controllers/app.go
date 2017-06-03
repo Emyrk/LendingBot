@@ -33,6 +33,10 @@ func init() {
 		return a > b
 	}
 
+	revel.TemplateFuncs["isEven"] = func(a int) bool {
+		return a%2 == 0
+	}
+
 	revel.TemplateFuncs["formatFloat"] = func(a float64, precision int) string {
 		switch precision {
 		case 1:
@@ -74,7 +78,7 @@ func init() {
 	lenderBot := lender.NewLender(state)
 	queuerBot := queuer.NewQueuer(state, lenderBot)
 
-	// return
+	return
 	// Start go lending
 	go lenderBot.Start()
 	go queuerBot.Start()
