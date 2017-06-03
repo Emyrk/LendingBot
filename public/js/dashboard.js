@@ -24,7 +24,7 @@ app.config(['$routeProvider', '$locationProvider', function($routeProvider, $loc
 }]);
 
 app.controller('dashBaseController', ['$scope', '$http', '$log', "$templateCache",
-	function($scope, $http, $log, $templateCache) {
+	function($scope, $http, $log, $templateCache, $cacheFactory) {
 		var dashBaseScope = $scope;
 		$templateCache.removeAll()
 		dashBaseScope.logout = LOC + "/logout"

@@ -236,6 +236,7 @@ func (r AppAuthRequired) RequestEmailVerification() revel.Result {
 
 //called before any auth required function
 func (r AppAuthRequired) AuthUser() revel.Result {
+	r.Response.Out.Header().Set("Cache-Control", "no-cache, max-age=0, must-revalidate, no-store")
 	if !ValidCacheEmail(r.Session.ID(), r.Session[SESSION_EMAIL]) {
 		fmt.Printf("WARNING: AuthUser has invalid cache: [%s] sessionId:[%s]\n", r.Session[SESSION_EMAIL], r.Session.ID())
 		if SkipAuth {
