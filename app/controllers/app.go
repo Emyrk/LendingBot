@@ -49,6 +49,23 @@ func init() {
 		return fmt.Sprintf("%f", a)
 	}
 
+	revel.TemplateFuncs["formatFloatPercent"] = func(a float64, precision int) string {
+		a = a * 100
+		switch precision {
+		case 1:
+			return fmt.Sprintf("%.1f", a)
+		case 2:
+			return fmt.Sprintf("%.2f", a)
+		case 3:
+			return fmt.Sprintf("%.3f", a)
+		case 4:
+			return fmt.Sprintf("%.4f", a)
+		case 5:
+			return fmt.Sprintf("%.5f", a)
+		}
+		return fmt.Sprintf("%f", a)
+	}
+
 	// Prometheus
 	lender.RegisterPrometheus()
 	queuer.RegisterPrometheus()
@@ -57,7 +74,7 @@ func init() {
 	lenderBot := lender.NewLender(state)
 	queuerBot := queuer.NewQueuer(state, lenderBot)
 
-	return
+	// return
 	// Start go lending
 	go lenderBot.Start()
 	go queuerBot.Start()

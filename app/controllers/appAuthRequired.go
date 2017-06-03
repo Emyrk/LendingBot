@@ -12,7 +12,7 @@ import (
 	"github.com/revel/revel"
 )
 
-var SkipAuth = false
+var SkipAuth = true
 
 type AppAuthRequired struct {
 	*revel.Controller
@@ -312,16 +312,16 @@ type UserStatistic struct {
 
 // UserDashboard is the main page for users that have poloniex lending setup
 func (r AppAuthRequired) UserDashboard() revel.Result {
-	tokenString := r.Session[cryption.COOKIE_JWT_MAP]
-	email, _ := cryption.VerifyJWTGetEmail(tokenString, state.JWTSecret)
-	u, err := state.FetchUser(email)
+	/*tokenString := r.Session[cryption.COOKIE_JWT_MAP]
+	email, _ := cryption.VerifyJWTGetEmail(tokenString, state.JWTSecret)*/
+	//u, err := state.FetchUser(email)
 
-	if err != nil || u == nil {
-		fmt.Println("Error fetching user for dashboard")
-		return r.Redirect(App.Index)
-	}
+	// if err != nil || u == nil {
+	// 	fmt.Println("Error fetching user for dashboard")
+	// 	return r.Redirect(App.Index)
+	// }
 
-	userStats, err := state.GetUserStatistics(u.Username, 2)
+	userStats, err := state.GetUserStatistics("steven", 2)
 	if err != nil {
 		// HANDLE
 	}
@@ -341,6 +341,8 @@ func (r AppAuthRequired) UserDashboard() revel.Result {
 			today.BTCLentChange = percentChange(yesterday.BTCLent, today.BTCLent)
 			today.BTCNotLentChange = percentChange(yesterday.BTCNotLent, today.BTCNotLent)
 			today.LendingPercentChange = percentChange(yesterday.LendingPercent, today.LendingPercent)
+
+			fmt.Println(today.LoanRateChange, yesterday.LoanRate, today.LoanRate)
 		}
 	}
 
@@ -348,6 +350,20 @@ func (r AppAuthRequired) UserDashboard() revel.Result {
 	return r.Render()
 }
 
+func abs(a float64) float64 {
+	if a < 0 {
+		return a * -1
+	}
+	return a
+}
+
 func percentChange(a float64, b float64) float64 {
-	return ((a - b) / a) * 100
+	if a == 0 || b == 0 {
+		return 0
+	}
+	change := ((a - b) / a) * 100
+	if abs(change) < 0.001 {
+		return 0
+	}
+	return change
 }

@@ -19,6 +19,7 @@ var (
 	CurrentDayKey                 = []byte("CurrentDay")
 	CurrentIndex                  = []byte("CurrentIndex")
 	PoloniexPrefix                = []byte("PoloniexBucket")
+	BucketMarkForDelete           = []byte("Mark for delete")
 )
 
 var (
@@ -29,6 +30,7 @@ type UserStatisticsDB struct {
 	db database.IDatabase
 
 	LastPoloniexRateSave time.Time
+	LastCurrentIndexCalc time.Time
 	CurrentDay           int
 	CurrentIndex         int // 0 to 30
 }
@@ -346,6 +348,9 @@ func (us *UserStatisticsDB) CalculateCurrentIndex() (err error) {
 }
 
 func (us *UserStatisticsDB) RecordData(stats *UserStatistic) error {
+	if time.Since(us.LastCurrentIndexCalc).Hours() > 1 {
+		us.CalculateCurrentIndex()
+	}
 	seconds := GetSeconds(stats.Time)
 	stats.day = GetDay(stats.Time)
 
@@ -461,7 +466,7 @@ type DayAvg struct {
 }
 
 func (da *DayAvg) String() string {
-	return fmt.Sprintf("LoanRate: %f, BTCLent: %f, BTCNotLent: %f, LendingPercent: %f\n",
+	return fmt.Sprintf("LoanRate: %f, BTCLent: %f, BTCNotLent: %f, LendingPercent: %f",
 		da.LoanRate, da.BTCLent, da.BTCNotLent, da.LendingPercent)
 }
 
@@ -493,8 +498,6 @@ func GetDayAvg(dayStats []UserStatistic) *DayAvg {
 	da.BTCLent = da.BTCLent / totalSeconds
 	da.BTCNotLent = da.BTCNotLent / totalSeconds
 	da.LendingPercent = da.LendingPercent / totalSeconds
-
-	fmt.Println(da)
 
 	return da
 }
@@ -531,13 +534,20 @@ func (us *UserStatisticsDB) getStatsFromBucket(bucket []byte) []UserStatistic {
 func (us *UserStatisticsDB) putStats(username string, seconds int, data []byte) error {
 	buc := us.getBucket(username)
 	key := primitives.Uint32ToBytes(uint32(seconds))
-	us.db.Clear(us.getNextBucket(username))
+	if data, _ := us.db.Get(buc, BucketMarkForDelete); len(data) > 0 && data[0] == 0xFF {
+		us.db.Clear(buc)
+	}
+
+	// TODO: Make the mark apply less often
+	us.db.Put(us.getNextBucket(username), BucketMarkForDelete, []byte{0xFF})
+
 	return us.db.Put(buc, key, data)
 }
 
 func (us *UserStatisticsDB) getBucket(username string) []byte {
 	hash := GetUsernameHash(username)
 	index := primitives.Uint32ToBytes(uint32(us.CurrentIndex))
+	// fmt.Println(us.CurrentIndex)
 	return append(hash[:], index...)
 }
 
@@ -567,6 +577,7 @@ func (us *UserStatisticsDB) getBucketPlusX(username string, offset int) []byte {
 
 	hash := GetUsernameHash(username)
 	index := primitives.Uint32ToBytes(uint32(i))
+
 	return append(hash[:], index...)
 }
 

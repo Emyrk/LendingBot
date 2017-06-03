@@ -1,10 +1,10 @@
 <div class="right_col" role="main">
   <!-- top tiles -->
   <div class="row tile_count">
-    <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
+    <div class="col-md-3 col-sm-6 col-xs-6 tile_stats_count">
     <!-- Current Daily -->
       <span class="count_top"><i class="fa fa-user"></i> Current Daily Rate</span>
-      <div class="count">[[.Today.LoanRate]]%</div>
+      <div class="count">[[formatFloatPercent .Today.LoanRate 5]]%</div>
       <!-- Change -->
       [[if floateq 0 .Today.LoanRateChange]] [[else]]
         <span class="count_bottom">
@@ -13,14 +13,14 @@
           [[else]]
             <i class="red"><i class="fa fa-sort-desc">
         [[end]]
-        </i> [[.Today.LoanRateChange]] </i> From last Week</span>
+        </i> [[formatFloat .Today.LoanRateChange 3]] </i> From last Week</span>
       [[end]]
     </div>
 
     <!-- Current BTC Lent -->
-    <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
+    <div class="col-md-3 col-sm-6 col-xs-6 tile_stats_count">
       <span class="count_top"><i class="fa fa-clock-o"></i> Current BTC Lent</span>
-      <div class="count green">[[.Today.BTCLent]]</div>
+      <div class="count green">[[formatFloat .Today.BTCLent 3]] BTC</div>
       <!-- Change -->
       [[if floateq 0 .Today.BTCLentChange]] [[else]]
         <span class="count_bottom">
@@ -29,14 +29,14 @@
           [[else]]
             <i class="red"><i class="fa fa-sort-desc">
         [[end]]
-        </i> [[.Today.BTCLentChange]] </i> From last Week</span>
+        </i> [[formatFloat .Today.BTCLentChange 3]] </i> From last Week</span>
       [[end]]
     </div>
 
     <!-- Current Not Lent -->
-    <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
+    <div class="col-md-3 col-sm-6 col-xs-6 tile_stats_count">
       <span class="count_top"><i class="fa fa-user"></i> Current Not Lent</span>
-      <div class="count red">[[.Today.BTCNotLent]]</div>
+      <div class="count red">[[formatFloat .Today.BTCNotLent 3]] BTC</div>
        <!-- Change -->
        [[if floateq 0 .Today.BTCNotLentChange]] [[else]]
         <span class="count_bottom">
@@ -45,22 +45,22 @@
           [[else]]
             <i class="red"><i class="fa fa-sort-desc">
         [[end]]
-        </i> [[.Today.BTCNotLentChange]] </i> From last Week</span>
+        </i> [[formatFloat .Today.BTCNotLentChange 3]] </i> From last Week</span>
       [[end]]
     </div>
 
     <!-- Daily BTC Earnings -->
-    <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
+<!--     <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
       <span class="count_top"><i class="fa fa-user"></i> Daily BTC Earning</span>
       <div class="count">0000</div>
-       <!-- Change -->
+   
       <span class="count_bottom"><i class="red"><i class="fa fa-sort-desc"></i>12% </i> From last Week</span>
-    </div>
+    </div> -->
 
     <!-- Lending Uptime -->
-    <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
+    <div class="col-md-3 col-sm-6 col-xs-6 tile_stats_count">
       <span class="count_top"><i class="fa fa-user"></i> Lending Uptime</span>
-      <div class="count">[[formatFloat .Today.LendingPercent 3]]%</div>
+      <div class="count">[[formatFloatPercent .Today.LendingPercent 3]]%</div>
        <!-- Change -->
       [[if floateq 0 .Today.LendingPercentChange]] [[else]]
         <span class="count_bottom">
@@ -69,14 +69,14 @@
           [[else]]
             <i class="red"><i class="fa fa-sort-desc">
         [[end]]
-        </i> [[.Today.LendingPercentChange]] </i> From last Week</span>
+        </i> [[formatFloat .Today.LendingPercentChange 3]] </i> From last Week</span>
       [[end]]
     </div>
 
     <!-- Happiness :) -->
-    <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
+   <!--  <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
       <span class="count_top"><i class="fa fa-user"></i> Happiness</span>
       <div class="count">110%</div>
       <span class="count_bottom"><i class="green"><i class="fa fa-sort-asc"></i>10% </i> From last Week</span>
-    </div>
+    </div> -->
   </div>
