@@ -55,6 +55,8 @@ func Populate(username string, db *userdb.UserStatisticsDB) {
 		db.RecordData(stats)
 		stats.Time = time.Now().Add(500 * time.Duration(i) * time.Second)
 		db.RecordData(stats)
+
+		db.RecordPoloniexStatisticTime(stats.AverageActiveRate, time.Now().Add(time.Duration(-i)*time.Minute))
 	}
 }
 

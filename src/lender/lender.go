@@ -29,6 +29,7 @@ type Lender struct {
 	LastTickerUpdate      time.Time
 	GetTickerInterval     float64
 	Ticker                map[string]poloniex.PoloniexTicker
+	PoloniexStats         *userdb.PoloniexStats
 }
 
 func NewLender(s *core.State) *Lender {
@@ -92,6 +93,19 @@ func (l *Lender) UpdateTicker() {
 		l.Ticker = ticker
 	}
 	l.LastTickerUpdate = time.Now()
+	l.PoloniexStats = l.State.GetPoloniexStatistics()
+	// Prometheus
+	if l.PoloniexStats != nil {
+		PoloniexStatsHourlyAvg.Set(l.PoloniexStats.HrAvg)
+		PoloniexStatsDailyAvg.Set(l.PoloniexStats.DayAvg)
+		PoloniexStatsWeeklyAvg.Set(l.PoloniexStats.WeekAvg)
+		PoloniexStatsMonthlyAvg.Set(l.PoloniexStats.MonthAvg)
+		PoloniexStatsHourlyStd.Set(l.PoloniexStats.HrStd)
+		PoloniexStatsDailyStd.Set(l.PoloniexStats.DayStd)
+		PoloniexStatsWeeklyStd.Set(l.PoloniexStats.WeekStd)
+		PoloniexStatsMonthlyStd.Set(l.PoloniexStats.MonthStd)
+	}
+	LenderUpdateTicker.Inc()
 }
 
 func (l *Lender) CalculateLoanRate() error {

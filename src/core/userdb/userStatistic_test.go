@@ -113,6 +113,21 @@ func TestStats(t *testing.T) {
 	var _ = da
 }
 
+func TestAvgAndStd(t *testing.T) {
+	var sample []PoloniexRateSample
+	for i := float64(0); i < 13; i++ {
+		sample = append(sample, PoloniexRateSample{0, i})
+	}
+
+	avg, std := GetAvgAndStd(sample)
+	if fmt.Sprintf("%.3f", std) != "3.894" {
+		t.Errorf("[Std] Exp: %f, Found %f", 3.894440482, std)
+	}
+	if avg != 6 {
+		t.Errorf("[Avg] Exp: %f, Found %f", 6.0, avg)
+	}
+}
+
 // func TestThisThing(t *testing.T) {
 // 	thingy := func(i int, offset int) int {
 // 		i += offset

@@ -475,16 +475,88 @@ func (us *UserStatisticsDB) GetPoloniexDataLastXDays(dayRange int) [][]PoloniexR
 	return historyStats
 }
 
+type PoloniexStats struct {
+	HrAvg    float64
+	DayAvg   float64
+	WeekAvg  float64
+	MonthAvg float64
+
+	HrStd    float64
+	DayStd   float64
+	WeekStd  float64
+	MonthStd float64
+}
+
+func (us *UserStatisticsDB) GetPoloniexStatistics() *PoloniexStats {
+	poloStats := new(PoloniexStats)
+
+	poloDatStats := us.GetPoloniexDataLastXDays(30)
+	// No data
+	if len(poloDatStats[0]) == 0 {
+		return nil
+	}
+
+	sec := GetSeconds(time.Now())
+	var lastHr []PoloniexRateSample
+
+	for _, v := range poloDatStats[0] {
+		if v.SecondsPastMidnight > sec-3600 {
+			lastHr = append(lastHr, v)
+		}
+	}
+
+	var all []PoloniexRateSample
+	dayCutoff := 0
+	weekCutoff := 0
+	count := 0
+	for i, v := range poloDatStats {
+		all = append(all, v...)
+		count += len(v)
+		if i == 1 {
+			dayCutoff = count
+		} else if i == 7 {
+			weekCutoff = count
+		}
+	}
+
+	poloStats.HrAvg, poloStats.HrStd = GetAvgAndStd(lastHr)
+	poloStats.DayAvg, poloStats.DayStd = GetAvgAndStd(all[:dayCutoff])
+	poloStats.WeekAvg, poloStats.WeekStd = GetAvgAndStd(all[:weekCutoff])
+	poloStats.MonthAvg, poloStats.MonthStd = GetAvgAndStd(all)
+	return poloStats
+}
+
+func GetAvgAndStd(data []PoloniexRateSample) (avg float64, std float64) {
+	total := float64(0)
+	count := float64(0)
+
+	for _, v := range data {
+		total += v.Rate
+		count++
+	}
+	avg = total / count
+
+	// Standard Deviation
+	sum := float64(0)
+	for _, v := range data {
+		sum += (v.Rate - avg) * (v.Rate - avg)
+	}
+	std = math.Sqrt(sum / (count - 1))
+	return
+}
+
 func (us *UserStatisticsDB) RecordPoloniexStatistic(rate float64) error {
+	return us.RecordPoloniexStatisticTime(rate, time.Now())
+}
+
+func (us *UserStatisticsDB) RecordPoloniexStatisticTime(rate float64, t time.Time) error {
 	if time.Since(us.LastPoloniexRateSave).Seconds() < 10 {
 		return nil
 	}
 
-	t := time.Now()
-	day := GetDay(t)
+	day := GetDayBytes(GetDay(t))
 	sec := GetSeconds(t)
-	dayBytes := primitives.Uint32ToBytes(uint32(day))
-	buck := append(PoloniexPrefix, dayBytes...)
+	buck := append(PoloniexPrefix, day...)
 
 	secBytes := primitives.Uint32ToBytes(uint32(sec))
 	data, err := primitives.Float64ToBytes(rate)
@@ -602,7 +674,6 @@ func (us *UserStatisticsDB) putStats(username string, seconds int, data []byte) 
 func (us *UserStatisticsDB) getBucket(username string) []byte {
 	hash := GetUsernameHash(username)
 	index := primitives.Uint32ToBytes(uint32(us.CurrentIndex))
-	// fmt.Println(us.CurrentIndex)
 	return append(hash[:], index...)
 }
 
@@ -640,6 +711,10 @@ func GetDay(t time.Time) int {
 	return t.Day() * int(t.Month()) * t.Year()
 }
 
+func GetDayBytes(day int) []byte {
+	return primitives.Uint32ToBytes(uint32(day))
+}
+
 func GetSeconds(t time.Time) int {
 	// 3 units of time, in seconds from midnight
 	sec := t.Second()
@@ -648,4 +723,11 @@ func GetSeconds(t time.Time) int {
 
 	return sec + min + hour
 
+}
+
+func abs(a float64) float64 {
+	if a < 0 {
+		return a * -1
+	}
+	return a
 }

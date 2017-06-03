@@ -79,7 +79,6 @@ func init() {
 	state = core.NewState()
 	lenderBot := lender.NewLender(state)
 	queuerBot := queuer.NewQueuer(state, lenderBot)
-
 	return
 	// Start go lending
 	go lenderBot.Start()
