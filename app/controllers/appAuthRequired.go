@@ -329,7 +329,7 @@ func (r AppAuthRequired) UserDashboard() revel.Result {
 		return r.Redirect(App.Index)
 	}
 
-	userStats, err := state.GetUserStatistics("steven", 2)
+	userStats, err := state.GetUserStatistics(email, 2)
 	if err != nil {
 		// HANDLE
 	}
