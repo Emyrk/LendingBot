@@ -9,6 +9,21 @@ import (
 
 var _ = fmt.Println
 
+func TestStateDBVerify(t *testing.T) {
+	s := NewStateWithMap()
+	err := s.VerifyState()
+	if err != nil {
+		t.Error(err)
+	}
+
+	s.CipherKey[6] = 0xFF
+	err = s.VerifyState()
+	if err == nil {
+		t.Error("Should error")
+	}
+
+}
+
 func TestUserAuth(t *testing.T) {
 	s := NewStateWithMap()
 	err := s.NewUser("testing", "testing")

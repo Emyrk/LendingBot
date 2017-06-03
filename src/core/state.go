@@ -34,6 +34,10 @@ func NewStateWithMap() *State {
 	return newState(true, false)
 }
 
+func (s *State) VerifyState() error {
+	return s.userDB.VerifyDatabase(s.CipherKey)
+}
+
 func newState(withMap bool, fakePolo bool) *State {
 	s := new(State)
 	if withMap {

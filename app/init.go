@@ -72,6 +72,8 @@ func init() {
 		a = a * 100
 		return formatFloat(a, precision)
 	}
+
+	controllers.Launch()
 }
 
 func formatFloat(a float64, precision int) string {
