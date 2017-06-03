@@ -12,7 +12,7 @@ import (
 	"github.com/revel/revel"
 )
 
-var SkipAuth = true
+var SkipAuth = false
 
 type AppAuthRequired struct {
 	*revel.Controller
@@ -312,14 +312,14 @@ type UserStatistic struct {
 
 // UserDashboard is the main page for users that have poloniex lending setup
 func (r AppAuthRequired) UserDashboard() revel.Result {
-	/*tokenString := r.Session[cryption.COOKIE_JWT_MAP]
-	email, _ := cryption.VerifyJWTGetEmail(tokenString, state.JWTSecret)*/
-	//u, err := state.FetchUser(email)
+	tokenString := r.Session[cryption.COOKIE_JWT_MAP]
+	email, _ := cryption.VerifyJWTGetEmail(tokenString, state.JWTSecret)
+	u, err := state.FetchUser(email)
 
-	// if err != nil || u == nil {
-	// 	fmt.Println("Error fetching user for dashboard")
-	// 	return r.Redirect(App.Index)
-	// }
+	if err != nil || u == nil {
+		fmt.Println("Error fetching user for dashboard")
+		return r.Redirect(App.Index)
+	}
 
 	userStats, err := state.GetUserStatistics("steven", 2)
 	if err != nil {
