@@ -166,6 +166,7 @@ func (s *State) RecordStatistics(stats *userdb.UserStatistic) error {
 	if !s.poloniexCache.shouldRecordStats(stats.Username) {
 		return nil
 	}
+
 	err := s.userStatistic.RecordData(stats)
 	if err != nil {
 		return err

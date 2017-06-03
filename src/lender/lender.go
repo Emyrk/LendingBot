@@ -75,7 +75,7 @@ func (l *Lender) JobQueueLength() int {
 
 func (l *Lender) CalculateLoanRate() error {
 	s := l.State
-	loans, err := s.PoloniecGetLoanOrders(l.Currency)
+	loans, err := s.PoloniexGetLoanOrders(l.Currency)
 	if err != nil {
 		return err
 	}
@@ -132,7 +132,8 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 	activeLentBal := float64(0)
 	activeLentTotalRate := float64(0)
 	activeLentCount := float64(0)
-	for _, l := range activeLoan.Used {
+
+	for _, l := range activeLoan.Provided {
 		if l.Currency == "BTC" {
 			activeLentBal += l.Amount
 			activeLentTotalRate += l.Rate

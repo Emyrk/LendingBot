@@ -3,6 +3,7 @@ package userdb
 import (
 	"bytes"
 	"fmt"
+	"math"
 	"os"
 	"sort"
 	"time"
@@ -119,6 +120,28 @@ func NewUserStatistic() *UserStatistic {
 	us.Currency = ""
 
 	return us
+}
+
+func (us *UserStatistic) Scrub() {
+	if math.IsNaN(us.AvailableBalance) {
+		us.AvailableBalance = 0
+	}
+
+	if math.IsNaN(us.ActiveLentBalance) {
+		us.ActiveLentBalance = 0
+	}
+
+	if math.IsNaN(us.OnOrderBalance) {
+		us.OnOrderBalance = 0
+	}
+
+	if math.IsNaN(us.AverageActiveRate) {
+		us.AverageActiveRate = 0
+	}
+
+	if math.IsNaN(us.AverageOnOrderRate) {
+		us.AverageOnOrderRate = 0
+	}
 }
 
 func (a *UserStatistic) IsSameAs(b *UserStatistic) bool {
@@ -267,6 +290,8 @@ func (s *UserStatistic) UnmarshalBinaryData(data []byte) (newData []byte, err er
 		return nil, err
 	}
 
+	s.Scrub()
+
 	return
 }
 
@@ -323,6 +348,8 @@ func (us *UserStatisticsDB) CalculateCurrentIndex() (err error) {
 func (us *UserStatisticsDB) RecordData(stats *UserStatistic) error {
 	seconds := GetSeconds(stats.Time)
 	stats.day = GetDay(stats.Time)
+
+	stats.Scrub()
 
 	data, err := stats.MarshalBinary()
 	if err != nil {
@@ -466,6 +493,8 @@ func GetDayAvg(dayStats []UserStatistic) *DayAvg {
 	da.BTCLent = da.BTCLent / totalSeconds
 	da.BTCNotLent = da.BTCNotLent / totalSeconds
 	da.LendingPercent = da.LendingPercent / totalSeconds
+
+	fmt.Println(da)
 
 	return da
 }
