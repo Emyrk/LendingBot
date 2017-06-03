@@ -128,7 +128,7 @@ func (s *State) PoloniexCreateLoanOffer(currency string, amount, rate float64, d
 	return s.PoloniexAPI.CreateLoanOffer(currency, amount, rate, duration, autoRenew, accessKey, secretKey)
 }
 
-// PoloniecGetInactiveLoans returns your current loans that are not taken
+// PoloniexGetInactiveLoans returns your current loans that are not taken
 func (s *State) PoloniexGetInactiveLoans(username string) (map[string][]poloniex.PoloniexLoanOffer, error) {
 	accessKey, secretKey, err := s.getAccessAndSecret(username)
 	if err != nil {
@@ -138,7 +138,7 @@ func (s *State) PoloniexGetInactiveLoans(username string) (map[string][]poloniex
 	return s.PoloniexAPI.GetOpenLoanOffers(accessKey, secretKey)
 }
 
-// PoloniecGetActiveLoans returns your current loans that are taken
+// PoloniexGetActiveLoans returns your current loans that are taken
 func (s *State) PoloniexGetActiveLoans(username string) (*poloniex.PoloniexActiveLoans, error) {
 	accessKey, secretKey, err := s.getAccessAndSecret(username)
 	if err != nil {
@@ -157,6 +157,41 @@ func (s *State) PoloniexCancelLoanOffer(currency string, orderNumber int64, user
 	return s.PoloniexAPI.CancelLoanOffer(currency, orderNumber, accessKey, secretKey)
 }
 
-func (s *State) PoloniecGetLoanOrders(currency string) (*poloniex.PoloniexLoanOrders, error) {
+func (s *State) PoloniexGetLoanOrders(currency string) (*poloniex.PoloniexLoanOrders, error) {
 	return s.PoloniexAPI.GetLoanOrders(currency)
+}
+
+func (s *State) PoloniexSingleAuthenticatedTradeHistory(currency, username, start, end string) (resp poloniex.PoloniexAuthenticatedTradeHistoryResponse, err error) {
+	if currency == "all" {
+		return resp, fmt.Errorf("Cannot be 'all'")
+	}
+	accessKey, secretKey, err := s.getAccessAndSecret(username)
+	if err != nil {
+		return resp, err
+	}
+
+	respNonCast, err := s.PoloniexAPI.GetAuthenticatedTradeHistory(currency, start, end, accessKey, secretKey)
+	resp = respNonCast.(poloniex.PoloniexAuthenticatedTradeHistoryResponse)
+	return
+}
+
+func (s *State) PoloniexAllAuthenticatedTradeHistory(username, start, end string) (resp poloniex.PoloniexAuthenticatedTradeHistoryAll, err error) {
+	accessKey, secretKey, err := s.getAccessAndSecret(username)
+	if err != nil {
+		return resp, err
+	}
+
+	respNonCast, err := s.PoloniexAPI.GetAuthenticatedTradeHistory("", start, end, accessKey, secretKey)
+	resp = respNonCast.(poloniex.PoloniexAuthenticatedTradeHistoryAll)
+	return
+}
+
+func (s *State) PoloniexAuthenticatedLendingHistory(username, start, end string) (resp poloniex.PoloniexAuthentictedLendingHistoryRespone, err error) {
+	accessKey, secretKey, err := s.getAccessAndSecret(username)
+	if err != nil {
+		return resp, err
+	}
+
+	resp, err = s.PoloniexAPI.GetAuthenticatedLendingHistory(start, end, accessKey, secretKey)
+	return
 }

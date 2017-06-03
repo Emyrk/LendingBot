@@ -130,7 +130,7 @@ func (s *State) SetUserKeys(username string, acessKey string, secretKey string) 
 	return s.userDB.PutUser(u)
 }
 
-func (s *State) GetStatistics(username string, dayRange int) ([][]*userdb.UserStatistic, error) {
+func (s *State) GetUserStatistics(username string, dayRange int) ([][]userdb.UserStatistic, error) {
 	return s.userStatistic.GetStatistics(username, dayRange)
 }
 
@@ -152,6 +152,10 @@ func (s *State) FetchAllUsers() ([]userdb.User, error) {
 	return s.userDB.FetchAllUsers()
 }
 
+func (s *State) GetPoloniexStatistics() *userdb.PoloniexStats {
+	return s.userStatistic.GetPoloniexStatistics()
+}
+
 // RecordPoloniexStatistics is for recording the current lending rate on poloniex
 func (s *State) RecordPoloniexStatistics(rate float64) error {
 	return s.userStatistic.RecordPoloniexStatistic(rate)
@@ -166,6 +170,7 @@ func (s *State) RecordStatistics(stats *userdb.UserStatistic) error {
 	if !s.poloniexCache.shouldRecordStats(stats.Username) {
 		return nil
 	}
+
 	err := s.userStatistic.RecordData(stats)
 	if err != nil {
 		return err

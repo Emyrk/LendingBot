@@ -7,8 +7,11 @@ import (
 	"net/url"
 
 	"github.com/Emyrk/LendingBot/src/core/email"
+	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"github.com/revel/revel"
 )
+
+var SkipAuth = false
 
 type AppAuthRequired struct {
 	*revel.Controller
@@ -235,6 +238,9 @@ func (r AppAuthRequired) RequestEmailVerification() revel.Result {
 func (r AppAuthRequired) AuthUser() revel.Result {
 	if !ValidCacheEmail(r.Session.ID(), r.Session[SESSION_EMAIL]) {
 		fmt.Printf("WARNING: AuthUser has invalid cache: [%s] sessionId:[%s]\n", r.Session[SESSION_EMAIL], r.Session.ID())
+		if SkipAuth {
+			return nil
+		}
 		r.Session[SESSION_EMAIL] = ""
 		return r.Redirect(App.Index)
 	}
@@ -247,4 +253,129 @@ func (r AppAuthRequired) AuthUser() revel.Result {
 	}
 
 	return nil
+}
+
+// Struct to UserDash
+type UserDashStructure struct {
+}
+
+type UserDashRow0 struct {
+	LoanRate       float64
+	BTCLent        float64
+	BTCNotLent     float64
+	LendingPercent float64
+
+	LoanRateChange       float64
+	BTCLentChange        float64
+	BTCNotLentChange     float64
+	LendingPercentChange float64
+
+	// From poloniex call
+	BTCEarned float64
+}
+
+func newUserDashRow0() *UserDashRow0 {
+	r := new(UserDashRow0)
+	r.LoanRate = 0
+	r.BTCLent = 0
+	r.BTCNotLent = 0
+	r.LendingPercent = 0
+	r.BTCEarned = 0
+
+	r.LoanRateChange = 0
+	r.BTCLentChange = 0
+	r.BTCNotLentChange = 0
+	r.LendingPercentChange = 0
+
+	return r
+}
+
+// UserBalanceDetails is their current lending balances
+type UserBalanceDetails struct {
+	CurrencyMap map[string]float64
+	Percent     map[string]float64
+}
+
+func newUserBalanceDetails() *UserBalanceDetails {
+	u := new(UserBalanceDetails)
+	u.CurrencyMap = make(map[string]float64)
+	u.Percent = make(map[string]float64)
+	return u
+}
+
+func (u *UserBalanceDetails) compute() {
+	total := float64(0)
+	for _, v := range u.CurrencyMap {
+		total += v
+	}
+
+	for k, v := range u.CurrencyMap {
+		u.Percent[k] = v / total
+	}
+}
+
+// UserDashboard is the main page for users that have poloniex lending setup
+func (r AppAuthRequired) UserDashboard() revel.Result {
+	email := r.Session[SESSION_EMAIL]
+	u, err := state.FetchUser(email)
+	if err != nil || u == nil {
+		fmt.Println("Error fetching user for dashboard")
+		return r.Redirect(App.Index)
+	}
+
+	userStats, err := state.GetUserStatistics(email, 2)
+	if err != nil {
+		// HANDLE
+	}
+
+	balanceDetails := newUserBalanceDetails()
+	today := newUserDashRow0()
+	l := len(userStats)
+	if l > 0 && len(userStats[0]) > 0 {
+		now := userStats[0][0]
+		// Set balance ratios
+		balanceDetails.CurrencyMap = now.TotalCurrencyMap
+		balanceDetails.compute()
+
+		today.LoanRate = now.AverageActiveRate
+		today.BTCLent = now.ActiveLentBalance
+		today.BTCNotLent = now.AverageOnOrderRate + now.AvailableBalance
+		today.LendingPercent = today.BTCLent / (today.BTCLent + today.BTCNotLent)
+
+		yesterday := userdb.GetDayAvg(userStats[1])
+		if yesterday != nil {
+			today.LoanRateChange = percentChange(today.LoanRate, yesterday.LoanRate)
+			today.BTCLentChange = percentChange(today.BTCLent, yesterday.BTCLent)
+			today.BTCNotLentChange = percentChange(today.BTCNotLent, yesterday.BTCNotLent)
+			today.LendingPercentChange = percentChange(today.LendingPercent, yesterday.LendingPercent)
+		}
+	}
+
+	completeLoans, err := state.PoloniexAuthenticatedLendingHistory(u.Username, "", "")
+	dataShort := completeLoans.Data
+	if len(dataShort) > 5 {
+		dataShort = dataShort[:5]
+	}
+	r.ViewArgs["CompleteLoans"] = completeLoans.Data
+	r.ViewArgs["Today"] = today
+	r.ViewArgs["Balances"] = balanceDetails
+	return r.Render()
+}
+
+func abs(a float64) float64 {
+	if a < 0 {
+		return a * -1
+	}
+	return a
+}
+
+func percentChange(a float64, b float64) float64 {
+	if a == 0 || b == 0 {
+		return 0
+	}
+	change := ((a - b) / a) * 100
+	if abs(change) < 0.001 {
+		return 0
+	}
+	return change
 }

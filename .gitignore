@@ -23,3 +23,7 @@ cmd
 log/*
 keys/*
 hodl.log
+
+UserStatisticsDB.db
+UserStats.db
+database/*

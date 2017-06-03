@@ -25,7 +25,11 @@ type Lender struct {
 	Currency              string
 	CurrentLoanRate       float64
 	LastCalculateLoanRate time.Time
-	CalculateInterval     float64 // In seconds
+	CalculateLoanInterval float64 // In seconds
+	LastTickerUpdate      time.Time
+	GetTickerInterval     float64
+	Ticker                map[string]poloniex.PoloniexTicker
+	PoloniexStats         *userdb.PoloniexStats
 }
 
 func NewLender(s *core.State) *Lender {
@@ -34,24 +38,34 @@ func NewLender(s *core.State) *Lender {
 	l.CurrentLoanRate = 2.1
 	l.Currency = "BTC"
 	l.JobQueue = make(chan *Job, 1000)
-	l.CalculateInterval = 1
+	l.CalculateLoanInterval = 1
+	l.GetTickerInterval = 30
+	l.Ticker = make(map[string]poloniex.PoloniexTicker)
 
 	return l
 }
 
 func (l *Lender) Start() {
+	l.UpdateTicker()
 	for {
 		select {
 		case <-l.quit:
 			l.quit <- struct{}{}
 			return
 		case j := <-l.JobQueue:
-			if time.Since(l.LastCalculateLoanRate).Seconds() >= l.CalculateInterval {
+			// Update loan rate
+			if time.Since(l.LastCalculateLoanRate).Seconds() >= l.CalculateLoanInterval {
 				err := l.CalculateLoanRate()
 				if err != nil {
 					log.Println("Error in Lending:", err)
 				}
 			}
+
+			// Update Ticker
+			if time.Since(l.LastTickerUpdate).Seconds() >= l.GetTickerInterval {
+				l.UpdateTicker()
+			}
+
 			err := l.ProcessJob(j)
 			if err != nil {
 				log.Println("Error in Lending:", err)
@@ -73,9 +87,30 @@ func (l *Lender) JobQueueLength() int {
 	return len(l.JobQueue)
 }
 
+func (l *Lender) UpdateTicker() {
+	ticker, err := l.State.PoloniexAPI.GetTicker()
+	if err == nil {
+		l.Ticker = ticker
+	}
+	l.LastTickerUpdate = time.Now()
+	l.PoloniexStats = l.State.GetPoloniexStatistics()
+	// Prometheus
+	if l.PoloniexStats != nil {
+		PoloniexStatsHourlyAvg.Set(l.PoloniexStats.HrAvg)
+		PoloniexStatsDailyAvg.Set(l.PoloniexStats.DayAvg)
+		PoloniexStatsWeeklyAvg.Set(l.PoloniexStats.WeekAvg)
+		PoloniexStatsMonthlyAvg.Set(l.PoloniexStats.MonthAvg)
+		PoloniexStatsHourlyStd.Set(l.PoloniexStats.HrStd)
+		PoloniexStatsDailyStd.Set(l.PoloniexStats.DayStd)
+		PoloniexStatsWeeklyStd.Set(l.PoloniexStats.WeekStd)
+		PoloniexStatsMonthlyStd.Set(l.PoloniexStats.MonthStd)
+	}
+	LenderUpdateTicker.Inc()
+}
+
 func (l *Lender) CalculateLoanRate() error {
 	s := l.State
-	loans, err := s.PoloniecGetLoanOrders(l.Currency)
+	loans, err := s.PoloniexGetLoanOrders(l.Currency)
 	if err != nil {
 		return err
 	}
@@ -118,7 +153,7 @@ func abs(v float64) float64 {
 func (l *Lender) recordStatistics(username string, bals map[string]map[string]float64,
 	inact map[string][]poloniex.PoloniexLoanOffer, activeLoan *poloniex.PoloniexActiveLoans) error {
 
-	stats := new(userdb.UserStatistic)
+	stats := userdb.NewUserStatistic()
 	stats.Time = time.Now()
 	stats.Username = username
 	stats.Currency = "BTC"
@@ -132,12 +167,14 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 	activeLentBal := float64(0)
 	activeLentTotalRate := float64(0)
 	activeLentCount := float64(0)
-	for _, l := range activeLoan.Used {
-		if l.Currency == "BTC" {
-			activeLentBal += l.Amount
-			activeLentTotalRate += l.Rate
-			activeLentCount++
-		}
+
+	for _, loan := range activeLoan.Provided {
+		//if l.Currency == "BTC" {
+		activeLentBal += l.getBTCAmount(loan.Amount, loan.Currency)
+		activeLentTotalRate += loan.Rate
+		activeLentCount++
+		//}
+		stats.TotalCurrencyMap[loan.Currency] += l.getBTCAmount(loan.Amount, loan.Currency)
 	}
 
 	stats.ActiveLentBalance = activeLentBal
@@ -148,18 +185,43 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 	inactiveLentBal := float64(0)
 	inactiveLentTotalRate := float64(0)
 	inactiveLentCount := float64(0)
-	for _, l := range inact["BTC"] {
-		if l.Currency == "BTC" {
-			inactiveLentBal += l.Amount
-			inactiveLentTotalRate += l.Rate
+	for k, _ := range inact {
+		for _, loan := range inact[k] {
+			//if l.Currency == "BTC" {
+			inactiveLentBal += l.getBTCAmount(loan.Amount, loan.Currency)
+			inactiveLentTotalRate += loan.Rate
 			inactiveLentCount++
+			//}
+			stats.TotalCurrencyMap[loan.Currency] += l.getBTCAmount(loan.Amount, loan.Currency)
 		}
 	}
 
 	stats.OnOrderBalance = inactiveLentBal
 	stats.AverageOnOrderRate = inactiveLentTotalRate / inactiveLentCount
 
+	// Set totals for other coins
+	//		Set Available
+	availMap, ok := bals["lending"]
+	if ok {
+		for k, v := range availMap {
+			stats.TotalCurrencyMap[k] += v
+		}
+	}
+
 	return l.State.RecordStatistics(stats)
+}
+
+func (l *Lender) getBTCAmount(amount float64, currency string) float64 {
+	if currency == "BTC" {
+		return amount
+	}
+
+	t, ok := l.Ticker[fmt.Sprintf("BTC_%s", currency)]
+	if !ok {
+		return 0
+	}
+
+	return t.Last * amount
 }
 
 // ProcessJob will calculate the newest loan rate, then it create a loan for 0.1 btc at that rate
@@ -188,12 +250,20 @@ func (l *Lender) ProcessJob(j *Job) error {
 	// 	return fmt.Errorf("could not get available balances. Keys: %s, %s", "lending", l.Currency)
 	// }
 
+	j.MinimumLend = 0.0008
+	if l.CurrentLoanRate < j.MinimumLend {
+		return nil
+	}
+
 	if avail < MaxLendAmt {
 		need := MaxLendAmt - avail
 		if inactiveLoans != nil {
 			currencyLoans := inactiveLoans[l.Currency]
 			sort.Sort(poloniex.PoloniexLoanOfferArray(currencyLoans))
 			for _, loan := range currencyLoans {
+				if loan.Currency != "BTC" {
+					continue
+				}
 				if need < 0 {
 					break
 				}

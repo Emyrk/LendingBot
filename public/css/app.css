@@ -87,3 +87,7 @@ html, body {
   -moz-border-radius: 20px;
   border-radius: 20px;
 }
+
+.green-shade-text {
+  color: #27892f;
+}

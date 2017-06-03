@@ -84,7 +84,7 @@ func newScraper(withMap bool, currency string, st *core.State) *Scraper {
 }
 
 func (s *Scraper) Scrape() error {
-	loans, err := s.State.PoloniecGetLoanOrders(s.Currency)
+	loans, err := s.State.PoloniexGetLoanOrders(s.Currency)
 	if err != nil {
 		return err
 	}
