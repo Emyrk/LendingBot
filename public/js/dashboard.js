@@ -23,9 +23,10 @@ app.config(['$routeProvider', '$locationProvider', function($routeProvider, $loc
 	$locationProvider.html5Mode({enabled: false, requireBase: false});
 }]);
 
-app.controller('dashBaseController', ['$scope', '$http', '$log',
-	function($scope, $http, $log) {
+app.controller('dashBaseController', ['$scope', '$http', '$log', "$templateCache",
+	function($scope, $http, $log, $templateCache) {
 		var dashBaseScope = $scope;
+		$templateCache.removeAll()
 		dashBaseScope.logout = LOC + "/logout"
 	}]);
 
@@ -57,14 +58,14 @@ app.controller('dashSettingsController', ['$scope', '$http', '$log',
 				},
 				withCredentials: true
 			})
-			.then((res, status, headers, config) => {
+			.then((res) => {
 				//success
 				$log.info("2FA: Success.");
 				dashSettingsScope.qrcode = 'data:image/png;base64,' + res.data.data
 				dashSettingsScope.has2FA = true;
-			}, (err, status, headers, config) => {
+			}, (err) => {
 				//error
-				$log.error("2FA: Error: [" + JSON.stringify(err) + "] Status [" + status + "]");
+				$log.error("2FA: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
 			})
 			.then(() => {
 				dashSettingsScope.pass2FA = '';
@@ -83,13 +84,13 @@ app.controller('dashSettingsController', ['$scope', '$http', '$log',
 				},
 				withCredentials: true
 			})
-			.then((res, status, headers, config) => {
+			.then((res) => {
 				//success
 				$log.info("2FA: Success.");
 				dashSettingsScope.enabled2FA = (res.data.data === 'true')
-			}, (err, status, headers, config) => {
+			}, (err) => {
 				//error
-				$log.error("2FA: Error: [" + JSON.stringify(err) + "] Status [" + status + "]");
+				$log.error("2FA: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
 			})
 			.then(() => {
 				dashSettingsScope.pass2FA = '';
@@ -108,15 +109,15 @@ app.controller('dashSettingsController', ['$scope', '$http', '$log',
 				},
 				withCredentials: true
 			})
-			.then((res, status, headers, config) => {
+			.then((res) => {
 				//success
 				$log.info("SetPoloniexKeys: Success.");
 				var tempData = JSON.parse(res.data.data);
 				dashSettingsScope.poloniexKey = tempData.poloniexkey;
 				dashSettingsScope.poloniexSecret = tempData.poloniexsecret;
-			}, (err, status, headers, config) => {
+			}, (err) => {
 				//error
-				$log.error("SetPoloniexKeys: Error: [" + JSON.stringify(err) + "] Status [" + status + "]");
+				$log.error("SetPoloniexKeys: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
 			});
 		}
 
@@ -127,13 +128,13 @@ app.controller('dashSettingsController', ['$scope', '$http', '$log',
 				url: '/verify/request',
 				withCredentials: true
 			})
-			.then((res, status, headers, config) => {
+			.then((res) => {
 				//success
 				$log.info("VerifyEmail: Success.");
 				dashSettingsScope.verifyEmail = true;
-			}, (err, status, headers, config) => {
+			}, (err) => {
 				//error
-				$log.error("VerifyEmail: Error: [" + JSON.stringify(err) + "] Status [" + status + "]");
+				$log.error("VerifyEmail: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
 			});
 		}
 	}]);

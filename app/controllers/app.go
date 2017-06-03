@@ -7,7 +7,6 @@ import (
 	"io"
 
 	"github.com/Emyrk/LendingBot/src/core"
-	"github.com/Emyrk/LendingBot/src/core/cryption"
 	"github.com/Emyrk/LendingBot/src/core/email"
 	"github.com/Emyrk/LendingBot/src/lender"
 	"github.com/Emyrk/LendingBot/src/queuer"
@@ -108,14 +107,9 @@ func (c App) Login() revel.Result {
 		return c.RenderJSON(data)
 	}
 
-	stringToken, err := cryption.NewJWTString(email, state.JWTSecret, cryption.JWT_EXPIRY_TIME)
-	if err != nil {
-		data[JSON_ERROR] = fmt.Sprintf("Unable to create JWT: %s", err.Error())
-		c.Response.Status = 500
-		return c.RenderJSON(data)
-	}
+	c.Session[SESSION_EMAIL] = email
 
-	c.Session[cryption.COOKIE_JWT_MAP] = stringToken
+	SetCacheEmail(c.Session.ID(), email)
 
 	return c.RenderJSON(data)
 }
@@ -132,14 +126,9 @@ func (c App) Register() revel.Result {
 		return c.RenderJSON(data)
 	}
 
-	stringToken, err := cryption.NewJWTString(email, state.JWTSecret, cryption.JWT_EXPIRY_TIME)
-	if err != nil {
-		data[JSON_ERROR] = fmt.Sprintf("Unable to create JWT: %s", err.Error())
-		c.Response.Status = 500
-		return c.RenderJSON(data)
-	}
+	c.Session[SESSION_EMAIL] = email
 
-	c.Session[cryption.COOKIE_JWT_MAP] = stringToken
+	SetCacheEmail(c.Session.ID(), email)
 
 	return c.RenderJSON(data)
 }

@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	COOKIE_JWT_MAP            = "jwt-cookie"
+	// COOKIE_JWT_MAP            = "jwt-cookie"
 	JWT_EXPIRY_TIME           = 10 * time.Minute
 	JWT_EXPIRY_TIME_TEST_FAIL = 1 * time.Second
 	JWT_EXPIRY_TIME_NEW_PASS  = 10 * time.Minute
@@ -75,6 +75,22 @@ func NewJWTString(email string, hmacSecret [32]byte, waitTime time.Duration) (st
 	// Sign and get the complete encoded token as a string using the secret
 	tokenString, err := token.Serialize(hmacSecret[:])
 	return string(tokenString), err
+}
+
+func VerifyJWTGetEmailAndSig(tokenString string, hmacSecret [32]byte) (string, string, error) {
+	token, err := VerifyJWT(tokenString, hmacSecret)
+	if err != nil {
+		return "", "", err
+	}
+	email, ok := token.Claims().Get("email").(string)
+	if !ok {
+		return "", "", fmt.Errorf("Error Retrieving email from JWT: %s\n", err.Error())
+	}
+	sig, err := GetJWTSignature(tokenString)
+	if err != nil {
+		return "", "", fmt.Errorf("Error Retrieving signature from JWT: %s\n", err.Error())
+	}
+	return email, sig, nil
 }
 
 func VerifyJWTGetEmail(tokenString string, hmacSecret [32]byte) (string, error) {

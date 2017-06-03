@@ -20,7 +20,7 @@ app.controller('indexController', ['$scope', '$http', '$log',
 				window.location = LOC + '/dashboard';
 			}, (err, status, headers, config) => {
 				//error
-				$log.error("login: Error: [" + JSON.stringify(err) + "] Status [" + status + "]");
+				$log.error("login: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
 			})
 			.then(() => {
 				indexScope.login.email = "";
@@ -39,13 +39,14 @@ app.controller('indexController', ['$scope', '$http', '$log',
 				},
 				withCredentials: true
 			})
-			.then((res, status, headers, config) => {
+			.then((res) => {
 				//success
 				$log.info("register: Success.");
 				window.location = LOC + '/dashboard';
-			}, (err, status, headers, config) => {
+
+			}, (err) => {
 				//error
-				$log.error("register: Error: [" + JSON.stringify(err) + "] Status [" + status + "]");
+				$log.error("register: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
 			})
 			.then(() => {
 				indexScope.register.email = "";
