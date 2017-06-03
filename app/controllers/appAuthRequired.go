@@ -11,6 +11,7 @@ import (
 	"github.com/revel/revel"
 )
 
+var _ = userdb.SaltLength
 var SkipAuth = false
 
 type AppAuthRequired struct {
@@ -256,68 +257,9 @@ func (r AppAuthRequired) AuthUser() revel.Result {
 	return nil
 }
 
-// Struct to UserDash
-type UserDashStructure struct {
-}
-
-type UserDashRow0 struct {
-	LoanRate       float64
-	BTCLent        float64
-	BTCNotLent     float64
-	LendingPercent float64
-
-	LoanRateChange       float64
-	BTCLentChange        float64
-	BTCNotLentChange     float64
-	LendingPercentChange float64
-
-	// From poloniex call
-	BTCEarned float64
-}
-
-func newUserDashRow0() *UserDashRow0 {
-	r := new(UserDashRow0)
-	r.LoanRate = 0
-	r.BTCLent = 0
-	r.BTCNotLent = 0
-	r.LendingPercent = 0
-	r.BTCEarned = 0
-
-	r.LoanRateChange = 0
-	r.BTCLentChange = 0
-	r.BTCNotLentChange = 0
-	r.LendingPercentChange = 0
-
-	return r
-}
-
-// UserBalanceDetails is their current lending balances
-type UserBalanceDetails struct {
-	CurrencyMap map[string]float64
-	Percent     map[string]float64
-}
-
-func newUserBalanceDetails() *UserBalanceDetails {
-	u := new(UserBalanceDetails)
-	u.CurrencyMap = make(map[string]float64)
-	u.Percent = make(map[string]float64)
-	return u
-}
-
-func (u *UserBalanceDetails) compute() {
-	total := float64(0)
-	for _, v := range u.CurrencyMap {
-		total += v
-	}
-
-	for k, v := range u.CurrencyMap {
-		u.Percent[k] = v / total
-	}
-}
-
 // UserDashboard is the main page for users that have poloniex lending setup
 func (r AppAuthRequired) UserDashboard() revel.Result {
-	email := r.Session[SESSION_EMAIL]
+	/*email := r.Session[SESSION_EMAIL]
 	u, err := state.FetchUser(email)
 	if err != nil || u == nil {
 		fmt.Println("Error fetching user for dashboard")
@@ -360,7 +302,7 @@ func (r AppAuthRequired) UserDashboard() revel.Result {
 	}
 	r.ViewArgs["CompleteLoans"] = completeLoans.Data
 	r.ViewArgs["Today"] = today
-	r.ViewArgs["Balances"] = balanceDetails
+	r.ViewArgs["Balances"] = balanceDetails*/
 	return r.Render()
 }
 

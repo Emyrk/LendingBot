@@ -1,38 +1,117 @@
 package controllers
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/url"
 
-	"github.com/Emyrk/LendingBot/src/core/email"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"github.com/revel/revel"
 )
 
+// Struct to UserDash
+type UserDashStructure struct {
+}
+
+type CurrentUserStatistics struct {
+	LoanRate       float64 `json:"loanrate"`
+	BTCLent        float64 `json:"btcent"`
+	BTCNotLent     float64 `json:"btcnotlent"`
+	LendingPercent float64 `json:"lendingpercent"`
+
+	LoanRateChange       float64 `json:"loanratechange"`
+	BTCLentChange        float64 `json:"btclentchange"`
+	BTCNotLentChange     float64 `json:"btclotlentchange"`
+	LendingPercentChange float64 `json:"lendingpercentchange"`
+
+	// From poloniex call
+	BTCEarned float64 `json:"btcearned"`
+}
+
+func newCurrentUserStatistics() *CurrentUserStatistics {
+	r := new(CurrentUserStatistics)
+	r.LoanRate = 0
+	r.BTCLent = 0
+	r.BTCNotLent = 0
+	r.LendingPercent = 0
+	r.BTCEarned = 0
+
+	r.LoanRateChange = 0
+	r.BTCLentChange = 0
+	r.BTCNotLentChange = 0
+	r.LendingPercentChange = 0
+
+	return r
+}
+
+// UserBalanceDetails is their current lending balances
+type UserBalanceDetails struct {
+	CurrencyMap map[string]float64 `json:"currencymap"`
+	Percent     map[string]float64 `json:"percentmap"`
+}
+
+func newUserBalanceDetails() *UserBalanceDetails {
+	u := new(UserBalanceDetails)
+	u.CurrencyMap = make(map[string]float64)
+	u.Percent = make(map[string]float64)
+	return u
+}
+
+// compute computed the percentmap
+func (u *UserBalanceDetails) compute() {
+	total := float64(0)
+	for _, v := range u.CurrencyMap {
+		total += v
+	}
+
+	for k, v := range u.CurrencyMap {
+		u.Percent[k] = v / total
+	}
+}
+
+func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
+	userStats, err := state.GetUserStatistics(email, 2)
+
+	balanceDetails := newUserBalanceDetails()
+	today := newCurrentUserStatistics()
+	if err != nil {
+		return today, balanceDetails
+	}
+	l := len(userStats)
+	if l > 0 && len(userStats[0]) > 0 {
+		now := userStats[0][0]
+		// Set balance ratios
+		balanceDetails.CurrencyMap = now.TotalCurrencyMap
+		balanceDetails.compute()
+
+		today.LoanRate = now.AverageActiveRate
+		today.BTCLent = now.ActiveLentBalance
+		today.BTCNotLent = now.AverageOnOrderRate + now.AvailableBalance
+		today.LendingPercent = today.BTCLent / (today.BTCLent + today.BTCNotLent)
+
+		yesterday := userdb.GetDayAvg(userStats[1])
+		if yesterday != nil {
+			today.LoanRateChange = percentChange(today.LoanRate, yesterday.LoanRate)
+			today.BTCLentChange = percentChange(today.BTCLent, yesterday.BTCLent)
+			today.BTCNotLentChange = percentChange(today.BTCNotLent, yesterday.BTCNotLent)
+			today.LendingPercentChange = percentChange(today.LendingPercent, yesterday.LendingPercent)
+		}
+	}
+
+	return today, balanceDetails
+}
+
 func (r AppAuthRequired) CurrentUserStats() revel.Result {
+	email := r.Session[SESSION_EMAIL]
+	u, err := state.FetchUser(email)
+	if err != nil || u == nil {
+		fmt.Println("Error fetching user for dashboard")
+		return r.Redirect(App.Index)
+	}
+
 	data := make(map[string]interface{})
-	// json2fa := r.unmarshal2fa(r.Request.Body)
-	// if json2fa == nil {
-	// 	fmt.Printf("Error grabbing 2fa err\n")
-	// 	data[JSON_ERROR] = "Error with 2fa"
-	// 	r.Response.Status = 500
-	// 	return r.RenderJSON(data)
-	// }
-	// email := r.Session[SESSION_EMAIL]
+	stats, balanceBreakdown := getUserStats(email)
 
-	// err := state.Enable2FA(email, json2fa.Pass, json2fa.Token, json2fa.Enable)
-	// if err != nil {
-	// 	fmt.Printf("Error enabling 2fa err: %s\n", err.Error())
-	// 	data[JSON_ERROR] = "Error with 2fa"
-	// 	r.Response.Status = 400
-	// 	return r.RenderJSON(data)
-	// }
-
-	// u, _ := state.FetchUser(email)
-	// data[JSON_DATA] = fmt.Sprintf("%t", u.Enabled2FA)
-
+	data["CurrentUserStats"] = stats
+	data["Balances"] = balanceBreakdown
 	return r.RenderJSON(data)
 }
 
@@ -42,6 +121,17 @@ func (r AppAuthRequired) CurrentBalanceBreakdown() revel.Result {
 }
 
 func (r AppAuthRequired) LendingHistory() revel.Result {
+	email := r.Session[SESSION_EMAIL]
+	u, err := state.FetchUser(email)
+	if err != nil || u == nil {
+		fmt.Println("Error fetching user for dashboard")
+		return r.Redirect(App.Index)
+	}
+
+	//to cache
+	completeLoans, err := state.PoloniexAuthenticatedLendingHistory(u.Username, "", "")
 	data := make(map[string]interface{})
+	data["CompleteLoans"] = completeLoans.Data
+
 	return r.RenderJSON(data)
 }
