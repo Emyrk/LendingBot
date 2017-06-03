@@ -2,6 +2,7 @@ package core
 
 import (
 	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"github.com/badoux/checkmail"
+	"github.com/revel/revel"
 )
 
 type State struct {
@@ -57,8 +59,7 @@ func newState(withMap bool, fakePolo bool) *State {
 		s.PoloniexAPI = poloniex.StartPoloniex()
 	}
 
-	ck := make([]byte, 32)
-	copy(s.CipherKey[:], ck[:])
+	s.CipherKey = getCipherKey()
 
 	jck := make([]byte, 32)
 	_, err := rand.Read(jck)
@@ -79,6 +80,30 @@ func newState(withMap bool, fakePolo bool) *State {
 	s.poloniexCache = NewPoloniexAccessCache()
 
 	return s
+}
+
+func getCipherKey() [32]byte {
+	var sec [32]byte
+
+	str := os.Getenv("HODLZONE_KEY")
+	if str == "" {
+		if !revel.DevMode {
+			panic("No private key given when running! I won't allow that!")
+		}
+		fmt.Println("WARNING! NO PRIVATE KEY IS GIVEN. I'll let it go as we are in devmode")
+		ck := make([]byte, 32)
+		copy(sec[:32], ck[:32])
+		return sec
+	}
+	ck, err := hex.DecodeString(str)
+	if err != nil {
+		panic(fmt.Sprintf("Error when parsing key: %s", err.Error()))
+	}
+	if len(ck) != 32 {
+		panic(fmt.Sprintf("Key length must be 32 bytes, found %d", len(ck)))
+	}
+	copy(sec[:32], ck[:32])
+	return sec
 }
 
 func (s *State) Close() error {

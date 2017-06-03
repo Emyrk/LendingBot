@@ -16,7 +16,6 @@ import (
 var state *core.State
 
 func init() {
-
 }
 
 type JSONUser struct {

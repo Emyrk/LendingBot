@@ -34,7 +34,8 @@
             <th>Duration</th>
           </tr>
         </thead>
-          <tr ng-repeat="h in lendHist track by id" ng-hide="lendHist.length == 0">
+        <tbody>
+          <tr ng-repeat="h in lendHist" ng-hide="lendHist.length == 0">
             <td>{{h.currency}}</td>
             <td>{{h.rate | number: 4}}</td>
             <td>{{h.amount}}</td>

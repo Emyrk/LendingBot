@@ -73,7 +73,7 @@ func init() {
 		return formatFloat(a, precision)
 	}
 
-	controllers.Launch()
+	revel.OnAppStart(controllers.Launch)
 }
 
 func formatFloat(a float64, precision int) string {

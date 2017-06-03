@@ -66,6 +66,9 @@ app.controller('dashBaseController', ['$scope', '$http', '$log',
 				if (dashBaseScope.lendHist == null) {
 					dashBaseScope.lendHist = [];
 				}
+				$('#datatable-responsive').DataTable({
+					filter: false
+				});
 			}, (err) => {
 				//error
 				$log.error("LendingHistory: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
