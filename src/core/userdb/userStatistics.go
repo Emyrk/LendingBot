@@ -502,7 +502,7 @@ func (us *UserStatisticsDB) GetPoloniexStatistics() *PoloniexStats {
 		return nil
 	}
 
-	sec := GetSeconds(time.Now().Add(5 * time.Hour))
+	sec := GetSeconds(time.Now())
 	var lastHr []PoloniexRateSample
 
 	in := 0
