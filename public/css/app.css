@@ -234,6 +234,10 @@ p, h1, h2, h3 {
   border-radius: 20px;
 }
 
+#hero > #tag-line-box #start-lending:hover {
+   background-color: rgba(208, 255, 255, 1);
+}
+
 .green-shade-text {
   color: #27892f;
 }
@@ -344,9 +348,9 @@ p, h1, h2, h3 {
 }
 
 #join-our-slack a, #more-information a {
-  -webkit-border-radius: 25;
-  -moz-border-radius: 25;
-  border-radius: 25px;
+  -webkit-border-radius: 15;
+  -moz-border-radius: 15;
+  border-radius: 15px;
   font-family: Arial;
   color: #3E82A5;
   font-size: 27px;

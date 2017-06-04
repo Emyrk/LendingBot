@@ -477,15 +477,15 @@ func (us *UserStatisticsDB) GetPoloniexDataLastXDays(dayRange int) [][]PoloniexR
 }
 
 type PoloniexStats struct {
-	HrAvg    float64
-	DayAvg   float64
-	WeekAvg  float64
-	MonthAvg float64
+	HrAvg    float64 `json:"hravg"`
+	DayAvg   float64 `json:"dayavg"`
+	WeekAvg  float64 `json:"weekavg"`
+	MonthAvg float64 `json:"monthavg"`
 
-	HrStd    float64
-	DayStd   float64
-	WeekStd  float64
-	MonthStd float64
+	HrStd    float64 `json:"hrstd"`
+	DayStd   float64 `json:"daystd"`
+	WeekStd  float64 `json:"weekstd"`
+	MonthStd float64 `json:"monthstd"`
 }
 
 func (p *PoloniexStats) String() string {

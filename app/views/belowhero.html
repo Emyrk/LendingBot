@@ -40,7 +40,13 @@
 					<label>BTC Amount</label>
 					<input type="text" id="range_01" value="" name="range" />
 					<script type="text/javascript">
-						$("#range_01").ionRangeSlider();
+						$("#range_01").ionRangeSlider({
+							min: 0,
+							max: 10,
+							onChange: function (data) {
+								console.log(data.from);
+							},
+						});
 					</script>
 					<label>Weeks</label>
 					<input type="text" id="range_02" value="" name="range" />
