@@ -1,6 +1,62 @@
 [[template "gentelellaHeader.html" .]]
   [[template "dashboard/sidenav.html" .]]
   [[template "dashboard/topnav.html" .]]
-    [[template "settings/usersettings.html" .]]
-    [[template "settings/2fa.html" .]]
+                <!-- form grid slider -->
+                <div class="x_panel" style="">
+                  <div class="x_title">
+                    <h2>Grid Slider</h2>
+                    <ul class="nav navbar-right panel_toolbox">
+                      <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                      </li>
+                      <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
+                        <ul class="dropdown-menu" role="menu">
+                          <li><a href="#">Settings 1</a>
+                          </li>
+                          <li><a href="#">Settings 2</a>
+                          </li>
+                        </ul>
+                      </li>
+                      <li><a class="close-link"><i class="fa fa-close"></i></a>
+                      </li>
+                    </ul>
+                    <div class="clearfix"></div>
+                  </div>
+                  <div class="x_content">
+                    <div class="row grid_slider">
+
+                      <div class="col-md-6 col-sm-6 col-xs-12">
+                        <p>Default grid slider with min and max values</p>
+                        <input type="text" id="range" value="" name="range" />
+                      </div>
+                      <div class="col-md-6 col-sm-6 col-xs-12">
+                        <p>Grid with slider labels are far away outside it's container</p>
+                        <input type="text" id="range_25" value="" name="range" />
+                      </div>
+                      <div class="col-md-6 col-sm-6 col-xs-12">
+                        <p>Grid with labels inside container using force_edges attribute</p>
+                        <input type="text" id="range_27" value="" name="range" />
+                      </div>
+                      <div class="col-md-6 col-sm-6 col-xs-12">
+                        <p>Create Grid with pre-defined steps</p>
+                        <input type="text" id="range_26" value="" name="range" />
+                      </div>
+                      <div class="col-md-6 col-sm-6 col-xs-12">
+                        <p>Prevent one from dragging the labels</p>
+                        <input type="text" id="range_31" value="" name="range" />
+                      </div>
+                      <div class="col-md-6 col-sm-6 col-xs-12">
+                        <p>Grid with minimum and maximum values</p>
+                        <input type="text" class="range_min_max" value="" name="range" />
+                      </div>
+                      <div>
+                        <p>Grid With time in 24 hour format</p>
+                        <input type="text" class="range_time24" value="" name="range" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <br />
+                <br />
+                <!-- /form grid slider -->
 [[template "gentelellaFooter.html" .]]

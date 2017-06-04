@@ -4980,7 +4980,7 @@ if (typeof NProgress != 'undefined') {
 		init_JQVmap();
 		// init_cropper();
 		init_knob();
-		init_IonRangeSlider();
+		// init_IonRangeSlider();
 		init_ColorPicker();
 		init_TagsInput();
 		init_parsley();
