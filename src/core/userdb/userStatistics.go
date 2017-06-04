@@ -6,12 +6,14 @@ import (
 	"math"
 	"os"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/Emyrk/LendingBot/src/core/common/primitives"
 	"github.com/Emyrk/LendingBot/src/core/database"
 )
 
+var _ = strings.Compare
 var _ = fmt.Println
 
 var (
@@ -453,7 +455,6 @@ func (us *UserStatisticsDB) GetPoloniexDataLastXDays(dayRange int) [][]PoloniexR
 		if err != nil {
 			continue
 		}
-
 		stats := make([]PoloniexRateSample, 0)
 		for i, data := range datas {
 			rate, err := primitives.BytesToFloat64(data)
@@ -487,6 +488,11 @@ type PoloniexStats struct {
 	MonthStd float64
 }
 
+func (p *PoloniexStats) String() string {
+	return fmt.Sprintf("HrAvg: %f, DayAvg: %f, WeekAvg: %f, MonthAvg: %f, HrStd: %f, DayStd: %f, WeekStd: %f, MonthStd: %f\n",
+		p.HrAvg, p.DayAvg, p.WeekAvg, p.MonthAvg, p.HrStd, p.DayStd, p.WeekStd, p.MonthStd)
+}
+
 func (us *UserStatisticsDB) GetPoloniexStatistics() *PoloniexStats {
 	poloStats := new(PoloniexStats)
 
@@ -496,12 +502,17 @@ func (us *UserStatisticsDB) GetPoloniexStatistics() *PoloniexStats {
 		return nil
 	}
 
-	sec := GetSeconds(time.Now())
+	sec := GetSeconds(time.Now().Add(5 * time.Hour))
 	var lastHr []PoloniexRateSample
 
+	in := 0
+	not := 0
 	for _, v := range poloDatStats[0] {
 		if v.SecondsPastMidnight > sec-3600 {
+			in++
 			lastHr = append(lastHr, v)
+		} else {
+			not++
 		}
 	}
 
@@ -707,8 +718,47 @@ func (us *UserStatisticsDB) getBucketPlusX(username string, offset int) []byte {
 	return append(hash[:], index...)
 }
 
+func (us *UserStatisticsDB) Fix() {
+	bucks, _ := us.db.ListAllBuckets()
+
+	Keys := make([][][]byte, 2)
+	Buckets := make([][]byte, 2)
+	Data := make([][][]byte, 2)
+
+	i := 0
+	for _, b := range bucks {
+		if strings.Contains(string(b), "PoloniexBucket") {
+
+			Data[i], Keys[i], _ = us.db.GetAll(b)
+			Buckets[i] = b
+			i++
+		}
+	}
+
+	zero, _ := primitives.BytesToUint32(Buckets[0][:len(Buckets[0])-4])
+	one, _ := primitives.BytesToUint32(Buckets[1][:len(Buckets[1])-4])
+	day := GetDayBytes(GetDay(time.Now()))
+	if zero > one {
+		for i, k := range Keys[0] {
+			us.db.Put(append(PoloniexPrefix, day...), k, Data[0][i])
+		}
+		day := GetDay(time.Now()) - 1
+		for i, k := range Keys[1] {
+			us.db.Put(append(PoloniexPrefix, primitives.Uint32ToBytes(uint32(day))...), k, Data[1][i])
+		}
+	} else {
+		for i, k := range Keys[1] {
+			us.db.Put(append(PoloniexPrefix, day...), k, Data[1][i])
+		}
+		day := GetDayBytes(GetDay(time.Now()) - 1)
+		for i, k := range Keys[0] {
+			us.db.Put(append(PoloniexPrefix, day...), k, Data[0][i])
+		}
+	}
+}
+
 func GetDay(t time.Time) int {
-	return t.Day() * int(t.Month()) * t.Year()
+	return int(t.Unix()) / 86400
 }
 
 func GetDayBytes(day int) []byte {

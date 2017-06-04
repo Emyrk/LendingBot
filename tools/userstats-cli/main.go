@@ -22,6 +22,8 @@ func main() {
 		username  = flag.String("u", "", "Username to change level of")
 		populate  = flag.Bool("p", false, "Populate DB")
 		dailyavgs = flag.Bool("d", false, "daily averages")
+		polo      = flag.Bool("polo", false, "Polo data")
+		fix       = flag.Bool("f", false, "Fix polo data")
 	)
 
 	flag.Parse()
@@ -29,6 +31,20 @@ func main() {
 	db, err := userdb.NewUserStatisticsDB()
 	if err != nil {
 		panic(err)
+	}
+
+	if *fix {
+		PoloFix(db)
+		return
+	}
+
+	if *polo {
+		PoloData(db)
+		return
+	}
+
+	if *username == "" {
+		panic("No user")
 	}
 
 	if *populate {
@@ -41,6 +57,16 @@ func main() {
 		return
 	}
 
+}
+
+func PoloFix(db *userdb.UserStatisticsDB) {
+	db.Fix()
+}
+
+func PoloData(db *userdb.UserStatisticsDB) {
+
+	stats := db.GetPoloniexStatistics()
+	fmt.Println(stats)
 }
 
 func Populate(username string, db *userdb.UserStatisticsDB) {
