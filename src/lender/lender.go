@@ -157,7 +157,7 @@ func (l *Lender) calculateAvgBasedLoanRate() {
 	if simple < l.PoloniexStats.HrAvg {
 		// Lends are raising, go up
 		if l.rising() == 1 {
-			a = l.PoloniexStats.HrAvg + (l.PoloniexStats.HrStd * 0.8)
+			a = l.PoloniexStats.HrAvg + (l.PoloniexStats.DayStd * 0.5)
 		} else {
 			a = l.PoloniexStats.HrAvg
 		}

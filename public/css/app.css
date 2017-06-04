@@ -5,8 +5,24 @@
 html, body {
   margin: 0;
   padding: 0;
-  font-family: Arial, Verdana, sans-serif;
+  /*font-family: Arial, Verdana, sans-serif;*/
+  font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
   background-color: white;
+}
+
+p, h1, h2, h3 {
+  font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif !important; 
+}
+
+.large-header {
+  color: #95989A;
+  font-size: 2.8em;
+  font-weight: 900;
+}
+
+.standard-text {
+  color: #95989A;
+  font-size: 1.4em;
 }
 
 #hero {
@@ -160,7 +176,6 @@ html, body {
 
 .index-summary div {
   padding: 15px;
-  color: ;
 }
 
 .index-summary img {
@@ -169,6 +184,11 @@ html, body {
 
 .index-summary p {
   font-size: 1.2em;
+}
+
+.index-summary h3 {
+  font-weight: 600;
+  color: #95989A;
 }
 
 .earning-caluclator {
@@ -198,10 +218,9 @@ html, body {
   background: #fcfcfc;
   padding: 7px 35px 7px 35px;
   text-decoration: none;
-  margin-left: 10px;
 }
 
-#join-our-slack a:hover, #more-information a  {
+#join-our-slack a:hover, #more-information a:hover  {
   background-color: rgb(230, 230, 230);
   text-decoration: none;
   cursor: pointer;
@@ -214,6 +233,7 @@ html, body {
   padding-top: 10px;
   padding-bottom: 30px;
   padding-bottom: 20px;
+  font-weight: 600;
 }
 
 .buffer {
@@ -249,7 +269,7 @@ html, body {
 
 .more-information-container h3 {
   color: white;
-  font-size: 2em;
+  font-size: 30px;
   padding: 3px;
   margin: 0px;
 } 
