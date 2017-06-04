@@ -159,6 +159,6 @@ func (r AppAuthRequired) LendingHistory() revel.Result {
 	return r.RenderJSON(data)
 }
 
-func (r App) GetPoloniexPast() {
+func (r App) GetPoloniexStatistics() {
 	return r.RenderJSON(state.GetPoloniexStatistics())
 }
