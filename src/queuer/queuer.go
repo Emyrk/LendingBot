@@ -94,6 +94,11 @@ func (q *Queuer) Start() {
 }
 
 func (q *Queuer) AddJobs() {
+	if len(q.AllUsers) == 0 {
+		j := lender.NewManualBTCJob("", 0)
+		q.Lender.AddJob(j)
+		QueuerJobsMade.Inc()
+	}
 	for _, u := range q.AllUsers {
 		j := lender.NewManualBTCJob(u.Username, u.MiniumumLoanAmt)
 		q.Lender.AddJob(j)

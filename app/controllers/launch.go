@@ -13,6 +13,8 @@ import (
 
 	// Init logger
 	_ "github.com/Emyrk/LendingBot/src/log"
+
+	"github.com/revel/revel"
 )
 
 func Launch() {
@@ -29,7 +31,9 @@ func Launch() {
 		panic(err)
 	}
 
-	return
+	if revel.DevMode {
+		return
+	}
 	// Start go lending
 	go lenderBot.Start()
 	go queuerBot.Start()

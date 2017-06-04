@@ -45,6 +45,18 @@ func TestUserStat(t *testing.T) {
 	}
 }
 
+func TestGetDay(t *testing.T) {
+	ti := time.Now()
+	for i := 0; i < 100000; i++ {
+		last := GetDay(ti)
+		ti = ti.Add(time.Duration(1*24) * time.Hour)
+		next := GetDay(ti)
+		if next-last != 1 {
+			t.Errorf("Next should be 1, found %d :: %v", next-last, ti)
+		}
+	}
+}
+
 /*
 type UserStatistic struct {
 	Username           string    `json:"username"`

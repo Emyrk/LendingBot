@@ -227,7 +227,26 @@ func (l *Lender) getBTCAmount(amount float64, currency string) float64 {
 // ProcessJob will calculate the newest loan rate, then it create a loan for 0.1 btc at that rate
 // for the user in the Job
 func (l *Lender) ProcessJob(j *Job) error {
+	if j.Username == "" {
+		return nil
+	}
+	return l.tierOneProcessJob(j, l.CurrentLoanRate)
+}
+
+func (l *Lender) decideRate(rate float64, avail float64, total float64) {
+	if rate < l.PoloniexStats.DayAvg {
+
+	}
+}
+
+func (l *Lender) tierOneProcessJob(j *Job, rate float64) error {
+	j.MinimumLend = 0.0008
+	if rate < j.MinimumLend {
+		return nil
+	}
+
 	s := l.State
+	// total := float64(0)
 
 	bals, err := s.PoloniexGetAvailableBalances(j.Username)
 	if err != nil {
@@ -250,10 +269,7 @@ func (l *Lender) ProcessJob(j *Job) error {
 	// 	return fmt.Errorf("could not get available balances. Keys: %s, %s", "lending", l.Currency)
 	// }
 
-	j.MinimumLend = 0.0008
-	if l.CurrentLoanRate < j.MinimumLend {
-		return nil
-	}
+	// rate := l.decideRate(rate, avail, total)
 
 	if avail < MaxLendAmt {
 		need := MaxLendAmt - avail
@@ -268,7 +284,7 @@ func (l *Lender) ProcessJob(j *Job) error {
 					break
 				}
 				// Too close, no point in canceling
-				if abs(loan.Rate-l.CurrentLoanRate) < 0.00000009 {
+				if abs(loan.Rate-rate) < 0.00000009 {
 					continue
 				}
 				worked, err := s.PoloniexCancelLoanOffer(l.Currency, loan.ID, j.Username)
@@ -293,7 +309,7 @@ func (l *Lender) ProcessJob(j *Job) error {
 	if amt < 0.01 {
 		return nil
 	}
-	_, err = s.PoloniexCreateLoanOffer(l.Currency, amt, l.CurrentLoanRate, 2, false, j.Username)
+	_, err = s.PoloniexCreateLoanOffer(l.Currency, amt, rate, 2, false, j.Username)
 	if err != nil {
 		return err
 	}

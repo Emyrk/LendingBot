@@ -5,13 +5,19 @@ Add route to prod.
 ## Running
 
 ```
-export USER_DB=PATH_FOR_USER_DATABASE
-export SEC51_KEYPATH=PATH_FOR_2FA_KEY_STORAGE
-export LOG_PATH=NON_REVEL_LOGS
-export USER_STATS_DB=PATH_FOR_DB_FOR_USER_STATS
+export USER_DB=$HOME/database/users/UserDB.db
+export SEC51_KEYPATH=$HOME/database/keys/
+export LOG_PATH=$HOME/database/log/hodlzone.log
+export USER_STATS_DB=$HOME/database/users/UserStatistics.db
 export REVEL_LOG=$HOME/database/
-export HODLZONE_KEY=KEY
 ```
+
+
+Run this separtely 
+
+```
+export HODLZONE_KEY=KEY
+``
 
 # Welcome to Revel
 
