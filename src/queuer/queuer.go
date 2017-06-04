@@ -18,6 +18,7 @@ import (
 type SingleUser struct {
 	Username        string
 	MiniumumLoanAmt float64
+	LendingStrategy uint32
 }
 
 type UserList []*SingleUser
