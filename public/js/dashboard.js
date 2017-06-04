@@ -70,18 +70,20 @@ app.controller('dashInfoController', ['$scope', '$http', '$log',
 				console.log(res.data);
 				$.each(res.data.CompleteLoans, (index, val) => {
 					var tr = $("<tr>")
-						.append($("<td>").html(val.currency))
-						.append($("<td>").html(parseFloat(val.rate).toFixed(4)))
-						.append($("<td>").html(val.amount))
-						.append($("<td>").html(val.earned))
-						.append($("<td>").html(val.fee))
-						.append($("<td>").html(val.close))
-						.append($("<td>").html(val.duration));
+					.append($("<td>").html(val.currency))
+					.append($("<td>").html(parseFloat(val.rate).toFixed(4)))
+					.append($("<td>").html(val.amount))
+					.append($("<td>").html(val.earned))
+					.append($("<td>").html(val.fee))
+					.append($("<td>").html(val.close))
+					.append($("<td>").html(val.duration));
 					$("#lendingHistory").append(tr);
 				});
-				$('#datatable-responsive').DataTable({
-					filter: false
-				});
+				if (!$.fn.DataTable.isDataTable('#datatable-responsive')) {
+					$('#datatable-responsive').DataTable({
+						filter: false
+					});
+				}
 			}, (err) => {
 				//error
 				$log.error("LendingHistory: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
@@ -205,48 +207,48 @@ app.controller('dashLogsController', ['$scope', '$http', '$log',
 	}]);
 
 function init_chart_doughnut(data){			
-		if( typeof (Chart) === 'undefined'){ return; }
-		
-		console.log('init_chart_doughnut');
-	 
-		if ($('.canvasDoughnut').length){
+	if( typeof (Chart) === 'undefined'){ return; }
+
+	console.log('init_chart_doughnut');
+
+	if ($('.canvasDoughnut').length){
 		var chart_doughnut_settings = {
-				type: 'doughnut',
-				tooltipFillColor: "rgba(51, 51, 51, 0.55)",
-				data: {
-					labels: Object.keys(data),
-					datasets: [{
-						data: Object.values(data),
-						backgroundColor: backgroundColor,
-					}]
-				},
-				options: { 
-					legend: false, 
-					responsive: false 
-				}
+			type: 'doughnut',
+			tooltipFillColor: "rgba(51, 51, 51, 0.55)",
+			data: {
+				labels: Object.keys(data),
+				datasets: [{
+					data: Object.values(data),
+					backgroundColor: backgroundColor,
+				}]
+			},
+			options: { 
+				legend: false, 
+				responsive: false 
 			}
+		}
 		
-			$('.canvasDoughnut').each(function(){
-				
-				var chart_element = $(this);
-				var chart_doughnut = new Chart( chart_element, chart_doughnut_settings);
-				
-			});			
+		$('.canvasDoughnut').each(function(){
+
+			var chart_element = $(this);
+			var chart_doughnut = new Chart( chart_element, chart_doughnut_settings);
+
+		});			
 		
-		}  
-	   
-	}
+	}  
+
+}
 
 var backgroundColor =[
-	"#00BFFF",
-	"#FF69B4",
-	"#7CFC00",
-	"#800000",
-	"#FFA500",
-	"#FF4500",
-	"#800080",
-	"#00FF7F",
-	"#FFFF00",
-	"#9ACD32",
-	"#FF6347"
+"#00BFFF",
+"#FF69B4",
+"#7CFC00",
+"#800000",
+"#FFA500",
+"#FF4500",
+"#800080",
+"#00FF7F",
+"#FFFF00",
+"#9ACD32",
+"#FF6347"
 ]
