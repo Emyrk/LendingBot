@@ -10,6 +10,13 @@ export USER_STATS_DB=$HOME/database/users/UserStatistics.db
 export REVEL_LOG=$HOME/database/
 ```
 
+
+Run this separtely 
+
+```
+export HODLZONE_KEY=KEY
+``
+
 # Welcome to Revel
 
 A high-productivity web framework for the [Go language](http://www.golang.org/).

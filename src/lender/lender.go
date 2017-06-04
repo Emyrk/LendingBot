@@ -227,6 +227,9 @@ func (l *Lender) getBTCAmount(amount float64, currency string) float64 {
 // ProcessJob will calculate the newest loan rate, then it create a loan for 0.1 btc at that rate
 // for the user in the Job
 func (l *Lender) ProcessJob(j *Job) error {
+	if j.Username == "" {
+		return nil
+	}
 	return l.tierOneProcessJob(j, l.CurrentLoanRate)
 }
 
