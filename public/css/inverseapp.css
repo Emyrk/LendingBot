@@ -1,0 +1,334 @@
+* {
+  box-sizing: border-box;;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  /*font-family: Arial, Verdana, sans-serif;*/
+  font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+  background-color: white;
+}
+
+p {
+  font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif !important; 
+}
+
+h1 {
+  font-weight: 900 !important;
+  color: #3E82A5 !important;
+  font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif !important; 
+
+}
+
+ h2, h3 {
+  font-size: 25px;
+  color: #95989A !important;
+  font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif !important; 
+
+}
+
+@media screen and (min-width: 768px) {
+  .navbar {
+    background-color: transparent !important;
+    border-bottom: none !important;
+  }
+
+  #hero {
+    height: 75%;
+  }
+
+  #hero > #tag-line-box {
+    height: 130%;
+  }
+}
+
+/* < XS */
+@media screen and (max-width: 768px) {
+  .navbar {
+    padding-bottom: 10px;
+    background-color: #3E82A5 !important;
+    border-bottom-color:#3E82A5 !important; 
+    border-top-color:#3E82A5 !important; 
+  }
+
+  .navbar-collapse {
+    border-color:#316781 !important; 
+  }
+
+  .navbar-inverse .navbar-toggle:focus, .navbar-inverse .navbar-toggle:hover {
+    background-color: #23495c !important;
+  }
+
+  .navbar-inverse .navbar-toggle {
+    background-color: #3E82A5 !important;
+    border-color: #23495c !important;
+  }
+
+  #tag-line-content > div {
+    display: none;
+    color: black;
+  }
+
+  #hero {
+    height: 100%;
+  }
+
+  #hero > #tag-line-box {
+    height: 170%;
+  }
+
+  .earning-caluclator {
+    margin-top: 10px;
+  }
+
+}
+
+/* < SM */
+@media screen and (max-width: 991px) {
+  .join-our-slack-text {
+    text-align: center;
+  }
+}
+
+/* > MD */
+@media screen and (min-width: 991px) {
+  .join-our-slack-text {
+    padding-top: 2%;
+  }
+}
+
+/* > MD */
+@media screen and (min-width: 1200px) {
+  .join-our-slack-text {
+    padding-top: 5%;
+  }
+}
+
+.navbar-lock{
+    position: absolute !important;
+    top: 0 !important;
+    width: 100% !important;
+    border: none !important;
+}
+
+.navbar-fixed-bottom, .navbar-fixed-top{position: absolute;;}
+
+.navbar-toggle {
+  margin-top: 17px !important;
+  margin-bottom:4px !important;
+  margin-right: 20px !important;
+}
+
+.large-header {
+  color: #95989A;
+  font-size: 2.8em;
+  font-weight: 900;
+}
+
+.standard-text {
+  color: #95989A;
+  font-size: 1.4em;
+}
+
+.nav-brand, .nav-brand:link, .nav-brand:active, .nav-brand:visited {
+  color: #3E82A5;
+  font-weight: 700;
+  float: left;
+  height: 50px;
+  padding: 25px 0px 0px 0px;
+  font-size: 45px;
+  line-height: 20px;
+  text-decoration: none;
+}
+
+.nav-brand:hover {
+  color: #316781;
+  text-shadow: 0px 0px 5px rgba(150, 150, 150, .4);
+  text-decoration: none;
+}
+
+.navbar-right > li > a {
+  color: #3E82A5 !important;
+  font-size: 20px;
+}
+
+.navbar-right > li > a:hover {
+  color: #316781 !important;
+  font-size: 20px;
+}
+
+.navbar-collapse {
+  padding: 10px 0px 0px 0px;
+}
+
+#hero {
+  width: 100%;
+  background: url('../img/hero.jpg');
+  background-color: rgba(131, 204, 243, .85);
+    background-blend-mode: soft-light;
+  background-size: cover; 
+    background-repeat: no-repeat;
+    background-position: center center;
+  color: white;
+}
+
+
+#hero > #top-bar {
+  display: flex;
+  padding-left: 40px;
+  padding-right: 40px;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  height: auto;
+  clear: both;
+  width: 100%;
+}
+
+#hero > #top-bar > #logo {
+  position: relative;
+  font-size: 36px;
+  left: 0;
+}
+
+#hero > #top-bar > #nav {
+  position: absolute;
+  display: flex;
+  list-style-type: none;
+  right: 30px;
+}
+
+#hero > #top-bar > #nav > li {
+  font-size: 20px;
+  display: inline-block;
+  float: right;
+  text-align: center;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+#hero > #tag-line-box {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  width:100%;
+  text-align: center;
+}
+
+#hero > #tag-line-box #tagline {
+  display: flex;
+  height: auto;
+  clear: both;
+  width: 100%;
+  text-align: center;
+  font-size: 33px;
+}
+
+#hero > #tag-line-box #tagline > b {
+  padding-right: 10px;
+  padding-left: 10px;
+}
+
+#hero > #tag-line-box #start-lending {
+  margin-top: 50px;
+  padding: 10px 40px;
+  background-color: seagreen;
+  border: none;
+  background-color: rgba(208, 255, 255, .9);
+  color: rgba(54, 132, 169, .65);
+  font-size: 28px;
+  -webkit-border-radius: 30px;
+  -moz-border-radius: 20px;
+  border-radius: 20px;
+}
+
+.green-shade-text {
+  color: #27892f;
+}
+
+#overlay {
+    position: fixed; /* Sit on top of the page content */
+    display: none; /* Hidden by default */
+    width: 100%; /* Full width (cover the whole page) */
+    height: 100%; /* Full height (cover the whole page) */
+    top: 0; 
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.5); /* Black background with opacity */
+    z-index: 2; /* Specify a stack order in case you're using a different order for other elements */
+    cursor: pointer; /* Add a pointer on hover */
+}
+
+.alertDiv {
+    position: fixed;
+    text-align: center;
+    left: 50%;
+    top: 200px;
+    padding: 15px;
+    display: none;
+    text-align: center;
+    background-color: #ffffff;
+    width: 300px;
+    margin-left: -155px;
+    z-index: 999;
+    -webkit-box-shadow: 1px 1px 8px black;
+    -moz-box-shadow: 1px 1px 8px black;
+    box-shadow: 1px 1px 8px black;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+    background-clip: padding-box;
+}
+
+.alertDiv .action {
+  margin: 0 auto;
+}
+
+.alertDiv button:first-child {
+  margin-right: 20px;
+}
+
+.alertDiv .message {
+    min-height: 90px;
+    max-height: 300px;
+    overflow-y: auto;
+    font-weight: bold;
+    font-size: 14px;
+    color: #3a4449;
+    text-shadow: 0px 1px 1px #c6d5dc;
+}
+
+.alertDiv h2 {
+    margin: 0;
+    color: #0b7076;
+    font-size: 24px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.buffer {
+  padding: 10px;
+}
+
+#faq-title {
+  padding: 80px;
+}
+
+.center-text {
+  text-align: center;
+}
+
+#faq-questions a, #faq-questions a:active, #faq-questions a:visited, #faq-questions a:link {
+  color: #95989A;
+  font-size: 22px;
+  text-decoration: none;
+  font-weight: 500;
+  display: block;
+  padding: 20px;
+}
+
+#faq-questions p {
+  color: #95989A;
+  font-size: 18px;
+  padding-left: 40px;
+}

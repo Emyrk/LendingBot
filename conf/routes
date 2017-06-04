@@ -13,6 +13,8 @@ GET		/logout									AppAuthRequired.Logout
 POST	/register								App.Register
 GET		/landing								App.Landing
 
+GET		/faq									App.FAQ
+
 GET		/verifyemail/:email/:hash				App.VerifyEmail
 GET		/verify/request                         AppAuthRequired.RequestEmailVerification
 
