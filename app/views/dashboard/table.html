@@ -34,16 +34,7 @@
             <th>Duration</th>
           </tr>
         </thead>
-        <tbody>
-          <tr ng-repeat="h in lendHist" ng-hide="lendHist.length == 0">
-            <td>{{h.currency}}</td>
-            <td>{{h.rate | number: 4}}</td>
-            <td>{{h.amount}}</td>
-            <td>{{h.earned}}</td>
-            <td>{{h.fee}}</td>
-            <td>{{h.close}}</td>
-            <td>{{h.duration}}</td>
-          </tr>
+        <tbody id="lendingHistory">
         </tbody>
       </table>
 

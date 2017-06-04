@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 
+	"github.com/Emyrk/LendingBot/src/core/poloniex"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"github.com/revel/revel"
 )
@@ -127,6 +128,24 @@ func (r AppAuthRequired) LendingHistory() revel.Result {
 	completeLoans, err := state.PoloniexAuthenticatedLendingHistory(u.Username, "", "")
 	data := make(map[string]interface{})
 	data["CompleteLoans"] = completeLoans.Data
+	if len(completeLoans.Data) == 0 && revel.DevMode {
+		var cl [20]poloniex.PoloniexAuthentictedLendingHistory
+		for i := 0; i < 20; i++ {
+			cl[i] = poloniex.PoloniexAuthentictedLendingHistory{
+				361915250,
+				"BTC",
+				"0.00066000",
+				"0.00011775",
+				"0.05150000",
+				"0.00000001",
+				"0.00000000",
+				"0.00000001",
+				"2017-06-03 22:55:30",
+				"2017-06-04 00:09:39",
+			}
+		}
+		data["CompleteLoans"] = cl
+	}
 
 	return r.RenderJSON(data)
 }
