@@ -58,6 +58,11 @@ func newUserBalanceDetails() *UserBalanceDetails {
 
 // compute computed the percentmap
 func (u *UserBalanceDetails) compute() {
+	if len(u.CurrencyMap) == 0 {
+		u.CurrencyMap["BTC"] = 0
+		u.Percent["BTC"] = 1
+	}
+
 	total := float64(0)
 	for _, v := range u.CurrencyMap {
 		total += v
@@ -111,6 +116,10 @@ func (r AppAuthRequired) CurrentUserStats() revel.Result {
 	data := make(map[string]interface{})
 	stats, balanceBreakdown := getUserStats(email)
 
+	if len(balanceBreakdown.CurrencyMap) == 0 {
+		balanceBreakdown.compute()
+		fmt.Println("ZRO")
+	}
 	data["CurrentUserStats"] = stats
 	data["Balances"] = balanceBreakdown
 	return r.RenderJSON(data)
