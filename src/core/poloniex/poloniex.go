@@ -554,7 +554,7 @@ type PoloniexAuthentictedLendingHistory struct {
 	Close    string `json:"close"`
 }
 
-func (p *Poloniex) GetAuthenticatedLendingHistory(start, end string, accessKey, secretKey string) (PoloniexAuthentictedLendingHistoryRespone, error) {
+func (p *Poloniex) GetAuthenticatedLendingHistory(start, end, limit string, accessKey, secretKey string) (PoloniexAuthentictedLendingHistoryRespone, error) {
 	values := url.Values{}
 
 	if start != "" {
@@ -563,6 +563,10 @@ func (p *Poloniex) GetAuthenticatedLendingHistory(start, end string, accessKey, 
 
 	if end != "" {
 		values.Set("end", end)
+	}
+
+	if limit != "" {
+		values.Set("limit", limit)
 	}
 
 	result := PoloniexAuthentictedLendingHistoryRespone{}

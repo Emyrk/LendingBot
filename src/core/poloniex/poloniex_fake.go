@@ -292,7 +292,7 @@ func (p *FakePoloniex) GetActiveLoans(accessKey, secretKey string) (*PoloniexAct
 //
 //
 
-func (p *FakePoloniex) GetAuthenticatedLendingHistory(start, end string, accessKey, secretKey string) (resp PoloniexAuthentictedLendingHistoryRespone, err error) {
+func (p *FakePoloniex) GetAuthenticatedLendingHistory(start, end, limit string, accessKey, secretKey string) (resp PoloniexAuthentictedLendingHistoryRespone, err error) {
 	return
 }
 
