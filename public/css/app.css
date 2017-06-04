@@ -84,6 +84,12 @@ p, h1, h2, h3 {
   }
 }
 
+@media screen and (max-width: 1200px) and (min-width: 991px){
+  .more-information-container > div > .content{
+    min-height: 245px;
+  }
+}
+
 /* > MD */
 @media screen and (min-width: 1200px) {
   .join-our-slack-text {
