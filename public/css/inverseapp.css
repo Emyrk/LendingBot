@@ -41,6 +41,23 @@ h1 {
   #hero > #tag-line-box {
     height: 130%;
   }
+
+  .nav-brand, .nav-brand:link, .nav-brand:active, .nav-brand:visited {
+    color: #3E82A5;
+  }
+
+  .nav-brand:hover {
+    color: #316781;
+  }
+
+  .navbar-right > li > a {
+    color: #3E82A5 !important;
+  }
+
+  .navbar-right > li > a:hover {
+    color: #316781 !important;
+  }
+
 }
 
 /* < XS */
@@ -50,6 +67,7 @@ h1 {
     background-color: #3E82A5 !important;
     border-bottom-color:#3E82A5 !important; 
     border-top-color:#3E82A5 !important; 
+    z-index: 100;
   }
 
   .navbar-collapse {
@@ -67,7 +85,6 @@ h1 {
 
   #tag-line-content > div {
     display: none;
-    color: black;
   }
 
   #hero {
@@ -80,6 +97,22 @@ h1 {
 
   .earning-caluclator {
     margin-top: 10px;
+  }
+
+  .nav-brand, .nav-brand:link, .nav-brand:active, .nav-brand:visited {
+    color: white;
+  }
+
+  .nav-brand:hover {
+    color: white;
+  }
+
+  .navbar-right > li > a {
+    color: white !important;
+  }
+
+  .navbar-right > li > a:hover {
+    color: white !important;
   }
 
 }
@@ -132,7 +165,6 @@ h1 {
 }
 
 .nav-brand, .nav-brand:link, .nav-brand:active, .nav-brand:visited {
-  color: #3E82A5;
   font-weight: 700;
   float: left;
   height: 50px;
@@ -143,18 +175,15 @@ h1 {
 }
 
 .nav-brand:hover {
-  color: #316781;
   text-shadow: 0px 0px 5px rgba(150, 150, 150, .4);
   text-decoration: none;
 }
 
 .navbar-right > li > a {
-  color: #3E82A5 !important;
   font-size: 20px;
 }
 
 .navbar-right > li > a:hover {
-  color: #316781 !important;
   font-size: 20px;
 }
 
@@ -321,6 +350,8 @@ h1 {
 #faq-questions a span {
   padding-right: 5px;
   font-size: 14px;
+  position: relative;
+  z-index: -10;
 }
 
 #faq-questions a, #faq-questions a:active, #faq-questions a:visited, #faq-questions a:link {
