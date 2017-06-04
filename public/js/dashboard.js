@@ -61,11 +61,18 @@ app.controller('dashBaseController', ['$scope', '$http', '$log',
 			})
 			.then((res) => {
 				//success
-				console.log(res.data)
-				dashBaseScope.lendHist = res.data.CompleteLoans
-				if (dashBaseScope.lendHist == null) {
-					dashBaseScope.lendHist = [];
-				}
+				console.log(res.data);
+				$.each(res.data.CompleteLoans, (index, val) => {
+					var tr = $("<tr>")
+						.append($("<td>").html(val.currency))
+						.append($("<td>").html(parseFloat(val.rate).toFixed(4)))
+						.append($("<td>").html(val.amount))
+						.append($("<td>").html(val.earned))
+						.append($("<td>").html(val.fee))
+						.append($("<td>").html(val.close))
+						.append($("<td>").html(val.duration));
+					$("#lendingHistory").append(tr);
+				});
 				$('#datatable-responsive').DataTable({
 					filter: false
 				});
