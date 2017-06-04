@@ -117,7 +117,7 @@ p, h1, h2, h3 {
   font-size: 1.4em;
 }
 
-.nav-brand {
+.nav-brand, .nav-brand:link, .nav-brand:active, .nav-brand:visited {
   color: white;
   font-weight: 700;
   float: left;
