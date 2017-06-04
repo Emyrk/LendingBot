@@ -10,8 +10,8 @@ app.config(['$routeProvider', '$locationProvider', function($routeProvider, $loc
 		templateUrl : "/dashboard/info/:id",
 		controller : "dashInfoAdvancedController"
 	})
-	.when("/settings",{
-		templateUrl : "/dashboard/settings",
+	.when("/settings/user",{
+		templateUrl : "/dashboard/settings/user",
 		controller : "dashSettingsController"
 	})
 	.when("/logs",{
@@ -23,11 +23,19 @@ app.config(['$routeProvider', '$locationProvider', function($routeProvider, $loc
 	$locationProvider.html5Mode({enabled: false, requireBase: false});
 }]);
 
-app.controller('dashBaseController', ['$scope', '$http', '$log',
-	function($scope, $http, $log) {
+app.controller('dashBaseController', ['$scope', '$http', '$log', "$location",
+	function($scope, $http, $log, $location) {
 		var dashBaseScope = $scope;
+		//init
+		dashBaseScope.logout = LOC + "/logout";
+		//----
+	}]);
 
-		dashBaseScope.getCurrentUserStats = function() {
+app.controller('dashInfoController', ['$scope', '$http', '$log',
+	function($scope, $http, $log) {
+		var dashInfoScope = $scope;
+
+		dashInfoScope.getCurrentUserStats = function() {
 			$http(
 			{
 				method: 'GET',
@@ -39,18 +47,16 @@ app.controller('dashBaseController', ['$scope', '$http', '$log',
 			.then((res) => {
 				//success
 				console.log(res.data)
-				dashBaseScope.currentUserStats = res.data.CurrentUserStats;
-				dashBaseScope.balances = res.data.Balances;
-				init_chart_doughnut(dashBaseScope.balances.currencymap)
+				dashInfoScope.currentUserStats = res.data.CurrentUserStats;
+				dashInfoScope.balances = res.data.Balances;
+				init_chart_doughnut(dashInfoScope.balances.currencymap)
 			}, (err) => {
 				//error
 				$log.error("CurrentUserStats: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
-			})
-			.then(() => {
 			});
 		}
 
-		dashBaseScope.getLendingHistory = function() {
+		dashInfoScope.getLendingHistory = function() {
 			$http(
 			{
 				method: 'GET',
@@ -79,22 +85,14 @@ app.controller('dashBaseController', ['$scope', '$http', '$log',
 			}, (err) => {
 				//error
 				$log.error("LendingHistory: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
-			})
-			.then(() => {
 			});
 		}
 
 		//init
-		dashBaseScope.logout = LOC + "/logout";
-		dashBaseScope.getCurrentUserStats();
-		dashBaseScope.getLendingHistory();
-		dashBaseScope.backgroundColor = backgroundColor;
+		dashInfoScope.getCurrentUserStats();
+		dashInfoScope.getLendingHistory();
+		dashInfoScope.backgroundColor = backgroundColor;
 		//----
-	}]);
-
-app.controller('dashInfoController', ['$scope', '$http', '$log',
-	function($scope, $http, $log) {
-		var dashInfoScope = $scope;
 	}]);
 
 app.controller('dashInfoAdvancedController', ['$scope', '$http', '$log',
@@ -206,10 +204,7 @@ app.controller('dashLogsController', ['$scope', '$http', '$log',
 		var dashLogsScope = $scope;
 	}]);
 
-
-
-function init_chart_doughnut(data){
-				
+function init_chart_doughnut(data){			
 		if( typeof (Chart) === 'undefined'){ return; }
 		
 		console.log('init_chart_doughnut');

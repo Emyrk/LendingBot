@@ -8,7 +8,6 @@ module:testrunner
 
 
 GET     /                                       App.Index
-GET     /sand                                   App.Sandbox
 POST	/login									App.Login
 GET		/logout									AppAuthRequired.Logout
 POST	/register								App.Register
@@ -31,8 +30,6 @@ POST	/dashboard/settings/create2fa			AppAuthRequired.Create2FA
 POST	/dashboard/settings/enable2fa			AppAuthRequired.Enable2FA
 POST	/dashboard/settings/setpoloniexkeys		AppAuthRequired.SetPoloniexKeys
 
-GET		/userdashboard							AppAuthRequired.UserDashboard
-
 GET		/dashboard/logs							AppSysAdmin.LogsDashboard
 GET		/dashboard/logs/export					AppSysAdmin.ExportLogs
 GET		/dashboard/logs/delete					AppSysAdmin.DeleteLogs
@@ -48,3 +45,8 @@ GET     /public/*filepath                       Static.Serve("public")
 
 # Catch all
 *       /:controller/:action                    :controller.:action
+
+
+# REMOVE FOR PROD
+GET     /sand                                   App.Sandbox
+GET		/userdashboard							AppAuthRequired.UserDashboard

@@ -89,3 +89,11 @@ export HODL=$GOPATH/src/github.com/Emyrk/LendingBot
 cd $GOPATH/src/github.com/Emyrk/LendingBot
 revel run prod
 ```
+
+## REMOVE FROM ROUTES BEFORE RUNNING YAH GOON:
+```
+  /sand
+  /userdashboard
+
+  ...ALSO LOOK AT THE REMOVE FOR PROD SECTION....LOOK OVER ALL ROUTES
+```
