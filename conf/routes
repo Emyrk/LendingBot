@@ -24,8 +24,8 @@ POST	/newpass/response/:jwt	          		App.NewPassResponsePost
 GET		/dashboard								AppAuthRequired.Dashboard
 GET		/dashboard/info							AppAuthRequired.InfoDashboard
 GET		/dashboard/info/:id						AppAuthRequired.InfoAdvancedDashboard
-GET		/dashboard/settings/user				AppAuthRequired.SettingsDashboard
-GET		/dashboard/settings/lending				AppAuthRequired.SettingsDashboard
+GET		/dashboard/settings/user				AppAuthRequired.SettingsDashboardUser
+GET		/dashboard/settings/lending				AppAuthRequired.SettingsDashboardLending
 POST	/dashboard/settings/create2fa			AppAuthRequired.Create2FA
 POST	/dashboard/settings/enable2fa			AppAuthRequired.Enable2FA
 POST	/dashboard/settings/setpoloniexkeys		AppAuthRequired.SetPoloniexKeys

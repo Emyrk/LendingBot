@@ -151,7 +151,7 @@ func (r AppAuthRequired) SetPoloniexKeys() revel.Result {
 	return r.RenderJSON(data)
 }
 
-func (r AppAuthRequired) SettingsDashboard() revel.Result {
+func (r AppAuthRequired) SettingsDashboardUser() revel.Result {
 	u, _ := state.FetchUser(r.Session[SESSION_EMAIL])
 
 	r.ViewArgs["verified"] = fmt.Sprintf("%t", u.Verified)
@@ -176,6 +176,10 @@ func (r AppAuthRequired) SettingsDashboard() revel.Result {
 	}
 
 	return r.RenderTemplate("AppAuthRequired/SettingsDashboard.html")
+}
+
+func (r AppAuthRequired) SettingsDashboardLending() revel.Result {
+	return r.RenderTemplate("AppAuthRequired/SettingsDashboardLending.html")
 }
 
 func (r AppAuthRequired) Create2FA() revel.Result {
