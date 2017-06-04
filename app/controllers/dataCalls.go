@@ -125,7 +125,7 @@ func (r AppAuthRequired) LendingHistory() revel.Result {
 	}
 
 	//to cache
-	completeLoans, err := state.PoloniexAuthenticatedLendingHistory(u.Username, "", "")
+	completeLoans, err := state.PoloniexAuthenticatedLendingHistory(u.Username, "", "", "100")
 	data := make(map[string]interface{})
 	data["CompleteLoans"] = completeLoans.Data
 	if len(completeLoans.Data) == 0 && revel.DevMode {

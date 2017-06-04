@@ -53,5 +53,5 @@ type IPoloniex interface {
 	GetActiveLoans(accessKey, secretKey string) (*PoloniexActiveLoans, error)
 	ToggleAutoRenew(orderNumber int64, accessKey, secretKey string) (bool, error)
 	SendAuthenticatedHTTPRequest(method, endpoint string, values url.Values, result interface{}, accessKey, secretKey string) error
-	GetAuthenticatedLendingHistory(start, end string, accessKey, secretKey string) (PoloniexAuthentictedLendingHistoryRespone, error)
+	GetAuthenticatedLendingHistory(start, end, limit string, accessKey, secretKey string) (PoloniexAuthentictedLendingHistoryRespone, error)
 }

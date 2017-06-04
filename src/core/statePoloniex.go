@@ -186,12 +186,12 @@ func (s *State) PoloniexAllAuthenticatedTradeHistory(username, start, end string
 	return
 }
 
-func (s *State) PoloniexAuthenticatedLendingHistory(username, start, end string) (resp poloniex.PoloniexAuthentictedLendingHistoryRespone, err error) {
+func (s *State) PoloniexAuthenticatedLendingHistory(username, start, end, limit string) (resp poloniex.PoloniexAuthentictedLendingHistoryRespone, err error) {
 	accessKey, secretKey, err := s.getAccessAndSecret(username)
 	if err != nil {
 		return resp, err
 	}
 
-	resp, err = s.PoloniexAPI.GetAuthenticatedLendingHistory(start, end, accessKey, secretKey)
+	resp, err = s.PoloniexAPI.GetAuthenticatedLendingHistory(start, end, limit, accessKey, secretKey)
 	return
 }
