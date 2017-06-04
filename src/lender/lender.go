@@ -156,7 +156,7 @@ func (l *Lender) calculateAvgBasedLoanRate() {
 	// If less than hour average, we need to decide on whether or not to go higher
 	if simple < l.PoloniexStats.HrAvg {
 		// Lends are raising, go up
-		if l.rising() {
+		if l.rising() == 1 {
 			a = l.PoloniexStats.HrAvg + (l.PoloniexStats.HrStd * 0.8)
 		} else {
 			a = l.PoloniexStats.HrAvg
@@ -271,7 +271,7 @@ func (l *Lender) ProcessJob(j *Job) error {
 	default:
 		r := l.CurrentLoanRate.AvgBased
 		if l.CurrentLoanRate.Simple == l.CurrentLoanRate.AvgBased {
-			if l.rising() {
+			if l.rising() == 1 {
 				r += l.PoloniexStats.DayStd * .1
 			}
 		}
