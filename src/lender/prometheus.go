@@ -5,9 +5,15 @@ import (
 )
 
 var (
+	// Lending Rates
 	CurrentLoanRate = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: "hodlzone_lender_current_lend_rate",
 		Help: "Shows the current lending rate when it is calculated",
+	})
+
+	LenderCurrentAverageBasedRate = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_current_avgbased_lend_rate",
+		Help: "Average based lend rate",
 	})
 
 	LoansCreated = prometheus.NewCounter(prometheus.CounterOpts{
@@ -98,4 +104,5 @@ func RegisterPrometheus() {
 	prometheus.MustRegister(PoloniexStatsWeeklyStd)
 	prometheus.MustRegister(PoloniexStatsMonthlyStd)
 	prometheus.MustRegister(LenderUpdateTicker)
+	prometheus.MustRegister(LenderCurrentAverageBasedRate)
 }

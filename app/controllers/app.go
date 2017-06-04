@@ -41,6 +41,7 @@ func MakeURL(safeUrl string) string {
 }
 
 func (c App) Sandbox() revel.Result {
+	c.ViewArgs["UserLevel"] = "1000"
 	return c.Render()
 }
 

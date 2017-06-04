@@ -17,13 +17,18 @@ var (
 	MaxLendAmt float64 = .1
 )
 
+type LoanRates struct {
+	Simple   float64
+	AvgBased float64
+}
+
 type Lender struct {
 	State    *core.State
 	JobQueue chan *Job
 	quit     chan struct{}
 
 	Currency              string
-	CurrentLoanRate       float64
+	CurrentLoanRate       LoanRates
 	LastCalculateLoanRate time.Time
 	CalculateLoanInterval float64 // In seconds
 	LastTickerUpdate      time.Time
@@ -35,7 +40,7 @@ type Lender struct {
 func NewLender(s *core.State) *Lender {
 	l := new(Lender)
 	l.State = s
-	l.CurrentLoanRate = 2.1
+	l.CurrentLoanRate.Simple = 2.1
 	l.Currency = "BTC"
 	l.JobQueue = make(chan *Job, 1000)
 	l.CalculateLoanInterval = 1
@@ -134,13 +139,41 @@ func (l *Lender) CalculateLoanRate() error {
 		}
 	}
 
-	l.CurrentLoanRate = lowest
-	if l.CurrentLoanRate < 2 {
-		CurrentLoanRate.Set(l.CurrentLoanRate) // Prometheus
-		s.RecordPoloniexStatistics(l.CurrentLoanRate)
+	l.CurrentLoanRate.Simple = lowest
+	if l.CurrentLoanRate.Simple < 2 {
+		CurrentLoanRate.Set(l.CurrentLoanRate.Simple) // Prometheus
+		s.RecordPoloniexStatistics(l.CurrentLoanRate.Simple)
 	}
 
+	l.calculateAvgBasedLoanRate()
+
 	return nil
+}
+
+func (l *Lender) calculateAvgBasedLoanRate() {
+	simple := l.CurrentLoanRate.Simple
+	a := l.CurrentLoanRate.Simple
+	// If less than hour average, we need to decide on whether or not to go higher
+	if simple < l.PoloniexStats.HrAvg {
+		// Lends are raising, go up
+		if l.rising() {
+			a = l.PoloniexStats.HrAvg + (l.PoloniexStats.HrStd * 0.6)
+		} else {
+			a = l.PoloniexStats.HrAvg
+		}
+	}
+
+	l.CurrentLoanRate.AvgBased = a
+	if a < 2 {
+		LenderCurrentAverageBasedRate.Set(a)
+	}
+}
+
+func (l *Lender) rising() bool {
+	if l.PoloniexStats.HrAvg > l.PoloniexStats.DayAvg {
+		return true
+	}
+	return false
 }
 
 func abs(v float64) float64 {
@@ -230,7 +263,7 @@ func (l *Lender) ProcessJob(j *Job) error {
 	if j.Username == "" {
 		return nil
 	}
-	return l.tierOneProcessJob(j, l.CurrentLoanRate)
+	return l.tierOneProcessJob(j, l.CurrentLoanRate.Simple)
 }
 
 func (l *Lender) decideRate(rate float64, avail float64, total float64) {
