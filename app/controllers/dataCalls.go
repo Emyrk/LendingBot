@@ -159,6 +159,7 @@ func (r AppAuthRequired) LendingHistory() revel.Result {
 	return r.RenderJSON(data)
 }
 
+// TODO: Cache this response
 func (r App) GetPoloniexStatistics() {
 	return r.RenderJSON(state.GetPoloniexStatistics())
 }
