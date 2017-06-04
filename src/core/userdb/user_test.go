@@ -16,6 +16,7 @@ func TestUserMarshal(t *testing.T) {
 	}
 
 	u.PoloniexEnabled = true
+	u.LendingStrategy = 10
 
 	data, err := u.MarshalBinary()
 	if err != nil {

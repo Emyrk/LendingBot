@@ -157,7 +157,7 @@ func (l *Lender) calculateAvgBasedLoanRate() {
 	if simple < l.PoloniexStats.HrAvg {
 		// Lends are raising, go up
 		if l.rising() {
-			a = l.PoloniexStats.HrAvg + (l.PoloniexStats.HrStd * 0.6)
+			a = l.PoloniexStats.HrAvg + (l.PoloniexStats.HrStd * 0.8)
 		} else {
 			a = l.PoloniexStats.HrAvg
 		}
@@ -169,11 +169,15 @@ func (l *Lender) calculateAvgBasedLoanRate() {
 	}
 }
 
-func (l *Lender) rising() bool {
+// rising indicates if the rates are rising
+//		0 for not rising
+//		1 for rising
+//		2 for more rising
+func (l *Lender) rising() int {
 	if l.PoloniexStats.HrAvg > l.PoloniexStats.DayAvg {
-		return true
+		return 1
 	}
-	return false
+	return 0
 }
 
 func abs(v float64) float64 {
@@ -263,7 +267,16 @@ func (l *Lender) ProcessJob(j *Job) error {
 	if j.Username == "" {
 		return nil
 	}
-	return l.tierOneProcessJob(j, l.CurrentLoanRate.Simple)
+	switch j.Strategy {
+	default:
+		r := l.CurrentLoanRate.AvgBased
+		if l.CurrentLoanRate.Simple == l.CurrentLoanRate.AvgBased {
+			if l.rising() {
+				r += l.PoloniexStats.DayStd * .1
+			}
+		}
+		return l.tierOneProcessJob(j, r)
+	}
 }
 
 func (l *Lender) decideRate(rate float64, avail float64, total float64) {
@@ -286,6 +299,7 @@ func (l *Lender) tierOneProcessJob(j *Job, rate float64) error {
 		return err
 	}
 
+	// 3 types of balances: Not lent, Inactive, Active
 	inactiveLoans, _ := s.PoloniexGetInactiveLoans(j.Username)
 
 	activeLoans, err := s.PoloniexGetActiveLoans(j.Username)
@@ -298,12 +312,10 @@ func (l *Lender) tierOneProcessJob(j *Job, rate float64) error {
 
 	avail, ok := bals["lending"][l.Currency]
 	var _ = ok
-	// if !ok {
-	// 	return fmt.Errorf("could not get available balances. Keys: %s, %s", "lending", l.Currency)
-	// }
 
 	// rate := l.decideRate(rate, avail, total)
 
+	// We need to find some more crypto to lkend
 	if avail < MaxLendAmt {
 		need := MaxLendAmt - avail
 		if inactiveLoans != nil {

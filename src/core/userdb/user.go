@@ -51,10 +51,11 @@ type User struct {
 	PasswordHash [32]byte
 	Salt         []byte
 
-	StartTime  time.Time
-	JWTTime    time.Time
-	Level      UserLevel
-	MiniumLend float64
+	StartTime       time.Time
+	JWTTime         time.Time
+	Level           UserLevel
+	MiniumLend      float64
+	LendingStrategy uint32
 
 	// 2FA
 	Has2FA     bool
@@ -194,6 +195,10 @@ func (a *User) IsSameAs(b *User) bool {
 		return false
 	}
 
+	if a.LendingStrategy != b.LendingStrategy {
+		return false
+	}
+
 	if !a.PoloniexKeys.IsSameAs(b.PoloniexKeys) {
 		return false
 	}
@@ -276,6 +281,10 @@ func (u *User) MarshalBinary() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	buf.Write(b)
+
+	// Lending Strat
+	b = primitives.Uint32ToBytes(u.LendingStrategy)
 	buf.Write(b)
 
 	// has2fa
@@ -402,6 +411,14 @@ func (u *User) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 	}
 	u.MiniumLend = f
 	//
+
+	// Lending Strat
+	v, err = primitives.BytesToUint32(newData[:4])
+	if err != nil {
+		return data, err
+	}
+	u.LendingStrategy = v
+	newData = newData[4:]
 
 	// has2fa
 	has2FA := primitives.ByteToBool(newData[0])
