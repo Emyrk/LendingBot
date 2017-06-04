@@ -122,6 +122,11 @@ h1 {
   .join-our-slack-text {
     text-align: center;
   }
+
+.navbar-right {
+  margin-right: 0px !important;
+}
+
 }
 
 /* > MD */
@@ -347,11 +352,16 @@ h1 {
   text-align: center;
 }
 
+#faq-questions {
+  position: auto;
+  z-index: -10;
+  padding-left: 5px;
+}
+
 #faq-questions a span {
   padding-right: 5px;
   font-size: 14px;
-  position: relative;
-  z-index: -10;
+  margin-left: -10px;
 }
 
 #faq-questions a, #faq-questions a:active, #faq-questions a:visited, #faq-questions a:link {
@@ -361,6 +371,7 @@ h1 {
   font-weight: 500;
   display: block;
   padding: 20px;
+  text-indent: -8px;
 }
 
 #faq-questions p {
@@ -368,3 +379,4 @@ h1 {
   font-size: 18px;
   padding-left: 40px;
 }
+
