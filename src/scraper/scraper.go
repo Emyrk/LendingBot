@@ -110,7 +110,7 @@ func (s *Scraper) Scrape() error {
 }
 
 func GetDay(t time.Time) int {
-	return t.Day() * int(t.Month()) * t.Year()
+	return int(t.Unix()) / 86400
 }
 
 func GetSeconds(t time.Time) int {
