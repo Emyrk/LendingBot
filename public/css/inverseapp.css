@@ -318,6 +318,11 @@ h1 {
   text-align: center;
 }
 
+#faq-questions a span {
+  padding-right: 5px;
+  font-size: 14px;
+}
+
 #faq-questions a, #faq-questions a:active, #faq-questions a:visited, #faq-questions a:link {
   color: #95989A;
   font-size: 22px;
