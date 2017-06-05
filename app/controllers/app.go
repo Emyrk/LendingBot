@@ -101,7 +101,8 @@ func (c App) Login() revel.Result {
 }
 
 func (c App) Register() revel.Result {
-	email, pass := c.unmarshalUser(c.Request.Body)
+	email := c.Params.Form.Get("email")
+	pass := c.Params.Form.Get("pass")
 
 	data := make(map[string]interface{})
 

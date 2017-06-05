@@ -44,14 +44,17 @@ app.controller('indexController', ['$scope', '$http', '$log',
 		}
 
 		indexScope.register = function() {
+			indexScope.attemptingRegister = true;
+			indexScope.failedRegister = false;
 			$http(
 			{
 				method: 'POST',
 				url: '/register',
-				data : {
+				data: $.param({
 					email: indexScope.register.email,
 					pass: indexScope.register.pass,
-				},
+				}),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
 				withCredentials: true
 			})
 			.then((res) => {
@@ -61,24 +64,28 @@ app.controller('indexController', ['$scope', '$http', '$log',
 			}, (err) => {
 				//error
 				$log.error("register: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				indexScope.failedRegister = true;
 			})
 			.then(() => {
-				indexScope.register.email = "";
-				indexScope.register.pass = "";	
+				indexScope.register.pass = "";
+				indexScope.register.pass2 = "";
+				indexScope.attemptingRegister = false;
 			});
 		}
 
 		indexScope.cancelRegister = function() {
-			indexScope.attemptingLogin = false;
-			indexScope.failedLogin = false;
-			indexScope.login.email = "";
-			indexScope.login.pass = "";
-			indexScope.login.twofa = "";
+			indexScope.attemptingRegister = false;
+			indexScope.failedRegister = false;
+			indexScope.register.email = "";
+			indexScope.register.pass = "";
+			indexScope.register.pass2 = "";
 		}
 
 		//--init
 		indexScope.attemptingLogin = false;
+		indexScope.attemptingRegister = false;
 		indexScope.failedLogin = false;
+		indexScope.failedRegister = false;
 		init_validator()
 		//
 	}]);

@@ -210,36 +210,33 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log',
 		var dashSettingsLendingScope = $scope;
 
 		dashSettingsLendingScope.resetPoloniexKeys = function() {
-				dashSettingsLendingScope.poloniexKey = dashSettingsLendingScope.poloniexKeyOrig;
-				dashSettingsLendingScope.poloniexSecret = dashSettingsLendingScope.poloniexSecretOrig;
+			dashSettingsLendingScope.poloniexKey = dashSettingsLendingScope.poloniexKeyOrig;
+			dashSettingsLendingScope.poloniexSecret = dashSettingsLendingScope.poloniexSecretOrig;
 		}
 
-		dashSettingsLendingScope.enablePoloniexLending = function() {
-		dashSettingsLendingScope.enablePoloniexLending = true;
+		dashSettingsLendingScope.setEnablePoloniexLending = function(bool) {
+			dashSettingsLendingScope.enablePoloniexLending = true;
 			$http(
 			{
 				method: 'POST',
 				url: '/dashboard/settings/enableuserlending',
 				data : $.param({
-					enable: true,
+					enable: bool,
 				}),
 				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
 				withCredentials: true
 			})
 			.then((res) => {
 				//success
-				$log.info("SetPoloniexKeys: Success.");
-				var tempData = JSON.parse(res.data.data);
-				dashSettingsLendingScope.poloniexKeyOrig = tempData.poloniexkey;
-				dashSettingsLendingScope.poloniexSecretOrig = tempData.poloniexsecret;
+				$log.info("EnablePoloniexLending: Success.");
 				//resets to new originals
 				dashSettingsLendingScope.resetPoloniexKeys();
 			}, (err) => {
 				//error
-				$log.error("SetPoloniexKeys: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				$log.error("EnablePoloniexLending: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
 			})
 			.then(() => {
-				dashSettingsLendingScope.loadingPoloniexKeys = false;
+				dashSettingsLendingScope.enablePoloniexLending = true;
 			});
 		}
 

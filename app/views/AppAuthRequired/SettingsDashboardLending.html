@@ -87,11 +87,11 @@
   							<div class="form-group">
   								<label class="control-label col-md-3 col-sm-3 col-xs-12">Gender</label>
   								<div class="col-md-6 col-sm-6 col-xs-12">
-  								<div id="lendingEnabled" class="btn-group" data-toggle="buttons">
-  										<label class="btn btn-default" data-toggle-class="btn-primary" data-toggle-passive-class="btn-default">
+  								<div id="lendingEnabled" class="btn-group" ng-init="lendingEnabled = [[.lendingEnabled]]; lEB = lendingEnabled;" ng-model="lEB" data-toggle="buttons">
+  										<label ng-class="lEB ? 'btn btn-primary' : 'btn btn-default'" ng-click="lEB = true;" data-toggle-class="btn-primary" data-toggle-passive-class="btn-default">
   											<input type="radio" name="lendingEnabled" value="male"> &nbsp; Enable &nbsp;
   										</label>
-  										<label class="btn btn-primary" data-toggle-class="btn-primary" data-toggle-passive-class="btn-default">
+  										<label ng-class="lEB ? 'btn btn-default' : 'btn btn-primary'" ng-click="lEB = false;" data-toggle-class="btn-primary" data-toggle-passive-class="btn-default">
   											<input type="radio" name="lendingEnabled" value="female"> &nbsp; Disable &nbsp;
   										</label>
   									</div>
@@ -101,7 +101,7 @@
 
   							<div class="form-group">
   								<div class="col-md-9 col-md-offset-3">
-  									<button type="submit" class="btn btn-success">Apply</button>
+  									<button type="submit" class="btn btn-success" ng-click="setEnablePoloniexLending(lEB)">Apply</button>
   								</div>
   							</div>
   						</form>

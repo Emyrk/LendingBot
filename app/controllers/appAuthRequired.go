@@ -197,6 +197,8 @@ func (r AppAuthRequired) SettingsDashboardLending() revel.Result {
 		r.ViewArgs["poloniexSecret"] = ""
 	}
 
+	r.ViewArgs["lendingEnabled"] = u.PoloniexEnabled
+
 	return r.RenderTemplate("AppAuthRequired/SettingsDashboardLending.html")
 }
 

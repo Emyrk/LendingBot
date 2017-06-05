@@ -12,7 +12,7 @@
       <ul class="nav navbar-nav navbar-right">
         <li><a href="/faq"></span> FAQ</a></li>
         <li><a data-toggle="modal" data-target=".login-modal"></span> Login</a></li>
-        <li><a href="#"></span> Signup</a></li>
+        <li><a data-toggle="modal" data-target=".register-modal"></span> Signup</a></li>
       </ul>
     </div><!--/.nav-collapse -->
   </div>
@@ -97,7 +97,7 @@
                     <form class="form-horizontal form-label-left" name="registerForm" novalidate="">
                       <div class="item form-group" ng-show="failedRegister">
                         <div class="col-md-12 col-sm-12 col-xs-12" style="color:red;">
-                            <b>Error logging in. Please try again.</b>
+                            <b>Error Registering. Pease try again.</b>
                         </div>
                       </div>
                       <div class="item form-group">
@@ -111,14 +111,14 @@
                         <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-sm-offset-0" for="password">Password
                         </label>
                         <div class="col-md-3 col-sm-3 col-xs-7">
-                          <input id="password" type="password" name="password" data-validate-length="6,100" class="form-control col-md-7 col-xs-12" required="required" ng-model="register.pass" ng-disabled="attemptingRegister" class="login-field">
+                          <input id="regPassword" type="password" name="regPassword" data-validate-length="6,100" class="form-control col-md-7 col-xs-12" required="required" ng-model="register.pass" ng-disabled="attemptingRegister" class="login-field">
                         </div>
                       </div>
                       <div class="item form-group">
-                        <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-sm-offset-0" for="password">Confirm Password
+                        <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-sm-offset-0" for="password2">Confirm Password
                         </label>
                         <div class="col-md-3 col-sm-3 col-xs-7">
-                          <input id="password2" type="password" name="password" data-validate-length="6,100" class="form-control col-md-7 col-xs-12" ng-model="register.pass2" ng-disabled="attemptingRegister" placeholder="Optional..." data-validate-linked="password" class="login-field">
+                          <input id="regPassword2" type="password" name="regPassword2" data-validate-length="6,100" class="form-control col-md-7 col-xs-12" ng-model="register.pass2" ng-disabled="attemptingRegister" required="required" data-validate-linked="regPassword" class="login-field">
                         </div>
                       </div>
                     </form>
@@ -133,7 +133,7 @@
         <div class="row">
         <div class="col-md-6 col-sm-8 col-xs-8">
             <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="cancelRegister()">Cancel</button>
-            <button type="button" class="btn btn-success" ng-disabled="attemptingRegister || !registerForm.$valid" ng-click="register()">Login</button>
+            <button type="button" class="btn btn-success" ng-disabled="attemptingRegister || !registerForm.$valid" ng-click="register()">Register</button>
           </div>
         </div>
       </div>
