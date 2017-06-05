@@ -179,6 +179,25 @@ func (r AppAuthRequired) SettingsDashboardUser() revel.Result {
 }
 
 func (r AppAuthRequired) SettingsDashboardLending() revel.Result {
+	u, _ := state.FetchUser(r.Session[SESSION_EMAIL])
+
+	if u.PoloniexKeys.APIKeyEmpty() {
+		r.ViewArgs["poloniexKey"] = ""
+	} else {
+		s, err := u.PoloniexKeys.DecryptAPIKeyString(u.GetCipherKey(state.CipherKey))
+		if err != nil {
+			fmt.Printf("Error decrypting Api Keys String: %s\n", err.Error())
+			s = ""
+		}
+		r.ViewArgs["poloniexKey"] = s
+	}
+
+	if u.PoloniexKeys.SecretKeyEmpty() {
+		r.ViewArgs["poloniexSecret"] = ""
+	} else {
+		r.ViewArgs["poloniexSecret"] = "****************************************************************"
+	}
+
 	return r.RenderTemplate("AppAuthRequired/SettingsDashboardLending.html")
 }
 

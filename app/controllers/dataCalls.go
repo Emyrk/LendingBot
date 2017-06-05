@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
@@ -25,6 +26,36 @@ type CurrentUserStatistics struct {
 
 	// From poloniex call
 	BTCEarned float64 `json:"btcearned"`
+}
+
+func (c *CurrentUserStatistics) scrub() {
+	if math.IsNaN(c.LoanRate) {
+		c.LoanRate = 0
+	}
+	if math.IsNaN(c.BTCLent) {
+		c.BTCLent = 0
+	}
+	if math.IsNaN(c.BTCNotLent) {
+		c.BTCNotLent = 0
+	}
+	if math.IsNaN(c.LendingPercent) {
+		c.LendingPercent = 0
+	}
+	if math.IsNaN(c.LoanRateChange) {
+		c.LoanRateChange = 0
+	}
+	if math.IsNaN(c.BTCLentChange) {
+		c.BTCLentChange = 0
+	}
+	if math.IsNaN(c.BTCNotLentChange) {
+		c.BTCNotLentChange = 0
+	}
+	if math.IsNaN(c.LendingPercentChange) {
+		c.LendingPercentChange = 0
+	}
+	if math.IsNaN(c.BTCEarned) {
+		c.BTCEarned = 0
+	}
 }
 
 func newCurrentUserStatistics() *CurrentUserStatistics {
@@ -60,7 +91,7 @@ func newUserBalanceDetails() *UserBalanceDetails {
 func (u *UserBalanceDetails) compute() {
 	if len(u.CurrencyMap) == 0 {
 		u.CurrencyMap["BTC"] = 0
-		u.Percent["BTC"] = 1
+		u.Percent["BTC"] = 1.0
 	}
 
 	total := float64(0)
@@ -73,12 +104,27 @@ func (u *UserBalanceDetails) compute() {
 	}
 }
 
+func (u *UserBalanceDetails) scrub() {
+	for k, v := range u.CurrencyMap {
+		if math.IsNaN(v) {
+			u.CurrencyMap[k] = 0
+		}
+	}
+
+	for k, v := range u.Percent {
+		if math.IsNaN(v) {
+			u.CurrencyMap[k] = 0
+		}
+	}
+}
+
 func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
 	userStats, err := state.GetUserStatistics(email, 2)
 
 	balanceDetails := newUserBalanceDetails()
 	today := newCurrentUserStatistics()
 	if err != nil {
+		balanceDetails.compute()
 		return today, balanceDetails
 	}
 	l := len(userStats)
@@ -116,10 +162,10 @@ func (r AppAuthRequired) CurrentUserStats() revel.Result {
 	data := make(map[string]interface{})
 	stats, balanceBreakdown := getUserStats(email)
 
-	if len(balanceBreakdown.CurrencyMap) == 0 {
-		balanceBreakdown.compute()
-		fmt.Println("ZRO")
-	}
+	// Scrub for NaNs
+	stats.scrub()
+	balanceBreakdown.scrub()
+
 	data["CurrentUserStats"] = stats
 	data["Balances"] = balanceBreakdown
 	return r.RenderJSON(data)

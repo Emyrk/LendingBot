@@ -100,3 +100,65 @@ func TestCleanup(t *testing.T) {
 	os.RemoveAll("keys")
 
 }
+
+func TestUserWithKeys(t *testing.T) {
+	u, err := NewUser("1", "2")
+	if err != nil {
+		t.Error(err)
+	}
+
+	accessKey := "abceaskljfhdfjklfkjsdhfklsdhf"
+	secret := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+	u.PoloniexEnabled = true
+	u.LendingStrategy = 10
+
+	var key [32]byte
+	u.PoloniexKeys, err = NewPoloniexKeys(accessKey, secret, key)
+	if err != nil {
+		t.Error(err)
+	}
+
+	data, err := u.MarshalBinary()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if u.PoloniexKeys.APIKeyEmpty() {
+		t.Error("Should not be empty")
+	}
+
+	if u.PoloniexKeys.SecretKeyEmpty() {
+		t.Error("Should not be empty")
+	}
+
+	u2 := NewBlankUser()
+	nd, err := u2.UnmarshalBinaryData(data)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(nd) != 0 {
+		t.Errorf("%d bytes left", len(nd))
+	}
+
+	if !u.IsSameAs(u2) {
+		t.Error("Should be same")
+	}
+
+	v, err := u.PoloniexKeys.DecryptAPIKeyString(key)
+	if err != nil {
+		t.Error(err)
+	}
+	if accessKey != v {
+		t.Errorf("Got back %s as key, exp %s", v, accessKey)
+	}
+
+	v, err = u.PoloniexKeys.DecryptAPISecretString(key)
+	if err != nil {
+		t.Error(err)
+	}
+	if secret != v {
+		t.Errorf("Got back %s as key, exp %s", v, secret)
+	}
+}

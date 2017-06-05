@@ -380,3 +380,13 @@ h1 {
   padding-left: 40px;
 }
 
+footer {
+  padding: 25px 0;
+  text-align: center;
+  background-color: #3E82A5 !important;
+}
+
+footer span, footer a {
+  color: white;
+  font-size: 18px;
+}

@@ -4,17 +4,17 @@
  	<div class="container">
  		<div class="row text-center index-summary">
  			<div class="col-md-4">
- 				<img src="public/img/circle.svg" />
+ 				<img src="public/img/profit.svg" />
  				<h3 class="service-heading">Grow your HODLings</h3>
  				<p class="text-muted">Banks earn money by lending your savings to those who wish to invest with it. You can earn interest yourself by lending your cryptos.</p>
  			</div>
  			<div class="col-md-4">
- 				<img src="public/img/circle.svg" />
+ 				<img src="public/img/stopwatch.svg" />
  				<h3 class="service-heading">What's HODL.ZONE?</h3>
  				<p class="text-muted">Crypto lending rates change by the hour. We use automated bots and algorithms so you can passively seize the best rates.</p>
  			</div>
  			<div class="col-md-4">
- 				<img src="public/img/circle.svg" />
+ 				<img src="public/img/shield.svg" />
  				<h3 class="service-heading">We don't hold the funds</h3>
  				<p class="text-muted">HODL.ZONE cannot withdraw your funds. Deposite on Poloniex and give us limited access to make only trades.</p>
  			</div>
@@ -41,8 +41,11 @@
 					<input type="text" id="range_01" value="" name="range" />
 					<script type="text/javascript">
 						$("#range_01").ionRangeSlider({
-							min: 0,
-							max: 10,
+							"min": 0.1,
+							"step": 0.1,
+							"from": .1,
+							"max": 10,
+							grid: true,
 							onChange: function (data) {
 								console.log(data.from);
 							},
@@ -51,12 +54,23 @@
 					<label>Weeks</label>
 					<input type="text" id="range_02" value="" name="range" />
 					<script type="text/javascript">
-						$("#range_02").ionRangeSlider();
+						$("#range_02").ionRangeSlider({
+							"min": 1,
+							"step": 1,
+							"from": 2,
+							"max": 52,
+							grid: true,
+							onChange: function (data) {
+								console.log(data.from);
+							},
+						});
 					</script>
 				</div>
 			</div>
 			<div class="col-md-6 earning-caluclator">
 				<!-- Earnings -->
+				<p class="investment-return-desc">If you invested <span id="caluclator-time">1</span> weeks ago, you'd make  you'd made:</p>
+				<h3 class="investment-return">.23 BTC</h3>
 			</div>
 		</div>
 	</div>
