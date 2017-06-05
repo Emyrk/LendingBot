@@ -4929,7 +4929,7 @@ if (typeof NProgress != 'undefined') {
 		init_flot_chart();
 		init_sidebar();
 		init_wysiwyg();
-		init_InputMask();
+		// init_InputMask();
 		init_JQVmap();
 		// init_cropper();
 		init_knob();

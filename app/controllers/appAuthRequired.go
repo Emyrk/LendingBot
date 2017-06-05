@@ -134,7 +134,7 @@ func (r AppAuthRequired) SetPoloniexKeys() revel.Result {
 		r.Params.Form.Get("poloniexsecret"),
 	}
 
-	poloniexKeys.PoloniexSecret = "****************************************************************"
+	poloniexKeys.PoloniexSecret = ""
 
 	d, err := json.Marshal(poloniexKeys)
 	if err != nil {
@@ -169,7 +169,7 @@ func (r AppAuthRequired) SettingsDashboardUser() revel.Result {
 	if u.PoloniexKeys.SecretKeyEmpty() {
 		r.ViewArgs["poloniexSecret"] = ""
 	} else {
-		r.ViewArgs["poloniexSecret"] = "********"
+		r.ViewArgs["poloniexSecret"] = ""
 	}
 
 	fmt.Println(r.ViewArgs["poloniexKey"], r.ViewArgs["poloniexSecret"])
@@ -194,7 +194,7 @@ func (r AppAuthRequired) SettingsDashboardLending() revel.Result {
 	if u.PoloniexKeys.SecretKeyEmpty() {
 		r.ViewArgs["poloniexSecret"] = ""
 	} else {
-		r.ViewArgs["poloniexSecret"] = "****************************************************************"
+		r.ViewArgs["poloniexSecret"] = ""
 	}
 
 	return r.RenderTemplate("AppAuthRequired/SettingsDashboardLending.html")
