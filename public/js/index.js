@@ -68,6 +68,14 @@ app.controller('indexController', ['$scope', '$http', '$log',
 			});
 		}
 
+		indexScope.cancelRegister = function() {
+			indexScope.attemptingLogin = false;
+			indexScope.failedLogin = false;
+			indexScope.login.email = "";
+			indexScope.login.pass = "";
+			indexScope.login.twofa = "";
+		}
+
 		//--init
 		indexScope.attemptingLogin = false;
 		indexScope.failedLogin = false;
