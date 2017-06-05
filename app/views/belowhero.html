@@ -139,9 +139,9 @@
 
 	function updateBTCAmount () {
 		if (poloniexStats != "null") {
-			rate = poloniexStats.dayavg
+			obj = JSON.parse(poloniexStats)
+			rate = obj.dayavg
 		}
-		rate = poloniexStats.dayavg
 		console.log(poloniexStats == "null")
 		console.log(poloniexStats)
 		var interest = Math.pow(1+(rate/1), weeks*7)
