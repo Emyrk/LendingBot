@@ -38,24 +38,24 @@
                         </div>
                       </div>
                       <div class="item form-group">
-                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="email">Email
+                        <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-xs-2 col-sm-offset-0" for="email">Email
                         </label>
-                        <div class="col-md-3 col-sm-3 col-xs-12">
-                          <input type="email" id="email" ng-model="login.email" name="myemail" required="required" class="form-control col-md-7 col-xs-12" ng-disabled="attemptingLogin">
+                        <div class="col-md-3 col-sm-3 col-xs-7">
+                          <input type="email" id="email" ng-model="login.email" name="myemail" required="required" class="form-control col-md-7 col-xs-12" ng-disabled="attemptingLogin" class="login-field">
                         </div>
                       </div>
                       <div class="item form-group">
-                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="password">Password
+                        <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-sm-offset-0" for="password">Password
                         </label>
-                        <div class="col-md-3 col-sm-3 col-xs-12">
-                          <input id="password" type="password" name="password" data-validate-length="6,100" class="form-control col-md-7 col-xs-12" required="required" ng-model="login.pass" ng-disabled="attemptingLogin">
+                        <div class="col-md-3 col-sm-3 col-xs-7">
+                          <input id="password" type="password" name="password" data-validate-length="6,100" class="form-control col-md-7 col-xs-12" required="required" ng-model="login.pass" ng-disabled="attemptingLogin" class="login-field">
                         </div>
                       </div>
                       <div class="item form-group">
-                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="password">2FA
+                        <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-sm-offset-0" for="password">2FA
                         </label>
-                        <div class="col-md-3 col-sm-3 col-xs-12">
-                          <input id="password" type="password" name="password" data-validate-length="6,6" class="form-control col-md-7 col-xs-12" ng-model="login.twofa" ng-disabled="attemptingLogin" placeholder="Optional...">
+                        <div class="col-md-3 col-sm-3 col-xs-7">
+                          <input id="password" type="password" name="password" data-validate-length="6,6" class="form-control col-md-7 col-xs-12" ng-model="login.twofa" ng-disabled="attemptingLogin" placeholder="Optional..." class="login-field">
                         </div>
                       </div>
                     </form>
@@ -67,8 +67,12 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="cancelLogin()">Cancel</button>
-        <button type="button" class="btn btn-success" ng-disabled="attemptingLogin || !loginForm.$valid" ng-click="login()">Login</button>
+        <div class="row">
+        <div class="col-md-6 col-sm-8 col-xs-8">
+            <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="cancelLogin()">Cancel</button>
+            <button type="button" class="btn btn-success" ng-disabled="attemptingLogin || !loginForm.$valid" ng-click="login()">Login</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
