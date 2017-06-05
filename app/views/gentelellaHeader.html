@@ -61,14 +61,4 @@
     <script src="public/js/ngMask.min.js" type="text/javascript"></script>
 
     <script src="/public/js/dashboard.js" type="text/javascript" charset="utf-8"></script>
-    [[if eq .RunMode "dev"]]
-    <script>
-        var LOC = 'http://localhost:9000';
-    </script>
-    [[end]]
-    [[if eq .RunMode "prod"]]
-    <script>
-        var LOC = 'https://hodl.zone';
-    </script>
-    [[end]]
   </head>

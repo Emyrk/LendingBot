@@ -31,7 +31,6 @@ app.controller('dashBaseController', ['$scope', '$http', '$log', "$location",
 	function($scope, $http, $log, $location) {
 		var dashBaseScope = $scope;
 		//init
-		dashBaseScope.logout = LOC + "/logout";
 		//----
 	}]);
 
@@ -164,29 +163,6 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log',
 			});
 		}
 
-		dashSettingsUserScope.setPoloniexKeys = function() {
-			$http(
-			{
-				method: 'POST',
-				url: '/dashboard/settings/setpoloniexkeys',
-				data : {
-					poloniexkey: dashSettingsUserScope.poloniexKey,
-					poloniexsecret: dashSettingsUserScope.poloniexSecret,
-				},
-				withCredentials: true
-			})
-			.then((res) => {
-				//success
-				$log.info("SetPoloniexKeys: Success.");
-				var tempData = JSON.parse(res.data.data);
-				dashSettingsUserScope.poloniexKey = tempData.poloniexkey;
-				dashSettingsUserScope.poloniexSecret = tempData.poloniexsecret;
-			}, (err) => {
-				//error
-				$log.error("SetPoloniexKeys: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
-			});
-		}
-
 		dashSettingsUserScope.verifyEmail = function() {
 			$http(
 			{
@@ -197,7 +173,7 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log',
 			.then((res) => {
 				//success
 				$log.info("VerifyEmail: Success.");
-				dashSettingsUserScope.verifyEmail = true;
+				dashSettingsUserScope.verified = true;
 			}, (err) => {
 				//error
 				$log.error("VerifyEmail: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
