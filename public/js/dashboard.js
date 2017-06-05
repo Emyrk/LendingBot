@@ -1,4 +1,4 @@
-var app=angular.module("lendingApp",["ngRoute"]);
+var app=angular.module("lendingApp",["ngRoute","ngMask"]);
 
 app.config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
 	$routeProvider
@@ -207,35 +207,48 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log',
 
 app.controller('dashSettingsLendingController', ['$scope', '$http', '$log',
 	function($scope, $http, $log) {
-		var dashSettingsUserScope = $scope;
+		var dashSettingsLendingScope = $scope;
 
-		dashSettingsUserScope.setPoloniexKeys = function() {
+		dashSettingsLendingScope.resetPoloniexKeys = function() {
+				dashSettingsLendingScope.poloniexKeyOrig = dashSettingsLendingScope.poloniexKey;
+				dashSettingsLendingScope.poloniexSecretOrig = dashSettingsLendingScope.poloniexSecret;
+		}
+
+		dashSettingsLendingScope.setPoloniexKeys = function() {
+			dashSettingsLendingScope.loadingPoloniexKeys = true;
 			$http(
 			{
 				method: 'POST',
 				url: '/dashboard/settings/setpoloniexkeys',
-				data : {
-					poloniexkey: dashSettingsUserScope.poloniexKey,
-					poloniexsecret: dashSettingsUserScope.poloniexSecret,
-				},
+				data : $.param({
+					poloniexkey: dashSettingsLendingScope.poloniexKey,
+					poloniexsecret: dashSettingsLendingScope.poloniexSecret,
+				}),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
 				withCredentials: true
 			})
 			.then((res) => {
 				//success
 				$log.info("SetPoloniexKeys: Success.");
 				var tempData = JSON.parse(res.data.data);
-				dashSettingsUserScope.poloniexKey = tempData.poloniexkey;
-				dashSettingsUserScope.poloniexSecret = tempData.poloniexsecret;
+				dashSettingsLendingScope.poloniexKeyOrig = tempData.poloniexkey;
+				dashSettingsLendingScope.poloniexSecretOrig = tempData.poloniexsecret;
+				//resets to new originals
+				dashSettingsLendingScope.resetPoloniexKeys();
 			}, (err) => {
 				//error
 				$log.error("SetPoloniexKeys: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+			})
+			.then(() => {
+				dashSettingsLendingScope.loadingPoloniexKeys = false;
 			});
 		}
 
 		//init
-		init_InputMask()
-		dashSettingsUserScope.pass2FA = '';
-		dashSettingsUserScope.token = '';
+		init_InputMask();
+		dashSettingsLendingScope.pass2FA = '';
+		dashSettingsLendingScope.token = '';
+		dashSettingsLendingScope.loadingPoloniexKeys = false;
 		//------
 
 	}]);

@@ -120,21 +120,18 @@ func (r AppAuthRequired) InfoAdvancedDashboard() revel.Result {
 func (r AppAuthRequired) SetPoloniexKeys() revel.Result {
 	data := make(map[string]interface{})
 
-	poloniexKeys := r.unmarshalPoloniexKeys(r.Request.Body)
-	if poloniexKeys == nil {
-		fmt.Println("Error unmarshalling poloniex keys")
-		data[JSON_ERROR] = "Error with request"
-		r.Response.Status = 400
-		return r.RenderJSON(data)
-	}
 	email := r.Session[SESSION_EMAIL]
-
-	err := state.SetUserKeys(email, poloniexKeys.PoloniexKey, poloniexKeys.PoloniexSecret)
+	err := state.SetUserKeys(email, r.Params.Form.Get("poloniexkey"), r.Params.Form.Get("poloniexsecret"))
 	if err != nil {
 		fmt.Printf("Error authenticating setting Poloniex Keys err: %s\n", err.Error())
 		data[JSON_ERROR] = "Error with Setting Poloniex Keys"
 		r.Response.Status = 500
 		return r.RenderJSON(data)
+	}
+
+	poloniexKeys := &PoloniexKeys{
+		r.Params.Form.Get("poloniexKey"),
+		r.Params.Form.Get("poloniexsecret"),
 	}
 
 	poloniexKeys.PoloniexSecret = "********"
@@ -174,6 +171,8 @@ func (r AppAuthRequired) SettingsDashboardUser() revel.Result {
 	} else {
 		r.ViewArgs["poloniexSecret"] = "********"
 	}
+
+	fmt.Println(r.ViewArgs["poloniexKey"], r.ViewArgs["poloniexSecret"])
 
 	return r.RenderTemplate("AppAuthRequired/SettingsDashboard.html")
 }
