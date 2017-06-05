@@ -45,7 +45,7 @@
 			</div>
 			<div class="col-md-6 earning-caluclator">
 				<!-- Earnings -->
-				<p class="investment-return-desc">If you invested <span id="caluclator-time">1</span> weeks ago, you'd make  you'd made:</p>
+				<p class="investment-return-desc">If you invested <span id="investment-amount">1</span> BTC <span id="caluclator-time">8</span> weeks ago, you would have made:</p>
 				<h3 class="investment-return"><span id="investment-return-variable">0</span> BTC</h3>
 			</div>
 		</div>
@@ -124,11 +124,6 @@
 		</div>
 	</div>
 </section>
-<br />
-<br />
-<br />
-<br />
-<br />
 
 <!-- For slider sets the variable -->
 <script type="text/javascript">
@@ -158,7 +153,9 @@
 		var interest = Math.pow(1+(rate/1), weeks*7)
 		console.log(btcamount, rate, weeks, interest, (btcamount*interest)-btcamount)
 		console.log(center, exp, total, gains)
-		$("#investment-return-variable").html(gains.toFixed(4))
+		$("#caluclator-time").text(weeks)
+		$("#investment-amount").text(btcamount)
+		$("#investment-return-variable").text(gains.toFixed(4))
 	}
 	updateBTCAmount()
 
