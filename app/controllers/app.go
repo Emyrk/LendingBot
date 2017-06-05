@@ -46,6 +46,12 @@ func (c App) Sandbox() revel.Result {
 }
 
 func (c App) Index() revel.Result {
+	stats, err := json.Marshal(state.GetPoloniexStatistics())
+	if err != nil {
+		fmt.Printf("ERROR CRUCIAL!!!: retrieving index stats: %s\n", err.Error())
+	} else {
+		c.ViewArgs["poloniexStats"] = string(stats)
+	}
 	return c.RenderTemplate("App/Index.html")
 }
 
