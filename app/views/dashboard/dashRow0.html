@@ -2,7 +2,7 @@
     <div class="col-md-3 col-sm-6 col-xs-6 tile_stats_count">
     <!-- Current Daily -->
       <span class="count_top"><i class="fa fa-user"></i> Current Daily Rate</span>
-      <div class="count">{{currentUserStats.loanrate | number : 5}}%</div>
+      <div class="count">{{currentUserStats.loanrate * 100 | number : 5}}%</div>
       <!-- Change -->
         <span ng-hide="Math.abs(currentUserStats.loanratechange).toFixed(3) <= 0.00" class="count_bottom">
             <i ng-class="currentUserStats.loanratechange > 0.0 ? 'green' : 'red'"><i class="fa fa-sort-asc">
@@ -40,7 +40,7 @@
     <!-- Lending Uptime -->
     <div class="col-md-3 col-sm-6 col-xs-6 tile_stats_count">
       <span class="count_top"><i class="fa fa-user"></i> Lending Uptime</span>
-      <div class="count">{{currentUserStats.lendingpercent | number : 3}}%</div>
+      <div class="count">{{currentUserStats.lendingpercent * 100| number : 3}}%</div>
        <!-- Change -->
         <span ng-hide="Math.abs(currentUserStats.lendingpercentchange).toFixed(3) <= 0.00" class="count_bottom">
             <i ng-class="currentUserStats.lendingpercentchange > 0.0 ? 'green' : 'red'"><i class="fa fa-sort-asc">
