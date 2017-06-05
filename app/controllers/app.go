@@ -53,6 +53,10 @@ func (c App) FAQ() revel.Result {
 	return c.RenderTemplate("App/FAQ.html")
 }
 
+func (c App) Contact() revel.Result {
+	return c.RenderTemplate("App/Contact.html")
+}
+
 func (c App) Landing() revel.Result {
 	return c.Render()
 }

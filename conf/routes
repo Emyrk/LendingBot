@@ -14,6 +14,7 @@ POST	/register								App.Register
 GET		/landing								App.Landing
 
 GET		/faq									App.FAQ
+GET		/contact								App.Contact
 
 GET		/verifyemail/:email/:hash				App.VerifyEmail
 GET		/verify/request                         AppAuthRequired.RequestEmailVerification
