@@ -31,7 +31,6 @@ app.controller('dashBaseController', ['$scope', '$http', '$log', "$location",
 	function($scope, $http, $log, $location) {
 		var dashBaseScope = $scope;
 		//init
-		dashBaseScope.logout = LOC + "/logout";
 		//----
 	}]);
 

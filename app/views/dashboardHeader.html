@@ -49,15 +49,5 @@
 	[[if eq .UserLevel "2"]]
 		<script src="/public/js/dashboardAdmin.js" type="text/javascript" charset="utf-8"></script>
 	[[end]]
-	[[if eq .RunMode "dev"]]
-	  <script>
-	    var LOC = 'http://localhost:9000';
-	  </script>
-	[[end]]
-	[[if eq .RunMode "prod"]]
-	  <script>
-	    var LOC = 'https://hodl.zone';
-	  </script>
-	[[end]]
 </head>
 <body ng-app="lendingApp">

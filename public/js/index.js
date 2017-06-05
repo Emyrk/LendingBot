@@ -21,7 +21,7 @@ app.controller('indexController', ['$scope', '$http', '$log',
 			.then((res, status, headers, config) => {
 				//success
 				$log.info("login: Success.");
-				window.location = LOC + '/dashboard';
+				window.location = '/dashboard';
 			}, (err, status, headers, config) => {
 				//error
 				$log.error("login: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
@@ -60,7 +60,7 @@ app.controller('indexController', ['$scope', '$http', '$log',
 			.then((res) => {
 				//success
 				$log.info("register: Success.");
-				window.location = LOC + '/dashboard';
+				window.location = '/dashboard';
 			}, (err) => {
 				//error
 				$log.error("register: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
