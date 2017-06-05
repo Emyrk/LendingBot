@@ -142,11 +142,23 @@
 			obj = JSON.parse(poloniexStats)
 			rate = obj.dayavg
 		}
-		console.log(poloniexStats == "null")
-		console.log(poloniexStats)
+
+		// A = P(1 + r/n)^nt
+		//	P = btcamount
+		//	n = 365
+		//	t = 52/weeks
+		//	r = rate * 365
+
+		// 1 + r/n
+		var center = 1 + ((rate*365)/365)
+		var exp = 365 * (52/weeks)
+		var total = btcamount * Math.pow(center,exp)
+		var gains = total - btcamount
+
 		var interest = Math.pow(1+(rate/1), weeks*7)
 		console.log(btcamount, rate, weeks, interest, (btcamount*interest)-btcamount)
-		$("#investment-return-variable").html(((btcamount*interest)-btcamount).toFixed(4))
+		console.log(center, exp, total, gains)
+		$("#investment-return-variable").html(gains.toFixed(4))
 	}
 
 	$("#range_02").ionRangeSlider({
