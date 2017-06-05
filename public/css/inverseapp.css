@@ -410,9 +410,14 @@ Usage: You can use this code for free in personal and commercial projects if you
 
 .meet-the-team * {margin: 0; padding: 0;}
 
-.meet-the-team p {line-height: 160%;}
+.meet-the-team p {line-height: 160% !important;}
 
-.meet-the-team a {text-decoration: none; color: #fff; transition: all 0.1s ease-in;}
+.meet-the-team a {
+  text-decoration: none !important;
+  color: #fff !important; 
+  transition: all 0.1s ease-in !important;
+}
+
 .meet-the-team img {border: 0;}
 
 .meet-the-team  {
@@ -497,7 +502,10 @@ Usage: You can use this code for free in personal and commercial projects if you
   top: 10px;
   font-size: 20px;
   background: none;
-  padding: 0;
+  padding: 1px;
+  padding-bottom: 2px;
+
+  color: white;
 }
 
 #speakers img {
@@ -525,6 +533,8 @@ Usage: You can use this code for free in personal and commercial projects if you
   background: #3E82A5;
   border-radius: 0 16px 16px 0;
   font-size: 16px;
+
+  color: white;
 }
 
 /* Member Image Hover Effect */
@@ -543,7 +553,7 @@ Usage: You can use this code for free in personal and commercial projects if you
 /* Social Networks Meta */
 #speakers li {display: inline-block; padding: 0 6px; font-size: 18px;}
 #speakers li a {color: rgba(0,0,0, 0.3); transition: all 0.1s ease-in;}
-#speakers li a:hover {color: rgba(0,0,0, 0.7);}
+#speakers li a:hover, #speakers li a:visited {color: rgba(0,0,0, 0.7);}
 
 /* Rows Optimization */
 .row2 {
