@@ -4929,7 +4929,7 @@ if (typeof NProgress != 'undefined') {
 		init_flot_chart();
 		init_sidebar();
 		init_wysiwyg();
-		init_InputMask();
+		// init_InputMask();
 		init_JQVmap();
 		// init_cropper();
 		init_knob();
@@ -4948,7 +4948,7 @@ if (typeof NProgress != 'undefined') {
 		init_morris_charts();
 		init_skycons();
 		init_select2();
-		init_validator();
+		// init_validator();
 		init_DataTables();
 		// init_chart_doughnut();
 		init_gauge();
