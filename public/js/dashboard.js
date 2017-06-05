@@ -221,7 +221,7 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log',
 				method: 'POST',
 				url: '/dashboard/settings/enableuserlending',
 				data : $.param({
-					enable: dashSettingsLendingScope.poloniexKey,
+					enable: true,
 				}),
 				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
 				withCredentials: true
