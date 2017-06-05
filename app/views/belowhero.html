@@ -133,8 +133,8 @@
 <!-- For slider sets the variable -->
 <script type="text/javascript">
 	var weeks = 2
-	var btcamount = .001
-	var rate = .1
+	var btcamount = .1
+	var rate = .001
 	var poloniexStats = [[.poloniexStats]];
 
 	function updateBTCAmount () {
@@ -142,7 +142,7 @@
 		}
 		console.log(poloniexStats == "null")
 		var interest = Math.pow(1+(rate/1), weeks*7)
-		$("#investment-return-variable").html((btcamount*interest).toFixed(4))
+		$("#investment-return-variable").html(((btcamount*interest)-btcamount).toFixed(4))
 	}
 
 	$("#range_02").ionRangeSlider({
