@@ -49,6 +49,7 @@ func (c App) Index() revel.Result {
 	stats, err := json.Marshal(state.GetPoloniexStatistics())
 	if err != nil {
 		fmt.Printf("ERROR CRUCIAL!!!: retrieving index stats: %s\n", err.Error())
+		c.ViewArgs["poloniexStats"] = "null"
 	} else {
 		c.ViewArgs["poloniexStats"] = string(stats)
 	}
