@@ -52,7 +52,7 @@ app.controller('dashInfoController', ['$scope', '$http', '$log',
 				console.log(res.data)
 				dashInfoScope.currentUserStats = res.data.CurrentUserStats;
 				dashInfoScope.balances = res.data.Balances;
-				init_chart_doughnut(dashInfoScope.balances.currencymap)
+				init_chart_doughnut(dashInfoScope.balances)
 			}, (err) => {
 				//error
 				$log.error("CurrentUserStats: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
@@ -262,7 +262,7 @@ app.controller('dashLogsController', ['$scope', '$http', '$log',
 		var dashLogsScope = $scope;
 	}]);
 
-function init_chart_doughnut(data){			
+function init_chart_doughnut(balanceData){			
 	if( typeof (Chart) === 'undefined'){ return; }
 
 	console.log('init_chart_doughnut');
@@ -272,9 +272,9 @@ function init_chart_doughnut(data){
 			type: 'doughnut',
 			tooltipFillColor: "rgba(51, 51, 51, 0.55)",
 			data: {
-				labels: Object.keys(data),
+				labels: Object.keys(balanceData.percentmap),
 				datasets: [{
-					data: Object.values(data),
+					data: Object.values(balanceData.currencymap),
 					backgroundColor: backgroundColor,
 				}]
 			},
