@@ -145,6 +145,7 @@
 		console.log(poloniexStats == "null")
 		console.log(poloniexStats)
 		var interest = Math.pow(1+(rate/1), weeks*7)
+		console.log(btcamount, interest, (btcamount*interest)-btcamount)
 		$("#investment-return-variable").html(((btcamount*interest)-btcamount).toFixed(4))
 	}
 
