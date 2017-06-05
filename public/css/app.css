@@ -107,6 +107,10 @@ p, h1, h2, h3 {
   }
 }
 
+.user-login-modal{
+  top: 15%;
+}
+
 .navbar-lock{
     position: absolute !important;
     top: 0 !important;
