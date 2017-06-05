@@ -258,7 +258,7 @@ func (r AppAuthRequired) RequestEmailVerification() revel.Result {
 	return r.RenderJSON(data)
 }
 
-func (r AppAuthRequired) SetUserLending() revel.Result {
+func (r AppAuthRequired) EnableUserLending() revel.Result {
 	data := make(map[string]interface{})
 	err := state.EnableUserLending(r.Session[SESSION_EMAIL], r.Params.Form.Get("enable") == "true")
 	if err != nil {

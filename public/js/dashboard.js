@@ -214,6 +214,35 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log',
 				dashSettingsLendingScope.poloniexSecret = dashSettingsLendingScope.poloniexSecretOrig;
 		}
 
+		dashSettingsLendingScope.enablePoloniexLending = function() {
+		dashSettingsLendingScope.enablePoloniexLending = true;
+			$http(
+			{
+				method: 'POST',
+				url: '/dashboard/settings/enableuserlending',
+				data : $.param({
+					enable: true,
+				}),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				withCredentials: true
+			})
+			.then((res) => {
+				//success
+				$log.info("SetPoloniexKeys: Success.");
+				var tempData = JSON.parse(res.data.data);
+				dashSettingsLendingScope.poloniexKeyOrig = tempData.poloniexkey;
+				dashSettingsLendingScope.poloniexSecretOrig = tempData.poloniexsecret;
+				//resets to new originals
+				dashSettingsLendingScope.resetPoloniexKeys();
+			}, (err) => {
+				//error
+				$log.error("SetPoloniexKeys: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+			})
+			.then(() => {
+				dashSettingsLendingScope.loadingPoloniexKeys = false;
+			});
+		}
+
 		dashSettingsLendingScope.setPoloniexKeys = function() {
 			dashSettingsLendingScope.loadingPoloniexKeys = true;
 			$http(
@@ -249,6 +278,7 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log',
 		dashSettingsLendingScope.pass2FA = '';
 		dashSettingsLendingScope.token = '';
 		dashSettingsLendingScope.loadingPoloniexKeys = false;
+		dashSettingsLendingScope.enablePoloniexLending = false;
 		//------
 
 	}]);
