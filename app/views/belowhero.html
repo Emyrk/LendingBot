@@ -150,8 +150,8 @@
 		//	r = rate * 365
 
 		// 1 + r/n
-		var center = 1 + ((rate*365)/365)
-		var exp = 365 * (52/weeks)
+		var center = 1 + rate
+		var exp = 365 * 1/(52/weeks)
 		var total = btcamount * Math.pow(center,exp)
 		var gains = total - btcamount
 
