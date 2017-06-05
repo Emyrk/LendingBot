@@ -207,7 +207,37 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log',
 
 app.controller('dashSettingsLendingController', ['$scope', '$http', '$log',
 	function($scope, $http, $log) {
-		var dashSettingsLendingScope = $scope;
+		var dashSettingsUserScope = $scope;
+
+		dashSettingsUserScope.setPoloniexKeys = function() {
+			$http(
+			{
+				method: 'POST',
+				url: '/dashboard/settings/setpoloniexkeys',
+				data : {
+					poloniexkey: dashSettingsUserScope.poloniexKey,
+					poloniexsecret: dashSettingsUserScope.poloniexSecret,
+				},
+				withCredentials: true
+			})
+			.then((res) => {
+				//success
+				$log.info("SetPoloniexKeys: Success.");
+				var tempData = JSON.parse(res.data.data);
+				dashSettingsUserScope.poloniexKey = tempData.poloniexkey;
+				dashSettingsUserScope.poloniexSecret = tempData.poloniexsecret;
+			}, (err) => {
+				//error
+				$log.error("SetPoloniexKeys: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+			});
+		}
+
+		//init
+		init_InputMask()
+		dashSettingsUserScope.pass2FA = '';
+		dashSettingsUserScope.token = '';
+		//------
+
 	}]);
 
 
@@ -246,8 +276,16 @@ function init_chart_doughnut(data){
 		});			
 		
 	}  
-
 }
+
+function init_InputMask() {
+
+	if( typeof ($.fn.inputmask) === 'undefined'){ return; }
+	console.log('init_InputMask');
+
+	$(":input").inputmask();
+
+};
 
 var backgroundColor =[
 "#00BFFF",

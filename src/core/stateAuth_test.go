@@ -80,7 +80,7 @@ func TestUserAuth(t *testing.T) {
 		t.Error(err)
 	}
 
-	v, u2, err := s.AuthenticateUser("testing", "testing")
+	v, u2, err := s.AuthenticateUser2FA("testing", "testing", "")
 	if err != nil {
 		t.Error(err)
 	}
