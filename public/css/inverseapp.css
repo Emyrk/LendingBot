@@ -386,13 +386,16 @@ h1 {
   padding-left: 40px;
 }
 
-footer {
+.index-footer {
+  position: absolute;
+  bottom: 0px;
+  width: 100%;
   padding: 25px 0;
   text-align: center;
   background-color: #3E82A5 !important;
 }
 
-footer span, footer a {
+.index-footer span, .index-footer a {
   color: white;
   font-size: 18px;
 }

@@ -505,6 +505,8 @@ p, h1, h2, h3 {
   padding: 25px 0;
   text-align: center;
   background-color: #3E82A5 !important;
+  bottom: 0px;
+  width: 100%;
 }
 
 .index-footer span, .index-footer a {
