@@ -69,11 +69,13 @@ func (c App) unmarshalUser(body io.ReadCloser) (string, string) {
 }
 
 func (c App) Login() revel.Result {
-	email, pass := c.unmarshalUser(c.Request.Body)
+	email := c.Params.Form.Get("email")
+	pass := c.Params.Form.Get("pass")
+	twofa := c.Params.Form.Get("2fa")
 
 	data := make(map[string]interface{})
-
-	ok, _, err := state.AuthenticateUser(email, pass)
+	fmt.Println(email, pass, twofa)
+	ok, _, err := state.AuthenticateUser2FA(email, pass, twofa)
 	if err != nil {
 		fmt.Printf("Error authenticating err: %s\n", err.Error())
 		data[JSON_ERROR] = "Error login"

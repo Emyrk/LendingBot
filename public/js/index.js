@@ -5,13 +5,17 @@ app.controller('indexController', ['$scope', '$http', '$log',
 		var indexScope = $scope;
 
 		indexScope.login = function() {
+			indexScope.failedLogin = false;
+			indexScope.attemptingLogin = true;
 			$http({
 				method: 'POST',
 				url: '/login',
-				data : {
+				data: $.param({
 					email: indexScope.login.email,
 					pass: indexScope.login.pass,
-				},
+					twofa: indexScope.login.twofa,
+				}),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
 				withCredentials: true
 			})
 			.then((res, status, headers, config) => {
@@ -21,11 +25,22 @@ app.controller('indexController', ['$scope', '$http', '$log',
 			}, (err, status, headers, config) => {
 				//error
 				$log.error("login: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				indexScope.failedLogin = true;
 			})
 			.then(() => {
+				indexScope.attemptingLogin = false;
 				indexScope.login.email = "";
-				indexScope.login.pass = "";	
+				indexScope.login.pass = "";
+				indexScope.login.twofa = "";
 			});
+		}
+
+		indexScope.cancelLogin = function() {
+			indexScope.attemptingLogin = false;
+			indexScope.failedLogin = false;
+			indexScope.login.email = "";
+			indexScope.login.pass = "";
+			indexScope.login.twofa = "";
 		}
 
 		indexScope.register = function() {
@@ -43,7 +58,6 @@ app.controller('indexController', ['$scope', '$http', '$log',
 				//success
 				$log.info("register: Success.");
 				window.location = LOC + '/dashboard';
-
 			}, (err) => {
 				//error
 				$log.error("register: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
@@ -53,4 +67,9 @@ app.controller('indexController', ['$scope', '$http', '$log',
 				indexScope.register.pass = "";	
 			});
 		}
+
+		//--init
+		indexScope.attemptingLogin = false;
+		indexScope.failedLogin = false;
+		//
 	}]);

@@ -11,9 +11,65 @@
     <div class="collapse navbar-collapse">
       <ul class="nav navbar-nav navbar-right">
         <li><a href="/faq"></span> FAQ</a></li>
-        <li><a href="#"></span> Login</a></li>
+        <li><a data-toggle="modal" data-target=".login-modal"></span> Login</a></li>
         <li><a href="#"></span> Signup</a></li>
       </ul>
     </div><!--/.nav-collapse -->
+  </div>
+</div>
+<div class="modal fade login-modal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Login</h4>
+      </div>
+      <div class="modal-body">
+            <!-- page content -->
+        <div class="right_col" role="main">
+          <div class="">
+            <div class="row">
+              <div class="col-md-12 col-sm-12 col-xs-12">
+                <div class="x_panel">
+                  <div class="x_content">
+                    <form class="form-horizontal form-label-left" name="loginForm" novalidate="">
+                      <div class="item form-group" ng-show="failedLogin">
+                        <div class="col-md-12 col-sm-12 col-xs-12" style="color:red;">
+                            <b>Error logging in. Please try again.</b>
+                        </div>
+                      </div>
+                      <div class="item form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="email">Email
+                        </label>
+                        <div class="col-md-3 col-sm-3 col-xs-12">
+                          <input type="email" id="email" ng-model="login.email" name="myemail" required="required" class="form-control col-md-7 col-xs-12" ng-disabled="attemptingLogin">
+                        </div>
+                      </div>
+                      <div class="item form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="password">Password
+                        </label>
+                        <div class="col-md-3 col-sm-3 col-xs-12">
+                          <input id="password" type="password" name="password" data-validate-length="6,100" class="form-control col-md-7 col-xs-12" required="required" ng-model="login.pass" ng-disabled="attemptingLogin">
+                        </div>
+                      </div>
+                      <div class="item form-group">
+                        <label class="control-label col-md-3 col-sm-3 col-xs-12" for="password">2FA
+                        </label>
+                        <div class="col-md-3 col-sm-3 col-xs-12">
+                          <input id="password" type="password" name="password" data-validate-length="6,6" class="form-control col-md-7 col-xs-12" ng-model="login.twofa" ng-disabled="attemptingLogin" placeholder="Optional...">
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="cancelLogin()">Cancel</button>
+        <button type="button" class="btn btn-success" ng-disabled="attemptingLogin || !loginForm.$valid" ng-click="login()">Login</button>
+      </div>
+    </div>
   </div>
 </div>

@@ -75,6 +75,9 @@ p, h1, h2, h3 {
   .join-our-slack-text {
     text-align: center;
   }
+  .alert {
+    display: none;
+  }
 }
 
 /* > MD */
