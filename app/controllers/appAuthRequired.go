@@ -130,11 +130,11 @@ func (r AppAuthRequired) SetPoloniexKeys() revel.Result {
 	}
 
 	poloniexKeys := &PoloniexKeys{
-		r.Params.Form.Get("poloniexKey"),
+		r.Params.Form.Get("poloniexkey"),
 		r.Params.Form.Get("poloniexsecret"),
 	}
 
-	poloniexKeys.PoloniexSecret = "********"
+	poloniexKeys.PoloniexSecret = "****************************************************************"
 
 	d, err := json.Marshal(poloniexKeys)
 	if err != nil {
@@ -255,6 +255,19 @@ func (r AppAuthRequired) RequestEmailVerification() revel.Result {
 		r.Response.Status = 500
 		return r.RenderJSON(data)
 	}
+	return r.RenderJSON(data)
+}
+
+func (r AppAuthRequired) SetUserLending() revel.Result {
+	data := make(map[string]interface{})
+	err := state.EnableUserLending(r.Session[SESSION_EMAIL], r.Params.Form.Get("enable") == "true")
+	if err != nil {
+		fmt.Printf("WARNING: User failed to enable/disable lending: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
+		data[JSON_ERROR] = "Bad Request"
+		r.Response.Status = 400
+		return r.RenderJSON(data)
+	}
+
 	return r.RenderJSON(data)
 }
 

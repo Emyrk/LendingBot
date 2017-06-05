@@ -210,8 +210,8 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log',
 		var dashSettingsLendingScope = $scope;
 
 		dashSettingsLendingScope.resetPoloniexKeys = function() {
-				dashSettingsLendingScope.poloniexKeyOrig = dashSettingsLendingScope.poloniexKey;
-				dashSettingsLendingScope.poloniexSecretOrig = dashSettingsLendingScope.poloniexSecret;
+				dashSettingsLendingScope.poloniexKey = dashSettingsLendingScope.poloniexKeyOrig;
+				dashSettingsLendingScope.poloniexSecret = dashSettingsLendingScope.poloniexSecretOrig;
 		}
 
 		dashSettingsLendingScope.setPoloniexKeys = function() {
