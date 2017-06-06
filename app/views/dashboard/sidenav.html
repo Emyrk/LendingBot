@@ -54,6 +54,7 @@
                 </li>
               </ul>
             </div>
+            [[if eq .RunMode "dev"]]
             <div class="menu_section">
               <h3>Other</h3>
               <ul class="nav side-menu">
@@ -68,25 +69,26 @@
                 </li>
               </ul>
             </div>
-
+            [[end]]
           </div>
           <!-- /sidebar menu -->
 
           <!-- /menu footer buttons -->
           <div class="sidebar-footer hidden-small">
-            <a data-toggle="tooltip" data-placement="top" title="Contact Us">
+            <a href="/contact" data-toggle="tooltip" data-placement="top" title="Contact Us">
               <span class="glyphicon glyphicon-comment" aria-hidden="true"></span>
             </a>
-            <a data-toggle="tooltip" data-placement="top" title="FAQ">
+            <a href="/faq" data-toggle="tooltip" data-placement="top" title="FAQ">
               <span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span>
             </a>
-            <a data-toggle="tooltip" data-placement="top" title="Meet the Team">
+            <a href="/contact" data-toggle="tooltip" data-placement="top" title="Meet the Team">
               <span class="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span>
             </a>
-            <a data-toggle="tooltip" data-placement="top" title="Send Some Love" href="login.html">
+            <a data-toggle="modal" data-target=".love-modal" data-placement="top" title="Send Some Love">
               <span class="glyphicon glyphicon-heart-empty" aria-hidden="true"></span>
             </a>
           </div>
           <!-- /menu footer buttons -->
         </div>
       </div>
+
