@@ -10,8 +10,22 @@ html, body {
   background-color: white;
 }
 
-p, h1, h2, h3 {
+p, .normal-color h1, .normal-color h2, .normal-color h3 {
   font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif !important; 
+}
+
+.inverse-color h1 {
+  font-weight: 900 !important;
+  color: #3E82A5 !important;
+  font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif !important; 
+
+}
+
+.inverse-color h2, .inverse-color  h3 {
+  font-size: 25px;
+  color: #95989A !important;
+  font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif !important; 
+
 }
 
 @media screen and (min-width: 768px) {
@@ -26,6 +40,14 @@ p, h1, h2, h3 {
 
   #hero > #tag-line-box {
     height: 130%;
+  }
+
+  .inverse-color .navbar-right > li > a {
+    color: #3E82A5 !important;
+  }
+
+  .inverse-color .navbar-right > li > a:hover {
+    color: #316781 !important;
   }
 }
 
@@ -57,7 +79,6 @@ p, h1, h2, h3 {
 
   #tag-line-content > div {
     display: none;
-    color: black;
   }
 
   #hero {
@@ -70,6 +91,23 @@ p, h1, h2, h3 {
 
   .earning-caluclator {
     margin-top: 10px;
+  }
+
+  .inverse-color .nav-brand, .inverse-color .nav-brand:link, 
+  .inverse-color .nav-brand:active, .inverse-color .nav-brand:visited {
+    color: #3E82A5;
+  }
+
+  .inverse-color .nav-brand:hover {
+    color: #316781;
+  }
+
+  .inverse-color .navbar-right > li > a {
+    color: white !important;
+  }
+
+  .inverse-color .navbar-right > li > a:hover {
+    color: white !important;
   }
 
 }
@@ -86,7 +124,18 @@ p, h1, h2, h3 {
   .investment-return-desc {
     padding-top: 25px;
   }
+
+  .inverse-color .navbar-right {
+    margin-right: 0px !important;
+  }
 }
+
+@media screen and (max-width: 1200px) and (min-width: 991px){
+  .contact-us > div > .content{
+    min-height: 245px;
+  }
+}
+
 
 /* > MD */
 @media screen and (min-width: 991px) {
@@ -141,8 +190,18 @@ p, h1, h2, h3 {
   font-size: 1.4em;
 }
 
-.nav-brand, .nav-brand:link, .nav-brand:active, .nav-brand:visited {
+.normal-color .nav-brand, .normal-color .nav-brand:link, 
+.normal-color .nav-brand:active, .normal-color .nav-brand:visited{
   color: white;
+}
+
+
+.normal-color .nav-brand:hover {
+  color: white;
+}
+
+
+.nav-brand, .nav-brand:link, .nav-brand:active, .nav-brand:visited {
   font-weight: 700;
   float: left;
   height: 50px;
@@ -153,18 +212,23 @@ p, h1, h2, h3 {
 }
 
 .nav-brand:hover {
-  color: white;
   text-shadow: 0px 0px 5px rgba(150, 150, 150, .4);
   text-decoration: none;
 }
 
-.navbar-right > li > a {
+.normal-color .navbar-right > li > a {
   color: #dfe0e0 !important;
+}
+
+.navbar-right > li > a {
   font-size: 20px;
 }
 
-.navbar-right > li > a:hover {
+.normal-color .navbar-right > li > a:hover {
   color: white !important;
+}
+
+.navbar-right > li > a:hover {
   font-size: 20px;
 }
 
@@ -512,4 +576,220 @@ p, h1, h2, h3 {
 .index-footer span, .index-footer a {
   color: white;
   font-size: 18px;
+}
+
+/*  Inverse */
+#faq-title {
+  padding: 80px 0px 20px 0px;
+}
+
+.center-text {
+  text-align: center;
+}
+
+#faq-questions {
+  position: auto;
+  z-index: -10;
+  padding-left: 5px;
+  min-height: 70vh;
+}
+
+#faq-questions a span {
+  padding-right: 5px;
+  font-size: 14px;
+  margin-left: -10px;
+}
+
+#faq-questions a, #faq-questions a:active, #faq-questions a:visited, #faq-questions a:link {
+  color: #95989A;
+  font-size: 22px;
+  text-decoration: none;
+  font-weight: 500;
+  display: block;
+  padding: 20px;
+  text-indent: -8px;
+}
+
+#faq-questions p {
+  color: #95989A;
+  font-size: 18px;
+  padding-left: 40px;
+}
+
+/*
+Tutorial Name: Meet the Team
+Description: A simple concept for members section.
+Author: Stanislav Kostadinov
+Author URI: http://stanislav.it
+Usage: You can use this code for free in personal and commercial projects if you build upon it. You are not allowed to republish, redistribute or sell "as-is". 
+*/
+
+/* 01. GENERAL SETTINGS ============================================ */
+
+.meet-the-team * {margin: 0; padding: 0;}
+
+.meet-the-team p {line-height: 160% !important;}
+
+.meet-the-team a {
+  text-decoration: none !important;
+  color: #fff !important; 
+  transition: all 0.1s ease-in !important;
+}
+
+.meet-the-team img {border: 0;}
+
+.meet-the-team  {
+  background: #fff;
+  color: #fff;
+  font-family: 'PT Sans Narrow', sans-serif;
+  font-size: 13px;
+  font-weight: 300;
+}
+
+.clear {clear: both;}
+
+/* Buttons */
+.meet-the-team .btn {
+  display: inline-block;
+  margin-top: 20px;
+  padding: 10px 40px;
+  color: rgba(255,255,255, 0.95);
+  font-size: 18px;
+  font-weight: 700;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 20px;
+  outline: 0;
+  transition: all 0.1s ease-in;
+}
+
+.meet-the-team .btn-transparent {background: rgba(0,0,0, 0.2);}
+.meet-the-team .btn-transparent:hover {background: rgba(0,0,0, 0.4);}
+
+/* Separators */
+.meet-the-team .separator {
+  margin: 0 auto;
+  background: rgba(0, 0, 0, 0.2);
+  width: 30px;
+  height: 5px;
+}
+
+/* 02. FONT FACE ============================================ */
+
+@font-face {
+    font-family: 'norwester';
+  src: url('../fonts/norwester/norwester.eot');
+    src: url('../fonts/norwester/norwester.eot?iefix') format('embedded-opentype'),
+     url('../fonts/norwester/norwester.ttf');
+    font-weight: normal;
+}
+
+/* 03. SPEAKERS SETTINGS ============================================ */
+
+#speakers {
+  padding: 60px 0;
+  background: #3E82A5;
+  text-align: center; 
+}
+
+#speakers p {
+  padding: 20px 0 60px;
+  color: rgba(255,255,255, 0.85);
+  font-family: 'Open Sans', sans-serif;
+  font-size: 16px;
+  letter-spacing: 0.2px;
+}
+
+#speakers h3 {
+  padding: 0 0 15px;
+  font-family: 'norwester';
+  font-size: 36px;
+  text-transform: uppercase;
+}
+
+#speakers h4  {
+  margin-top: -20px;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+#speakers h4 span {
+  display: block;
+  position: relative;
+  left: -40px;
+  top: 10px;
+  font-size: 20px;
+  background: none;
+  padding: 1px;
+  padding-bottom: 2px;
+
+  color: white;
+}
+
+#speakers img {
+  width: 100%;
+  max-width: 240px;
+  border-radius: 50%; 
+  border: 15px solid transparent; 
+  box-shadow: 2px 2px 0px rgba(0,0,0, 0.18);
+  transition: all 0.1s ease-in;
+}
+  
+#speakers img:hover {
+  border: 15px solid #3980C9;
+  position: relative;
+  z-index: 10;
+  transition: all 0.1s ease-in; 
+}
+
+#speakers span {
+  padding: 8px 20px;
+  position: relative;
+  top: -64px;
+  left: -42px;
+  display: inline-block;
+  background: #3E82A5;
+  border-radius: 0 16px 16px 0;
+  font-size: 16px;
+
+  color: white;
+}
+
+/* Member Image Hover Effect */
+.hover_img {
+  display: none
+}
+
+.member-profile:hover .unhover_img{
+  display: none;
+}
+
+.member-profile:hover .hover_img {
+  display: block;
+}
+
+/* Social Networks Meta */
+#speakers li {display: inline-block; padding: 0 6px; font-size: 18px;}
+#speakers li a {color: rgba(0,0,0, 0.3); transition: all 0.1s ease-in;}
+#speakers li a:hover, #speakers li a:visited {color: rgba(0,0,0, 0.7);}
+
+/* Rows Optimization */
+.row2 {
+  display: none;
+}
+
+.row1 .col-md-3, .row2 .col-md-3 {
+  padding-bottom: 40px;
+}
+
+/* Mobile Devices Optimization */
+@media (min-width: 568px) and (max-width: 992px) {
+
+  .row1 .col-md-3, .row2 .col-md-3 {
+    display: inline-block;
+    max-width: 50%;
+  }
+
+  #speakers img {max-width: 300px;}
+
 }

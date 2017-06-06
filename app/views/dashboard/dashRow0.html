@@ -4,7 +4,8 @@
       <span class="count_top"><i class="fa fa-user"></i> Current Daily Rate</span>
       <div class="count">{{currentUserStats.loanrate * 100 | number : 5}}%</div>
       <!-- Change -->
-        <span ng-hide="Math.abs(currentUserStats.loanratechange).toFixed(3) <= 0.00" class="count_bottom">
+
+        <span ng-hide="currentUserStats.loanratechange.toFixed(3) == 0" class="count_bottom">
             <i ng-class="currentUserStats.loanratechange > 0.0 ? 'green' : 'red'"><i class="fa fa-sort-asc">
         </i> {{currentUserStats.loanratechange | number : 2}}% </i> From last Week</span>
     </div>
@@ -14,7 +15,7 @@
       <span class="count_top"><i class="fa fa-clock-o"></i> Current BTC Lent</span>
       <div class="count green">{{currentUserStats.btclent | number : 3}} BTC</div>
       <!-- Change -->
-        <span ng-hide="Math.abs(currentUserStats.btclentchange).toFixed(3) <= 0.00" class="count_bottom">
+        <span ng-hide="currentUserStats.btclentchange.toFixed(3) == 0" class="count_bottom">
             <i ng-class="currentUserStats.btclentchange > 0.0 ? 'green' : 'red'"><i class="fa fa-sort-asc">
         </i> {{currentUserStats.btclentchange | number : 2}}% </i> From last Week</span>
     </div>
@@ -24,7 +25,7 @@
       <span class="count_top"><i class="fa fa-user"></i> Current Not Lent</span>
       <div class="count red">{{currentUserStats.btcnotlent | number : 3}} BTC</div>
        <!-- Change -->
-        <span ng-hide="Math.abs(currentUserStats.btcnotlentchange).toFixed(3) <= 0.00" class="count_bottom">
+        <span ng-hide="currentUserStats.btcnotlentchange.toFixed(3) == 0" class="count_bottom">
             <i ng-class="currentUserStats.btcnotlentchange > 0.0 ? 'red' : 'green'"><i class="fa fa-sort-desc">
         </i> {{currentUserStats.btcnotlentchange | number : 2}}% </i> From last Week</span>
     </div>
@@ -42,7 +43,7 @@
       <span class="count_top"><i class="fa fa-user"></i> Lending Uptime</span>
       <div class="count">{{currentUserStats.lendingpercent * 100| number : 3}}%</div>
        <!-- Change -->
-        <span ng-hide="Math.abs(currentUserStats.lendingpercentchange).toFixed(3) <= 0.00" class="count_bottom">
+        <span ng-hide="currentUserStats.lendingpercentchange.toFixed(3) == 0" class="count_bottom">
             <i ng-class="currentUserStats.lendingpercentchange > 0.0 ? 'green' : 'red'"><i class="fa fa-sort-asc">
         </i> {{currentUserStats.lendingpercentchange | number : 2}}% </i> From last Week</span>
     </div>
