@@ -57,6 +57,7 @@ func (c App) Index() revel.Result {
 }
 
 func (c App) FAQ() revel.Result {
+	c.ViewArgs["Inverse"] = true
 	return c.RenderTemplate("App/FAQ.html")
 }
 
@@ -65,6 +66,7 @@ func (c App) Tutorials() revel.Result {
 }
 
 func (c App) Contact() revel.Result {
+	c.ViewArgs["Inverse"] = true
 	return c.RenderTemplate("App/Contact.html")
 }
 
