@@ -1,0 +1,159 @@
+<div class="">
+	<div class="page-title">
+		<div class="title_left">
+			<h3>Lending Settings</h3>
+		</div>
+		<div class="clearfix"></div>
+
+		<div class="row" ng-init="enabled2FA = [[.enabled2FA]]; verified = [[.verified]]; has2FA = [[.has2FA]]">
+			<!-- Create 2fa-->
+			<div class="col-sm-12 col-xs-12"  ng-show="!has2FA">
+				<div class="x_panel">
+					<div class="x_title">
+						<h2>Create Two Factor Authentication</h2>
+						<ul class="nav navbar-right panel_toolbox">
+							<li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+							</li>
+							<li class="dropdown">
+								<a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
+								<ul class="dropdown-menu" role="menu">
+									<li>Find poloniex keys at</a>
+									</li>
+								</ul>
+							</li>
+							<li><a class="close-link"><i class="fa fa-close"></i></a>
+							</li>
+						</ul>
+						<div class="clearfix"></div>
+					</div>
+					<div class="x_content">
+						<form class="form-horizontal form-label-left" name="createTwofaForm">
+							<div class="form-group">
+								<label class="control-label col-md-3 col-sm-3 col-xs-12">Password:<span class="required">*</span></label>
+								<div class="col-md-7 col-sm-9 col-xs-9">
+									<input ng-model="pass2FA" placeholder="Password..." type="password" class="form-control" ng-disabled="loadingCreate2FA">
+								</div>
+							</div>
+							<div class="ln_solid"></div>
+
+							<div class="form-group">
+								<div class="col-md-9 col-md-offset-3">
+									<button class="btn btn-success" ng-click="create2FA()" ng-disabled="!createTwofaForm.$valid || loadingCreate2FA">Create 2FA
+									</button>
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+			<!-- /Create 2fa -->
+
+			<!-- QRCode -->
+			<div class="col-sm-12 col-xs-12" ng-show="qrcode">
+				<div class="x_panel">
+					<div class="x_title">
+						<h2>QRCode</h2>
+						<div class="clearfix"></div>
+					</div>
+					<div class="x_content">
+					<form class="form-horizontal form-label-left">
+							<h2>HEY COPY THIS CODE IN ORDER TO LINK YOUR QR</h2>
+							<img  ng-src="{{qrcode}}"/>
+						</form>
+					</div>
+				</div>
+			</div>
+			<!-- /QRCode-->
+
+			<!-- Enable/Disable 2fa-->
+			<div class="col-sm-12 col-xs-12"  ng-show="has2FA">
+				<div class="x_panel">
+					<div class="x_title">
+						<h2>Two Factor Authentication</h2>
+						<ul class="nav navbar-right panel_toolbox">
+							<li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+							</li>
+							<li class="dropdown">
+								<a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
+								<ul class="dropdown-menu" role="menu">
+									<li>Find poloniex keys at</a>
+									</li>
+								</ul>
+							</li>
+							<li><a class="close-link"><i class="fa fa-close"></i></a>
+							</li>
+						</ul>
+						<div class="clearfix"></div>
+					</div>
+					<div class="x_content">
+						<form class="form-horizontal form-label-left" name="twofaForm">
+							<div class="form-group">
+								<label class="control-label col-md-3 col-sm-3 col-xs-12">Password:<span class="required">*</span></label>
+								<div class="col-md-7 col-sm-9 col-xs-9">
+									<input ng-model="pass2FA" placeholder="Password..." type="password" class="form-control" ng-disabled="loadingEnable2FA">
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="control-label col-md-3 col-sm-3 col-xs-12" for="token">Token<span class="required">*</span>
+								</label>
+								<div class="col-md-7 col-sm-9 col-xs-12">
+									<input type="text" ng-model="token" placeholder="Token..." required="required" class="form-control col-md-7 col-xs-12" ng-disabled="loadingEnable2FA" mask="999999">
+								</div>
+							</div>
+							<div class="ln_solid"></div>
+
+							<div class="form-group">
+								<div class="col-md-9 col-md-offset-3">
+									<button class="btn btn-success" ng-click="enable2FA(!enabled2FA)" ng-disabled="!twofaForm.$valid || loadingEnable2FA">
+										{{(!enabled2FA ? 'Enable' : 'Disable') + '2FA'}}
+									</button>
+								</div>
+							</div>
+						</form>
+
+					</div>
+				</div>
+			</div>
+			<!-- /Enable/Disable 2fa -->
+
+			<!-- Verify Email -->
+			<div class="col-sm-12 col-xs-12" ng-if="!verified">
+				<div class="x_panel">
+					<div class="x_title">
+						<h2>Verify Email</h2>
+						<ul class="nav navbar-right panel_toolbox">
+							<li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+							</li>
+							<li class="dropdown">
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
+								<ul class="dropdown-menu" role="menu">
+									<li>Find poloniex keys at</a>
+									</li>
+								</ul>
+							</li>
+							<li><a class="close-link"><i class="fa fa-close"></i></a>
+							</li>
+						</ul>
+						<div class="clearfix"></div>
+					</div>
+					<div class="x_content">
+						<form class="form-horizontal form-label-left">
+							Please verify your email!
+							<br />
+							<div class="ln_solid"></div>
+
+							<div class="form-group">
+								<div class="col-md-9 col-md-offset-3">
+									<button type="submit" class="btn btn-success" ng-disabled="loadingVerified" ng-click="verifyEmail()">Verify Email</button>
+								</div>
+							</div>
+						</form>
+
+					</div>
+				</div>
+			</div>
+			<!-- /Verify Email-->
+		</div>
+	</div>
+</div>
+

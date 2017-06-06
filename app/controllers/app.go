@@ -60,6 +60,10 @@ func (c App) FAQ() revel.Result {
 	return c.RenderTemplate("App/FAQ.html")
 }
 
+func (c App) Tutorials() revel.Result {
+	return c.RenderTemplate("App/Tutorials.html")
+}
+
 func (c App) Contact() revel.Result {
 	return c.RenderTemplate("App/Contact.html")
 }

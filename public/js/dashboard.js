@@ -105,8 +105,8 @@ app.controller('dashInfoAdvancedController', ['$scope', '$http', '$log',
 		var dashInfoAdvScope = $scope;
 	}]);
 
-app.controller('dashSettingsUserController', ['$scope', '$http', '$log',
-	function($scope, $http, $log) {
+app.controller('dashSettingsUserController', ['$scope', '$http', '$log', '$window',
+	function($scope, $http, $log, $window) {
 		//init
 		var dashSettingsUserScope = $scope;
 		dashSettingsUserScope.pass2FA = '';
@@ -114,6 +114,7 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log',
 		//-----
 
 		dashSettingsUserScope.create2FA = function() {
+			dashSettingsUserScope.loadingCreate2FA = true;
 			$http(
 			{
 				method: 'POST',
@@ -126,7 +127,7 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log',
 			.then((res) => {
 				//success
 				$log.info("2FA: Success.");
-				dashSettingsUserScope.qrcode = 'data:image/png;base64,' + res.data.data
+				dashSettingsUserScope.qrcode = 'data:image/png;base64,' + res.data.data 
 				dashSettingsUserScope.has2FA = true;
 			}, (err) => {
 				//error
@@ -135,9 +136,11 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log',
 			.then(() => {
 				dashSettingsUserScope.pass2FA = '';
 			});
+			dashSettingsUserScope.loadingCreate2FA = false;
 		}
 
 		dashSettingsUserScope.enable2FA = function(bool) {
+			dashSettingsUserScope.loadingEnable2FA = true;
 			$http(
 			{
 				method: 'POST',
@@ -160,10 +163,12 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log',
 			.then(() => {
 				dashSettingsUserScope.pass2FA = '';
 				dashSettingsUserScope.token = '';
+				dashSettingsUserScope.loadingEnable2FA = false;
 			});
 		}
 
 		dashSettingsUserScope.verifyEmail = function() {
+			dashSettingsUserScope.loadingVerified = false;
 			$http(
 			{
 				method: 'GET',
@@ -173,12 +178,20 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log',
 			.then((res) => {
 				//success
 				$log.info("VerifyEmail: Success.");
-				dashSettingsUserScope.verified = true;
 			}, (err) => {
 				//error
 				$log.error("VerifyEmail: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
-			});
+			})
+			.then(() => {
+				dashSettingsUserScope.loadingVerified = false;
+			})
 		}
+
+		//init
+		dashSettingsUserScope.loadingEnable2FA = false;
+		dashSettingsUserScope.loadingCreate2FA = false;
+		dashSettingsUserScope.loadingVerified = false;
+		//----
 	}]);
 
 app.controller('dashSettingsLendingController', ['$scope', '$http', '$log',
@@ -191,7 +204,7 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log',
 		}
 
 		dashSettingsLendingScope.setEnablePoloniexLending = function(bool) {
-			dashSettingsLendingScope.enablePoloniexLending = true;
+			dashSettingsLendingScope.loadingEnablePoloniexLending = true;
 			$http(
 			{
 				method: 'POST',
@@ -204,15 +217,15 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log',
 			})
 			.then((res) => {
 				//success
-				$log.info("EnablePoloniexLending: Success.");
+				$log.info("loadingEnablePoloniexLending: Success.");
 				//resets to new originals
 				dashSettingsLendingScope.resetPoloniexKeys();
 			}, (err) => {
 				//error
-				$log.error("EnablePoloniexLending: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				$log.error("loadingEnablePoloniexLending: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
 			})
 			.then(() => {
-				dashSettingsLendingScope.enablePoloniexLending = true;
+				dashSettingsLendingScope.loadingEnablePoloniexLending = true;
 			});
 		}
 
@@ -251,7 +264,7 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log',
 		dashSettingsLendingScope.pass2FA = '';
 		dashSettingsLendingScope.token = '';
 		dashSettingsLendingScope.loadingPoloniexKeys = false;
-		dashSettingsLendingScope.enablePoloniexLending = false;
+		dashSettingsLendingScope.loadingEnablePoloniexLending = false;
 		//------
 
 	}]);

@@ -15,6 +15,7 @@ GET		/landing								App.Landing
 
 GET		/faq									App.FAQ
 GET		/contact								App.Contact
+GET		/tutorials								App.Tutorials
 
 GET		/verifyemail/:email/:hash				App.VerifyEmail
 GET		/verify/request                         AppAuthRequired.RequestEmailVerification

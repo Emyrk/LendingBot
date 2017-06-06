@@ -174,7 +174,7 @@ func (r AppAuthRequired) SettingsDashboardUser() revel.Result {
 
 	fmt.Println(r.ViewArgs["poloniexKey"], r.ViewArgs["poloniexSecret"])
 
-	return r.RenderTemplate("AppAuthRequired/SettingsDashboard.html")
+	return r.RenderTemplate("AppAuthRequired/SettingsDashboardUser.html")
 }
 
 func (r AppAuthRequired) SettingsDashboardLending() revel.Result {
@@ -275,7 +275,6 @@ func (r AppAuthRequired) EnableUserLending() revel.Result {
 
 //called before any auth required function
 func (r AppAuthRequired) AuthUser() revel.Result {
-	r.Response.Out.Header().Set("Cache-Control", "no-cache, max-age=0, must-revalidate, no-store")
 	if !ValidCacheEmail(r.Session.ID(), r.Session[SESSION_EMAIL]) {
 		fmt.Printf("WARNING: AuthUser has invalid cache: [%s] sessionId:[%s]\n", r.Session[SESSION_EMAIL], r.Session.ID())
 		if SkipAuth {
@@ -291,73 +290,12 @@ func (r AppAuthRequired) AuthUser() revel.Result {
 		r.Session[SESSION_EMAIL] = ""
 		return r.Redirect(App.Index)
 	}
+	//do not cache auth pages
+	r.Response.Out.Header().Set("Cache-Control", "no-cache, max-age=0, must-revalidate, no-store")
 
 	return nil
 }
 
-// UserDashboard is the main page for users that have poloniex lending setup
 func (r AppAuthRequired) UserDashboard() revel.Result {
-	/*email := r.Session[SESSION_EMAIL]
-	u, err := state.FetchUser(email)
-	if err != nil || u == nil {
-		fmt.Println("Error fetching user for dashboard")
-		return r.Redirect(App.Index)
-	}
-
-	userStats, err := state.GetUserStatistics(email, 2)
-	if err != nil {
-		// HANDLE
-	}
-
-	balanceDetails := newUserBalanceDetails()
-	today := newUserDashRow0()
-	l := len(userStats)
-	if l > 0 && len(userStats[0]) > 0 {
-		now := userStats[0][0]
-		// Set balance ratios
-		balanceDetails.CurrencyMap = now.TotalCurrencyMap
-		balanceDetails.compute()
-
-		today.LoanRate = now.AverageActiveRate
-		today.BTCLent = now.ActiveLentBalance
-		today.BTCNotLent = now.AverageOnOrderRate + now.AvailableBalance
-		today.LendingPercent = today.BTCLent / (today.BTCLent + today.BTCNotLent)
-
-		yesterday := userdb.GetDayAvg(userStats[1])
-		if yesterday != nil {
-			today.LoanRateChange = percentChange(today.LoanRate, yesterday.LoanRate)
-			today.BTCLentChange = percentChange(today.BTCLent, yesterday.BTCLent)
-			today.BTCNotLentChange = percentChange(today.BTCNotLent, yesterday.BTCNotLent)
-			today.LendingPercentChange = percentChange(today.LendingPercent, yesterday.LendingPercent)
-		}
-	}
-
-	//to cache
-	completeLoans, err := state.PoloniexAuthenticatedLendingHistory(u.Username, "", "", "100")
-	dataShort := completeLoans.Data
-	if len(dataShort) > 5 {
-		dataShort = dataShort[:5]
-	}
-	r.ViewArgs["CompleteLoans"] = completeLoans.Data
-	r.ViewArgs["Today"] = today
-	r.ViewArgs["Balances"] = balanceDetails*/
 	return r.Render()
-}
-
-func abs(a float64) float64 {
-	if a < 0 {
-		return a * -1
-	}
-	return a
-}
-
-func percentChange(a float64, b float64) float64 {
-	if a == 0 || b == 0 {
-		return 0
-	}
-	change := ((a - b) / a) * 100
-	if abs(change) < 0.001 {
-		return 0
-	}
-	return change
 }

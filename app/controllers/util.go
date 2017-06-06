@@ -35,3 +35,21 @@ func ValidCacheEmail(sessionId string, email string) bool {
 
 	return e == email
 }
+
+func percentChange(a float64, b float64) float64 {
+	if a == 0 || b == 0 {
+		return 0
+	}
+	change := ((a - b) / a) * 100
+	if abs(change) < 0.001 {
+		return 0
+	}
+	return change
+}
+
+func abs(a float64) float64 {
+	if a < 0 {
+		return a * -1
+	}
+	return a
+}
