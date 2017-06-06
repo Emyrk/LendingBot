@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/Emyrk/LendingBot/src/core/common/primitives"
 	"github.com/Emyrk/LendingBot/src/core/cryption"
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
@@ -120,31 +121,53 @@ func (s *State) SetUserMinimumLoan(username string, minimumAmt float64) error {
 	return s.userDB.PutUser(u)
 }
 
-func (s *State) NewUser(username string, password string) error {
+func (s *State) NewUser(username string, password string) *primitives.ApiError {
 	ou, err := s.userDB.FetchUser(username)
 	if err != nil {
-		return fmt.Errorf("could not check if username exists: %s", err.Error())
+		return &primitives.ApiError{
+			fmt.Errorf("could not check if username exists: %s", err.Error()),
+			fmt.Errorf("Internal error. Please try again."),
+		}
 	}
 
 	if ou != nil {
-		return fmt.Errorf("username already exists")
+		return &primitives.ApiError{
+			fmt.Errorf("Attempted to create duplicate user: %s", ou.Username),
+			fmt.Errorf("Username already exists."),
+		}
 	}
 
 	if err := ValidateEmail(username); err != nil {
-		return err
+		return &primitives.ApiError{
+			err,
+			fmt.Errorf("Email failed to validate."),
+		}
 	}
 
 	u, err := userdb.NewUser(username, password)
 	if err != nil {
-		return err
+		return &primitives.ApiError{
+			err,
+			fmt.Errorf("Failed to create user. Please try again."),
+		}
 	}
 
 	err = s.userDB.PutVerifystring(userdb.GetUsernameHash(username), u.VerifyString)
 	if err != nil {
-		return err
+		return &primitives.ApiError{
+			err,
+			fmt.Errorf("Failed to create user. Please try again."),
+		}
 	}
 
-	return s.userDB.PutUser(u)
+	err = s.userDB.PutUser(u)
+	if err != nil {
+		return &primitives.ApiError{
+			err,
+			fmt.Errorf("Internal error. Please try again."),
+		}
+	}
+	return nil
 }
 
 func ValidateEmail(email string) error {

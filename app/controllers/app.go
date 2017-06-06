@@ -95,13 +95,13 @@ func (c App) Login() revel.Result {
 	ok, _, err := state.AuthenticateUser2FA(email, pass, twofa)
 	if err != nil {
 		fmt.Printf("Error authenticating err: %s\n", err.Error())
-		data[JSON_ERROR] = "Error login"
+		data[JSON_ERROR] = "Invalid username, password or 2fa, please try again."
 		c.Response.Status = 500
 		return c.RenderJSON(data)
 	}
 	if !ok {
 		fmt.Printf("Error authenticating email: %s pass: %s\n", email, pass)
-		data[JSON_ERROR] = "Invalid login"
+		data[JSON_ERROR] = "Invalid username, password or 2fa, please try again."
 		c.Response.Status = 400
 		return c.RenderJSON(data)
 	}
@@ -119,9 +119,10 @@ func (c App) Register() revel.Result {
 
 	data := make(map[string]interface{})
 
-	err := state.NewUser(email, pass)
-	if err != nil {
-		data[JSON_ERROR] = fmt.Sprintf("Unable to create new user: %s", err.Error())
+	apiErr := state.NewUser(email, pass)
+	if apiErr != nil {
+		fmt.Printf("Error registering user: %s\n", apiErr.LogError.Error())
+		data[JSON_ERROR] = apiErr.UserError.Error()
 		c.Response.Status = 400
 		return c.RenderJSON(data)
 	}

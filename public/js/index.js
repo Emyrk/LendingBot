@@ -5,7 +5,7 @@ app.controller('indexController', ['$scope', '$http', '$log',
 		var indexScope = $scope;
 
 		indexScope.login = function() {
-			indexScope.failedLogin = false;
+			indexScope.loginError = '';
 			indexScope.attemptingLogin = true;
 			$http({
 				method: 'POST',
@@ -25,7 +25,7 @@ app.controller('indexController', ['$scope', '$http', '$log',
 			}, (err, status, headers, config) => {
 				//error
 				$log.error("login: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
-				indexScope.failedLogin = true;
+				indexScope.loginError = err.data.error;
 			})
 			.then(() => {
 				indexScope.attemptingLogin = false;
@@ -37,15 +37,14 @@ app.controller('indexController', ['$scope', '$http', '$log',
 
 		indexScope.cancelLogin = function() {
 			indexScope.attemptingLogin = false;
-			indexScope.failedLogin = false;
 			indexScope.login.email = "";
 			indexScope.login.pass = "";
 			indexScope.login.twofa = "";
 		}
 
 		indexScope.register = function() {
+			indexScope.registerError = "";
 			indexScope.attemptingRegister = true;
-			indexScope.failedRegister = false;
 			$http(
 			{
 				method: 'POST',
@@ -64,7 +63,7 @@ app.controller('indexController', ['$scope', '$http', '$log',
 			}, (err) => {
 				//error
 				$log.error("register: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
-				indexScope.failedRegister = true;
+				indexScope.registerError = err.data.error;
 			})
 			.then(() => {
 				indexScope.register.pass = "";
@@ -75,7 +74,6 @@ app.controller('indexController', ['$scope', '$http', '$log',
 
 		indexScope.cancelRegister = function() {
 			indexScope.attemptingRegister = false;
-			indexScope.failedRegister = false;
 			indexScope.register.email = "";
 			indexScope.register.pass = "";
 			indexScope.register.pass2 = "";
@@ -84,8 +82,6 @@ app.controller('indexController', ['$scope', '$http', '$log',
 		//--init
 		indexScope.attemptingLogin = false;
 		indexScope.attemptingRegister = false;
-		indexScope.failedLogin = false;
-		indexScope.failedRegister = false;
 		init_validator()
 		//
 	}]);

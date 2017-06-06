@@ -10,7 +10,10 @@ var validator = (function($){
     var message, tests, checkField, validate, mark, unmark, field, minmax, defaults,
         validateWords, lengthRange, lengthLimit, pattern, alertTxt, data,
         email_illegalChars = /[\(\)\<\>\,\;\:\\\/\"\[\]]/,
-        email_filter = /^.+@.+\..{1,6}$/;  // exmaple email "steve@s-i.photo"
+
+        //jesse revised filter for email
+        email_filter = /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;  // exmaple email "steve@s-i.photo"
+        //email_filter = /^.+@.+\..{1,6}$/;  // exmaple email "steve@s-i.photo"
 
     /* general text messages
     */
