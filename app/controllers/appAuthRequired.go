@@ -311,5 +311,11 @@ func (r AppAuthRequired) AuthUser() revel.Result {
 }
 
 func (r AppAuthRequired) UserDashboard() revel.Result {
+	if revel.DevMode {
+		return r.RenderError(&revel.Error{
+			Title:       "404 Error.",
+			Description: "Looks like you are lost.",
+		})
+	}
 	return r.Render()
 }

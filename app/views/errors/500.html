@@ -1,16 +1,46 @@
+[[if eq .RunMode "dev"]]
+[[template "errors/404-dev.html" .]]
+
 <!DOCTYPE html>
 <html>
-	<head>
-		<title>Application error</title>
-	</head>
-	<body>
-		[[if eq .RunMode "dev"]]
-		[[template "errors/500-dev.html" .]]
-		<hr />
-		[[end]]
-		<h1>Oops, an error occured</h1>
-		<p>
-			This exception has been logged.
-		</p>
-	</body>
+<head>
+	<title>Application error</title>
+</head>
+<body>
+	[[if eq .RunMode "dev"]]
+	[[template "errors/500-dev.html" .]]
+	<hr />
+	[[end]]
+	<h1>Oops, an error occured</h1>
+	<p>
+		This exception has been logged.
+	</p>
+</body>
 </html>
+
+[[else]]
+
+[[set . "title" "Home"]]
+[[template "index/indexHeader.html" .]]
+[[template "index/indexnav.html" .]]
+
+<div class="container body">
+	<div class="main_container">
+		<!-- page content -->
+		<div class="col-md-12">
+			<div class="col-middle">
+				<div class="text-center">
+					<h1 class="error-number">500</h1>
+					<h2>Internal Server Error</h2>
+					<p>We track these errors automatically, but if the problem persists feel free to contact us. In the meantime, try refreshing. <a href="mailto:support@hodl.zone?Subject=500_Error" target="_top">Report this?</a>
+					</p>
+				</div>
+			</div>
+		</div>
+		<!-- /page content -->
+	</div>
+</div>
+<div class="buffer"></div>
+<div class="buffer"></div>
+<div class="buffer"></div>
+[[end]]

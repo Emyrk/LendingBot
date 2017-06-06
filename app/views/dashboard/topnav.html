@@ -7,6 +7,8 @@
       </div>
 
       <ul class="nav navbar-nav navbar-right">
+
+        [[if eq .RunMode "dev"]]
         <li class="">
           <a href="javascript:;" class="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
             <img src="public/img.jpg" alt="">John Doe
@@ -89,6 +91,7 @@
             </li>
           </ul>
         </li>
+        [[end]]
 
         <li role="presentation" class="pull-left">
             <a href="#/dashboard">

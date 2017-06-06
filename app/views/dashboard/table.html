@@ -2,6 +2,7 @@
   <div class="x_panel">
     <div class="x_title">
       <h2>Lending History<small> Completed loans on your account</small></h2>
+      [[if eq .RunMode "dev"]]
       <ul class="nav navbar-right panel_toolbox">
         <li style="float:right;"><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
         </li>
@@ -15,6 +16,7 @@
           </ul>
         </li>
       </ul>
+      [[end]]
       <div class="clearfix"></div>
     </div>
     <div class="x_content">
