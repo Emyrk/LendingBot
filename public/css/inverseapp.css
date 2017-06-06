@@ -362,6 +362,7 @@ h1 {
   position: auto;
   z-index: -10;
   padding-left: 5px;
+  min-height: 70vh;
 }
 
 #faq-questions a span {
@@ -387,8 +388,6 @@ h1 {
 }
 
 .index-footer {
-  position: absolute;
-  bottom: 0px;
   width: 100%;
   padding: 25px 0;
   text-align: center;
@@ -399,7 +398,6 @@ h1 {
   color: white;
   font-size: 18px;
 }
-
 
 /*
 Tutorial Name: Meet the Team
