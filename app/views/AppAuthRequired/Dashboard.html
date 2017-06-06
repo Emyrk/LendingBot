@@ -1,9 +1,9 @@
 [[set . "title" "Dash"]]
-[[template "gentelellaHeader.html" .]]
+[[template "dashboard/gentelellaHeader.html" .]]
 <div ng-app="lendingApp" ng-controller="dashBaseController" class="ng-cloak">
 	[[template "dashboard/sidenav.html" .]]
 	[[template "dashboard/topnav.html" .]]
 	<!-- Where pages go to -->
 	<div ng-view></div>
 </div>
-[[template "gentelellaFooter.html" .]]
+[[template "dashboard/gentelellaFooter.html" .]]
