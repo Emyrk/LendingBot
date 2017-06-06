@@ -105,13 +105,9 @@ app.controller('dashInfoAdvancedController', ['$scope', '$http', '$log',
 		var dashInfoAdvScope = $scope;
 	}]);
 
-app.controller('dashSettingsUserController', ['$scope', '$http', '$log', '$window',
-	function($scope, $http, $log, $window) {
-		//init
+app.controller('dashSettingsUserController', ['$scope', '$http', '$log', '$timeout',
+	function($scope, $http, $log, $timeout) {
 		var dashSettingsUserScope = $scope;
-		dashSettingsUserScope.pass2FA = '';
-		dashSettingsUserScope.token = '';
-		//-----
 
 		dashSettingsUserScope.create2FA = function() {
 			dashSettingsUserScope.loadingCreate2FA = true;
@@ -187,10 +183,42 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log', '$windo
 			})
 		}
 
+		dashSettingsUserScope.changePass = function() {
+			$http(
+			{
+				method: 'POST',
+				url: '/dashboard/settings/changepass',
+				data : $.param({
+					pass: dashSettingsUserScope.pass,
+					passnew: dashSettingsUserScope.passNew,
+				}),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				withCredentials: true
+			})
+			.then((res) => {
+				//success
+				$log.info("ChangePass: Success.");
+			}, (err) => {
+				//error
+				$log.error("ChangePass: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+			})
+			.then(() => {
+				dashSettingsUserScope.pass = '';
+				dashSettingsUserScope.passNew = '';
+				dashSettingsUserScope.passNew2 = '';
+			})
+		}
+
 		//init
 		dashSettingsUserScope.loadingEnable2FA = false;
 		dashSettingsUserScope.loadingCreate2FA = false;
 		dashSettingsUserScope.loadingVerified = false;
+
+		dashSettingsUserScope.pass2FA = '';
+		dashSettingsUserScope.token = '';
+		dashSettingsUserScope.pass = '';
+		dashSettingsUserScope.passNew = '';
+		dashSettingsUserScope.passNew2 = '';
 		//----
 	}]);
 
@@ -225,7 +253,7 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log',
 				$log.error("loadingEnablePoloniexLending: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
 			})
 			.then(() => {
-				dashSettingsLendingScope.loadingEnablePoloniexLending = true;
+				dashSettingsLendingScope.loadingEnablePoloniexLending = false;
 			});
 		}
 

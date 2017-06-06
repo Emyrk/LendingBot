@@ -265,15 +265,31 @@ func (s *State) SetNewPasswordJWTOTP(tokenString string, password string) bool {
 		return false
 	}
 
-	s.SetUserPass(email, password)
+	s.setUserPass(email, password, nil)
 
 	return string(userSig[:]) == tokenSig
 }
 
-func (s *State) SetUserPass(username string, password string) error {
+func (s *State) SetUserNewPass(username string, oldPassword string, newPassword string) error {
 	u, err := s.userDB.FetchUserIfFound(username)
 	if err != nil {
 		return err
+	}
+
+	if !u.AuthenticatePassword(oldPassword) {
+		return fmt.Errorf("Error resting user pass, old pass hash does not match up.")
+	}
+
+	return s.setUserPass(username, newPassword, u)
+}
+
+func (s *State) setUserPass(username string, password string, u *userdb.User) error {
+	if u == nil {
+		newU, err := s.userDB.FetchUserIfFound(username)
+		if err != nil {
+			return err
+		}
+		u = newU
 	}
 
 	hash := u.MakePasswordHash(password)

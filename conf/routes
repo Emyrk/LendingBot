@@ -34,6 +34,7 @@ POST	/dashboard/settings/create2fa			AppAuthRequired.Create2FA
 POST	/dashboard/settings/enable2fa			AppAuthRequired.Enable2FA
 POST	/dashboard/settings/setpoloniexkeys		AppAuthRequired.SetPoloniexKeys
 POST	/dashboard/settings/enableuserlending	AppAuthRequired.EnableUserLending
+POST	/dashboard/settings/changepass			AppAuthRequired.ChangePassword
 
 GET		/dashboard/logs							AppSysAdmin.LogsDashboard
 GET		/dashboard/logs/export					AppSysAdmin.ExportLogs

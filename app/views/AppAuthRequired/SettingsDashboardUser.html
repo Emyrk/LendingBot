@@ -27,6 +27,8 @@
 						<div class="clearfix"></div>
 					</div>
 					<div class="x_content">
+                        By activating two factor authenitcation, you will be no longer able to log in without a password. Be careful when selecting this, as losing your two factor authentication also loses access to your account. 
+						<div class="ln_solid"></div>
 						<form class="form-horizontal form-label-left" name="createTwofaForm">
 							<div class="form-group">
 								<label class="control-label col-md-3 col-sm-3 col-xs-12">Password:<span class="required">*</span></label>
@@ -153,6 +155,47 @@
 				</div>
 			</div>
 			<!-- /Verify Email-->
+
+			<!-- Change Password -->
+			<div class="col-sm-12 col-xs-12">
+				<div class="x_panel">
+                  <div class="x_title">
+                     <h2>Change Password</h2>
+                     <div class="clearfix"></div>
+                  </div>
+					<div class="x_content">
+                     <form class="form-horizontal form-label-left" name="changePassForm">
+                        <div class="form-group">
+                           <label class="control-label col-md-3 col-sm-3 col-xs-12">Current Password</label>
+                           <div class="col-md-9 col-sm-9 col-xs-12">
+                              <input type="password" class="form-control" ng-model="pass">
+                           </div>
+                        </div>
+                        <div class="form-group">
+                           <label class="control-label col-md-3 col-sm-3 col-xs-12">New Password</label>
+                           <div class="col-md-9 col-sm-9 col-xs-12">
+                              <input type="password" class="form-control" ng-model="passNew" required="required">
+                           </div>
+                        </div>
+                        <div class="form-group">
+                           <label class="control-label col-md-3 col-sm-3 col-xs-12">Confirm New Password</label>
+                           <div class="col-md-9 col-sm-9 col-xs-12">
+                              <input type="password" class="form-control" ng-model="passNew2" required="required" ng-pattern="passNew" name="passNew2">
+                           </div>
+                           <label class="control-label col-md-3 col-sm-3 col-xs-12"></label>
+                           <label ng-show="changePassForm.passNew2.$error.pattern" class="control-label col-md-3 col-sm-3 col-xs-12" style="color:red;">passwords must match</label>
+                        </div>
+                        <div class="ln_solid"></div>
+                        <div class="form-group">
+                           <div class="col-md-9 col-md-offset-3">
+                              <button class="btn btn-success" ng-click="changePass()" ng-disabled="changePassForm.$invalid">Apply</button>
+                           </div>
+                        </div>
+                     </form>
+					</div>
+				</div>
+			</div>
+			<!-- /Change Password -->
 		</div>
 	</div>
 </div>

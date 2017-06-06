@@ -273,6 +273,20 @@ func (r AppAuthRequired) EnableUserLending() revel.Result {
 	return r.RenderJSON(data)
 }
 
+func (r AppAuthRequired) ChangePassword() revel.Result {
+	data := make(map[string]interface{})
+
+	err := state.SetUserNewPass(r.Session[SESSION_EMAIL], r.Params.Form.Get("pass"), r.Params.Form.Get("passnew"))
+	if err != nil {
+		fmt.Printf("WARNING: User failed to reset pass: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
+		data[JSON_ERROR] = "Bad Request"
+		r.Response.Status = 400
+		return r.RenderJSON(data)
+	}
+
+	return r.RenderJSON(data)
+}
+
 //called before any auth required function
 func (r AppAuthRequired) AuthUser() revel.Result {
 	if !ValidCacheEmail(r.Session.ID(), r.Session[SESSION_EMAIL]) {
