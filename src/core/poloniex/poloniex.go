@@ -1093,7 +1093,7 @@ func (p *Poloniex) SendAuthenticatedHTTPRequest(method, endpoint string, values 
 	err = JSONDecode([]byte(resp), &result)
 
 	if err != nil {
-		return errors.New("Unable to JSON Unmarshal response.")
+		return errors.New("Unable to JSON Unmarshal response. Resp: %s", resp)
 	}
 	return nil
 }
