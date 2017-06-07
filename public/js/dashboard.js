@@ -111,6 +111,7 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log', '$timeo
 
 		dashSettingsUserScope.create2FA = function() {
 			dashSettingsUserScope.loadingCreate2FA = true;
+			dashSettingsUserScope.create2FAError = '';
 			$http(
 			{
 				method: 'POST',
@@ -128,6 +129,7 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log', '$timeo
 			}, (err) => {
 				//error
 				$log.error("2FA: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				dashSettingsUserScope.create2FAError = err.data.error;
 			})
 			.then(() => {
 				dashSettingsUserScope.pass2FA = '';
@@ -137,6 +139,8 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log', '$timeo
 
 		dashSettingsUserScope.enable2FA = function(bool) {
 			dashSettingsUserScope.loadingEnable2FA = true;
+			dashSettingsUserScope.enable2FAError = '';
+			dashSettingsUserScope.enable2FASuccess = '';
 			$http(
 			{
 				method: 'POST',
@@ -152,9 +156,15 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log', '$timeo
 				//success
 				$log.info("2FA: Success.");
 				dashSettingsUserScope.enabled2FA = (res.data.data === 'true')
+				if (dashSettingsUserScope.enabled2FA) {
+					dashSettingsUserScope.enable2FASuccess = 'Success! 2FA is enabled.'
+				} else {
+					dashSettingsUserScope.enable2FASuccess = 'Success! 2FA is disabled.'
+				}
 			}, (err) => {
 				//error
 				$log.error("2FA: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				dashSettingsUserScope.enable2FAError = err.data.error;
 			})
 			.then(() => {
 				dashSettingsUserScope.pass2FA = '';
@@ -165,6 +175,8 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log', '$timeo
 
 		dashSettingsUserScope.verifyEmail = function() {
 			dashSettingsUserScope.loadingVerified = false;
+			dashSettingsUserScope.verifiedSuccess = '';
+			dashSettingsUserScope.verifiedError = '';
 			$http(
 			{
 				method: 'GET',
@@ -174,9 +186,11 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log', '$timeo
 			.then((res) => {
 				//success
 				$log.info("VerifyEmail: Success.");
+				dashSettingsUserScope.verifiedSuccess = 'Verification email sent!';
 			}, (err) => {
 				//error
 				$log.error("VerifyEmail: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				dashSettingsUserScope.verifiedError = err.data.error;
 			})
 			.then(() => {
 				dashSettingsUserScope.loadingVerified = false;
@@ -184,6 +198,8 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log', '$timeo
 		}
 
 		dashSettingsUserScope.changePass = function() {
+			dashSettingsUserScope.changePassSuccess = '';
+			dashSettingsUserScope.changePassError = '';
 			$http(
 			{
 				method: 'POST',
@@ -198,9 +214,11 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log', '$timeo
 			.then((res) => {
 				//success
 				$log.info("ChangePass: Success.");
+				dashSettingsUserScope.changePassSuccess = 'Password changed successfully!';
 			}, (err) => {
 				//error
 				$log.error("ChangePass: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				dashSettingsUserScope.changePassError = err.data.error;
 			})
 			.then(() => {
 				dashSettingsUserScope.pass = '';
@@ -213,6 +231,15 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log', '$timeo
 		dashSettingsUserScope.loadingEnable2FA = false;
 		dashSettingsUserScope.loadingCreate2FA = false;
 		dashSettingsUserScope.loadingVerified = false;
+
+		dashSettingsUserScope.create2FAError = '';
+		dashSettingsUserScope.enable2FAError = '';
+		dashSettingsUserScope.verifiedError = '';
+		dashSettingsUserScope.changePassError = '';
+
+		dashSettingsUserScope.enable2FASuccess = '';
+		dashSettingsUserScope.verifiedSuccess = '';
+		dashSettingsUserScope.changePassSuccess = '';
 
 		dashSettingsUserScope.pass2FA = '';
 		dashSettingsUserScope.token = '';

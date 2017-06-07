@@ -93,7 +93,7 @@ func (r AppAuthRequired) Enable2FA() revel.Result {
 	json2fa := r.unmarshal2fa(r.Request.Body)
 	if json2fa == nil {
 		fmt.Printf("Error grabbing 2fa err\n")
-		data[JSON_ERROR] = "Error with 2fa"
+		data[JSON_ERROR] = "Internal error. Please contact: support@hodl.zone"
 		r.Response.Status = 500
 		return r.RenderJSON(data)
 	}
@@ -102,7 +102,7 @@ func (r AppAuthRequired) Enable2FA() revel.Result {
 	err := state.Enable2FA(email, json2fa.Pass, json2fa.Token, json2fa.Enable)
 	if err != nil {
 		fmt.Printf("Error enabling 2fa err: %s\n", err.Error())
-		data[JSON_ERROR] = "Error with 2fa"
+		data[JSON_ERROR] = "Invalid password, please try again."
 		r.Response.Status = 400
 		return r.RenderJSON(data)
 	}
@@ -210,8 +210,8 @@ func (r AppAuthRequired) Create2FA() revel.Result {
 	qr, err := state.Add2FA(r.Session[SESSION_EMAIL], pass)
 	if err != nil {
 		fmt.Printf("Error authenticating 2fa err: %s\n", err.Error())
-		data[JSON_ERROR] = "Error with 2fa"
-		r.Response.Status = 500
+		data[JSON_ERROR] = "Invalid password, please try again."
+		r.Response.Status = 400
 		return r.RenderJSON(data)
 	}
 
@@ -227,7 +227,7 @@ func (r AppAuthRequired) RequestEmailVerification() revel.Result {
 
 	if u.Verified {
 		fmt.Printf("WARNING: User already verified: %s\n", r.Session[SESSION_EMAIL])
-		data[JSON_ERROR] = "Bad Request"
+		data[JSON_ERROR] = "User already verified. No email sent."
 		r.Response.Status = 400
 		return r.RenderJSON(data)
 	}
@@ -246,14 +246,14 @@ func (r AppAuthRequired) RequestEmailVerification() revel.Result {
 	fmt.Printf("Template %s\n", emailRequest.Body)
 	if err != nil {
 		fmt.Printf("ERROR: Parsing template: %s\n", err)
-		data[JSON_ERROR] = "Internal Error"
+		data[JSON_ERROR] = "Internal Error. Please contact support at: support@hodl.zone"
 		r.Response.Status = 500
 		return r.RenderJSON(data)
 	}
 
 	if err = emailRequest.SendEmail(); err != nil {
 		fmt.Printf("ERROR: Sending email: %s\n", err)
-		data[JSON_ERROR] = "Internal Error"
+		data[JSON_ERROR] = "Internal Error. Please contact support at: support@hodl.zone"
 		r.Response.Status = 500
 		return r.RenderJSON(data)
 	}
@@ -279,7 +279,7 @@ func (r AppAuthRequired) ChangePassword() revel.Result {
 	err := state.SetUserNewPass(r.Session[SESSION_EMAIL], r.Params.Form.Get("pass"), r.Params.Form.Get("passnew"))
 	if err != nil {
 		fmt.Printf("WARNING: User failed to reset pass: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
-		data[JSON_ERROR] = "Bad Request"
+		data[JSON_ERROR] = "Password incorrect. Please try again."
 		r.Response.Status = 400
 		return r.RenderJSON(data)
 	}
