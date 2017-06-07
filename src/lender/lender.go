@@ -229,7 +229,7 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 			inactiveLentTotalRate += loan.Rate
 			inactiveLentCount++
 			//}
-			stats.TotalCurrencyMap[loan.Currency] += l.getBTCAmount(loan.Amount, loan.Currency)
+			stats.TotalCurrencyMap[loan.Currency] += l.getBTCAmount(loan.Amount, k)
 		}
 	}
 
