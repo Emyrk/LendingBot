@@ -321,7 +321,7 @@ func (l *Lender) tierOneProcessJob(j *Job, rate float64) error {
 		if inactiveLoans != nil {
 			currencyLoans := inactiveLoans[l.Currency]
 			sort.Sort(poloniex.PoloniexLoanOfferArray(currencyLoans))
-			fmt.Println(currencyLoans)
+			fmt.Println(need, avail)
 			for _, loan := range currencyLoans {
 				if loan.Currency != "BTC" {
 					continue
