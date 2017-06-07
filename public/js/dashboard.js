@@ -27,28 +27,9 @@ app.config(['$routeProvider', '$locationProvider', function($routeProvider, $loc
 	$locationProvider.html5Mode({enabled: false, requireBase: false});
 }]);
 
-app.controller('dashBaseController', ['$scope', '$http', '$log', "$location",
-	function($scope, $http, $log, $location) {
+app.controller('dashBaseController', ['$scope', '$http', '$log', "$location", "$window",
+	function($scope, $http, $log, $location, $window) {
 		var dashBaseScope = $scope;
-
-		dashBaseScope.loadDashCheck = function() {
-			$http(
-			{
-				method: 'GET',
-				url: '/dashboard',
-				withCredentials: true
-			})
-			.then((res) => { }
-				, (err) => {
-				//error
-				$log.error("loadDashCheck: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
-				window.location = "/";
-			});
-		}
-
-		//init
-
-		//----
 	}]);
 
 app.controller('dashInfoController', ['$scope', '$http', '$log',

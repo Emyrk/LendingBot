@@ -324,7 +324,7 @@ func (r AppAuthRequired) AuthUser() revel.Result {
 		return r.Redirect(App.Index)
 	}
 	//do not cache auth pages
-	//r.Response.Out.Header().Set("Cache-Control", "no-cache, max-age=0, must-revalidate, no-store")
+	r.Response.Out.Header().Set("Cache-Control", "no-cache, max-age=0, must-revalidate, no-store")
 
 	return nil
 }
