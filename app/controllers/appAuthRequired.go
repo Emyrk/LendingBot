@@ -262,12 +262,21 @@ func (r AppAuthRequired) RequestEmailVerification() revel.Result {
 
 func (r AppAuthRequired) EnableUserLending() revel.Result {
 	data := make(map[string]interface{})
-	err := state.EnableUserLending(r.Session[SESSION_EMAIL], r.Params.Form.Get("enable") == "true")
+
+	enable := r.Params.Form.Get("enable") == "true"
+
+	err := state.EnableUserLending(r.Session[SESSION_EMAIL], enable)
 	if err != nil {
 		fmt.Printf("WARNING: User failed to enable/disable lending: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
 		data[JSON_ERROR] = "Bad Request"
 		r.Response.Status = 400
 		return r.RenderJSON(data)
+	}
+
+	if enable {
+		data[JSON_DATA] = "Enabled"
+	} else {
+		data[JSON_DATA] = "Disabled"
 	}
 
 	return r.RenderJSON(data)
@@ -285,6 +294,16 @@ func (r AppAuthRequired) ChangePassword() revel.Result {
 	}
 
 	return r.RenderJSON(data)
+}
+
+func (r AppAuthRequired) UserDashboard() revel.Result {
+	if revel.DevMode {
+		return r.RenderError(&revel.Error{
+			Title:       "404 Error.",
+			Description: "Looks like you are lost.",
+		})
+	}
+	return r.Render()
 }
 
 //called before any auth required function
@@ -305,17 +324,7 @@ func (r AppAuthRequired) AuthUser() revel.Result {
 		return r.Redirect(App.Index)
 	}
 	//do not cache auth pages
-	r.Response.Out.Header().Set("Cache-Control", "no-cache, max-age=0, must-revalidate, no-store")
+	//r.Response.Out.Header().Set("Cache-Control", "no-cache, max-age=0, must-revalidate, no-store")
 
 	return nil
-}
-
-func (r AppAuthRequired) UserDashboard() revel.Result {
-	if revel.DevMode {
-		return r.RenderError(&revel.Error{
-			Title:       "404 Error.",
-			Description: "Looks like you are lost.",
-		})
-	}
-	return r.Render()
 }

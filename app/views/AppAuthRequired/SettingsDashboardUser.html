@@ -97,6 +97,8 @@
 						<div class="alert alert-danger fade in" role="alert" ng-show="enable2FAError.length > 0">
 							<strong>{{enable2FAError}}</strong>
 						</div>
+						<span ng-class="enabled2FA ? 'green' : 'red'">Currently 2FA is: {{enabled2FA ? 'Enabled' : 'Disabled'}}</span>
+						<div class="ln_solid"></div>
 						<form class="form-horizontal form-label-left" name="twofaForm">
 							<div class="form-group">
 								<label class="control-label col-md-3 col-sm-3 col-xs-12">Password:<span class="required">*</span></label>

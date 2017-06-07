@@ -6,7 +6,7 @@
   		<div class="clearfix"></div>
 
   		<div class="row" ng-init="poloniexKey = '[[.poloniexKey]]'; poloniexKeyOrig = '[[.poloniexKey]]'; poloniexSecret = '[[.poloniexSecret]]'; poloniexSecretOrig = '[[.poloniexSecret]]';">
-  			<!-- Poloniex Key -->
+  			<!-- Poloniex Set Key -->
   			<div class="col-sm-12 col-xs-12">
   				<div class="x_panel">
   					<div class="x_title">
@@ -27,6 +27,12 @@
   						<div class="clearfix"></div>
   					</div>
   					<div class="x_content">
+              <div class="alert alert-success fade in" role="alert" ng-show="poloniexKeysSetSuccess.length > 0">
+                <strong>{{poloniexKeysSetSuccess}}</strong>
+              </div>
+              <div class="alert alert-danger fade in" role="alert" ng-show="poloniexKeysSetError.length > 0">
+                <strong>{{poloniexKeysSetError}}</strong>
+              </div>
   						Input your API keys assosicated with your poloniex account. You can create a new set of API keys here: <a href="https://poloniex.com/apiKeys">https://poloniex.com/apiKeys</a>
   						<br />
   						<br />
@@ -49,7 +55,7 @@
   							<div class="form-group">
   								<div class="col-md-9 col-md-offset-3">
   									<button ng-click="setPoloniexKeys()" type="submit" class="btn btn-success" ng-disabled="loadingPoloniexKeys"><span ng-show="loadingPoloniexKeys"><i class="fa fa-spinner fa-spin"></i></span>Apply</button>
-  									<button class="btn btn-primary" ng-click="resetPoloniexKeys()" type="reset" ng-disabled="loadingPoloniexKeys">Reset</button>
+  									<button class="btn btn-primary" ng-click="resetPoloniexKeys()" type="reset" ng-disabled="loadingPoloniexKeys">Clear</button>
   								</div>
   							</div>
   						</form>
@@ -57,9 +63,9 @@
   					</div>
   				</div>
   			</div>
-  			<!-- /Poloniex Key -->
+  			<!-- /Poloniex Set Key -->
 
-  			<!-- Enable Lending -->
+  			<!-- Poloniex Enable Lending -->
   			<div class="col-sm-12 col-xs-12">
   				<div class="x_panel">
   					<div class="x_title">
@@ -80,6 +86,12 @@
   						<div class="clearfix"></div>
   					</div>
   					<div class="x_content">
+              <div class="alert alert-success fade in" role="alert" ng-show="poloniexKeysEnableSuccess.length > 0">
+                <strong>{{poloniexKeysEnableSuccess}}</strong>
+              </div>
+              <div class="alert alert-danger fade in" role="alert" ng-show="poloniexKeysEnabledError.length > 0">
+                <strong>{{poloniexKeysEnabledError}}</strong>
+              </div>
   						Enabling lending will begin lending any crypto in your lending account. You can disable it at any time.
   						<br />
   						<br />
@@ -109,7 +121,7 @@
   					</div>
   				</div>
   			</div>
-  			<!-- /Enable Lending -->
+  			<!-- /Poloniex Enable Lending -->
 
 
   		</div>

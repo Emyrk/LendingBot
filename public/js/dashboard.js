@@ -30,7 +30,24 @@ app.config(['$routeProvider', '$locationProvider', function($routeProvider, $loc
 app.controller('dashBaseController', ['$scope', '$http', '$log', "$location",
 	function($scope, $http, $log, $location) {
 		var dashBaseScope = $scope;
+
+		dashBaseScope.loadDashCheck = function() {
+			$http(
+			{
+				method: 'GET',
+				url: '/dashboard',
+				withCredentials: true
+			})
+			.then((res) => { }
+				, (err) => {
+				//error
+				$log.error("loadDashCheck: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				window.location = "/";
+			});
+		}
+
 		//init
+
 		//----
 	}]);
 
@@ -260,6 +277,8 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log',
 
 		dashSettingsLendingScope.setEnablePoloniexLending = function(bool) {
 			dashSettingsLendingScope.loadingEnablePoloniexLending = true;
+			dashSettingsLendingScope.poloniexKeysEnabledError = '';
+			dashSettingsLendingScope.poloniexKeysEnableSuccess = '';
 			$http(
 			{
 				method: 'POST',
@@ -273,11 +292,11 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log',
 			.then((res) => {
 				//success
 				$log.info("loadingEnablePoloniexLending: Success.");
-				//resets to new originals
-				dashSettingsLendingScope.resetPoloniexKeys();
+				dashSettingsLendingScope.poloniexKeysEnableSuccess = 'Poloniex Lending is: ' + res.data.data;
 			}, (err) => {
 				//error
 				$log.error("loadingEnablePoloniexLending: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				dashSettingsLendingScope.poloniexKeysEnabledError = 'Unable to stop poloniex lending.';
 			})
 			.then(() => {
 				dashSettingsLendingScope.loadingEnablePoloniexLending = false;
@@ -286,6 +305,8 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log',
 
 		dashSettingsLendingScope.setPoloniexKeys = function() {
 			dashSettingsLendingScope.loadingPoloniexKeys = true;
+			dashSettingsLendingScope.poloniexKeysSetError = '';
+			dashSettingsLendingScope.poloniexKeysSetSuccess = '';
 			$http(
 			{
 				method: 'POST',
@@ -305,9 +326,11 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log',
 				dashSettingsLendingScope.poloniexSecretOrig = tempData.poloniexsecret;
 				//resets to new originals
 				dashSettingsLendingScope.resetPoloniexKeys();
+				dashSettingsLendingScope.poloniexKeysSetSuccess = 'Successfully set poloniex keys.';
 			}, (err) => {
 				//error
 				$log.error("SetPoloniexKeys: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				dashSettingsLendingScope.poloniexKeysSetError = 'Error setting poloniex keys.';
 			})
 			.then(() => {
 				dashSettingsLendingScope.loadingPoloniexKeys = false;
@@ -316,10 +339,15 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log',
 
 		//init
 		init_InputMask();
-		dashSettingsLendingScope.pass2FA = '';
-		dashSettingsLendingScope.token = '';
+
 		dashSettingsLendingScope.loadingPoloniexKeys = false;
 		dashSettingsLendingScope.loadingEnablePoloniexLending = false;
+
+		dashSettingsLendingScope.poloniexKeysEnabledError = '';
+		dashSettingsLendingScope.poloniexKeysSetError = '';
+
+		dashSettingsLendingScope.poloniexKeysEnableSuccess = ''
+		dashSettingsLendingScope.poloniexKeysSetSuccess = '';;
 		//------
 
 	}]);
