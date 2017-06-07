@@ -205,8 +205,6 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 	activeLentTotalRate := float64(0)
 	activeLentCount := float64(0)
 
-	fmt.Println("PROVIDED\n", activeLoan.Provided, "USED\n", activeLoan.Used, "\n")
-
 	for _, loan := range activeLoan.Provided {
 		//if l.Currency == "BTC" {
 		activeLentBal += l.getBTCAmount(loan.Amount, loan.Currency)
@@ -323,6 +321,7 @@ func (l *Lender) tierOneProcessJob(j *Job, rate float64) error {
 		if inactiveLoans != nil {
 			currencyLoans := inactiveLoans[l.Currency]
 			sort.Sort(poloniex.PoloniexLoanOfferArray(currencyLoans))
+			fmt.Println(currencyLoans)
 			for _, loan := range currencyLoans {
 				if loan.Currency != "BTC" {
 					continue
@@ -332,6 +331,7 @@ func (l *Lender) tierOneProcessJob(j *Job, rate float64) error {
 				}
 				// Too close, no point in canceling
 				if abs(loan.Rate-rate) < 0.00000009 {
+					fmt.Println(abs(loan.Rate - rate))
 					continue
 				}
 				worked, err := s.PoloniexCancelLoanOffer(l.Currency, loan.ID, j.Username)
