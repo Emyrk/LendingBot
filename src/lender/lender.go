@@ -321,18 +321,10 @@ func (l *Lender) tierOneProcessJob(j *Job, rate float64) error {
 		if inactiveLoans != nil {
 			currencyLoans := inactiveLoans[l.Currency]
 			sort.Sort(poloniex.PoloniexLoanOfferArray(currencyLoans))
-			fmt.Println(need, avail)
 			for _, loan := range currencyLoans {
-				if loan.Currency != "BTC" {
-					fmt.Println(loan.Currency)
-					fmt.Println("exit 1")
-					continue
-				}
 				if need < 0 {
-					fmt.Println("EXIT 2")
 					break
 				}
-				fmt.Println(loan.Rate, rate, need, avail, abs(loan.Rate-rate))
 
 				// Too close, no point in canceling
 				if abs(loan.Rate-rate) < 0.00000009 {
