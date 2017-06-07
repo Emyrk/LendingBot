@@ -324,9 +324,11 @@ func (l *Lender) tierOneProcessJob(j *Job, rate float64) error {
 			fmt.Println(need, avail)
 			for _, loan := range currencyLoans {
 				if loan.Currency != "BTC" {
+					fmt.Println("exit 1")
 					continue
 				}
 				if need < 0 {
+					fmt.Println("EXIT 2")
 					break
 				}
 				fmt.Println(loan.Rate, rate, need, avail, abs(loan.Rate-rate))
