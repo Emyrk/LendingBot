@@ -205,6 +205,8 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 	activeLentTotalRate := float64(0)
 	activeLentCount := float64(0)
 
+	fmt.Println("PROVIDED\n", activeLoan.Provided, "USED\n", activeLoan.Used, "\n")
+
 	for _, loan := range activeLoan.Provided {
 		//if l.Currency == "BTC" {
 		activeLentBal += l.getBTCAmount(loan.Amount, loan.Currency)
