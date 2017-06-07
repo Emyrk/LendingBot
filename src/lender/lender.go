@@ -329,14 +329,16 @@ func (l *Lender) tierOneProcessJob(j *Job, rate float64) error {
 				if need < 0 {
 					break
 				}
+				fmt.Println(loan.Rate, rate, need, avail, abs(loan.Rate-rate))
+
 				// Too close, no point in canceling
 				if abs(loan.Rate-rate) < 0.00000009 {
-					fmt.Println(abs(loan.Rate - rate))
 					continue
 				}
 				worked, err := s.PoloniexCancelLoanOffer(l.Currency, loan.ID, j.Username)
 				if err != nil {
-					break
+					fmt.Println(err)
+					continue
 				}
 				if worked && err == nil {
 					need -= loan.Amount
