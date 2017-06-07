@@ -11,7 +11,7 @@ Get revel cli to launc
 ## Nginx
 
 We have an Nginx proxy that handles the SSL and http --> https redirect. Revel serves on port 9000, and Nginx redirects port 80 to 443, then 443 to 9000
-
+Steve and jesse must go over conf.go for the REVEL to make sure all settings are correct for PROD!!!!!!!! IMPORTANT
 
 Nginx `/etc/nginx/sites-available/default`
 

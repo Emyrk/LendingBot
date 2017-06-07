@@ -1,35 +1,47 @@
-var app=angular.module("lendingApp",["ngRoute","ngMask"]);
+var app=angular.module("lendingApp",["ngRoute","ngMask", "ngCookies"]);
 
-app.config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
-	$routeProvider
-	.when("/",{
-		templateUrl : "/dashboard/info",
-		controller : "dashInfoController"
-	})
-	.when("/info/:coin",{
-		templateUrl : "/dashboard/info/:id",
-		controller : "dashInfoAdvancedController"
-	})
-	.when("/settings/user",{
-		templateUrl : "/dashboard/settings/user",
-		controller : "dashSettingsUserController"
-	})
-	.when("/settings/lending",{
-		templateUrl : "/dashboard/settings/lending",
-		controller : "dashSettingsLendingController"
-	})
-	.when("/logs",{
-		templateUrl : "/dashboard/logs",
-		controller : "dashLogsController"
-	})
-	.otherwise({redirectTo:'/'});
-	
-	$locationProvider.html5Mode({enabled: false, requireBase: false});
-}]);
+app.config(['$routeProvider', '$locationProvider',
+	function($routeProvider, $locationProvider) {
+		$routeProvider
+		.when("/",{
+			templateUrl : "/dashboard/info",
+			controller : "dashInfoController"
+		})
+		.when("/info/:coin",{
+			templateUrl : "/dashboard/info/:id",
+			controller : "dashInfoAdvancedController"
+		})
+		.when("/settings/user",{
+			templateUrl : "/dashboard/settings/user",
+			controller : "dashSettingsUserController"
+		})
+		.when("/settings/lending",{
+			templateUrl : "/dashboard/settings/lending",
+			controller : "dashSettingsLendingController"
+		})
+		.when("/logs",{
+			templateUrl : "/dashboard/logs",
+			controller : "dashLogsController"
+		})
+		.otherwise({redirectTo:'/'});
 
-app.controller('dashBaseController', ['$scope', '$http', '$log', "$location", "$window",
-	function($scope, $http, $log, $location, $window) {
+
+		$locationProvider.html5Mode({enabled: false, requireBase: false});
+	}]);
+app.controller('dashBaseController', ['$scope', '$http', '$log', "$location", "$window", "$rootScope", "$cookies",
+	function($scope, $http, $log, $location, $window, $rootScope, $cookies) {
 		var dashBaseScope = $scope;
+
+		$rootScope.$on('$locationChangeStart', function (event) {
+			if($cookies.get('HODL_SESSION') == null) {
+				// $window.location = '/'
+			}
+			$cookies.put("hi","bye");
+			console.log($cookies.getAll());
+
+			console.log($cookies.get("HODL_SESSION"))
+			console.log(document.cookie)
+		});
 	}]);
 
 app.controller('dashInfoController', ['$scope', '$http', '$log',
