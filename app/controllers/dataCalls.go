@@ -104,11 +104,19 @@ func (u *UserBalanceDetails) scrub() {
 		if math.IsNaN(v) {
 			u.CurrencyMap[k] = 0
 		}
+
+		if k == "" {
+			delete(u.CurrencyMap, k)
+		}
 	}
 
 	for k, v := range u.Percent {
 		if math.IsNaN(v) {
 			u.CurrencyMap[k] = 0
+		}
+
+		if k == "" {
+			delete(u.CurrencyMap, k)
 		}
 	}
 }
