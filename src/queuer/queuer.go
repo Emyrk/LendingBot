@@ -96,21 +96,13 @@ func (q *Queuer) Start() {
 
 func (q *Queuer) AddJobs() {
 	if len(q.AllUsers) == 0 {
-		j := lender.NewManualBTCJob("", 0, 0)
+		j := lender.NewManualJob("", 0, 0, []string{"BTC", "FCT"})
 		q.Lender.AddJob(j)
-		QueuerJobsMade.Inc()
-
-		j2 := lender.NewManualJob("", 0, 0, "FCT")
-		q.Lender.AddJob(j2)
 		QueuerJobsMade.Inc()
 	}
 	for _, u := range q.AllUsers {
-		j := lender.NewManualBTCJob(u.Username, u.MiniumumLoanAmt, u.LendingStrategy)
+		j := lender.NewManualJob(u.Username, []float64{0.0008, 0.0002}, u.LendingStrategy, []string{"BTC", "FCT"})
 		q.Lender.AddJob(j)
-		QueuerJobsMade.Inc()
-
-		j2 := lender.NewManualJob(u.Username, u.MiniumumLoanAmt, u.LendingStrategy, "FCT")
-		q.Lender.AddJob(j2)
 		QueuerJobsMade.Inc()
 	}
 }

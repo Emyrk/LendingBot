@@ -77,9 +77,11 @@ func (l *Lender) Start() {
 		case j := <-l.JobQueue:
 			// Update loan rate
 			if time.Since(l.LastCalculateLoanRate).Seconds() >= l.CalculateLoanInterval {
-				err := l.CalculateLoanRate(j.Currency)
-				if err != nil {
-					log.Printf("[%s] Error in Lending: %s", j.Currency, err)
+				for _, c := range j.Currency {
+					err := l.CalculateLoanRate(c)
+					if err != nil {
+						log.Printf("[%s] Error in Lending: %s", j.Currency, err)
+					}
 				}
 			}
 
@@ -356,26 +358,12 @@ func (l *Lender) ProcessJob(j *Job) error {
 	}
 	switch j.Strategy {
 	default:
-		r := l.CurrentLoanRate[j.Currency].AvgBased
-		if l.CurrentLoanRate[j.Currency].Simple == l.CurrentLoanRate[j.Currency].AvgBased {
-			if l.rising(j.Currency) == 1 {
-				r += l.PoloniexStats[j.Currency].DayStd * .1
-			}
-		}
-		return l.tierOneProcessJob(j, r, j.Currency)
+		return l.tierOneProcessJob(j)
 	}
 }
 
-func (l *Lender) tierOneProcessJob(j *Job, rate float64, currency string) error {
-	j.MinimumLend = 0.0008
-	if rate < j.MinimumLend {
-		return nil
-	}
-
-	fmt.Println("Start process", j.Currency)
-
+func (l *Lender) tierOneProcessJob(j *Job) error {
 	s := l.State
-	// total := float64(0)
 
 	bals, err := s.PoloniexGetAvailableBalances(j.Username)
 	if err != nil {
@@ -398,58 +386,73 @@ func (l *Lender) tierOneProcessJob(j *Job, rate float64, currency string) error 
 		}
 	}
 
-	avail, ok := bals["lending"][currency]
-	var _ = ok
+	for i, min := range j.MinimumLend {
+		rate := l.CurrentLoanRate[j.Currency[i]].AvgBased
+		if l.CurrentLoanRate[j.Currency[i]].Simple == l.CurrentLoanRate[j.Currency[i]].AvgBased {
+			if l.rising(j.Currency[i]) == 1 {
+				rate += l.PoloniexStats[j.Currency[i]].DayStd * .1
+			}
+		}
 
-	// rate := l.decideRate(rate, avail, total)
+		if rate < min {
+			continue
+		}
 
-	// We need to find some more crypto to lkend
-	if avail < MaxLendAmt[currency] {
-		need := MaxLendAmt[currency] - avail
-		if inactiveLoans != nil {
-			currencyLoans := inactiveLoans[currency]
-			sort.Sort(poloniex.PoloniexLoanOfferArray(currencyLoans))
-			for _, loan := range currencyLoans {
-				if need < 0 {
-					break
-				}
+		fmt.Println("Start process", j.Currency[i])
 
-				// Too close, no point in canceling
-				if abs(loan.Rate-rate) < 0.00000009 {
-					continue
-				}
-				worked, err := s.PoloniexCancelLoanOffer(currency, loan.ID, j.Username)
-				if err != nil {
-					fmt.Println(err)
-					continue
-				}
-				if worked && err == nil {
-					need -= loan.Amount
-					avail += loan.Amount
-					LoansCanceled.Inc()
+		avail, ok := bals["lending"][j.Currency[i]]
+		var _ = ok
+
+		// rate := l.decideRate(rate, avail, total)
+
+		// We need to find some more crypto to lkend
+		if avail < MaxLendAmt[j.Currency[i]] {
+			need := MaxLendAmt[j.Currency[i]] - avail
+			if inactiveLoans != nil {
+				currencyLoans := inactiveLoans[j.Currency[i]]
+				sort.Sort(poloniex.PoloniexLoanOfferArray(currencyLoans))
+				for _, loan := range currencyLoans {
+					if need < 0 {
+						break
+					}
+
+					// Too close, no point in canceling
+					if abs(loan.Rate-rate) < 0.00000009 {
+						continue
+					}
+					worked, err := s.PoloniexCancelLoanOffer(j.Currency[i], loan.ID, j.Username)
+					if err != nil {
+						fmt.Println(err)
+						continue
+					}
+					if worked && err == nil {
+						need -= loan.Amount
+						avail += loan.Amount
+						LoansCanceled.Inc()
+					}
 				}
 			}
 		}
-	}
 
-	fmt.Println("3", avail, MaxLendAmt[currency])
-	amt := MaxLendAmt[currency]
-	if avail < MaxLendAmt[currency] {
-		amt = avail
-	}
+		fmt.Println("3", avail, MaxLendAmt[j.Currency[i]])
+		amt := MaxLendAmt[j.Currency[i]]
+		if avail < MaxLendAmt[j.Currency[i]] {
+			amt = avail
+		}
 
-	// To little for a loan
-	if amt < 0.01 {
-		fmt.Println("EXIT HERE")
-		return nil
+		// To little for a loan
+		if amt < 0.01 {
+			fmt.Println("EXIT HERE")
+			return nil
+		}
+		fmt.Printf("Create loan for %s with %s at %f\n", j.Username, j.Currency, rate)
+		_, err = s.PoloniexCreateLoanOffer(j.Currency[i], amt, rate, 2, false, j.Username)
+		if err != nil {
+			return err
+		}
+		LoansCreated.Inc()
+		JobsDone.Inc()
 	}
-	fmt.Printf("Create loan for %s with %s at %f\n", j.Username, j.Currency, rate)
-	_, err = s.PoloniexCreateLoanOffer(currency, amt, rate, 2, false, j.Username)
-	if err != nil {
-		return err
-	}
-	LoansCreated.Inc()
-	JobsDone.Inc()
 
 	return nil
 }
