@@ -15,8 +15,23 @@ import (
 var _ = fmt.Print
 
 var (
-	MaxLendAmt float64 = .1
+	MaxLendAmt map[string]float64
 )
+
+func init() {
+	MaxLendAmt["BTC"] = .1
+	MaxLendAmt["BTS"] = 1
+	MaxLendAmt["CLAM"] = 1
+	MaxLendAmt["DOGE"] = 1
+	MaxLendAmt["DASH"] = 1
+	MaxLendAmt["LTC"] = 1
+	MaxLendAmt["MAID"] = 1
+	MaxLendAmt["STR"] = 1
+	MaxLendAmt["XMR"] = 1
+	MaxLendAmt["XRP"] = 1
+	MaxLendAmt["ETH"] = .2
+	MaxLendAmt["FCT"] = 1
+}
 
 type LoanRates struct {
 	Simple   float64
@@ -180,7 +195,6 @@ func (l *Lender) CalculateLoanRate(currency string) error {
 			lowest = o.Rate
 		}
 	}
-	fmt.Println(lowest)
 
 	lr := l.CurrentLoanRate[currency]
 	lr.Simple = lowest
@@ -352,11 +366,11 @@ func (l *Lender) ProcessJob(j *Job) error {
 				r += l.PoloniexStats[j.Currency].DayStd * .1
 			}
 		}
-		return l.tierOneProcessJob(j, r)
+		return l.tierOneProcessJob(j, r, j.Currency)
 	}
 }
 
-func (l *Lender) tierOneProcessJob(j *Job, rate float64) error {
+func (l *Lender) tierOneProcessJob(j *Job, rate float64, currency string) error {
 	j.MinimumLend = 0.0008
 	if rate < j.MinimumLend {
 		return nil
@@ -381,16 +395,16 @@ func (l *Lender) tierOneProcessJob(j *Job, rate float64) error {
 		}
 	}
 
-	avail, ok := bals["lending"][l.Currency]
+	avail, ok := bals["lending"][currency]
 	var _ = ok
 
 	// rate := l.decideRate(rate, avail, total)
 
 	// We need to find some more crypto to lkend
-	if avail < MaxLendAmt {
+	if avail < MaxLendAmt[currency] {
 		need := MaxLendAmt - avail
 		if inactiveLoans != nil {
-			currencyLoans := inactiveLoans[l.Currency]
+			currencyLoans := inactiveLoans[currency]
 			sort.Sort(poloniex.PoloniexLoanOfferArray(currencyLoans))
 			for _, loan := range currencyLoans {
 				if need < 0 {
@@ -401,7 +415,7 @@ func (l *Lender) tierOneProcessJob(j *Job, rate float64) error {
 				if abs(loan.Rate-rate) < 0.00000009 {
 					continue
 				}
-				worked, err := s.PoloniexCancelLoanOffer(l.Currency, loan.ID, j.Username)
+				worked, err := s.PoloniexCancelLoanOffer(currency, loan.ID, j.Username)
 				if err != nil {
 					fmt.Println(err)
 					continue
@@ -424,7 +438,7 @@ func (l *Lender) tierOneProcessJob(j *Job, rate float64) error {
 	if amt < 0.01 {
 		return nil
 	}
-	_, err = s.PoloniexCreateLoanOffer(l.Currency, amt, rate, 2, false, j.Username)
+	_, err = s.PoloniexCreateLoanOffer(currency, amt, rate, 2, false, j.Username)
 	if err != nil {
 		return err
 	}
