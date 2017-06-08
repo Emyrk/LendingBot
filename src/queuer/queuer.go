@@ -115,8 +115,8 @@ func (q *Queuer) LoadUsers() error {
 
 	var newAll []*SingleUser
 	for _, u := range all {
-		if u.PoloniexEnabled {
-			newAll = append(newAll, &SingleUser{Username: u.Username, MiniumumLoanAmt: u.MiniumLend})
+		if u.PoloniexEnabled.BTC {
+			newAll = append(newAll, &SingleUser{Username: u.Username, MiniumumLoanAmt: u.MiniumLend.BTC})
 		}
 	}
 

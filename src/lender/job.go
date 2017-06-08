@@ -20,7 +20,7 @@ func NewBTCJob(u *user.User) *Job {
 }
 
 func NewJob(u *user.User, currency string, strat uint32) *Job {
-	return &Job{Username: u.Username, MinimumLend: u.MiniumLend, Currency: currency, Strategy: strat}
+	return &Job{Username: u.Username, MinimumLend: u.MiniumLend.BTC, Currency: currency, Strategy: strat}
 }
 
 func newJob(u string, l float64, cur string, strat uint32) *Job {
