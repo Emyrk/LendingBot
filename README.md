@@ -10,6 +10,7 @@ export SEC51_KEYPATH=$HOME/database/keys/
 export LOG_PATH=$HOME/database/log/hodlzone.log
 export USER_STATS_DB=$HOME/database/users/UserStatistics.db
 export REVEL_LOG=$HOME/database/
+export INVITE_DB=$HOME/database/InviteCodes.db
 ```
 
 

@@ -15,7 +15,7 @@ func TestUserMarshal(t *testing.T) {
 		t.Error(err)
 	}
 
-	u.PoloniexEnabled = true
+	u.PoloniexEnabled.Enable(true)
 	u.LendingStrategy = 10
 
 	data, err := u.MarshalBinary()
@@ -110,7 +110,7 @@ func TestUserWithKeys(t *testing.T) {
 	accessKey := "abceaskljfhdfjklfkjsdhfklsdhf"
 	secret := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
-	u.PoloniexEnabled = true
+	u.PoloniexEnabled.Enable(true)
 	u.LendingStrategy = 10
 
 	var key [32]byte
@@ -161,4 +161,43 @@ func TestUserWithKeys(t *testing.T) {
 	if secret != v {
 		t.Errorf("Got back %s as key, exp %s", v, secret)
 	}
+}
+
+func TestPE(t *testing.T) {
+	pe := new(PoloniexEnabledStruct)
+	pe.Enable(true)
+
+	d := pe.Bytes()
+	pe2 := new(PoloniexEnabledStruct)
+	nd, err := pe2.UnmarshalBinaryData(d)
+	if err != nil {
+		t.Error(err)
+	}
+	if len(nd) > 0 {
+		t.Error("Should be 0")
+	}
+}
+
+func TestMinLend(t *testing.T) {
+	m := new(MiniumumLendStruct)
+	m.BTC = 0.1
+
+	d, err := m.MarshalBinary()
+	if err != nil {
+		t.Error(err)
+	}
+
+	m2 := new(MiniumumLendStruct)
+	nd, err := m2.UnmarshalBinaryData(d)
+	if err != nil {
+		t.Error(err)
+	}
+	if len(nd) > 0 {
+		t.Error("Should be 0")
+	}
+
+	if m2.BTC != 0.1 {
+		t.Error("Should be 0.1")
+	}
+
 }

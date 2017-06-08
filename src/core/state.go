@@ -112,13 +112,13 @@ func (s *State) Close() error {
 	return s.userDB.Close()
 }
 
-func (s *State) SetUserMinimumLoan(username string, minimumAmt float64) error {
+func (s *State) SetUserMinimumLoan(username string, minimumAmt float64, currency string) error {
 	u, err := s.userDB.FetchUserIfFound(username)
 	if err != nil {
 		return err
 	}
 
-	u.MiniumLend = minimumAmt
+	u.MiniumLend.Set(currency, minimumAmt)
 	return s.userDB.PutUser(u)
 }
 
@@ -199,8 +199,7 @@ func (s *State) SetUserKeys(username string, acessKey string, secretKey string) 
 	}
 
 	u.PoloniexKeys = pk
-	// TODO: Make this a separate action
-	u.PoloniexEnabled = true
+
 	return s.userDB.PutUser(u)
 }
 
@@ -214,7 +213,7 @@ func (s *State) EnableUserLending(username string, enabled bool) error {
 		return err
 	}
 
-	u.PoloniexEnabled = enabled
+	u.PoloniexEnabled.Enable(enabled)
 	return s.userDB.PutUser(u)
 }
 

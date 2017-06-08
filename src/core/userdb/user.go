@@ -6,7 +6,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -71,7 +70,7 @@ type User struct {
 	StartTime       time.Time
 	JWTTime         time.Time
 	Level           UserLevel
-	MiniumLend      float64
+	MiniumLend      MiniumumLendStruct
 	LendingStrategy uint32
 
 	// 2FA
@@ -87,7 +86,7 @@ type User struct {
 	Verified     bool
 	VerifyString string
 
-	PoloniexEnabled bool
+	PoloniexEnabled PoloniexEnabledStruct
 	PoloniexKeys    *PoloniexKeys
 }
 
@@ -212,7 +211,9 @@ func (a *User) IsSameAs(b *User) bool {
 		return false
 	}
 
-	if a.MiniumLend != b.MiniumLend {
+	am, _ := a.MiniumLend.MarshalBinary()
+	bm, _ := b.MiniumLend.MarshalBinary()
+	if bytes.Compare(am, bm) != 0 {
 		return false
 	}
 
@@ -256,7 +257,7 @@ func (a *User) IsSameAs(b *User) bool {
 		return false
 	}
 
-	if a.PoloniexEnabled != b.PoloniexEnabled {
+	if bytes.Compare(a.PoloniexEnabled.Bytes(), b.PoloniexEnabled.Bytes()) != 0 {
 		return false
 	}
 
@@ -297,8 +298,8 @@ func (u *User) MarshalBinary() ([]byte, error) {
 	buf.Write(b)
 
 	// miniummlend
-	str := strconv.FormatFloat(u.MiniumLend, 'f', 6, 64)
-	b, err = primitives.MarshalStringToBytes(str, 100)
+
+	b, err = u.MiniumLend.MarshalBinary()
 	if err != nil {
 		return nil, err
 	}
@@ -352,7 +353,7 @@ func (u *User) MarshalBinary() ([]byte, error) {
 	buf.Write(b)
 
 	// PoloniexKeys
-	b = primitives.BoolToBytes(u.PoloniexEnabled)
+	b = u.PoloniexEnabled.Bytes()
 	buf.Write(b)
 
 	// PoloniexKeys
@@ -420,18 +421,10 @@ func (u *User) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 	newData = newData[4:]
 
 	// miniummlend
-	// Float64
-	var resp string
-	resp, newData, err = primitives.UnmarshalStringFromBytesData(newData, 100)
+	newData, err = u.MiniumLend.UnmarshalBinaryData(newData)
 	if err != nil {
 		return data, err
 	}
-	f, err := strconv.ParseFloat(resp, 64)
-	if err != nil {
-		return data, err
-	}
-	u.MiniumLend = f
-	//
 
 	// Lending Strat
 	v, err = primitives.BytesToUint32(newData[:4])
@@ -491,9 +484,10 @@ func (u *User) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 	u.VerifyString = vrystr
 
 	// PoloniexEnabled
-	poloniexEnabled := primitives.ByteToBool(newData[0])
-	newData = newData[1:]
-	u.PoloniexEnabled = poloniexEnabled
+	newData, err = u.PoloniexEnabled.UnmarshalBinaryData(newData)
+	if err != nil {
+		return data, nil
+	}
 
 	// PoloniexKeys
 	newData, err = u.PoloniexKeys.UnmarshalBinaryData(newData)
@@ -502,4 +496,282 @@ func (u *User) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 	}
 
 	return newData, nil
+}
+
+type MiniumumLendStruct struct {
+	BTC  float64
+	BTS  float64
+	CLAM float64
+	DOGE float64
+	DASH float64
+	LTC  float64
+	MAID float64
+	STR  float64
+	XMR  float64
+	XRP  float64
+	ETH  float64
+	FCT  float64
+}
+
+func (m *MiniumumLendStruct) Set(currency string, min float64) bool {
+	switch currency {
+	case "BTC":
+		m.BTC = min
+	case "BTS ":
+		m.BTS = min
+	case "CLAM":
+		m.CLAM = min
+	case "DOGE":
+		m.DOGE = min
+	case "DASH":
+		m.DASH = min
+	case "LTC ":
+		m.LTC = min
+	case "MAID":
+		m.MAID = min
+	case "STR ":
+		m.STR = min
+	case "XMR ":
+		m.XMR = min
+	case "XRP ":
+		m.XRP = min
+	case "ETH ":
+		m.ETH = min
+	case "FCT ":
+		m.FCT = min
+	default:
+		return false
+	}
+	return true
+}
+
+func (m *MiniumumLendStruct) UnmarshalBinary(data []byte) (err error) {
+	_, err = m.UnmarshalBinaryData(data)
+	return
+}
+
+func (m *MiniumumLendStruct) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("[PoloniexEnabledStruct] A panic has occurred while unmarshaling: %s", r)
+			return
+		}
+	}()
+
+	newData = data
+	var v float64
+
+	v, newData, err = primitives.BytesToFloat64Data(newData)
+	if err != nil {
+		return data, err
+	}
+	m.BTC = v
+
+	v, newData, err = primitives.BytesToFloat64Data(newData)
+	if err != nil {
+		return data, err
+	}
+	m.BTS = v
+	v, newData, err = primitives.BytesToFloat64Data(newData)
+	if err != nil {
+		return data, err
+	}
+	m.CLAM = v
+	v, newData, err = primitives.BytesToFloat64Data(newData)
+	if err != nil {
+		return data, err
+	}
+	m.DOGE = v
+	v, newData, err = primitives.BytesToFloat64Data(newData)
+	if err != nil {
+		return data, err
+	}
+	m.DASH = v
+	v, newData, err = primitives.BytesToFloat64Data(newData)
+	if err != nil {
+		return data, err
+	}
+	m.LTC = v
+	v, newData, err = primitives.BytesToFloat64Data(newData)
+	if err != nil {
+		return data, err
+	}
+	m.MAID = v
+	v, newData, err = primitives.BytesToFloat64Data(newData)
+	if err != nil {
+		return data, err
+	}
+	m.STR = v
+	v, newData, err = primitives.BytesToFloat64Data(newData)
+	if err != nil {
+		return data, err
+	}
+	m.XMR = v
+	v, newData, err = primitives.BytesToFloat64Data(newData)
+	if err != nil {
+		return data, err
+	}
+	m.XRP = v
+	v, newData, err = primitives.BytesToFloat64Data(newData)
+	if err != nil {
+		return data, err
+	}
+	m.ETH = v
+	v, newData, err = primitives.BytesToFloat64Data(newData)
+	if err != nil {
+		return data, err
+	}
+	m.FCT = v
+
+	return
+}
+
+func (m *MiniumumLendStruct) MarshalBinary() ([]byte, error) {
+	buf := new(bytes.Buffer)
+
+	data, err := primitives.Float64ToBytes(m.BTC)
+	if err != nil {
+		return nil, err
+	}
+	buf.Write(data)
+
+	data, err = primitives.Float64ToBytes(m.BTS)
+	if err != nil {
+		return nil, err
+	}
+	buf.Write(data)
+	data, err = primitives.Float64ToBytes(m.CLAM)
+	if err != nil {
+		return nil, err
+	}
+	buf.Write(data)
+	data, err = primitives.Float64ToBytes(m.DOGE)
+	if err != nil {
+		return nil, err
+	}
+	buf.Write(data)
+	data, err = primitives.Float64ToBytes(m.DASH)
+	if err != nil {
+		return nil, err
+	}
+	buf.Write(data)
+	data, err = primitives.Float64ToBytes(m.LTC)
+	if err != nil {
+		return nil, err
+	}
+	buf.Write(data)
+	data, err = primitives.Float64ToBytes(m.MAID)
+	if err != nil {
+		return nil, err
+	}
+	buf.Write(data)
+	data, err = primitives.Float64ToBytes(m.STR)
+	if err != nil {
+		return nil, err
+	}
+	buf.Write(data)
+	data, err = primitives.Float64ToBytes(m.XMR)
+	if err != nil {
+		return nil, err
+	}
+	buf.Write(data)
+	data, err = primitives.Float64ToBytes(m.XRP)
+	if err != nil {
+		return nil, err
+	}
+	buf.Write(data)
+	data, err = primitives.Float64ToBytes(m.ETH)
+	if err != nil {
+		return nil, err
+	}
+	buf.Write(data)
+	data, err = primitives.Float64ToBytes(m.FCT)
+	if err != nil {
+		return nil, err
+	}
+	buf.Write(data)
+
+	return buf.Next(buf.Len()), nil
+}
+
+type PoloniexEnabledStruct struct {
+	BTC  bool
+	BTS  bool
+	CLAM bool
+	DOGE bool
+	DASH bool
+	LTC  bool
+	MAID bool
+	STR  bool
+	XMR  bool
+	XRP  bool
+	ETH  bool
+	FCT  bool
+}
+
+func (pe *PoloniexEnabledStruct) Enable(enable bool) {
+	pe.BTC = enable
+	pe.BTS = enable
+	pe.CLAM = enable
+	pe.DOGE = enable
+	pe.DASH = enable
+	pe.LTC = enable
+	pe.MAID = enable
+	pe.STR = enable
+	pe.XMR = enable
+	pe.XRP = enable
+	pe.ETH = enable
+	pe.FCT = enable
+}
+
+func (pe *PoloniexEnabledStruct) Bytes() []byte {
+	b, _ := pe.MarshalBinary()
+	return b
+}
+
+func (pe *PoloniexEnabledStruct) MarshalBinary() ([]byte, error) {
+	buf := new(bytes.Buffer)
+	buf.Write(primitives.BoolToBytes(pe.BTC))
+	buf.Write(primitives.BoolToBytes(pe.BTS))
+	buf.Write(primitives.BoolToBytes(pe.CLAM))
+	buf.Write(primitives.BoolToBytes(pe.DOGE))
+	buf.Write(primitives.BoolToBytes(pe.DASH))
+	buf.Write(primitives.BoolToBytes(pe.LTC))
+	buf.Write(primitives.BoolToBytes(pe.MAID))
+	buf.Write(primitives.BoolToBytes(pe.STR))
+	buf.Write(primitives.BoolToBytes(pe.XMR))
+	buf.Write(primitives.BoolToBytes(pe.XRP))
+	buf.Write(primitives.BoolToBytes(pe.ETH))
+	buf.Write(primitives.BoolToBytes(pe.FCT))
+	return buf.Next(buf.Len()), nil
+}
+
+func (pe *PoloniexEnabledStruct) UnmarshalBinary(data []byte) error {
+	_, err := pe.UnmarshalBinaryData(data)
+	return err
+}
+
+func (pe *PoloniexEnabledStruct) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("[PoloniexEnabledStruct] A panic has occurred while unmarshaling: %s", r)
+			return
+		}
+	}()
+
+	newData = data
+	pe.BTC = primitives.ByteToBool(newData[0])
+	pe.BTS = primitives.ByteToBool(newData[1])
+	pe.CLAM = primitives.ByteToBool(newData[2])
+	pe.DOGE = primitives.ByteToBool(newData[3])
+	pe.DASH = primitives.ByteToBool(newData[4])
+	pe.LTC = primitives.ByteToBool(newData[5])
+	pe.MAID = primitives.ByteToBool(newData[6])
+	pe.STR = primitives.ByteToBool(newData[7])
+	pe.XMR = primitives.ByteToBool(newData[8])
+	pe.XRP = primitives.ByteToBool(newData[9])
+	pe.ETH = primitives.ByteToBool(newData[10])
+	pe.FCT = primitives.ByteToBool(newData[11])
+	newData = newData[12:]
+	return
 }
