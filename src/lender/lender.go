@@ -77,14 +77,9 @@ func (l *Lender) Start() {
 		case j := <-l.JobQueue:
 			// Update loan rate
 			if time.Since(l.LastCalculateLoanRate).Seconds() >= l.CalculateLoanInterval {
-				err := l.CalculateLoanRate("BTC")
+				err := l.CalculateLoanRate(j.Currency)
 				if err != nil {
-					log.Println("[BTC] Error in Lending:", err)
-				}
-
-				err = l.CalculateLoanRate("FCT")
-				if err != nil {
-					log.Println("[FCT] Error in Lending:", err)
+					log.Printf("[%s] Error in Lending: %s", j.Currency, err)
 				}
 			}
 
@@ -122,7 +117,6 @@ func (l *Lender) UpdateTicker() {
 	l.LastTickerUpdate = time.Now()
 	l.PoloniexStats["BTC"] = l.State.GetPoloniexStatistics("BTC")
 	// Prometheus
-	fmt.Println(l.PoloniexStats["BTC"], l.PoloniexStats["FCT"])
 	if l.PoloniexStats["BTC"] != nil {
 		PoloniexStatsHourlyAvg.Set(l.PoloniexStats["BTC"].HrAvg)
 		PoloniexStatsDailyAvg.Set(l.PoloniexStats["BTC"].DayAvg)
@@ -440,6 +434,7 @@ func (l *Lender) tierOneProcessJob(j *Job, rate float64, currency string) error 
 	if amt < 0.01 {
 		return nil
 	}
+	fmt.Printf("Create loan for %s with %s at %f\n", j.Username, j.Currency, rate)
 	_, err = s.PoloniexCreateLoanOffer(currency, amt, rate, 2, false, j.Username)
 	if err != nil {
 		return err

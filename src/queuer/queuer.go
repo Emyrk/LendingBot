@@ -99,13 +99,17 @@ func (q *Queuer) AddJobs() {
 		j := lender.NewManualBTCJob("", 0, 0)
 		q.Lender.AddJob(j)
 		QueuerJobsMade.Inc()
+
+		j2 := lender.NewManualJob("", 0, 0, "FCT")
+		q.Lender.AddJob(j)
+		QueuerJobsMade.Inc()
 	}
 	for _, u := range q.AllUsers {
 		j := lender.NewManualBTCJob(u.Username, u.MiniumumLoanAmt, u.LendingStrategy)
 		q.Lender.AddJob(j)
 		QueuerJobsMade.Inc()
 
-		j = lender.NewManualJob(u.Username, u.MiniumumLoanAmt, u.LendingStrategy, "FCT")
+		j2 := lender.NewManualJob(u.Username, u.MiniumumLoanAmt, u.LendingStrategy, "FCT")
 		q.Lender.AddJob(j)
 		QueuerJobsMade.Inc()
 	}

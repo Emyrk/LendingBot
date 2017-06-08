@@ -317,8 +317,6 @@ func RegisterPrometheus() {
 }
 
 func SetSimple(currency string, rate float64) {
-	fmt.Println("SIMPLE", currency, rate)
-
 	switch currency {
 	case "BTC":
 		CurrentLoanRate.Set(rate)
@@ -348,8 +346,6 @@ func SetSimple(currency string, rate float64) {
 }
 
 func SetAvg(currency string, rate float64) {
-	fmt.Println("AVGBASED", currency, rate)
-
 	switch currency {
 	case "BTC":
 		LenderCurrentAverageBasedRate.Set(rate)
