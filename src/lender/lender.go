@@ -372,16 +372,23 @@ func (l *Lender) tierOneProcessJob(j *Job, rate float64, currency string) error 
 		return nil
 	}
 
+	fmt.Println("Start process", j.Currency)
+
 	s := l.State
 	// total := float64(0)
 
 	bals, err := s.PoloniexGetAvailableBalances(j.Username)
 	if err != nil {
+		fmt.Println("2", err)
 		return err
 	}
 
 	// 3 types of balances: Not lent, Inactive, Active
-	inactiveLoans, _ := s.PoloniexGetInactiveLoans(j.Username)
+	inactiveLoans, err := s.PoloniexGetInactiveLoans(j.Username)
+	if err != nil {
+		fmt.Println("2", err)
+		return err
+	}
 
 	activeLoans, err := s.PoloniexGetActiveLoans(j.Username)
 	if err == nil && activeLoans != nil {
@@ -425,6 +432,7 @@ func (l *Lender) tierOneProcessJob(j *Job, rate float64, currency string) error 
 		}
 	}
 
+	fmt.Println("3", avail, MaxLendAmt[currency])
 	amt := MaxLendAmt[currency]
 	if avail < MaxLendAmt[currency] {
 		amt = avail
@@ -432,6 +440,7 @@ func (l *Lender) tierOneProcessJob(j *Job, rate float64, currency string) error 
 
 	// To little for a loan
 	if amt < 0.01 {
+		fmt.Println("EXIT HERE")
 		return nil
 	}
 	fmt.Printf("Create loan for %s with %s at %f\n", j.Username, j.Currency, rate)
