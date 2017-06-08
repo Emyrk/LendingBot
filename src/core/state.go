@@ -333,3 +333,52 @@ func (s *State) setUserPass(username string, password string, u *userdb.User) er
 
 	return s.userDB.PutUser(u)
 }
+
+type SafeUser struct {
+	Username  string `json:"email"`
+	Privilege string `json:"priv"`
+}
+
+func (s *State) GetAllUsers() (*[]SafeUser, error) {
+	users, err := s.userDB.FetchAllUsers()
+	if err != nil {
+		return nil, fmt.Errorf("ERROR: Error getting all users: %s\n", err.Error())
+	}
+	var safeUsers []SafeUser
+	for i, u := range users {
+		safeUsers[i] = SafeUser{
+			u.Username,
+			u.GetLevelString(),
+		}
+	}
+	return &safeUsers, nil
+}
+
+func (s *State) DeleteUser() error {
+	//TODO DELETE USER
+	return nil
+}
+
+func (s *State) UpdateUserPrivilege(priv string, email string) (*string, error) {
+	u, err := s.userDB.FetchUserIfFound(email)
+	if err != nil {
+		return nil, err
+	}
+	u.Level = userdb.StringToLevel(priv)
+
+	userLevelString := userdb.LevelToString(u.Level)
+	return &userLevelString, s.userDB.PutUser(u)
+}
+
+func (s *State) HasUserPrivilege(email string, priv userdb.UserLevel) bool {
+	u, err := s.userDB.FetchUserIfFound(email)
+	if err != nil {
+		fmt.Printf("WARNING: IMPORTANT: User does not have priv, but attempting to get in [%s]: %s\n", email, err.Error())
+		return false
+	}
+	if u.Level < priv {
+		fmt.Printf("WARNING: IMPORTANT: User does not have priv, but attempting to get in [%s]: %s\n", email, err.Error())
+		return false
+	}
+	return true
+}

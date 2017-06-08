@@ -23,6 +23,10 @@ app.config(['$routeProvider', '$locationProvider',
 			templateUrl : "/dashboard/logs",
 			controller : "dashLogsController"
 		})
+		.when("/sysAdmin",{
+			templateUrl : "/dashboard/sysadmin",
+			controller : "sysAdminController"
+		})
 		.otherwise({redirectTo:'/'});
 
 
@@ -346,7 +350,6 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log',
 		//------
 
 	}]);
-
 
 app.controller('dashLogsController', ['$scope', '$http', '$log',
 	function($scope, $http, $log) {

@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"fmt"
+	"strconv"
+	"time"
 
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"github.com/revel/revel"
@@ -9,6 +11,79 @@ import (
 
 type AppSysAdmin struct {
 	*revel.Controller
+}
+
+func (s AppSysAdmin) SysAdminDashboard() revel.Result {
+	return s.RenderTemplate("AppSysAdmin/SysAdminDashboard.html")
+}
+
+func (s AppSysAdmin) GetUsers() revel.Result {
+	data := make(map[string]interface{})
+
+	safeUsers, err := state.GetAllUsers()
+	if err != nil {
+		fmt.Printf("WARNING: User failed to get all users: [%s] error: %s\n", s.Session[SESSION_EMAIL], err.Error())
+		data[JSON_ERROR] = "Failed to get all users. Look at logs."
+		s.Response.Status = 500
+		return s.RenderJSON(data)
+	}
+
+	data[JSON_DATA] = *safeUsers
+
+	return s.RenderJSON(data)
+}
+
+func (s AppSysAdmin) DeleteUser() revel.Result {
+	data := make(map[string]interface{})
+	data[JSON_ERROR] = "Error not setup."
+	return s.RenderJSON(data)
+}
+
+func (s AppSysAdmin) MakeInvite() revel.Result {
+	data := make(map[string]interface{})
+
+	h, err := strconv.Atoi(s.Params.Get("hours"))
+	if err != nil {
+		fmt.Printf("WARNING: failed to convert hours to int: [%s] error: %s\n", s.Session[SESSION_EMAIL], err.Error())
+		data[JSON_ERROR] = "Failed to change hours to int."
+		s.Response.Status = 500
+		return s.RenderJSON(data)
+	}
+
+	c, err := strconv.Atoi(s.Params.Get("capacity"))
+	if err != nil {
+		fmt.Printf("WARNING: failed to convert capacity to int: [%s] error: %s\n", s.Session[SESSION_EMAIL], err.Error())
+		data[JSON_ERROR] = "Failed to change capacity to int."
+		s.Response.Status = 500
+		return s.RenderJSON(data)
+	}
+
+	t := time.Now().Add(time.Duration(h) * time.Hour)
+	err = state.AddInviteCode(s.Params.Get("code"), c, t)
+	if err != nil {
+		fmt.Printf("WARNING: User failed to create invite: [%s] error: %s\n", s.Session[SESSION_EMAIL], err.Error())
+		data[JSON_ERROR] = "Failed to create invite."
+		s.Response.Status = 500
+		return s.RenderJSON(data)
+	}
+
+	return s.Render(data)
+}
+
+func (s AppSysAdmin) ChangeUserPrivilege() revel.Result {
+	data := make(map[string]interface{})
+
+	priv, err := state.UpdateUserPrivilege(s.Session[SESSION_EMAIL], s.Params.Form.Get("priv"))
+	if err != nil {
+		fmt.Printf("WARNING: User failed to update privelege: [%s] error: %s\n", s.Session[SESSION_EMAIL], err.Error())
+		data[JSON_ERROR] = "Failed to change user privelege."
+		s.Response.Status = 500
+		return s.RenderJSON(data)
+	}
+
+	data[JSON_DATA] = priv
+
+	return s.Render(data)
 }
 
 func (s AppSysAdmin) LogsDashboard() revel.Result {
@@ -27,35 +102,26 @@ func (s AppSysAdmin) DeleteLogs() revel.Result {
 //called before any auth required function
 func (s AppSysAdmin) AuthUserSysAdmin() revel.Result {
 	if !ValidCacheEmail(s.Session.ID(), s.Session[SESSION_EMAIL]) {
-		fmt.Printf("WARNING: AuthUser has invalid cache: [%s] sessionId:[%s]\n", s.Session[SESSION_EMAIL], s.Session.ID())
+		fmt.Printf("WARNING: AuthUserSysAdmin has invalid cache: [%s] sessionId:[%s]\n", s.Session[SESSION_EMAIL], s.Session.ID())
 		s.Session[SESSION_EMAIL] = ""
 		return s.Redirect(App.Index)
 	}
 
 	err := SetCacheEmail(s.Session.ID(), s.Session[SESSION_EMAIL])
 	if err != nil {
-		fmt.Printf("WARNING: AuthUser failed to set cache: [%s] and error: %s\n", s.Session.ID(), err.Error())
+		fmt.Printf("WARNING: AuthUserSysAdmin failed to set cache: [%s] and error: %s\n", s.Session.ID(), err.Error())
 		s.Session[SESSION_EMAIL] = ""
 		return s.Redirect(App.Index)
 	}
 
-	// tokenString := s.Session[cryption.COOKIE_JWT_MAP]
-	// email, err := cryption.VerifyJWTGetEmail(tokenString, state.JWTSecret)
-	// if err != nil {
-	// 	fmt.Printf("WARNING: AuthUser SysAdmin failed JWT Token: %s\n", tokenString)
-	// 	return s.Redirect(App.Index)
-	// }
-
-	u, err := state.FetchUser(s.Session[SESSION_EMAIL])
-	if err != nil || u == nil {
-		fmt.Printf("WARNING: AuthUser SysAdmin failed to fetch user: %s\n", s.Session[SESSION_EMAIL])
+	if !state.HasUserPrivilege(s.Session[SESSION_EMAIL], userdb.SysAdmin) {
 		return s.Redirect(App.Index)
 	}
 
-	if u.Level != userdb.SysAdmin {
-		fmt.Printf("WARNING: IMPORTANT: AuthUser SysAdmin user level: %d trying to attempt access: %s\n", u.Level, s.Session[SESSION_EMAIL])
-		return s.Redirect(App.Index)
-	}
+	//do not cache auth pages
+	s.Response.Out.Header().Set("Cache-Control", "no-cache, max-age=0, must-revalidate, no-store")
+
+	s.SetCookie(GetTimeoutCookie())
 
 	return nil
 }
