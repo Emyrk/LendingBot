@@ -233,7 +233,6 @@ func (s *State) GetPoloniexStatistics(currency string) *userdb.PoloniexStats {
 
 // RecordPoloniexStatistics is for recording the current lending rate on poloniex
 func (s *State) RecordPoloniexStatistics(currency string, rate float64) error {
-	fmt.Println("RECORD", currency)
 	return s.userStatistic.RecordPoloniexStatistic(currency, rate)
 }
 

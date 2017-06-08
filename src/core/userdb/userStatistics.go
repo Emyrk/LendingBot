@@ -583,7 +583,6 @@ func (us *UserStatisticsDB) RecordPoloniexStatisticTime(currency string, rate fl
 	sec := GetSeconds(t)
 	buck := append(PoloniexPrefix, day...)
 	buck = append(getCurrencyPre(currency), buck...)
-	fmt.Println(string(buck))
 
 	secBytes := primitives.Uint32ToBytes(uint32(sec))
 	data, err := primitives.Float64ToBytes(rate)
@@ -591,6 +590,7 @@ func (us *UserStatisticsDB) RecordPoloniexStatisticTime(currency string, rate fl
 		return err
 	}
 
+	fmt.Println("RECORD", currency)
 	us.LastPoloniexRateSave[currency] = time.Now()
 	return us.db.Put(buck, secBytes, data)
 }
