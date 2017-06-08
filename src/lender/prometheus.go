@@ -79,6 +79,57 @@ var (
 		Name: "hodlezone_lender_update_ticker",
 		Help: "Every ticker update",
 	})
+
+	// Tickers
+	TickerFCTValue = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlezone_lender_fct_value",
+		Help: "FCT_BTC",
+	})
+
+	TickerBTSValue = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlezone_lender_bts_value",
+		Help: "BTS_BTC",
+	})
+
+	TickerCLAMValue = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlezone_lender_clam_value",
+		Help: "CLAM_BTC",
+	})
+
+	TickerDOGEValue = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlezone_lender_doge_value",
+		Help: "DOGE_BTC",
+	})
+
+	TickerLTCValue = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlezone_lender_ltc_value",
+		Help: "LTC_BTC",
+	})
+
+	TickerMAIDValue = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlezone_lender_maid_value",
+		Help: "MAID_BTC",
+	})
+
+	TickerSTRValue = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlezone_lender_str_value",
+		Help: "STR_BTC",
+	})
+
+	TickerXMRValue = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlezone_lender_xmr_value",
+		Help: "XMR_BTC",
+	})
+
+	TickerXRPValue = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlezone_lender_xrp_value",
+		Help: "XRP_BTC",
+	})
+
+	TickerETHValue = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlezone_lender_eth_value",
+		Help: "ETH_BTC",
+	})
 )
 
 var registered bool = false
@@ -105,4 +156,15 @@ func RegisterPrometheus() {
 	prometheus.MustRegister(PoloniexStatsMonthlyStd)
 	prometheus.MustRegister(LenderUpdateTicker)
 	prometheus.MustRegister(LenderCurrentAverageBasedRate)
+
+	prometheus.MustRegister(TickerFCTValue)
+	prometheus.MustRegister(TickerBTSValue)
+	prometheus.MustRegister(TickerCLAMValue)
+	prometheus.MustRegister(TickerDOGEValue)
+	prometheus.MustRegister(TickerLTCValue)
+	prometheus.MustRegister(TickerMAIDValue)
+	prometheus.MustRegister(TickerSTRValue)
+	prometheus.MustRegister(TickerXMRValue)
+	prometheus.MustRegister(TickerXRPValue)
+	prometheus.MustRegister(TickerETHValue)
 }
