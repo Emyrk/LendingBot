@@ -101,7 +101,7 @@ func (q *Queuer) AddJobs() {
 		QueuerJobsMade.Inc()
 
 		j2 := lender.NewManualJob("", 0, 0, "FCT")
-		q.Lender.AddJob(j)
+		q.Lender.AddJob(j2)
 		QueuerJobsMade.Inc()
 	}
 	for _, u := range q.AllUsers {
@@ -110,7 +110,7 @@ func (q *Queuer) AddJobs() {
 		QueuerJobsMade.Inc()
 
 		j2 := lender.NewManualJob(u.Username, u.MiniumumLoanAmt, u.LendingStrategy, "FCT")
-		q.Lender.AddJob(j)
+		q.Lender.AddJob(j2)
 		QueuerJobsMade.Inc()
 	}
 }
