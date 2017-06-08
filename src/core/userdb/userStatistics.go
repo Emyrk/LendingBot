@@ -453,7 +453,7 @@ func (us *UserStatisticsDB) GetPoloniexDataLastXDays(dayRange int, currency stri
 		bucket := primitives.Uint32ToBytes(uint32(day))
 		bucket = append(PoloniexPrefix, bucket...)
 		bucket = append(getCurrencyPre(currency), bucket...)
-		fmt.Println(string(bucket), fmt.Sprintf("%x", buck))
+		fmt.Println(string(bucket), fmt.Sprintf("%x", bucket))
 		datas, keys, err := us.db.GetAll(bucket)
 		if err != nil {
 			continue
