@@ -113,34 +113,34 @@ func (l *Lender) UpdateTicker() {
 	}
 
 	if v, ok := ticker["BTC_FCT"]; ok {
-		TickerFCTValue.Set(v)
+		TickerFCTValue.Set(v.Last)
 	}
 	if v, ok := ticker["BTC_BTS"]; ok {
-		TickerBTSValue.Set(v)
+		TickerBTSValue.Set(v.Last)
 	}
 	if v, ok := ticker["BTC_CLAM"]; ok {
-		TickerCLAMValue.Set(v)
+		TickerCLAMValue.Set(v.Last)
 	}
 	if v, ok := ticker["BTC_DOGE"]; ok {
-		TickerDOGEValue.Set(v)
+		TickerDOGEValue.Set(v.Last)
 	}
 	if v, ok := ticker["BTC_LTC"]; ok {
-		TickerLTCValue.Set(v)
+		TickerLTCValue.Set(v.Last)
 	}
 	if v, ok := ticker["BTC_MAID"]; ok {
-		TickerMAIDValue.Set(v)
+		TickerMAIDValue.Set(v.Last)
 	}
 	if v, ok := ticker["BTC_STR"]; ok {
-		TickerSTRValue.Set(v)
+		TickerSTRValue.Set(v.Last)
 	}
 	if v, ok := ticker["BTC_XMR"]; ok {
-		TickerXMRValue.Set(v)
+		TickerXMRValue.Set(v.Last)
 	}
 	if v, ok := ticker["BTC_XRP"]; ok {
-		TickerXRPValue.Set(v)
+		TickerXRPValue.Set(v.Last)
 	}
 	if v, ok := ticker["BTC_ETH"]; ok {
-		TickerETHValue.Set(v)
+		TickerETHValue.Set(v.Last)
 	}
 
 	LenderUpdateTicker.Inc()
