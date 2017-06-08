@@ -1,8 +1,6 @@
 package lender
 
 import (
-	"fmt"
-
 	"github.com/prometheus/client_golang/prometheus"
 )
 
