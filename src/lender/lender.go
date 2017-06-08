@@ -44,7 +44,6 @@ type Lender struct {
 	JobQueue chan *Job
 	quit     chan struct{}
 
-	Currency              string
 	CurrentLoanRate       map[string]LoanRates
 	LastCalculateLoanRate time.Time
 	CalculateLoanInterval float64 // In seconds
@@ -57,7 +56,6 @@ type Lender struct {
 func NewLender(s *core.State) *Lender {
 	l := new(Lender)
 	l.State = s
-	l.Currency = "BTC"
 	l.JobQueue = make(chan *Job, 1000)
 	l.CalculateLoanInterval = 1
 	l.GetTickerInterval = 30
@@ -201,6 +199,7 @@ func (l *Lender) CalculateLoanRate(currency string) error {
 	lr.Simple = lowest
 	if l.CurrentLoanRate[currency].Simple < 2 {
 		SetSimple(currency, lowest)
+		fmt.Println("RECORD", currency, lowest)
 		s.RecordPoloniexStatistics(currency, lowest)
 	}
 	// lr.AvgBased = lr.Simple

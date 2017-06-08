@@ -31,7 +31,7 @@ var (
 type UserStatisticsDB struct {
 	db database.IDatabase
 
-	LastPoloniexRateSave time.Time
+	LastPoloniexRateSave map[string]time.Time
 	LastCurrentIndexCalc time.Time
 	CurrentDay           int
 	CurrentIndex         int // 0 to 30
@@ -80,6 +80,7 @@ func newUserStatisticsDB(mapDB bool) (*UserStatisticsDB, error) {
 		return u, err
 	}
 
+	u.LastPoloniexRateSave = make(map[string]time.Time)
 	return u, nil
 }
 
@@ -572,7 +573,9 @@ func getCurrencyPre(currency string) []byte {
 }
 
 func (us *UserStatisticsDB) RecordPoloniexStatisticTime(currency string, rate float64, t time.Time) error {
-	if time.Since(us.LastPoloniexRateSave).Seconds() < 10 {
+	if t, ok := us.LastPoloniexRateSave[currency]; !ok {
+		us.LastPoloniexRateSave[currency] = time.Now()
+	} else if time.Since(t).Seconds() < 10 {
 		return nil
 	}
 
@@ -580,6 +583,7 @@ func (us *UserStatisticsDB) RecordPoloniexStatisticTime(currency string, rate fl
 	sec := GetSeconds(t)
 	buck := append(PoloniexPrefix, day...)
 	buck = append(getCurrencyPre(currency), buck...)
+	fmt.Println(string(buck))
 
 	secBytes := primitives.Uint32ToBytes(uint32(sec))
 	data, err := primitives.Float64ToBytes(rate)
@@ -587,7 +591,7 @@ func (us *UserStatisticsDB) RecordPoloniexStatisticTime(currency string, rate fl
 		return err
 	}
 
-	us.LastPoloniexRateSave = time.Now()
+	us.LastPoloniexRateSave[currency] = time.Now()
 	return us.db.Put(buck, secBytes, data)
 }
 
