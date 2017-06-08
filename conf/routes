@@ -40,6 +40,12 @@ GET		/dashboard/logs							AppSysAdmin.LogsDashboard
 GET		/dashboard/logs/export					AppSysAdmin.ExportLogs
 GET		/dashboard/logs/delete					AppSysAdmin.DeleteLogs
 
+GET		/dashboard/sysadmin						AppSysAdmin.SysAdminDashboard
+GET		/dashboard/sysadmin/getusers			AppSysAdmin.GetUsers
+POST	/dashboard/sysadmin/deleteuser			AppSysAdmin.DeleteUser
+POST	/dashboard/sysadmin/makeinvite			AppSysAdmin.MakeInvite
+POST	/dashboard/sysadmin/changeuserpriv		AppSysAdmin.ChangeUserPrivilege
+
 GET 	/dashboard/data/currentuserstats		AppAuthRequired.CurrentUserStats
 GET 	/dashboard/data/lendinghistory			AppAuthRequired.LendingHistory
 

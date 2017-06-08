@@ -310,9 +310,6 @@ func (r AppAuthRequired) UserDashboard() revel.Result {
 func (r AppAuthRequired) AuthUser() revel.Result {
 	if !ValidCacheEmail(r.Session.ID(), r.Session[SESSION_EMAIL]) {
 		fmt.Printf("WARNING: AuthUser has invalid cache: [%s] sessionId:[%s]\n", r.Session[SESSION_EMAIL], r.Session.ID())
-		// if SkipAuth {
-		// 	return nil
-		// }
 		r.Session[SESSION_EMAIL] = ""
 		return r.Redirect(App.Index)
 	}
