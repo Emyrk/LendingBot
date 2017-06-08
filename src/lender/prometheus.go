@@ -16,6 +16,128 @@ var (
 		Help: "Average based lend rate",
 	})
 
+	// Lending Rates Other
+	CurrentLoanRateBTS = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_current_lend_rate_bts",
+		Help: "Shows the current lending rate when it is calculated",
+	})
+
+	LenderCurrentAverageBasedRateBTS = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_current_avgbased_lend_rate_bts",
+		Help: "Average based lend rate",
+	})
+
+	//
+	CurrentLoanRateCLAM = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_current_lend_rate_clam",
+		Help: "Shows the current lending rate when it is calculated",
+	})
+
+	LenderCurrentAverageBasedRateCLAM = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_current_avgbased_lend_rate_clam",
+		Help: "Average based lend rate",
+	})
+
+	//
+	CurrentLoanRateDOGE = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_current_lend_rate_doge",
+		Help: "Shows the current lending rate when it is calculated",
+	})
+
+	LenderCurrentAverageBasedRateDOGE = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_current_avgbased_lend_rate_doge",
+		Help: "Average based lend rate",
+	})
+
+	//
+	CurrentLoanRateDASH = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_current_lend_rate_dash",
+		Help: "Shows the current lending rate when it is calculated",
+	})
+
+	LenderCurrentAverageBasedRateDASH = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_current_avgbased_lend_rate_dash",
+		Help: "Average based lend rate",
+	})
+
+	//
+	CurrentLoanRateLTC = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_current_lend_rate_ltc",
+		Help: "Shows the current lending rate when it is calculated",
+	})
+
+	LenderCurrentAverageBasedRateLTC = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_current_avgbased_lend_rate_ltc",
+		Help: "Average based lend rate",
+	})
+
+	//
+	CurrentLoanRateMAID = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_current_lend_rate_maid",
+		Help: "Shows the current lending rate when it is calculated",
+	})
+
+	LenderCurrentAverageBasedRateMAID = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_current_avgbased_lend_rate_maid",
+		Help: "Average based lend rate",
+	})
+
+	//
+	CurrentLoanRateSTR = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_current_lend_rate_str",
+		Help: "Shows the current lending rate when it is calculated",
+	})
+
+	LenderCurrentAverageBasedRateSTR = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_current_avgbased_lend_rate_str",
+		Help: "Average based lend rate",
+	})
+
+	//
+	CurrentLoanRateXMR = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_current_lend_rate_xmr",
+		Help: "Shows the current lending rate when it is calculated",
+	})
+
+	LenderCurrentAverageBasedRateXMR = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_current_avgbased_lend_rate_xmr",
+		Help: "Average based lend rate",
+	})
+
+	//
+	CurrentLoanRateXRP = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_current_lend_rate_xrp",
+		Help: "Shows the current lending rate when it is calculated",
+	})
+
+	LenderCurrentAverageBasedRateXRP = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_current_avgbased_lend_rate_xrp",
+		Help: "Average based lend rate",
+	})
+
+	//
+	CurrentLoanRateETH = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_current_lend_rate_eth",
+		Help: "Shows the current lending rate when it is calculated",
+	})
+
+	LenderCurrentAverageBasedRateETH = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_current_avgbased_lend_rate_eth",
+		Help: "Average based lend rate",
+	})
+
+	//
+	CurrentLoanRateFCT = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_current_lend_rate_fct",
+		Help: "Shows the current lending rate when it is calculated",
+	})
+
+	LenderCurrentAverageBasedRateFCT = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_current_avgbased_lend_rate_fct",
+		Help: "Average based lend rate",
+	})
+
+	// END
 	LoansCreated = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "hodlzone_lender_loans_created_count",
 		Help: "Count of loans created",
@@ -167,4 +289,85 @@ func RegisterPrometheus() {
 	prometheus.MustRegister(TickerXMRValue)
 	prometheus.MustRegister(TickerXRPValue)
 	prometheus.MustRegister(TickerETHValue)
+
+	prometheus.MustRegister(CurrentLoanRateBTS)
+	prometheus.MustRegister(LenderCurrentAverageBasedRateBTS)
+	prometheus.MustRegister(CurrentLoanRateCLAM)
+	prometheus.MustRegister(LenderCurrentAverageBasedRateCLAM)
+	prometheus.MustRegister(CurrentLoanRateDOGE)
+	prometheus.MustRegister(LenderCurrentAverageBasedRateDOGE)
+	prometheus.MustRegister(CurrentLoanRateDASH)
+	prometheus.MustRegister(LenderCurrentAverageBasedRateDASH)
+	prometheus.MustRegister(CurrentLoanRateLTC)
+	prometheus.MustRegister(LenderCurrentAverageBasedRateLTC)
+	prometheus.MustRegister(CurrentLoanRateMAID)
+	prometheus.MustRegister(LenderCurrentAverageBasedRateMAID)
+	prometheus.MustRegister(CurrentLoanRateSTR)
+	prometheus.MustRegister(LenderCurrentAverageBasedRateSTR)
+	prometheus.MustRegister(CurrentLoanRateXMR)
+	prometheus.MustRegister(LenderCurrentAverageBasedRateXMR)
+	prometheus.MustRegister(CurrentLoanRateXRP)
+	prometheus.MustRegister(LenderCurrentAverageBasedRateXRP)
+	prometheus.MustRegister(CurrentLoanRateETH)
+	prometheus.MustRegister(LenderCurrentAverageBasedRateETH)
+	prometheus.MustRegister(CurrentLoanRateFCT)
+	prometheus.MustRegister(LenderCurrentAverageBasedRateFCT)
+}
+
+func SetSimple(currency string, rate float64) {
+	switch currency {
+	case "BTC":
+		CurrentLoanRate.Set(rate)
+	case "BTS":
+		CurrentLoanRateBTS.Set(rate)
+	case "CLAM":
+		CurrentLoanRateCLAM.Set(rate)
+	case "DOGE":
+		CurrentLoanRateDOGE.Set(rate)
+	case "DASH":
+		CurrentLoanRateDASH.Set(rate)
+	case "LTC":
+		CurrentLoanRateLTC.Set(rate)
+	case "MAID":
+		CurrentLoanRateMAID.Set(rate)
+	case "STR":
+		CurrentLoanRateSTR.Set(rate)
+	case "XMR":
+		CurrentLoanRateXMR.Set(rate)
+	case "XRP":
+		CurrentLoanRateXRP.Set(rate)
+	case "ETH":
+		CurrentLoanRateETH.Set(rate)
+	case "FCT":
+		CurrentLoanRateFCT.Set(rate)
+	}
+}
+
+func SetAvg(currency string, rate float64) {
+	switch currency {
+	case "BTC":
+		LenderCurrentAverageBasedRate.Set(rate)
+	case "BTS":
+		LenderCurrentAverageBasedRateBTS.Set(rate)
+	case "CLAM":
+		LenderCurrentAverageBasedRateCLAM.Set(rate)
+	case "DOGE":
+		LenderCurrentAverageBasedRateDOGE.Set(rate)
+	case "DASH":
+		LenderCurrentAverageBasedRateDASH.Set(rate)
+	case "LTC":
+		LenderCurrentAverageBasedRateLTC.Set(rate)
+	case "MAID":
+		LenderCurrentAverageBasedRateMAID.Set(rate)
+	case "STR":
+		LenderCurrentAverageBasedRateSTR.Set(rate)
+	case "XMR":
+		LenderCurrentAverageBasedRateXMR.Set(rate)
+	case "XRP":
+		LenderCurrentAverageBasedRateXRP.Set(rate)
+	case "ETH":
+		LenderCurrentAverageBasedRateETH.Set(rate)
+	case "FCT":
+		LenderCurrentAverageBasedRateFCT.Set(rate)
+	}
 }

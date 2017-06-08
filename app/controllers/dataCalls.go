@@ -207,5 +207,5 @@ func (r AppAuthRequired) LendingHistory() revel.Result {
 
 // TODO: Cache this response
 func (r App) GetPoloniexStatistics() revel.Result {
-	return r.RenderJSON(state.GetPoloniexStatistics())
+	return r.RenderJSON(state.GetPoloniexStatistics("BTC"))
 }

@@ -225,17 +225,17 @@ func (s *State) FetchAllUsers() ([]userdb.User, error) {
 	return s.userDB.FetchAllUsers()
 }
 
-func (s *State) GetPoloniexStatistics() *userdb.PoloniexStats {
-	return s.userStatistic.GetPoloniexStatistics()
+func (s *State) GetPoloniexStatistics(currency string) *userdb.PoloniexStats {
+	return s.userStatistic.GetPoloniexStatistics(currency)
 }
 
 // RecordPoloniexStatistics is for recording the current lending rate on poloniex
-func (s *State) RecordPoloniexStatistics(rate float64) error {
-	return s.userStatistic.RecordPoloniexStatistic(rate)
+func (s *State) RecordPoloniexStatistics(currency string, rate float64) error {
+	return s.userStatistic.RecordPoloniexStatistic(currency, rate)
 }
 
-func (s *State) GetPoloniexStatsPastXDays(dayRange int) [][]userdb.PoloniexRateSample {
-	return s.userStatistic.GetPoloniexDataLastXDays(dayRange)
+func (s *State) GetPoloniexStatsPastXDays(dayRange int, currency string) [][]userdb.PoloniexRateSample {
+	return s.userStatistic.GetPoloniexDataLastXDays(dayRange, currency)
 }
 
 // RecordStatistics is for recording an individual user's statistics at a given time

@@ -444,13 +444,14 @@ func (slice PoloniexRateSamples) Swap(i, j int) {
 // GetPoloniexDataLastXDays returns a 2D array:
 //		[x][y]PoloniexRateSample
 //			x  = x days past, E.g 0 = today
-func (us *UserStatisticsDB) GetPoloniexDataLastXDays(dayRange int) [][]PoloniexRateSample {
+func (us *UserStatisticsDB) GetPoloniexDataLastXDays(dayRange int, currency string) [][]PoloniexRateSample {
 	historyStats := make([][]PoloniexRateSample, dayRange)
 	start := GetDay(time.Now())
 	for i := 0; i < dayRange; i++ {
 		day := start - i
 		bucket := primitives.Uint32ToBytes(uint32(day))
 		bucket = append(PoloniexPrefix, bucket...)
+		bucket = append(getCurrencyPre(currency), PoloniexPrefix...)
 		datas, keys, err := us.db.GetAll(bucket)
 		if err != nil {
 			continue
@@ -493,10 +494,10 @@ func (p *PoloniexStats) String() string {
 		p.HrAvg, p.DayAvg, p.WeekAvg, p.MonthAvg, p.HrStd, p.DayStd, p.WeekStd, p.MonthStd)
 }
 
-func (us *UserStatisticsDB) GetPoloniexStatistics() *PoloniexStats {
+func (us *UserStatisticsDB) GetPoloniexStatistics(currency string) *PoloniexStats {
 	poloStats := new(PoloniexStats)
 
-	poloDatStats := us.GetPoloniexDataLastXDays(30)
+	poloDatStats := us.GetPoloniexDataLastXDays(30, currency)
 	// No data
 	if len(poloDatStats[0]) == 0 {
 		return nil
@@ -556,11 +557,21 @@ func GetAvgAndStd(data []PoloniexRateSample) (avg float64, std float64) {
 	return
 }
 
-func (us *UserStatisticsDB) RecordPoloniexStatistic(rate float64) error {
-	return us.RecordPoloniexStatisticTime(rate, time.Now())
+func (us *UserStatisticsDB) RecordPoloniexStatistic(currency string, rate float64) error {
+	return us.RecordPoloniexStatisticTime(currency, rate, time.Now())
 }
 
-func (us *UserStatisticsDB) RecordPoloniexStatisticTime(rate float64, t time.Time) error {
+func getCurrencyPre(currency string) []byte {
+	var pre []byte
+	if currency == "BTC" {
+		currency = ""
+	} else {
+		pre = []byte(currency)
+	}
+	return pre
+}
+
+func (us *UserStatisticsDB) RecordPoloniexStatisticTime(currency string, rate float64, t time.Time) error {
 	if time.Since(us.LastPoloniexRateSave).Seconds() < 10 {
 		return nil
 	}
@@ -568,6 +579,7 @@ func (us *UserStatisticsDB) RecordPoloniexStatisticTime(rate float64, t time.Tim
 	day := GetDayBytes(GetDay(t))
 	sec := GetSeconds(t)
 	buck := append(PoloniexPrefix, day...)
+	buck = append(getCurrencyPre(currency), buck...)
 
 	secBytes := primitives.Uint32ToBytes(uint32(sec))
 	data, err := primitives.Float64ToBytes(rate)
