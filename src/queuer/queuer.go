@@ -96,7 +96,7 @@ func (q *Queuer) Start() {
 
 func (q *Queuer) AddJobs() {
 	if len(q.AllUsers) == 0 {
-		j := lender.NewManualJob("", 0, 0, []string{"BTC", "FCT"})
+		j := lender.NewManualJob("", []float64{0, 0}, 0, []string{"BTC", "FCT"})
 		q.Lender.AddJob(j)
 		QueuerJobsMade.Inc()
 	}
