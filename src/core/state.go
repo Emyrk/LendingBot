@@ -16,11 +16,12 @@ import (
 )
 
 type State struct {
-	userDB        *userdb.UserDatabase
-	userStatistic *userdb.UserStatisticsDB
-	PoloniexAPI   poloniex.IPoloniex
-	CipherKey     [32]byte
-	JWTSecret     [32]byte
+	userDB          *userdb.UserDatabase
+	userStatistic   *userdb.UserStatisticsDB
+	userInviteCodes *userdb.InviteDB
+	PoloniexAPI     poloniex.IPoloniex
+	CipherKey       [32]byte
+	JWTSecret       [32]byte
 
 	// Poloniex Cache
 	poloniexCache *PoloniexAccessCache
@@ -172,6 +173,14 @@ func (s *State) NewUser(username string, password string) *primitives.ApiError {
 
 func ValidateEmail(email string) error {
 	return checkmail.ValidateFormat(email)
+}
+
+func (s *State) ClaimInviteCode(username string, code string) (bool, error) {
+	return s.userInviteCodes.ClaimInviteCode(username, code)
+}
+
+func (s *State) AddInviteCode(code string, capacity int, expires time.Time) error {
+	return s.userInviteCodes.CreateInviteCode(code, capacity, expires)
 }
 
 func (s *State) SetUserKeys(username string, acessKey string, secretKey string) error {

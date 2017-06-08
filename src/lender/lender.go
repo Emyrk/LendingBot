@@ -3,6 +3,7 @@ package lender
 import (
 	"fmt"
 	"log"
+	"math"
 	"sort"
 	"time"
 
@@ -110,6 +111,38 @@ func (l *Lender) UpdateTicker() {
 		PoloniexStatsWeeklyStd.Set(l.PoloniexStats.WeekStd)
 		PoloniexStatsMonthlyStd.Set(l.PoloniexStats.MonthStd)
 	}
+
+	if v, ok := ticker["BTC_FCT"]; ok {
+		TickerFCTValue.Set(v.Last)
+	}
+	if v, ok := ticker["BTC_BTS"]; ok {
+		TickerBTSValue.Set(v.Last)
+	}
+	if v, ok := ticker["BTC_CLAM"]; ok {
+		TickerCLAMValue.Set(v.Last)
+	}
+	if v, ok := ticker["BTC_DOGE"]; ok {
+		TickerDOGEValue.Set(v.Last)
+	}
+	if v, ok := ticker["BTC_LTC"]; ok {
+		TickerLTCValue.Set(v.Last)
+	}
+	if v, ok := ticker["BTC_MAID"]; ok {
+		TickerMAIDValue.Set(v.Last)
+	}
+	if v, ok := ticker["BTC_STR"]; ok {
+		TickerSTRValue.Set(v.Last)
+	}
+	if v, ok := ticker["BTC_XMR"]; ok {
+		TickerXMRValue.Set(v.Last)
+	}
+	if v, ok := ticker["BTC_XRP"]; ok {
+		TickerXRPValue.Set(v.Last)
+	}
+	if v, ok := ticker["BTC_ETH"]; ok {
+		TickerETHValue.Set(v.Last)
+	}
+
 	LenderUpdateTicker.Inc()
 }
 
@@ -195,9 +228,14 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 	stats.Username = username
 	stats.Currency = "BTC"
 
+	var avail float64 = 0
 	// Avail balance
-	avail, ok := bals["lending"]["BTC"]
-	var _ = ok
+	for k, v := range bals["lending"] {
+		if !math.IsNaN(v) {
+			avail += l.getBTCAmount(v, k)
+		}
+	}
+
 	stats.AvailableBalance = avail
 
 	// Active
@@ -225,11 +263,11 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 	for k, _ := range inact {
 		for _, loan := range inact[k] {
 			//if l.Currency == "BTC" {
-			inactiveLentBal += l.getBTCAmount(loan.Amount, loan.Currency)
+			inactiveLentBal += l.getBTCAmount(loan.Amount, k)
 			inactiveLentTotalRate += loan.Rate
 			inactiveLentCount++
 			//}
-			stats.TotalCurrencyMap[loan.Currency] += l.getBTCAmount(loan.Amount, loan.Currency)
+			stats.TotalCurrencyMap[loan.Currency] += l.getBTCAmount(loan.Amount, k)
 		}
 	}
 
@@ -241,7 +279,7 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 	availMap, ok := bals["lending"]
 	if ok {
 		for k, v := range availMap {
-			stats.TotalCurrencyMap[k] += v
+			stats.TotalCurrencyMap[k] += l.getBTCAmount(v, k)
 		}
 	}
 
@@ -322,19 +360,18 @@ func (l *Lender) tierOneProcessJob(j *Job, rate float64) error {
 			currencyLoans := inactiveLoans[l.Currency]
 			sort.Sort(poloniex.PoloniexLoanOfferArray(currencyLoans))
 			for _, loan := range currencyLoans {
-				if loan.Currency != "BTC" {
-					continue
-				}
 				if need < 0 {
 					break
 				}
+
 				// Too close, no point in canceling
 				if abs(loan.Rate-rate) < 0.00000009 {
 					continue
 				}
 				worked, err := s.PoloniexCancelLoanOffer(l.Currency, loan.ID, j.Username)
 				if err != nil {
-					break
+					fmt.Println(err)
+					continue
 				}
 				if worked && err == nil {
 					need -= loan.Amount
