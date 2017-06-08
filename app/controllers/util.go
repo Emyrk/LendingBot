@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"fmt"
+	"github.com/revel/revel"
 	"github.com/revel/revel/cache"
+	"net/http"
 	"time"
 )
 
@@ -52,4 +54,19 @@ func abs(a float64) float64 {
 		return a * -1
 	}
 	return a
+}
+
+func GetTimeoutCookie() *http.Cookie {
+	t := time.Now().Add(CACHE_TIME)
+
+	timeoutCookie := &http.Cookie{
+		Name:    "HODL_TIMEOUT",
+		Value:   fmt.Sprintf("%d", t.Unix()),
+		Domain:  revel.CookieDomain,
+		Path:    "/",
+		Expires: t.UTC(),
+		Secure:  revel.CookieSecure,
+		MaxAge:  int(CACHE_TIME.Seconds()),
+	}
+	return timeoutCookie
 }

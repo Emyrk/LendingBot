@@ -28,20 +28,22 @@ app.config(['$routeProvider', '$locationProvider',
 
 		$locationProvider.html5Mode({enabled: false, requireBase: false});
 	}]);
-app.controller('dashBaseController', ['$scope', '$http', '$log', "$location", "$window", "$rootScope", "$cookies",
-	function($scope, $http, $log, $location, $window, $rootScope, $cookies) {
+app.controller('dashBaseController', ['$scope', '$http', '$log', "$location", "$window", "$rootScope", "$cookies", "$interval",
+	function($scope, $http, $log, $location, $window, $rootScope, $cookies, $interval) {
 		var dashBaseScope = $scope;
 
 		$rootScope.$on('$locationChangeStart', function (event) {
-			if($cookies.get('HODL_SESSION') == null) {
-				// $window.location = '/'
+			if($cookies.get('HODL_TIMEOUT') == null) {
+				$window.location = '/'
 			}
-			$cookies.put("hi","bye");
-			console.log($cookies.getAll());
-
-			console.log($cookies.get("HODL_SESSION"))
-			console.log(document.cookie)
+			console.log("Time: " + $cookies.get("HODL_TIMEOUT"));
 		});
+
+		$interval(() => {
+			if($cookies.get('HODL_TIMEOUT') == null) {
+				$window.location = '/'
+			}
+		}, 15000)
 	}]);
 
 app.controller('dashInfoController', ['$scope', '$http', '$log',
@@ -115,8 +117,8 @@ app.controller('dashInfoAdvancedController', ['$scope', '$http', '$log',
 		var dashInfoAdvScope = $scope;
 	}]);
 
-app.controller('dashSettingsUserController', ['$scope', '$http', '$log', '$timeout',
-	function($scope, $http, $log, $timeout) {
+app.controller('dashSettingsUserController', ['$scope', '$http', '$log',
+	function($scope, $http, $log) {
 		var dashSettingsUserScope = $scope;
 
 		dashSettingsUserScope.create2FA = function() {
