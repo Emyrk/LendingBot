@@ -122,6 +122,7 @@ func (l *Lender) UpdateTicker() {
 	l.LastTickerUpdate = time.Now()
 	l.PoloniexStats["BTC"] = l.State.GetPoloniexStatistics("BTC")
 	// Prometheus
+	fmt.Println(l.PoloniexStats["BTC"], l.PoloniexStats["FCT"])
 	if l.PoloniexStats["BTC"] != nil {
 		PoloniexStatsHourlyAvg.Set(l.PoloniexStats["BTC"].HrAvg)
 		PoloniexStatsDailyAvg.Set(l.PoloniexStats["BTC"].DayAvg)
