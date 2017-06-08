@@ -65,7 +65,12 @@ func (l *Lender) Start() {
 			if time.Since(l.LastCalculateLoanRate).Seconds() >= l.CalculateLoanInterval {
 				err := l.CalculateLoanRate("BTC")
 				if err != nil {
-					log.Println("Error in Lending:", err)
+					log.Println("[BTC] Error in Lending:", err)
+				}
+
+				err = l.CalculateLoanRate("FCT")
+				if err != nil {
+					log.Println("[FCT] Error in Lending:", err)
 				}
 			}
 
@@ -101,18 +106,18 @@ func (l *Lender) UpdateTicker() {
 		l.Ticker = ticker
 	}
 	l.LastTickerUpdate = time.Now()
-	// l.PoloniexStats = l.State.GetPoloniexStatistics()
+	l.PoloniexStats = l.State.GetPoloniexStatistics("BTC")
 	// Prometheus
-	/*if l.PoloniexStats != nil {
-		PoloniexStatsHourlyAvg.Set(l.PoloniexStats.HrAvg)
-		PoloniexStatsDailyAvg.Set(l.PoloniexStats.DayAvg)
-		PoloniexStatsWeeklyAvg.Set(l.PoloniexStats.WeekAvg)
-		PoloniexStatsMonthlyAvg.Set(l.PoloniexStats.MonthAvg)
-		PoloniexStatsHourlyStd.Set(l.PoloniexStats.HrStd)
-		PoloniexStatsDailyStd.Set(l.PoloniexStats.DayStd)
-		PoloniexStatsWeeklyStd.Set(l.PoloniexStats.WeekStd)
-		PoloniexStatsMonthlyStd.Set(l.PoloniexStats.MonthStd)
-	}*/
+	if l.PoloniexStats != nil {
+		PoloniexStatsHourlyAvg.Set(l.PoloniexStats["BTC"].HrAvg)
+		PoloniexStatsDailyAvg.Set(l.PoloniexStats["BTC"].DayAvg)
+		PoloniexStatsWeeklyAvg.Set(l.PoloniexStats["BTC"].WeekAvg)
+		PoloniexStatsMonthlyAvg.Set(l.PoloniexStats["BTC"].MonthAvg)
+		PoloniexStatsHourlyStd.Set(l.PoloniexStats["BTC"].HrStd)
+		PoloniexStatsDailyStd.Set(l.PoloniexStats["BTC"].DayStd)
+		PoloniexStatsWeeklyStd.Set(l.PoloniexStats["BTC"].WeekStd)
+		PoloniexStatsMonthlyStd.Set(l.PoloniexStats["BTC"].MonthStd)
+	}
 
 	if v, ok := ticker["BTC_FCT"]; ok {
 		TickerFCTValue.Set(v.Last)
