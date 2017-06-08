@@ -16,6 +16,7 @@ var _ = fmt.Print
 
 var (
 	MaxLendAmt map[string]float64
+	MinLendAmt map[string]float64
 )
 
 func init() {
@@ -31,7 +32,21 @@ func init() {
 	MaxLendAmt["XMR"] = 1
 	MaxLendAmt["XRP"] = 1
 	MaxLendAmt["ETH"] = .2
-	MaxLendAmt["FCT"] = 20
+	MaxLendAmt["FCT"] = 200
+
+	MinLendAmt = make(map[string]float64)
+	MinLendAmt["BTC"] = .01
+	MinLendAmt["BTS"] = 1
+	MinLendAmt["CLAM"] = 1
+	MinLendAmt["DOGE"] = 1
+	MinLendAmt["DASH"] = 1
+	MinLendAmt["LTC"] = 1
+	MinLendAmt["MAID"] = 1
+	MinLendAmt["STR"] = 1
+	MinLendAmt["XMR"] = 1
+	MinLendAmt["XRP"] = 1
+	MinLendAmt["ETH"] = .2
+	MinLendAmt["FCT"] = 100
 }
 
 type LoanRates struct {
@@ -367,16 +382,11 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 
 	bals, err := s.PoloniexGetAvailableBalances(j.Username)
 	if err != nil {
-		fmt.Println("2", err)
 		return err
 	}
 
 	// 3 types of balances: Not lent, Inactive, Active
-	inactiveLoans, err := s.PoloniexGetInactiveLoans(j.Username)
-	if err != nil {
-		fmt.Println("2", err)
-		return err
-	}
+	inactiveLoans, _ := s.PoloniexGetInactiveLoans(j.Username)
 
 	activeLoans, err := s.PoloniexGetActiveLoans(j.Username)
 	if err == nil && activeLoans != nil {
@@ -397,8 +407,6 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 		if rate < min {
 			continue
 		}
-
-		fmt.Println("Start process", j.Currency[i])
 
 		avail, ok := bals["lending"][j.Currency[i]]
 		var _ = ok
@@ -434,18 +442,16 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 			}
 		}
 
-		fmt.Println("3", avail, MaxLendAmt[j.Currency[i]])
 		amt := MaxLendAmt[j.Currency[i]]
 		if avail < MaxLendAmt[j.Currency[i]] {
 			amt = avail
 		}
 
 		// To little for a loan
-		if amt < 0.01 {
-			fmt.Println("EXIT HERE")
+		if amt < MinLendAmt[j.Currency[i]] {
 			return nil
 		}
-		fmt.Printf("Create loan for %s with %s at %f\n", j.Username, j.Currency, rate)
+
 		_, err = s.PoloniexCreateLoanOffer(j.Currency[i], amt, rate, 2, false, j.Username)
 		if err != nil {
 			return err

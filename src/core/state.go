@@ -170,6 +170,7 @@ func (s *State) NewUser(username string, password string) *primitives.ApiError {
 			fmt.Errorf("Internal error. Please try again."),
 		}
 	}
+
 	return nil
 }
 
@@ -217,7 +218,7 @@ func (s *State) EnableUserLending(username string, enabled bool) error {
 
 	u.PoloniexEnabled.Enable(enabled)
 	if !enabled {
-		s.poloniexCache.removeFromPoloniexCache(username)
+		s.removeFromPoloniexCache(username)
 	}
 	return s.userDB.PutUser(u)
 }
