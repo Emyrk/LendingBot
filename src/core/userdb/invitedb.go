@@ -20,6 +20,8 @@ type InviteDB struct {
 }
 
 type InviteEntry struct {
+	RawCode string
+
 	// Is a hash. Allows for user-readable codes
 	Code [32]byte
 
@@ -31,6 +33,10 @@ type InviteEntry struct {
 
 	// Invite code will expire at this time
 	Expires time.Time
+}
+
+func (ie *InviteEntry) String() string {
+	return fmt.Sprintf("Code: %s, Capacity %d, Claimed: %d, Expires %s\n", ie.RawCode, ie.Capacity, len(ie.Users), ie.Expires.String())
 }
 
 func NewInviteDB() *InviteDB {
@@ -55,6 +61,25 @@ func newInviteDB(mapDB bool) *InviteDB {
 	}
 
 	return i
+}
+
+func (ie *InviteDB) ListAll() ([]InviteEntry, error) {
+	_, data, err := ie.db.GetAll(InviteCodeBucket)
+	if err != nil {
+		return nil, err
+	}
+	var list []InviteEntry
+
+	for _, d := range data {
+		var i InviteEntry
+		err := i.UnmarshalBinary(d)
+		if err != nil {
+			continue
+		}
+		list = append(list, i)
+	}
+
+	return list, nil
 }
 
 func (ie *InviteDB) ClaimInviteCode(username string, code string) (bool, error) {
@@ -111,6 +136,13 @@ func NewInviteCode(code string, capacity int, expires time.Time) *InviteEntry {
 
 func (ie *InviteEntry) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
+
+	data, err := primitives.MarshalStringToBytes(ie.RawCode, 100)
+	if err != nil {
+		return nil, err
+	}
+	buf.Write(data)
+
 	buf.Write(ie.Code[:])
 
 	buf.Write(primitives.Uint32ToBytes(uint32(ie.Capacity)))
@@ -125,7 +157,7 @@ func (ie *InviteEntry) MarshalBinary() ([]byte, error) {
 		buf.Write(data)
 	}
 
-	data, err := ie.Expires.MarshalBinary()
+	data, err = ie.Expires.MarshalBinary()
 	if err != nil {
 		return nil, err
 	}
@@ -148,6 +180,13 @@ func (ie *InviteEntry) UnmarshalBinaryData(data []byte) (newData []byte, err err
 	}()
 
 	newData = data
+
+	var raw string
+	raw, newData, err = primitives.UnmarshalStringFromBytesData(newData, 100)
+	if err != nil {
+		return data, err
+	}
+	ie.RawCode = raw
 
 	copy(ie.Code[:32], newData[:32])
 	newData = newData[32:]

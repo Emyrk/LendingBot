@@ -175,6 +175,10 @@ func ValidateEmail(email string) error {
 	return checkmail.ValidateFormat(email)
 }
 
+func (s *State) ListInviteCodes() ([]userdb.InviteEntry, error) {
+	return s.userInviteCodes.ListAll()
+}
+
 func (s *State) ClaimInviteCode(username string, code string) (bool, error) {
 	return s.userInviteCodes.ClaimInviteCode(username, code)
 }
