@@ -133,6 +133,8 @@ func (l *Lender) UpdateTicker() {
 		PoloniexStatsMonthlyStd.Set(l.PoloniexStats["BTC"].MonthStd)
 	}
 
+	l.PoloniexStats["FCT"] = l.State.GetPoloniexStatistics("FCT")
+
 	if v, ok := ticker["BTC_FCT"]; ok {
 		TickerFCTValue.Set(v.Last)
 	}
