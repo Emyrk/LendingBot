@@ -61,7 +61,9 @@ func newState(withMap bool, fakePolo bool) *State {
 		s.PoloniexAPI = poloniex.StartPoloniex()
 	}
 
-	s.CipherKey = getCipherKey()
+	if !withMap {
+		s.CipherKey = getCipherKey()
+	}
 
 	jck := make([]byte, 32)
 	_, err := rand.Read(jck)

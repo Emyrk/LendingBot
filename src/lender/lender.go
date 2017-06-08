@@ -175,6 +175,7 @@ func (l *Lender) CalculateLoanRate(currency string) error {
 			lowest = o.Rate
 		}
 	}
+	fmt.Println(lowest)
 
 	lr := l.CurrentLoanRate[currency]
 	lr.Simple = lowest
@@ -182,6 +183,8 @@ func (l *Lender) CalculateLoanRate(currency string) error {
 		SetSimple(currency, lowest)
 		s.RecordPoloniexStatistics(currency, lowest)
 	}
+	// lr.AvgBased = lr.Simple
+	l.CurrentLoanRate[currency] = lr
 
 	l.calculateAvgBasedLoanRate(currency)
 
@@ -197,6 +200,8 @@ func (l *Lender) calculateAvgBasedLoanRate(currency string) {
 
 	stats, ok := l.PoloniexStats[currency]
 	if !ok {
+		log.Printf("No poloniex stats for %s", currency)
+		l.CurrentLoanRate[currency] = rates
 		return
 	}
 
