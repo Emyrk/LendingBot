@@ -89,11 +89,6 @@ func newUserBalanceDetails() *UserBalanceDetails {
 
 // compute computed the percentmap
 func (u *UserBalanceDetails) compute() {
-	if len(u.CurrencyMap) == 0 {
-		u.CurrencyMap["BTC"] = 0
-		u.Percent["BTC"] = 1.0
-	}
-
 	total := float64(0)
 	for _, v := range u.CurrencyMap {
 		total += v
