@@ -204,7 +204,7 @@ func (l *Lender) calculateAvgBasedLoanRate(currency string) {
 	rates.AvgBased = rates.Simple
 
 	stats, ok := l.PoloniexStats[currency]
-	if !ok {
+	if !ok || stats == nil {
 		log.Printf("No poloniex stats for %s", currency)
 		l.CurrentLoanRate[currency] = rates
 		return
