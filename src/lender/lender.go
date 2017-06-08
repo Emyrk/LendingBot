@@ -19,6 +19,7 @@ var (
 )
 
 func init() {
+	MaxLendAmt = make(map[string]float64)
 	MaxLendAmt["BTC"] = .1
 	MaxLendAmt["BTS"] = 1
 	MaxLendAmt["CLAM"] = 1
