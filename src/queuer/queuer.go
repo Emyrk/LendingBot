@@ -104,6 +104,10 @@ func (q *Queuer) AddJobs() {
 		j := lender.NewManualBTCJob(u.Username, u.MiniumumLoanAmt, u.LendingStrategy)
 		q.Lender.AddJob(j)
 		QueuerJobsMade.Inc()
+
+		j := lender.NewManualJob(u.Username, u.MiniumumLoanAmt, u.LendingStrategy, "FCT")
+		q.Lender.AddJob(j)
+		QueuerJobsMade.Inc()
 	}
 }
 

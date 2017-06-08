@@ -15,6 +15,10 @@ func NewManualBTCJob(username string, min float64, strat uint32) *Job {
 	return newJob(username, min, "BTC", strat)
 }
 
+func NewManualJob(username string, min float64, strat uint32, currency string) *Job {
+	return newJob(username, min, Currency, strat)
+}
+
 func NewBTCJob(u *user.User) *Job {
 	return NewJob(u, "BTC", u.LendingStrategy)
 }
