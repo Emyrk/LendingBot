@@ -30,7 +30,7 @@ func init() {
 	MaxLendAmt["XMR"] = 1
 	MaxLendAmt["XRP"] = 1
 	MaxLendAmt["ETH"] = .2
-	MaxLendAmt["FCT"] = 1
+	MaxLendAmt["FCT"] = 20
 }
 
 type LoanRates struct {
@@ -402,7 +402,7 @@ func (l *Lender) tierOneProcessJob(j *Job, rate float64, currency string) error 
 
 	// We need to find some more crypto to lkend
 	if avail < MaxLendAmt[currency] {
-		need := MaxLendAmt - avail
+		need := MaxLendAmt[currency] - avail
 		if inactiveLoans != nil {
 			currencyLoans := inactiveLoans[currency]
 			sort.Sort(poloniex.PoloniexLoanOfferArray(currencyLoans))
