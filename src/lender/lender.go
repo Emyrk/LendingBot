@@ -429,8 +429,8 @@ func (l *Lender) tierOneProcessJob(j *Job, rate float64, currency string) error 
 		}
 	}
 
-	amt := MaxLendAmt
-	if avail < MaxLendAmt {
+	amt := MaxLendAmt[currency]
+	if avail < MaxLendAmt[currency] {
 		amt = avail
 	}
 
