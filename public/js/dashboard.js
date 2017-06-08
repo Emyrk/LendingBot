@@ -1,35 +1,49 @@
-var app=angular.module("lendingApp",["ngRoute","ngMask"]);
+var app=angular.module("lendingApp",["ngRoute","ngMask", "ngCookies"]);
 
-app.config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
-	$routeProvider
-	.when("/",{
-		templateUrl : "/dashboard/info",
-		controller : "dashInfoController"
-	})
-	.when("/info/:coin",{
-		templateUrl : "/dashboard/info/:id",
-		controller : "dashInfoAdvancedController"
-	})
-	.when("/settings/user",{
-		templateUrl : "/dashboard/settings/user",
-		controller : "dashSettingsUserController"
-	})
-	.when("/settings/lending",{
-		templateUrl : "/dashboard/settings/lending",
-		controller : "dashSettingsLendingController"
-	})
-	.when("/logs",{
-		templateUrl : "/dashboard/logs",
-		controller : "dashLogsController"
-	})
-	.otherwise({redirectTo:'/'});
-	
-	$locationProvider.html5Mode({enabled: false, requireBase: false});
-}]);
+app.config(['$routeProvider', '$locationProvider',
+	function($routeProvider, $locationProvider) {
+		$routeProvider
+		.when("/",{
+			templateUrl : "/dashboard/info",
+			controller : "dashInfoController"
+		})
+		.when("/info/:coin",{
+			templateUrl : "/dashboard/info/:id",
+			controller : "dashInfoAdvancedController"
+		})
+		.when("/settings/user",{
+			templateUrl : "/dashboard/settings/user",
+			controller : "dashSettingsUserController"
+		})
+		.when("/settings/lending",{
+			templateUrl : "/dashboard/settings/lending",
+			controller : "dashSettingsLendingController"
+		})
+		.when("/logs",{
+			templateUrl : "/dashboard/logs",
+			controller : "dashLogsController"
+		})
+		.otherwise({redirectTo:'/'});
 
-app.controller('dashBaseController', ['$scope', '$http', '$log', "$location", "$window",
-	function($scope, $http, $log, $location, $window) {
+
+		$locationProvider.html5Mode({enabled: false, requireBase: false});
+	}]);
+app.controller('dashBaseController', ['$scope', '$http', '$log', "$location", "$window", "$rootScope", "$cookies", "$interval",
+	function($scope, $http, $log, $location, $window, $rootScope, $cookies, $interval) {
 		var dashBaseScope = $scope;
+
+		$rootScope.$on('$locationChangeStart', function (event) {
+			if($cookies.get('HODL_TIMEOUT') == null) {
+				$window.location = '/'
+			}
+			console.log("Time: " + $cookies.get("HODL_TIMEOUT"));
+		});
+
+		$interval(() => {
+			if($cookies.get('HODL_TIMEOUT') == null) {
+				$window.location = '/'
+			}
+		}, 15000)
 	}]);
 
 app.controller('dashInfoController', ['$scope', '$http', '$log',
@@ -103,8 +117,8 @@ app.controller('dashInfoAdvancedController', ['$scope', '$http', '$log',
 		var dashInfoAdvScope = $scope;
 	}]);
 
-app.controller('dashSettingsUserController', ['$scope', '$http', '$log', '$timeout',
-	function($scope, $http, $log, $timeout) {
+app.controller('dashSettingsUserController', ['$scope', '$http', '$log',
+	function($scope, $http, $log) {
 		var dashSettingsUserScope = $scope;
 
 		dashSettingsUserScope.create2FA = function() {

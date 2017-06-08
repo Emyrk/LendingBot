@@ -110,6 +110,8 @@ func (c App) Login() revel.Result {
 
 	SetCacheEmail(c.Session.ID(), email)
 
+	c.SetCookie(GetTimeoutCookie())
+
 	return c.RenderJSON(data)
 }
 
