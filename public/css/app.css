@@ -10,6 +10,10 @@ html, body {
   background-color: white;
 }
 
+.navbar li a {
+  cursor: pointer;
+}
+
 p, .normal-color h1, .normal-color h2, .normal-color h3 {
   font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif !important; 
 }
@@ -93,14 +97,10 @@ p, .normal-color h1, .normal-color h2, .normal-color h3 {
     margin-top: 10px;
   }
 
-  .inverse-color .nav-brand, .inverse-color .nav-brand:link, 
-  .inverse-color .nav-brand:active, .inverse-color .nav-brand:visited {
-    color: #3E82A5;
+  .inverse-color .nav-brand:hover, .inverse-color .nav-brand {
+    color: white;
   }
 
-  .inverse-color .nav-brand:hover {
-    color: #316781;
-  }
 
   .inverse-color .navbar-right > li > a {
     color: white !important;
@@ -239,7 +239,7 @@ p, .normal-color h1, .normal-color h2, .normal-color h3 {
 #hero {
   width: 100%;
   background: url('../img/hero.jpg');
-  background-color: rgba(131, 204, 243, .85);
+  background-color: rgba(75, 155, 197, 0.85);
     background-blend-mode: soft-light;
   background-size: cover; 
     background-repeat: no-repeat;
@@ -616,6 +616,23 @@ p, .normal-color h1, .normal-color h2, .normal-color h3 {
   padding-left: 40px;
 }
 
+#faq-content a {
+  text-decoration: none;
+}
+
+#center-box {
+  background-color: #3E82A5;
+  background-color: rgb(246, 246, 246);
+  border-radius: 10px;
+  padding: 10px;
+  -webkit-box-shadow: 0px 0px 26px -2px rgba(0,0,0,0.42);
+  -moz-box-shadow: 0px 0px 26px -2px rgba(0,0,0,0.42);
+  box-shadow: 0px 0px 26px -2px rgba(0,0,0,0.42);
+  height: 200px;
+  margin-right: 10px;
+  margin-bottom: 15px;
+}
+
 /*
 Tutorial Name: Meet the Team
 Description: A simple concept for members section.
@@ -646,6 +663,11 @@ Usage: You can use this code for free in personal and commercial projects if you
   font-weight: 300;
 }
 
+.meet-the-team h2 {
+  color: white !important;
+  padding-bottom: 30px;
+}
+
 .clear {clear: both;}
 
 /* Buttons */
@@ -665,6 +687,14 @@ Usage: You can use this code for free in personal and commercial projects if you
 
 .meet-the-team .btn-transparent {background: rgba(0,0,0, 0.2);}
 .meet-the-team .btn-transparent:hover {background: rgba(0,0,0, 0.4);}
+
+.vertical-center {
+  min-height: 80%;  /* Fallback for browsers do NOT support vh unit */
+  min-height: 80vh; /* These two lines are counted as one :-)       */
+
+  display: flex;
+  align-items: center;
+}
 
 /* Separators */
 .meet-the-team .separator {

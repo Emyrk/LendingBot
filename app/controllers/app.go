@@ -42,6 +42,7 @@ func MakeURL(safeUrl string) string {
 
 func (c App) Sandbox() revel.Result {
 	c.ViewArgs["UserLevel"] = "1000"
+	c.ViewArgs["Inverse"] = true
 	return c.Render()
 }
 
@@ -151,6 +152,7 @@ func (c App) VerifyEmail() revel.Result {
 
 func (c App) NewPassRequestGET() revel.Result {
 	c.ViewArgs["get"] = true
+	c.ViewArgs["Inverse"] = true
 	return c.RenderTemplate("App/NewPassRequest.html")
 }
 
@@ -187,12 +189,14 @@ func (c App) NewPassRequestPOST() revel.Result {
 	}
 
 	c.ViewArgs["get"] = false
+	c.ViewArgs["Inverse"] = true
 	return c.RenderTemplate("App/NewPassRequest.html")
 }
 
 func (c App) NewPassResponseGet() revel.Result {
 	c.ViewArgs["get"] = true
 	c.ViewArgs["tokenString"] = c.Params.Route.Get("jwt")
+	c.ViewArgs["Inverse"] = true
 	return c.RenderTemplate("App/NewPass.html")
 }
 
@@ -207,6 +211,6 @@ func (c App) NewPassResponsePost() revel.Result {
 		fmt.Printf("ERROR: with new pass request JWTOTP: %s\n", tokenString)
 		c.Response.Status = 400
 	}
-
+	c.ViewArgs["Inverse"] = true
 	return c.RenderTemplate("App/NewPass.html")
 }
