@@ -1,14 +1,38 @@
-[[if .get]]
-<h1>
-	New Password
-</h1>
-<form action="/newpass/request" method="POST">
-  <label>Email</label>
-  <input type="text" name="email" value="">
-  <br><br>
-  <input type="submit" value="Submit">
-</form> 
-[[else]]
-	<h1>Congrats! An email has been sent if user exists.<br>
-	</h1>
-[[end]]
+[[set . "title" "FAQ"]]
+[[template "index/indexHeader.html" .]]
+[[template "index/indexnav.html" .]]
+
+<section id="forgot-password" class="vertical-center">
+  <div class="container">
+    <div class="row">
+      <div class="col-xs-10 col-xs-offset-1 col-sm-8 col-sm-offset-2" id="center-box">
+        [[if .get]]
+        <div class="col-xs-offset-1">
+          <h3 style="padding-bottom: 10px;">Input your email address</h3>
+          <form action="/newpass/request" method="POST">
+            <label>Email</label>
+            <input type="text" name="email" value="">
+            <br><br>
+            <input type="submit" value="Submit">
+          </form> 
+        </div>
+        [[else]]
+        <div style="text-align:center;line-height:100%;width:100%;height:100%; padding-top: 40px;"><h3>An email has been sent if user exists.</h3></div>
+        [[end]]
+      </div>
+    </div>
+  </div>
+</section>
+
+  <div class="container">
+    <div class="row">
+      <div class="span6">
+
+
+        [[template "index/flash.html" .]]
+      </div>
+    </div>
+  </div>
+</section>
+[[template "index/footer.html" .]]
+
