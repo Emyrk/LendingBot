@@ -107,7 +107,7 @@ func (l *Lender) Start() {
 
 			err := l.ProcessJob(j)
 			if err != nil {
-				log.Println("Error in Lending:", err)
+				log.Println("Error in Lending for", j.Username, ":", err)
 			}
 		}
 	}
