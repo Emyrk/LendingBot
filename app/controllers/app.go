@@ -152,6 +152,7 @@ func (c App) VerifyEmail() revel.Result {
 
 func (c App) NewPassRequestGET() revel.Result {
 	c.ViewArgs["get"] = true
+	c.ViewArgs["Inverse"] = true
 	return c.RenderTemplate("App/NewPassRequest.html")
 }
 

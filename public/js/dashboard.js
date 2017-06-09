@@ -265,8 +265,8 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log',
 		//----
 	}]);
 
-app.controller('dashSettingsLendingController', ['$scope', '$http', '$log',
-	function($scope, $http, $log) {
+app.controller('dashSettingsLendingController', ['$scope', '$http', '$log', '$timeout',
+	function($scope, $http, $log, $timeout) {
 		var dashSettingsLendingScope = $scope;
 
 		dashSettingsLendingScope.resetPoloniexKeys = function() {
@@ -336,8 +336,29 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log',
 			});
 		}
 
+		// Switchery
+		dashSettingsLendingScope.init_switch = function() {
+			console.log("YOOOOOOOOOOOOOOOO")
+			if ($(".js-switch")[0]) {
+				var elems = Array.prototype.slice.call(document.querySelectorAll('.js-switch'));
+				elems.forEach(function (html) {
+                // if ($(el).data('switchery') != true) {
+                	var switchery = new Switchery(html, {
+                		color: '#26B99A'
+                	});
+                	html.onchange = function(e) {
+                		dashSettingsLendingScope.$apply(() => {
+                			var me = $(this);
+                			dashSettingsLendingScope.coins[me.attr('id')] = me.is(':checked');
+                		});
+                	}
+                });
+			}
+		}
+		// /Switchery
+
 		//init
-		init_InputMask();
+		// init_InputMask();
 
 		dashSettingsLendingScope.loadingPoloniexKeys = false;
 		dashSettingsLendingScope.loadingEnablePoloniexLending = false;
@@ -346,7 +367,11 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log',
 		dashSettingsLendingScope.poloniexKeysSetError = '';
 
 		dashSettingsLendingScope.poloniexKeysEnableSuccess = ''
-		dashSettingsLendingScope.poloniexKeysSetSuccess = '';;
+		dashSettingsLendingScope.poloniexKeysSetSuccess = '';
+
+		$timeout(() => {
+			dashSettingsLendingScope.init_switch();
+		});
 		//------
 
 	}]);

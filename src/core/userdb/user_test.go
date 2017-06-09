@@ -165,7 +165,20 @@ func TestUserWithKeys(t *testing.T) {
 
 func TestPE(t *testing.T) {
 	pe := new(PoloniexEnabledStruct)
-	pe.Enable(true)
+	pe.Enable(PoloniexEnabledStruct{
+		true,
+		true,
+		true,
+		true,
+		true,
+		true,
+		true,
+		true,
+		true,
+		true,
+		true,
+		true,
+	})
 
 	d := pe.Bytes()
 	pe2 := new(PoloniexEnabledStruct)
