@@ -89,11 +89,6 @@ func newUserBalanceDetails() *UserBalanceDetails {
 
 // compute computed the percentmap
 func (u *UserBalanceDetails) compute() {
-	if len(u.CurrencyMap) == 0 {
-		u.CurrencyMap["BTC"] = 0
-		u.Percent["BTC"] = 1.0
-	}
-
 	total := float64(0)
 	for _, v := range u.CurrencyMap {
 		total += v
@@ -109,11 +104,19 @@ func (u *UserBalanceDetails) scrub() {
 		if math.IsNaN(v) {
 			u.CurrencyMap[k] = 0
 		}
+
+		if k == "" {
+			delete(u.CurrencyMap, k)
+		}
 	}
 
 	for k, v := range u.Percent {
 		if math.IsNaN(v) {
-			u.CurrencyMap[k] = 0
+			u.Percent[k] = 0
+		}
+
+		if k == "" {
+			delete(u.Percent, k)
 		}
 	}
 }
@@ -207,5 +210,5 @@ func (r AppAuthRequired) LendingHistory() revel.Result {
 
 // TODO: Cache this response
 func (r App) GetPoloniexStatistics() revel.Result {
-	return r.RenderJSON(state.GetPoloniexStatistics())
+	return r.RenderJSON(state.GetPoloniexStatistics("BTC"))
 }

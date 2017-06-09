@@ -15,8 +15,39 @@ import (
 var _ = fmt.Print
 
 var (
-	MaxLendAmt float64 = .1
+	MaxLendAmt map[string]float64
+	MinLendAmt map[string]float64
 )
+
+func init() {
+	MaxLendAmt = make(map[string]float64)
+	MaxLendAmt["BTC"] = .1
+	MaxLendAmt["BTS"] = 1
+	MaxLendAmt["CLAM"] = 1
+	MaxLendAmt["DOGE"] = 1
+	MaxLendAmt["DASH"] = 1
+	MaxLendAmt["LTC"] = 1
+	MaxLendAmt["MAID"] = 1
+	MaxLendAmt["STR"] = 1
+	MaxLendAmt["XMR"] = 1
+	MaxLendAmt["XRP"] = 1
+	MaxLendAmt["ETH"] = .2
+	MaxLendAmt["FCT"] = 200
+
+	MinLendAmt = make(map[string]float64)
+	MinLendAmt["BTC"] = .01
+	MinLendAmt["BTS"] = 1
+	MinLendAmt["CLAM"] = 1
+	MinLendAmt["DOGE"] = 1
+	MinLendAmt["DASH"] = 1
+	MinLendAmt["LTC"] = 1
+	MinLendAmt["MAID"] = 1
+	MinLendAmt["STR"] = 1
+	MinLendAmt["XMR"] = 1
+	MinLendAmt["XRP"] = 1
+	MinLendAmt["ETH"] = .2
+	MinLendAmt["FCT"] = 100
+}
 
 type LoanRates struct {
 	Simple   float64
@@ -28,25 +59,25 @@ type Lender struct {
 	JobQueue chan *Job
 	quit     chan struct{}
 
-	Currency              string
-	CurrentLoanRate       LoanRates
+	CurrentLoanRate       map[string]LoanRates
 	LastCalculateLoanRate time.Time
 	CalculateLoanInterval float64 // In seconds
 	LastTickerUpdate      time.Time
 	GetTickerInterval     float64
 	Ticker                map[string]poloniex.PoloniexTicker
-	PoloniexStats         *userdb.PoloniexStats
+	PoloniexStats         map[string]*userdb.PoloniexStats
 }
 
 func NewLender(s *core.State) *Lender {
 	l := new(Lender)
 	l.State = s
-	l.CurrentLoanRate.Simple = 2.1
-	l.Currency = "BTC"
 	l.JobQueue = make(chan *Job, 1000)
 	l.CalculateLoanInterval = 1
 	l.GetTickerInterval = 30
 	l.Ticker = make(map[string]poloniex.PoloniexTicker)
+	l.PoloniexStats = make(map[string]*userdb.PoloniexStats)
+	l.CurrentLoanRate = make(map[string]LoanRates)
+	l.CurrentLoanRate["BTC"] = LoanRates{Simple: 2.1}
 
 	return l
 }
@@ -61,9 +92,11 @@ func (l *Lender) Start() {
 		case j := <-l.JobQueue:
 			// Update loan rate
 			if time.Since(l.LastCalculateLoanRate).Seconds() >= l.CalculateLoanInterval {
-				err := l.CalculateLoanRate()
-				if err != nil {
-					log.Println("Error in Lending:", err)
+				for _, c := range j.Currency {
+					err := l.CalculateLoanRate(c)
+					if err != nil {
+						log.Printf("[%s] Error in Lending: %s", j.Currency, err)
+					}
 				}
 			}
 
@@ -99,18 +132,20 @@ func (l *Lender) UpdateTicker() {
 		l.Ticker = ticker
 	}
 	l.LastTickerUpdate = time.Now()
-	l.PoloniexStats = l.State.GetPoloniexStatistics()
+	l.PoloniexStats["BTC"] = l.State.GetPoloniexStatistics("BTC")
 	// Prometheus
-	if l.PoloniexStats != nil {
-		PoloniexStatsHourlyAvg.Set(l.PoloniexStats.HrAvg)
-		PoloniexStatsDailyAvg.Set(l.PoloniexStats.DayAvg)
-		PoloniexStatsWeeklyAvg.Set(l.PoloniexStats.WeekAvg)
-		PoloniexStatsMonthlyAvg.Set(l.PoloniexStats.MonthAvg)
-		PoloniexStatsHourlyStd.Set(l.PoloniexStats.HrStd)
-		PoloniexStatsDailyStd.Set(l.PoloniexStats.DayStd)
-		PoloniexStatsWeeklyStd.Set(l.PoloniexStats.WeekStd)
-		PoloniexStatsMonthlyStd.Set(l.PoloniexStats.MonthStd)
+	if l.PoloniexStats["BTC"] != nil {
+		PoloniexStatsHourlyAvg.Set(l.PoloniexStats["BTC"].HrAvg)
+		PoloniexStatsDailyAvg.Set(l.PoloniexStats["BTC"].DayAvg)
+		PoloniexStatsWeeklyAvg.Set(l.PoloniexStats["BTC"].WeekAvg)
+		PoloniexStatsMonthlyAvg.Set(l.PoloniexStats["BTC"].MonthAvg)
+		PoloniexStatsHourlyStd.Set(l.PoloniexStats["BTC"].HrStd)
+		PoloniexStatsDailyStd.Set(l.PoloniexStats["BTC"].DayStd)
+		PoloniexStatsWeeklyStd.Set(l.PoloniexStats["BTC"].WeekStd)
+		PoloniexStatsMonthlyStd.Set(l.PoloniexStats["BTC"].MonthStd)
 	}
+
+	l.PoloniexStats["FCT"] = l.State.GetPoloniexStatistics("FCT")
 
 	if v, ok := ticker["BTC_FCT"]; ok {
 		TickerFCTValue.Set(v.Last)
@@ -146,12 +181,14 @@ func (l *Lender) UpdateTicker() {
 	LenderUpdateTicker.Inc()
 }
 
-func (l *Lender) CalculateLoanRate() error {
+func (l *Lender) CalculateLoanRate(currency string) error {
 	s := l.State
-	loans, err := s.PoloniexGetLoanOrders(l.Currency)
+	loans, err := s.PoloniexGetLoanOrders(currency)
 	if err != nil {
 		return err
 	}
+
+	breakoff := l.getAmtForBTCValue(5, currency)
 
 	index := 200
 	amt := 0.000
@@ -159,7 +196,7 @@ func (l *Lender) CalculateLoanRate() error {
 	all := GetDensityOfLoans(loans)
 	for i, orderRange := range all {
 		amt += orderRange.Amount
-		if amt > 5 {
+		if amt > breakoff {
 			index = i
 			break
 		}
@@ -172,33 +209,49 @@ func (l *Lender) CalculateLoanRate() error {
 		}
 	}
 
-	l.CurrentLoanRate.Simple = lowest
-	if l.CurrentLoanRate.Simple < 2 {
-		CurrentLoanRate.Set(l.CurrentLoanRate.Simple) // Prometheus
-		s.RecordPoloniexStatistics(l.CurrentLoanRate.Simple)
+	lr := l.CurrentLoanRate[currency]
+	lr.Simple = lowest
+	l.CurrentLoanRate[currency] = lr
+	if l.CurrentLoanRate[currency].Simple < 2 {
+		SetSimple(currency, lowest)
+		s.RecordPoloniexStatistics(currency, lowest)
 	}
+	// lr.AvgBased = lr.Simple
 
-	l.calculateAvgBasedLoanRate()
+	l.calculateAvgBasedLoanRate(currency)
 
 	return nil
 }
 
-func (l *Lender) calculateAvgBasedLoanRate() {
-	simple := l.CurrentLoanRate.Simple
-	a := l.CurrentLoanRate.Simple
+func (l *Lender) calculateAvgBasedLoanRate(currency string) {
+	rates, ok := l.CurrentLoanRate[currency]
+	if !ok {
+		l.CurrentLoanRate[currency] = LoanRates{Simple: 2, AvgBased: 2}
+	}
+	rates.AvgBased = rates.Simple
+
+	stats, ok := l.PoloniexStats[currency]
+	if !ok || stats == nil {
+		log.Printf("No poloniex stats for %s", currency)
+		l.CurrentLoanRate[currency] = rates
+		return
+	}
+
+	a := rates.Simple
 	// If less than hour average, we need to decide on whether or not to go higher
-	if simple < l.PoloniexStats.HrAvg {
+	if a < stats.HrAvg {
 		// Lends are raising, go up
-		if l.rising() == 1 {
-			a = l.PoloniexStats.HrAvg + (l.PoloniexStats.DayStd * 0.5)
+		if l.rising(currency) == 1 {
+			a = stats.HrAvg + (stats.DayStd * 0.5)
 		} else {
-			a = l.PoloniexStats.HrAvg
+			a = stats.HrAvg
 		}
 	}
 
-	l.CurrentLoanRate.AvgBased = a
+	rates.AvgBased = a
+	l.CurrentLoanRate[currency] = rates
 	if a < 2 {
-		LenderCurrentAverageBasedRate.Set(a)
+		SetAvg(currency, a)
 	}
 }
 
@@ -206,8 +259,8 @@ func (l *Lender) calculateAvgBasedLoanRate() {
 //		0 for not rising
 //		1 for rising
 //		2 for more rising
-func (l *Lender) rising() int {
-	if l.PoloniexStats.HrAvg > l.PoloniexStats.DayAvg {
+func (l *Lender) rising(currency string) int {
+	if l.PoloniexStats[currency].HrAvg > l.PoloniexStats[currency].DayAvg {
 		return 1
 	}
 	return 0
@@ -286,6 +339,19 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 	return l.State.RecordStatistics(stats)
 }
 
+func (l *Lender) getAmtForBTCValue(amount float64, currency string) float64 {
+	if currency == "BTC" {
+		return amount
+	}
+
+	t, ok := l.Ticker[fmt.Sprintf("BTC_%s", currency)]
+	if !ok {
+		return amount
+	}
+
+	return amount / t.Last
+}
+
 func (l *Lender) getBTCAmount(amount float64, currency string) float64 {
 	if currency == "BTC" {
 		return amount
@@ -307,30 +373,12 @@ func (l *Lender) ProcessJob(j *Job) error {
 	}
 	switch j.Strategy {
 	default:
-		r := l.CurrentLoanRate.AvgBased
-		if l.CurrentLoanRate.Simple == l.CurrentLoanRate.AvgBased {
-			if l.rising() == 1 {
-				r += l.PoloniexStats.DayStd * .1
-			}
-		}
-		return l.tierOneProcessJob(j, r)
+		return l.tierOneProcessJob(j)
 	}
 }
 
-func (l *Lender) decideRate(rate float64, avail float64, total float64) {
-	if rate < l.PoloniexStats.DayAvg {
-
-	}
-}
-
-func (l *Lender) tierOneProcessJob(j *Job, rate float64) error {
-	j.MinimumLend = 0.0008
-	if rate < j.MinimumLend {
-		return nil
-	}
-
+func (l *Lender) tierOneProcessJob(j *Job) error {
 	s := l.State
-	// total := float64(0)
 
 	bals, err := s.PoloniexGetAvailableBalances(j.Username)
 	if err != nil {
@@ -348,55 +396,69 @@ func (l *Lender) tierOneProcessJob(j *Job, rate float64) error {
 		}
 	}
 
-	avail, ok := bals["lending"][l.Currency]
-	var _ = ok
+	for i, min := range j.MinimumLend {
+		rate := l.CurrentLoanRate[j.Currency[i]].AvgBased
+		if l.CurrentLoanRate[j.Currency[i]].Simple == l.CurrentLoanRate[j.Currency[i]].AvgBased {
+			if l.rising(j.Currency[i]) == 1 {
+				rate += l.PoloniexStats[j.Currency[i]].DayStd * .1
+			}
+		}
 
-	// rate := l.decideRate(rate, avail, total)
+		if rate < min {
+			continue
+		}
 
-	// We need to find some more crypto to lkend
-	if avail < MaxLendAmt {
-		need := MaxLendAmt - avail
-		if inactiveLoans != nil {
-			currencyLoans := inactiveLoans[l.Currency]
-			sort.Sort(poloniex.PoloniexLoanOfferArray(currencyLoans))
-			for _, loan := range currencyLoans {
-				if need < 0 {
-					break
-				}
+		avail, ok := bals["lending"][j.Currency[i]]
+		var _ = ok
 
-				// Too close, no point in canceling
-				if abs(loan.Rate-rate) < 0.00000009 {
-					continue
-				}
-				worked, err := s.PoloniexCancelLoanOffer(l.Currency, loan.ID, j.Username)
-				if err != nil {
-					fmt.Println(err)
-					continue
-				}
-				if worked && err == nil {
-					need -= loan.Amount
-					avail += loan.Amount
-					LoansCanceled.Inc()
+		// rate := l.decideRate(rate, avail, total)
+
+		// We need to find some more crypto to lkend
+		if avail < MaxLendAmt[j.Currency[i]] {
+			need := MaxLendAmt[j.Currency[i]] - avail
+			if inactiveLoans != nil {
+				currencyLoans := inactiveLoans[j.Currency[i]]
+				sort.Sort(poloniex.PoloniexLoanOfferArray(currencyLoans))
+				for _, loan := range currencyLoans {
+					if need < 0 {
+						break
+					}
+
+					// Too close, no point in canceling
+					if abs(loan.Rate-rate) < 0.00000009 {
+						continue
+					}
+					worked, err := s.PoloniexCancelLoanOffer(j.Currency[i], loan.ID, j.Username)
+					if err != nil {
+						fmt.Println(err)
+						continue
+					}
+					if worked && err == nil {
+						need -= loan.Amount
+						avail += loan.Amount
+						LoansCanceled.Inc()
+					}
 				}
 			}
 		}
-	}
 
-	amt := MaxLendAmt
-	if avail < MaxLendAmt {
-		amt = avail
-	}
+		amt := MaxLendAmt[j.Currency[i]]
+		if avail < MaxLendAmt[j.Currency[i]] {
+			amt = avail
+		}
 
-	// To little for a loan
-	if amt < 0.01 {
-		return nil
+		// To little for a loan
+		if amt < MinLendAmt[j.Currency[i]] {
+			return nil
+		}
+
+		_, err = s.PoloniexCreateLoanOffer(j.Currency[i], amt, rate, 2, false, j.Username)
+		if err != nil {
+			return err
+		}
+		LoansCreated.Inc()
+		JobsDone.Inc()
 	}
-	_, err = s.PoloniexCreateLoanOffer(l.Currency, amt, rate, 2, false, j.Username)
-	if err != nil {
-		return err
-	}
-	LoansCreated.Inc()
-	JobsDone.Inc()
 
 	return nil
 }
