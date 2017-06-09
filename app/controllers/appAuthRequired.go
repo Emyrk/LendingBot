@@ -197,7 +197,16 @@ func (r AppAuthRequired) SettingsDashboardLending() revel.Result {
 		r.ViewArgs["poloniexSecret"] = ""
 	}
 
-	r.ViewArgs["lendingEnabled"] = u.PoloniexEnabled
+	fC, err := json.Marshal(u.PoloniexEnabled)
+	if err != nil {
+		fmt.Printf("WARNING: User poloniex failed to marshal: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
+		r.Response.Status = 500
+		return r.RenderError(&revel.Error{
+			Title:       "500",
+			Description: "Internal error contact support.",
+		})
+	}
+	r.ViewArgs["lendingEnabled"] = string(fC)
 
 	return r.RenderTemplate("AppAuthRequired/SettingsDashboardLending.html")
 }
@@ -263,9 +272,16 @@ func (r AppAuthRequired) RequestEmailVerification() revel.Result {
 func (r AppAuthRequired) EnableUserLending() revel.Result {
 	data := make(map[string]interface{})
 
-	enable := r.Params.Form.Get("enable") == "true"
+	var coins userdb.PoloniexEnabledStruct
+	err := json.Unmarshal([]byte(r.Params.Form.Get("enable")), coins)
+	if err != nil {
+		fmt.Printf("WARNING: User failed to unmarshal enable user lending request: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
+		data[JSON_ERROR] = "Bad Request"
+		r.Response.Status = 400
+		return r.RenderJSON(data)
+	}
 
-	err := state.EnableUserLending(r.Session[SESSION_EMAIL], enable)
+	err = state.EnableUserLending(r.Session[SESSION_EMAIL], coins)
 	if err != nil {
 		fmt.Printf("WARNING: User failed to enable/disable lending: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
 		data[JSON_ERROR] = "Bad Request"
@@ -273,12 +289,7 @@ func (r AppAuthRequired) EnableUserLending() revel.Result {
 		return r.RenderJSON(data)
 	}
 
-	if enable {
-		data[JSON_DATA] = "Enabled"
-	} else {
-		data[JSON_DATA] = "Disabled"
-	}
-
+	data[JSON_DATA] = coins
 	return r.RenderJSON(data)
 }
 

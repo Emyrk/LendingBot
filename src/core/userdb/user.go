@@ -695,33 +695,34 @@ func (m *MiniumumLendStruct) MarshalBinary() ([]byte, error) {
 }
 
 type PoloniexEnabledStruct struct {
-	BTC  bool
-	BTS  bool
-	CLAM bool
-	DOGE bool
-	DASH bool
-	LTC  bool
-	MAID bool
-	STR  bool
-	XMR  bool
-	XRP  bool
-	ETH  bool
-	FCT  bool
+	BTC  bool `json:"BTC"`
+	BTS  bool `json:"BTS"`
+	CLAM bool `json:"CLAM"`
+	DOGE bool `json:"DOGE"`
+	DASH bool `json:"DASH"`
+	LTC  bool `json:"LTC"`
+	MAID bool `json:"MAID"`
+	STR  bool `json:"STR"`
+	XMR  bool `json:"XMR"`
+	XRP  bool `json:"XRP"`
+	ETH  bool `json:"ETH"`
+	FCT  bool `json:"FCT"`
 }
 
-func (pe *PoloniexEnabledStruct) Enable(enable bool) {
-	pe.BTC = enable
-	pe.BTS = enable
-	pe.CLAM = enable
-	pe.DOGE = enable
-	pe.DASH = enable
-	pe.LTC = enable
-	pe.MAID = enable
-	pe.STR = enable
-	pe.XMR = enable
-	pe.XRP = enable
-	pe.ETH = enable
-	pe.FCT = enable
+//added in coin for future to enable specific coin
+func (pe *PoloniexEnabledStruct) Enable(coins PoloniexEnabledStruct) {
+	pe.BTC = coins.BTC
+	pe.BTS = coins.BTS
+	pe.CLAM = coins.CLAM
+	pe.DOGE = coins.DOGE
+	pe.DASH = coins.DASH
+	pe.LTC = coins.LTC
+	pe.MAID = coins.MAID
+	pe.STR = coins.STR
+	pe.XMR = coins.XMR
+	pe.XRP = coins.XRP
+	pe.ETH = coins.ETH
+	pe.FCT = coins.FCT
 }
 
 func (pe *PoloniexEnabledStruct) Bytes() []byte {

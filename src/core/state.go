@@ -207,13 +207,13 @@ func (s *State) GetUserStatistics(username string, dayRange int) ([][]userdb.Use
 	return s.userStatistic.GetStatistics(username, dayRange)
 }
 
-func (s *State) EnableUserLending(username string, enabled bool) error {
+func (s *State) EnableUserLending(username string, coins userdb.PoloniexEnabledStruct) error {
 	u, err := s.userDB.FetchUserIfFound(username)
 	if err != nil {
 		return err
 	}
 
-	u.PoloniexEnabled.Enable(enabled)
+	u.PoloniexEnabled.Enable(coins)
 	return s.userDB.PutUser(u)
 }
 
