@@ -87,6 +87,9 @@ func (q *Queuer) Start() {
 
 			if time.Since(last).Seconds() > 60 {
 				log.Printf("Have %d users to make jobs for", len(q.AllUsers))
+				for _, us := range q.AllUsers {
+					log.Printf("     %s", us.Username)
+				}
 				last = time.Now()
 			}
 			q.AddJobs()
