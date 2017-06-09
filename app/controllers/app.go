@@ -62,6 +62,11 @@ func (c App) FAQ() revel.Result {
 	return c.RenderTemplate("App/FAQ.html")
 }
 
+func (c App) Donate() revel.Result {
+	c.ViewArgs["Inverse"] = true
+	return c.RenderTemplate("App/Donate.html")
+}
+
 func (c App) Tutorials() revel.Result {
 	return c.RenderTemplate("App/Tutorials.html")
 }

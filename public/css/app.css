@@ -469,6 +469,10 @@ p, .normal-color h1, .normal-color h2, .normal-color h3 {
   font-weight: 600;
 }
 
+.bitcoin-donate-address {
+  padding: 80px 0px 80px 0px;
+}
+
 .buffer {
   padding: 10px;
 }

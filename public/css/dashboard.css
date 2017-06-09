@@ -1,0 +1,35 @@
+.love-us-please {
+	height: 90vh;
+	background: url("../img/heart.svg") no-repeat center center fixed;
+	background-repeat: no-repeat;
+	margin:0 auto;
+}
+
+.love-us-please-inside {
+	position: absolute;
+	left: 40%;
+	top: 35%;
+}
+
+#bitcoindonate {
+	position: absolute;
+	top:33%;
+	left: 25%;
+	color: black;
+	font-size: 20px;
+	width: 250px;
+	height: 250px;
+	background: url("../img/donateaddress.png");
+}
+
+@media (max-width: 992px) {
+	.love-us-please-inside {
+		left: 33% !important;
+	}
+}
+
+@media (max-width: 500px) {
+	.love-us-please-inside {
+		left: 20% !important;
+	}
+}
