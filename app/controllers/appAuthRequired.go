@@ -197,17 +197,6 @@ func (r AppAuthRequired) SettingsDashboardLending() revel.Result {
 		r.ViewArgs["poloniexSecret"] = ""
 	}
 
-	fC, err := json.Marshal(u.PoloniexEnabled)
-	if err != nil {
-		fmt.Printf("WARNING: User poloniex failed to marshal: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
-		r.Response.Status = 500
-		return r.RenderError(&revel.Error{
-			Title:       "500",
-			Description: "Internal error contact support.",
-		})
-	}
-	r.ViewArgs["lendingEnabled"] = string(fC)
-
 	return r.RenderTemplate("AppAuthRequired/SettingsDashboardLending.html")
 }
 
@@ -269,27 +258,77 @@ func (r AppAuthRequired) RequestEmailVerification() revel.Result {
 	return r.RenderJSON(data)
 }
 
-func (r AppAuthRequired) EnableUserLending() revel.Result {
+func (r AppAuthRequired) GetEnableUserLending() revel.Result {
 	data := make(map[string]interface{})
 
-	var coins userdb.PoloniexEnabledStruct
-	err := json.Unmarshal([]byte(r.Params.Form.Get("enable")), coins)
+	u, err := state.FetchUser(r.Session[SESSION_EMAIL])
+	if err != nil {
+		fmt.Printf("WARNING: GetEnableUserLending: User failed to find user: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
+		data[JSON_ERROR] = "Bad Request. Contact support@hodl.zone"
+		r.Response.Status = 400
+		return r.RenderJSON(data)
+	}
+
+	// bytes, err := json.Marshal()
+	// if err != nil {
+	// 	fmt.Printf("ERROR: GetEnableUserLending: failed to marshal: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
+	// 	data[JSON_ERROR] = "Internal Error. Contact support@hodl.zone"
+	// 	r.Response.Status = 500
+	// 	return r.RenderJSON(data)
+	// }
+
+	// fmt.Printf("CURRENCY: %s\n", string(bytes))
+	data[JSON_DATA] = struct {
+		Enable userdb.PoloniexEnabledStruct `json:"enable"`
+		Min    userdb.MiniumumLendStruct    `json:"min"`
+	}{
+		u.PoloniexEnabled,
+		u.MiniumLend,
+	}
+
+	return r.RenderJSON(data)
+}
+
+func (r AppAuthRequired) SetEnableUserLending() revel.Result {
+	data := make(map[string]interface{})
+
+	var coinsEnabled userdb.PoloniexEnabledStruct
+	err := json.Unmarshal([]byte(r.Params.Form.Get("enable")), &coinsEnabled)
 	if err != nil {
 		fmt.Printf("WARNING: User failed to unmarshal enable user lending request: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
-		data[JSON_ERROR] = "Bad Request"
-		r.Response.Status = 400
+		data[JSON_ERROR] = "Bad Request. Failed all. Contact support@hodl.zone"
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+	var coinsMin userdb.MiniumumLendStruct
+	err = json.Unmarshal([]byte(r.Params.Form.Get("min")), &coinsMin)
+	if err != nil {
+		fmt.Printf("WARNING: User failed to unmarshal min user lending request: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
+		data[JSON_ERROR] = "Bad Request. Failed all. Contact support@hodl.zone"
+		r.Response.Status = 500
 		return r.RenderJSON(data)
 	}
 
-	err = state.EnableUserLending(r.Session[SESSION_EMAIL], coins)
+	// ENABLE USER LENDING
+	err = state.EnableUserLending(r.Session[SESSION_EMAIL], coinsEnabled)
 	if err != nil {
 		fmt.Printf("WARNING: User failed to enable/disable lending: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
-		data[JSON_ERROR] = "Bad Request"
+		data[JSON_ERROR] = "Failed to set and failed to enable/disable."
 		r.Response.Status = 400
 		return r.RenderJSON(data)
 	}
+	// /ENABLE USER LENDING
 
-	data[JSON_DATA] = coins
+	// SET USER LENDING AMOUNT
+	err = state.SetAllUserMinimumLoan(r.Session[SESSION_EMAIL], coinsMin)
+	if err != nil {
+		fmt.Printf("WARNING: User failed set lending: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
+		data[JSON_ERROR] = "Failed to set, but enable/disable went through."
+		r.Response.Status = 400
+		return r.RenderJSON(data)
+	}
+	// /SET USER LENDING AMOUNT
+
 	return r.RenderJSON(data)
 }
 

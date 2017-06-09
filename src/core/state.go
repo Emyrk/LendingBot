@@ -114,6 +114,16 @@ func (s *State) Close() error {
 	return s.userDB.Close()
 }
 
+func (s *State) SetAllUserMinimumLoan(username string, coins userdb.MiniumumLendStruct) error {
+	u, err := s.userDB.FetchUserIfFound(username)
+	if err != nil {
+		return err
+	}
+
+	u.MiniumLend.SetAll(coins)
+	return s.userDB.PutUser(u)
+}
+
 func (s *State) SetUserMinimumLoan(username string, minimumAmt float64, currency string) error {
 	u, err := s.userDB.FetchUserIfFound(username)
 	if err != nil {

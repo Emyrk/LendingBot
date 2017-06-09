@@ -274,7 +274,38 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log', '$ti
 			dashSettingsLendingScope.poloniexSecret = dashSettingsLendingScope.poloniexSecretOrig;
 		}
 
-		dashSettingsLendingScope.setEnablePoloniexLending = function(bool) {
+		dashSettingsLendingScope.getEnablePoloniexLending = function() {
+			dashSettingsLendingScope.loadingEnablePoloniexLending = true;
+			$http(
+			{
+				method: 'GET',
+				url: '/dashboard/settings/enableuserlending',
+				data : $.param({
+				}),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				withCredentials: true
+			})
+			.then((res) => {
+				//success
+				$log.info("getEnablePoloniexLending: Success.");
+				dashSettingsLendingScope.coinsEnabled = res.data.data.enable;
+				dashSettingsLendingScope.coinsMinLend = res.data.data.min;
+				
+				$timeout(()=>{
+					dashSettingsLendingScope.init_switch();
+				})
+			}, (err) => {
+				//error
+				$log.error("getEnablePoloniexLending: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				dashSettingsLendingScope.poloniexKeysEnabledError = 'Unable to load poloniex lending information. Error: ' + err.data.error;
+			})
+			.then(() => {
+				dashSettingsLendingScope.loadingEnablePoloniexLending = false;
+			});
+		}
+
+
+		dashSettingsLendingScope.setEnablePoloniexLending = function() {
 			dashSettingsLendingScope.loadingEnablePoloniexLending = true;
 			dashSettingsLendingScope.poloniexKeysEnabledError = '';
 			dashSettingsLendingScope.poloniexKeysEnableSuccess = '';
@@ -283,19 +314,20 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log', '$ti
 				method: 'POST',
 				url: '/dashboard/settings/enableuserlending',
 				data : $.param({
-					enable: bool,
+					enable: JSON.stringify(dashSettingsLendingScope.coinsEnabled),
+					min: JSON.stringify(dashSettingsLendingScope.coinsMinLend),
 				}),
 				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
 				withCredentials: true
 			})
 			.then((res) => {
 				//success
-				$log.info("loadingEnablePoloniexLending: Success.");
-				dashSettingsLendingScope.poloniexKeysEnableSuccess = 'Poloniex Lending is: ' + res.data.data;
+				$log.info("setEnablePoloniexLending: Success.");
+				dashSettingsLendingScope.poloniexKeysEnableSuccess = 'Poloniex Lending successfully updated values.'
 			}, (err) => {
 				//error
-				$log.error("loadingEnablePoloniexLending: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
-				dashSettingsLendingScope.poloniexKeysEnabledError = 'Unable to stop poloniex lending.';
+				$log.error("setEnablePoloniexLending: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				dashSettingsLendingScope.poloniexKeysEnabledError = 'Unable to update poloniex lending information. Error: ' + err.data.error;
 			})
 			.then(() => {
 				dashSettingsLendingScope.loadingEnablePoloniexLending = false;
@@ -349,7 +381,7 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log', '$ti
                 	html.onchange = function(e) {
                 		dashSettingsLendingScope.$apply(() => {
                 			var me = $(this);
-                			dashSettingsLendingScope.coins[me.attr('id')] = me.is(':checked');
+                			dashSettingsLendingScope.coinsEnabled[me.attr('id')] = me.is(':checked');
                 		});
                 	}
                 });
@@ -369,9 +401,8 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log', '$ti
 		dashSettingsLendingScope.poloniexKeysEnableSuccess = ''
 		dashSettingsLendingScope.poloniexKeysSetSuccess = '';
 
-		$timeout(() => {
-			dashSettingsLendingScope.init_switch();
-		});
+		dashSettingsLendingScope.parseInt = parseInt;
+		dashSettingsLendingScope.getEnablePoloniexLending();
 		//------
 
 	}]);

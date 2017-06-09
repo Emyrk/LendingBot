@@ -499,18 +499,18 @@ func (u *User) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 }
 
 type MiniumumLendStruct struct {
-	BTC  float64
-	BTS  float64
-	CLAM float64
-	DOGE float64
-	DASH float64
-	LTC  float64
-	MAID float64
-	STR  float64
-	XMR  float64
-	XRP  float64
-	ETH  float64
-	FCT  float64
+	BTC  float64 `json:"BTC"`
+	BTS  float64 `json:"BTS"`
+	CLAM float64 `json:"CLAM"`
+	DOGE float64 `json:"DOGE"`
+	DASH float64 `json:"DASH"`
+	LTC  float64 `json:"LTC"`
+	MAID float64 `json:"MAID"`
+	STR  float64 `json:"STR"`
+	XMR  float64 `json:"XMR"`
+	XRP  float64 `json:"XRP"`
+	ETH  float64 `json:"ETH"`
+	FCT  float64 `json:"FCT"`
 }
 
 func (m *MiniumumLendStruct) Set(currency string, min float64) bool {
@@ -543,6 +543,21 @@ func (m *MiniumumLendStruct) Set(currency string, min float64) bool {
 		return false
 	}
 	return true
+}
+
+func (m *MiniumumLendStruct) SetAll(coins MiniumumLendStruct) {
+	m.BTC = coins.BTC
+	m.BTS = coins.BTS
+	m.CLAM = coins.CLAM
+	m.DOGE = coins.DOGE
+	m.DASH = coins.DASH
+	m.LTC = coins.LTC
+	m.MAID = coins.MAID
+	m.STR = coins.STR
+	m.XMR = coins.XMR
+	m.XRP = coins.XRP
+	m.ETH = coins.ETH
+	m.FCT = coins.FCT
 }
 
 func (m *MiniumumLendStruct) UnmarshalBinary(data []byte) (err error) {
