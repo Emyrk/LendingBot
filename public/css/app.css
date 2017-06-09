@@ -239,7 +239,7 @@ p, .normal-color h1, .normal-color h2, .normal-color h3 {
 #hero {
   width: 100%;
   background: url('../img/hero.jpg');
-  background-color: rgba(131, 204, 243, .85);
+  background-color: rgba(75, 155, 197, 0.85);
     background-blend-mode: soft-light;
   background-size: cover; 
     background-repeat: no-repeat;
