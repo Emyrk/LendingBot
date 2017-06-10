@@ -86,7 +86,7 @@ func (s AppSysAdmin) MakeInvite() revel.Result {
 	}
 
 	t := time.Now().Add(time.Duration(h) * time.Hour)
-	err = state.AddInviteCode(s.Params.Form.Get("code"), c, t)
+	err = state.AddInviteCode(s.Params.Form.Get("rawc"), c, t)
 	if err != nil {
 		fmt.Printf("WARNING: User failed to create invite: [%s] error: %s\n", s.Session[SESSION_EMAIL], err.Error())
 		data[JSON_ERROR] = "Failed to create invite."
