@@ -448,10 +448,6 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 			}
 		}
 
-		if rate < min {
-			continue
-		}
-
 		avail, ok := bals["lending"][j.Currency[i]]
 		var _ = ok
 
@@ -464,8 +460,18 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 				currencyLoans := inactiveLoans[j.Currency[i]]
 				sort.Sort(poloniex.PoloniexLoanOfferArray(currencyLoans))
 				for _, loan := range currencyLoans {
-					if need < 0 {
-						break
+					// We don't need any more funds, so we can exit this loop. But if the rate is less
+					// than our minimum, we want to cancel that
+					if need < 0 || loan.Rate < min {
+						if loan.Rate < min {
+							s.PoloniexCancelLoanOffer(j.Currency[i], loan.ID, j.Username)
+						}
+						continue
+					}
+
+					// So if the rate is less than the min, we don't want to cancel anything, unless the condition above
+					if rate < min {
+						continue
 					}
 
 					// Too close, no point in canceling
@@ -484,6 +490,11 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 					}
 				}
 			}
+		}
+
+		// Don't make the loan
+		if rate < min {
+			continue
 		}
 
 		amt := MaxLendAmt[j.Currency[i]]
