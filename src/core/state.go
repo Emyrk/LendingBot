@@ -397,9 +397,8 @@ func (s *State) DeleteUser() error {
 	return nil
 }
 
-func (s *State) DeleteInvite(hash string) error {
-	return nil
-	//return s.userInviteCodes.DeleteInviteCode(hash)
+func (s *State) DeleteInvite(code string) error {
+	return s.userInviteCodes.ExpireInviteCode(code)
 }
 
 func (s *State) UpdateUserPrivilege(email string, priv string) (*string, error) {

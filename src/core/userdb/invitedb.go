@@ -118,11 +118,21 @@ func (ie *InviteDB) ClaimInviteCode(username string, code string) (bool, error) 
 }
 
 func (ie *InviteDB) CreateInviteCode(code string, capacity int, expires time.Time) error {
-	if v, _ := ie.getInviteCode(code); v != nil {
+	if v, _ := ie.getRawInviteCode(code); v != nil {
 		return fmt.Errorf("Code %s already exists", code)
 	}
 	i := NewInviteCode(code, capacity, expires)
 	return ie.putInviteCode(i)
+}
+
+func (ie *InviteDB) ExpireInviteCode(code string) error {
+	c, err := ie.getInviteCode(code)
+	if err != nil {
+		return err
+	}
+
+	c.Expires = time.Now().Add(-1 * time.Hour)
+	return ie.putInviteCode(c)
 }
 
 func (ie *InviteDB) putInviteCode(ic *InviteEntry) error {
@@ -134,7 +144,21 @@ func (ie *InviteDB) putInviteCode(ic *InviteEntry) error {
 	return ie.db.Put(InviteCodeBucket, ic.Code[:], data)
 }
 
-func (ie *InviteDB) getInviteCode(raw string) ([]byte, error) {
+func (ie *InviteDB) getInviteCode(raw string) (*InviteEntry, error) {
+	rawData, err := ie.getRawInviteCode(raw)
+	if err != nil {
+		return nil, err
+	}
+
+	e := new(InviteEntry)
+	err = e.UnmarshalBinary(rawData)
+	if err != nil {
+		return nil, err
+	}
+	return e, nil
+}
+
+func (ie *InviteDB) getRawInviteCode(raw string) ([]byte, error) {
 	key := sha256.Sum256([]byte(raw))
 	return ie.db.Get(InviteCodeBucket, key[:])
 }
