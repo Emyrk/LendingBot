@@ -113,8 +113,10 @@ func (ie *InviteDB) ClaimInviteCode(username string, code string) (bool, error) 
 }
 
 func (ie *InviteDB) CreateInviteCode(code string, capacity int, expires time.Time) error {
+	if v, _ := ie.getInviteCode(code); v != nil {
+		return fmt.Errorf("Code already exists")
+	}
 	i := NewInviteCode(code, capacity, expires)
-	fmt.Println(code)
 	return ie.putInviteCode(i)
 }
 
@@ -125,6 +127,11 @@ func (ie *InviteDB) putInviteCode(ic *InviteEntry) error {
 	}
 
 	return ie.db.Put(InviteCodeBucket, ic.Code[:], data)
+}
+
+func (ie *InviteDB) getInviteCode(raw string) ([]byte, error) {
+	key := sha256.Sum256([]byte(code))
+	return ie.db.Get(InviteCodeBucket, key)
 }
 
 func NewInviteCode(code string, capacity int, expires time.Time) *InviteEntry {
