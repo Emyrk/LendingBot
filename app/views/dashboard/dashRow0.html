@@ -1,7 +1,7 @@
   <div class="row tile_count">
     <div class="col-md-3 col-sm-6 col-xs-6 tile_stats_count">
     <!-- Current Daily -->
-      <span class="count_top"><i class="fa fa-user"></i> Current Daily Rate</span>
+      <span class="count_top"><i class="fa fa-user"></i> Current Lending Rate</span>
       <div class="count">{{currentUserStats.loanrate * 100 | number : 5}}%</div>
       <!-- Change -->
 
@@ -40,7 +40,7 @@
 
     <!-- Lending Uptime -->
     <div class="col-md-3 col-sm-6 col-xs-6 tile_stats_count">
-      <span class="count_top"><i class="fa fa-user"></i> Lending Uptime</span>
+      <span class="count_top"><i class="fa fa-user"></i> Available BTC Lent</span>
       <div class="count">{{currentUserStats.lendingpercent * 100| number : 3}}%</div>
        <!-- Change -->
         <span ng-hide="currentUserStats.lendingpercentchange.toFixed(3) == 0" class="count_bottom">

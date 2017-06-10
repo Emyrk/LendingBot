@@ -95,7 +95,7 @@ func (c App) unmarshalUser(body io.ReadCloser) (string, string) {
 func (c App) Login() revel.Result {
 	email := c.Params.Form.Get("email")
 	pass := c.Params.Form.Get("pass")
-	twofa := c.Params.Form.Get("2fa")
+	twofa := c.Params.Form.Get("twofa")
 
 	data := make(map[string]interface{})
 	ok, _, err := state.AuthenticateUser2FA(email, pass, twofa)

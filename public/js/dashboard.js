@@ -94,8 +94,8 @@ app.controller('dashInfoController', ['$scope', '$http', '$log',
 					.append($("<td>").html(val.amount))
 					.append($("<td>").html(val.earned))
 					.append($("<td>").html(val.fee))
-					.append($("<td>").html(val.close))
-					.append($("<td>").html(val.duration));
+					.append($("<td>").html(val.close));
+					// .append($("<td>").html(val.duration));
 					$("#lendingHistory").append(tr);
 				});
 				if (!$.fn.DataTable.isDataTable('#datatable-responsive')) {

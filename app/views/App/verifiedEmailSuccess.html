@@ -1,1 +1,26 @@
-<h1>Successfully verified email: [[.email]]</h2>
+[[set . "title" "VerifyEmail"]]
+[[set . "Inverse" true]]
+[[template "index/indexHeader.html" .]]
+[[template "index/indexnav.html" .]]
+
+<section id="faq-content" class="push-footer">
+  <section id="faq-title" class="container">
+    <div class="row">
+      <div class="col-xs-12 center-text" style="padding-top: 30vh;">
+        <h1>Successfully verified email: [[.email]]</h1>
+      </div>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="row">
+      <div class="span6">
+
+
+        [[template "index/flash.html" .]]
+      </div>
+    </div>
+  </div>
+</section>
+[[template "index/footer.html" .]]
+

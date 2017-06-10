@@ -104,7 +104,7 @@ func (l *Lender) CalcLoop() {
 				log.Printf("[%s] Error in Lending: %s", curarr[i], err)
 			}
 			l.LastCalculateLoanRate[curarr[i]] = time.Now()
-			time.Sleep(1 * time.Second)
+			time.Sleep(300 * time.Millisecond)
 			i++
 		}
 	}
