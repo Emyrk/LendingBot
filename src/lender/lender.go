@@ -428,6 +428,7 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 
 	// 3 types of balances: Not lent, Inactive, Active
 	inactiveLoans, _ := s.PoloniexGetInactiveLoans(j.Username)
+	fmt.Println(inactiveLoans)
 
 	activeLoans, err := s.PoloniexGetActiveLoans(j.Username)
 	if err == nil && activeLoans != nil {
