@@ -37,3 +37,11 @@
 #dashboard-logo {
 	max-width: 100%;
 }
+
+.nav-sm .dashboard-logo-big {
+	display: none;
+}
+
+.nav-md .dashboard-logo-small {
+	display: none;
+}
