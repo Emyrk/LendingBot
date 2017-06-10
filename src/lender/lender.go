@@ -352,14 +352,14 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 	inactiveLentTotalRate := float64(0)
 	inactiveLentCount := float64(0)
 	for k, _ := range inact {
-		for curr, loan := range inact[k] {
-			fmt.Println(loan, stats.TotalCurrencyMap[curr])
+		for _, loan := range inact[k] {
+			fmt.Println(loan, stats.TotalCurrencyMap[k])
 			//if l.Currency == "BTC" {
-			inactiveLentBal += l.getBTCAmount(loan.Amount, curr)
+			inactiveLentBal += l.getBTCAmount(loan.Amount, k)
 			inactiveLentTotalRate += loan.Rate
 			inactiveLentCount++
 			//}
-			stats.TotalCurrencyMap[curr] += l.getBTCAmount(loan.Amount, curr)
+			stats.TotalCurrencyMap[k] += l.getBTCAmount(loan.Amount, k)
 		}
 	}
 
