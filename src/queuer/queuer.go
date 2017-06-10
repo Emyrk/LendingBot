@@ -72,7 +72,7 @@ func (q *Queuer) Start() {
 	q.LoadUsers()
 
 	last := time.Now()
-	lastCalc := time.Now()
+	// lastCalc := time.Now()
 
 	for {
 		select {
