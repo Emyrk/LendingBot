@@ -247,10 +247,12 @@ func (l *Lender) CalculateLoanRate(currency string) error {
 	lr := l.CurrentLoanRate[currency]
 	lr.Simple = lowest
 	l.CurrentLoanRate[currency] = lr
-	if l.CurrentLoanRate[currency].Simple < 2 && time.Since(l.LastCalculateLoanRate[currency]).Seconds() > 5 {
+	if l.CurrentLoanRate[currency].Simple < 2 {
 		SetSimple(currency, lowest)
-		s.RecordPoloniexStatistics(currency, lowest)
-		l.LastCalculateLoanRate[currency] = time.Now()
+		if time.Since(l.LastCalculateLoanRate[currency]).Seconds() > 5 {
+			s.RecordPoloniexStatistics(currency, lowest)
+			l.LastCalculateLoanRate[currency] = time.Now()
+		}
 	}
 	// lr.AvgBased = lr.Simple
 
