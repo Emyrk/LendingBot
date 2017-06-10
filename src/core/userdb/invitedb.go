@@ -83,6 +83,11 @@ func (ie *InviteDB) ListAll() ([]InviteEntry, error) {
 	return list, nil
 }
 
+func (ie *InviteDB) DeleteInvite(hash string) error {
+	//do not delete the code, just make the claim date in the past.
+	return nil
+}
+
 func (ie *InviteDB) ClaimInviteCode(username string, code string) (bool, error) {
 	key := sha256.Sum256([]byte(code))
 	data, err := ie.db.Get(InviteCodeBucket, key[:])
