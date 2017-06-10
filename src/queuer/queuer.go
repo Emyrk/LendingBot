@@ -6,6 +6,7 @@ package queuer
 //		- Prioritize certain users
 
 import (
+	"fmt"
 	"log"
 	"sort"
 	"strings"
@@ -14,6 +15,8 @@ import (
 	"github.com/Emyrk/LendingBot/src/core"
 	"github.com/Emyrk/LendingBot/src/lender"
 )
+
+var _ = fmt.Print
 
 type SingleUser struct {
 	Username        string
@@ -68,6 +71,7 @@ func (q *Queuer) Start() {
 	q.LoadUsers()
 
 	last := time.Now()
+	lastCalc := time.Now()
 
 	for {
 		select {
@@ -92,19 +96,32 @@ func (q *Queuer) Start() {
 				}
 				last = time.Now()
 			}
+			if time.Since(lastCalc).Seconds() > 30 {
+				q.calcStats()
+			}
 			q.AddJobs()
 		}
 	}
 }
 
+var CryptoList = []string{"BTC", "BTS", "CLAM", "DOGE", "DASH", "LTC", "MAID", "STR", "XMR", "XRP", "ETH", "FCT"}
+
+func (q *Queuer) calcStats() {
+	j := lender.NewManualJob("", []float64{0}, 0, CryptoList)
+	q.Lender.AddJob(j)
+	QueuerJobsMade.Inc()
+}
+
 func (q *Queuer) AddJobs() {
-	if len(q.AllUsers) == 0 {
-		j := lender.NewManualJob("", []float64{0, 0}, 0, []string{"BTC", "FCT"})
-		q.Lender.AddJob(j)
-		QueuerJobsMade.Inc()
-	}
 	for _, u := range q.AllUsers {
-		j := lender.NewManualJob(u.Username, []float64{0.0008, 0.0002}, u.LendingStrategy, []string{"BTC", "FCT"})
+		var mins []float64
+		keys := u.PoloniexEnabled.Keys()
+		for _, k := range keys {
+			r := u.MiniumLend.Get(k)
+			mins = append(mins, r)
+		}
+
+		j := lender.NewManualJob(u.Username, mins, u.LendingStrategy, keys)
 		q.Lender.AddJob(j)
 		QueuerJobsMade.Inc()
 	}

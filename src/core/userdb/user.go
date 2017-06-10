@@ -545,6 +545,36 @@ func (m *MiniumumLendStruct) Set(currency string, min float64) bool {
 	return true
 }
 
+func (m *MiniumumLendStruct) Get(currency string) float64 {
+	switch currency {
+	case "BTC":
+		return m.BTC
+	case "BTS ":
+		return m.BTS
+	case "CLAM":
+		return m.CLAM
+	case "DOGE":
+		return m.DOGE
+	case "DASH":
+		return m.DASH
+	case "LTC ":
+		return m.LTC
+	case "MAID":
+		return m.MAID
+	case "STR ":
+		return m.STR
+	case "XMR ":
+		return m.XMR
+	case "XRP ":
+		return m.XRP
+	case "ETH ":
+		return m.ETH
+	case "FCT ":
+		return m.FCT
+	}
+	return 0
+}
+
 func (m *MiniumumLendStruct) SetAll(coins MiniumumLendStruct) {
 	m.BTC = coins.BTC
 	m.BTS = coins.BTS
@@ -722,6 +752,47 @@ type PoloniexEnabledStruct struct {
 	XRP  bool `json:"XRP"`
 	ETH  bool `json:"ETH"`
 	FCT  bool `json:"FCT"`
+}
+
+func (pe *PoloniexEnabledStruct) Keys() []string {
+	var arr []string
+	if pe.BTC {
+		arr = append(arr, "BTC")
+	}
+	if pe.BTS {
+		arr = append(arr, "BTS")
+	}
+	if pe.CLAM {
+		arr = append(arr, "CLAM")
+	}
+	if pe.DOGE {
+		arr = append(arr, "DOGE")
+	}
+	if pe.DASH {
+		arr = append(arr, "DASH")
+	}
+	if pe.LTC {
+		arr = append(arr, "LTC")
+	}
+	if pe.MAID {
+		arr = append(arr, "MAID")
+	}
+	if pe.STR {
+		arr = append(arr, "STR")
+	}
+	if pe.XMR {
+		arr = append(arr, "XMR")
+	}
+	if pe.XRP {
+		arr = append(arr, "XRP")
+	}
+	if pe.ETH {
+		arr = append(arr, "ETH")
+	}
+	if pe.FCT {
+		arr = append(arr, "FCT")
+	}
+	return arr
 }
 
 //added in coin for future to enable specific coin
