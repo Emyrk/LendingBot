@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/Emyrk/LendingBot/src/core"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"github.com/revel/revel"
 )
@@ -28,13 +29,25 @@ func (s AppSysAdmin) GetUsers() revel.Result {
 		return s.RenderJSON(data)
 	}
 
-	data[JSON_DATA] = *safeUsers
+	allLevels := userdb.AllLevels
+	lArr := make([]string, len(allLevels), len(allLevels))
+	for i, e := range allLevels {
+		lArr[i] = userdb.LevelToString(e)
+	}
+	data[JSON_DATA] = struct {
+		Users  []core.SafeUser `json:"users"`
+		Levels []string        `json:"lev"`
+	}{
+		*safeUsers,
+		lArr,
+	}
 
 	return s.RenderJSON(data)
 }
 
 func (s AppSysAdmin) DeleteUser() revel.Result {
 	data := make(map[string]interface{})
+	//need pass and email
 	data[JSON_ERROR] = "Error not setup."
 	return s.RenderJSON(data)
 }
@@ -42,7 +55,7 @@ func (s AppSysAdmin) DeleteUser() revel.Result {
 func (s AppSysAdmin) MakeInvite() revel.Result {
 	data := make(map[string]interface{})
 
-	h, err := strconv.Atoi(s.Params.Get("hours"))
+	h, err := strconv.Atoi(s.Params.Form.Get("hr"))
 	if err != nil {
 		fmt.Printf("WARNING: failed to convert hours to int: [%s] error: %s\n", s.Session[SESSION_EMAIL], err.Error())
 		data[JSON_ERROR] = "Failed to change hours to int."
@@ -50,7 +63,7 @@ func (s AppSysAdmin) MakeInvite() revel.Result {
 		return s.RenderJSON(data)
 	}
 
-	c, err := strconv.Atoi(s.Params.Get("capacity"))
+	c, err := strconv.Atoi(s.Params.Form.Get("cap"))
 	if err != nil {
 		fmt.Printf("WARNING: failed to convert capacity to int: [%s] error: %s\n", s.Session[SESSION_EMAIL], err.Error())
 		data[JSON_ERROR] = "Failed to change capacity to int."
@@ -59,7 +72,7 @@ func (s AppSysAdmin) MakeInvite() revel.Result {
 	}
 
 	t := time.Now().Add(time.Duration(h) * time.Hour)
-	err = state.AddInviteCode(s.Params.Get("code"), c, t)
+	err = state.AddInviteCode(s.Params.Form.Get("code"), c, t)
 	if err != nil {
 		fmt.Printf("WARNING: User failed to create invite: [%s] error: %s\n", s.Session[SESSION_EMAIL], err.Error())
 		data[JSON_ERROR] = "Failed to create invite."
@@ -70,10 +83,34 @@ func (s AppSysAdmin) MakeInvite() revel.Result {
 	return s.Render(data)
 }
 
+func (s AppSysAdmin) GetInvites() revel.Result {
+	data := make(map[string]interface{})
+
+	inviteCodes, err := state.ListInviteCodes()
+	if err != nil {
+		fmt.Printf("WARNING: User failed to get invite codes: [%s] error: %s\n", s.Session[SESSION_EMAIL], err.Error())
+		data[JSON_ERROR] = "Error failed to get invite codes."
+		s.Response.Status = 500
+		return s.RenderJSON(data)
+	}
+
+	data[JSON_DATA] = inviteCodes
+
+	return s.RenderJSON(data)
+}
+
 func (s AppSysAdmin) ChangeUserPrivilege() revel.Result {
 	data := make(map[string]interface{})
 
-	priv, err := state.UpdateUserPrivilege(s.Session[SESSION_EMAIL], s.Params.Form.Get("priv"))
+	u, _ := state.FetchUser(s.Session[SESSION_EMAIL])
+	if !u.AuthenticatePassword(s.Params.Form.Get("pass")) {
+		fmt.Printf("ERROR: User failed to validate pass: [%s]\n", s.Session[SESSION_EMAIL])
+		data[JSON_ERROR] = "Failed to change user privelege. Invalid pass."
+		s.Response.Status = 400
+		return s.RenderJSON(data)
+	}
+
+	priv, err := state.UpdateUserPrivilege(s.Params.Form.Get("email"), s.Params.Form.Get("priv"))
 	if err != nil {
 		fmt.Printf("WARNING: User failed to update privelege: [%s] error: %s\n", s.Session[SESSION_EMAIL], err.Error())
 		data[JSON_ERROR] = "Failed to change user privelege."

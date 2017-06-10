@@ -374,7 +374,7 @@ func (s *State) GetAllUsers() (*[]SafeUser, error) {
 	if err != nil {
 		return nil, fmt.Errorf("ERROR: Error getting all users: %s\n", err.Error())
 	}
-	var safeUsers []SafeUser
+	safeUsers := make([]SafeUser, len(users), len(users))
 	for i, u := range users {
 		safeUsers[i] = SafeUser{
 			u.Username,
@@ -389,7 +389,7 @@ func (s *State) DeleteUser() error {
 	return nil
 }
 
-func (s *State) UpdateUserPrivilege(priv string, email string) (*string, error) {
+func (s *State) UpdateUserPrivilege(email string, priv string) (*string, error) {
 	u, err := s.userDB.FetchUserIfFound(email)
 	if err != nil {
 		return nil, err

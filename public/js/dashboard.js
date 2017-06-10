@@ -23,7 +23,7 @@ app.config(['$routeProvider', '$locationProvider',
 			templateUrl : "/dashboard/logs",
 			controller : "dashLogsController"
 		})
-		.when("/sysAdmin",{
+		.when("/sysadmin",{
 			templateUrl : "/dashboard/sysadmin",
 			controller : "sysAdminController"
 		})
