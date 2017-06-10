@@ -248,7 +248,6 @@ func (l *Lender) CalculateLoanRate(currency string) error {
 	lr := l.CurrentLoanRate[currency]
 	lr.Simple = lowest
 	l.CurrentLoanRate[currency] = lr
-	fmt.Println(currency, lowest)
 	if l.CurrentLoanRate[currency].Simple < 2 {
 		SetSimple(currency, lowest)
 		s.RecordPoloniexStatistics(currency, lowest)
