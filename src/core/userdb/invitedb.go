@@ -130,8 +130,8 @@ func (ie *InviteDB) putInviteCode(ic *InviteEntry) error {
 }
 
 func (ie *InviteDB) getInviteCode(raw string) ([]byte, error) {
-	key := sha256.Sum256([]byte(code))
-	return ie.db.Get(InviteCodeBucket, key)
+	key := sha256.Sum256([]byte(raw))
+	return ie.db.Get(InviteCodeBucket, key[:])
 }
 
 func NewInviteCode(code string, capacity int, expires time.Time) *InviteEntry {
