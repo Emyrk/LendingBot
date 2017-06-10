@@ -67,8 +67,9 @@ func (c App) Donate() revel.Result {
 	return c.RenderTemplate("App/Donate.html")
 }
 
-func (c App) Tutorials() revel.Result {
-	return c.RenderTemplate("App/Tutorials.html")
+func (c App) Information() revel.Result {
+	c.ViewArgs["Inverse"] = true
+	return c.RenderTemplate("App/Information.html")
 }
 
 func (c App) Contact() revel.Result {
@@ -97,7 +98,6 @@ func (c App) Login() revel.Result {
 	twofa := c.Params.Form.Get("2fa")
 
 	data := make(map[string]interface{})
-	fmt.Println(email, pass, twofa)
 	ok, _, err := state.AuthenticateUser2FA(email, pass, twofa)
 	if err != nil {
 		fmt.Printf("Error authenticating err: %s\n", err.Error())

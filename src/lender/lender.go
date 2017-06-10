@@ -60,7 +60,7 @@ type Lender struct {
 	quit     chan struct{}
 
 	CurrentLoanRate       map[string]LoanRates
-	LastCalculateLoanRate time.Time
+	LastCalculateLoanRate map[string]time.Time
 	CalculateLoanInterval float64 // In seconds
 	LastTickerUpdate      time.Time
 	GetTickerInterval     float64
@@ -78,6 +78,7 @@ func NewLender(s *core.State) *Lender {
 	l.PoloniexStats = make(map[string]*userdb.PoloniexStats)
 	l.CurrentLoanRate = make(map[string]LoanRates)
 	l.CurrentLoanRate["BTC"] = LoanRates{Simple: 2.1}
+	l.LastCalculateLoanRate = make(map[string]time.Time)
 
 	return l
 }
@@ -91,12 +92,13 @@ func (l *Lender) Start() {
 			return
 		case j := <-l.JobQueue:
 			// Update loan rate
-			if time.Since(l.LastCalculateLoanRate).Seconds() >= l.CalculateLoanInterval {
-				for _, c := range j.Currency {
+			for _, c := range j.Currency {
+				if v, ok := l.LastCalculateLoanRate[c]; !ok || time.Since(v).Seconds() >= l.CalculateLoanInterval {
 					err := l.CalculateLoanRate(c)
 					if err != nil {
 						log.Printf("[%s] Error in Lending: %s", j.Currency, err)
 					}
+					l.LastCalculateLoanRate[c] = time.Now()
 				}
 			}
 
@@ -445,16 +447,25 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 		amt := MaxLendAmt[j.Currency[i]]
 		if avail < MaxLendAmt[j.Currency[i]] {
 			amt = avail
+		} else if avail < MaxLendAmt[j.Currency[i]]+MinLendAmt[j.Currency[i]] {
+			// If we make a loan, and don't have enough to make a following one, make this one to the available balance
+			amt = avail
 		}
 
 		// To little for a loan
 		if amt < MinLendAmt[j.Currency[i]] {
-			return nil
+			continue
+		}
+
+		// Yea.... no
+		if rate == 0 {
+			continue
 		}
 
 		_, err = s.PoloniexCreateLoanOffer(j.Currency[i], amt, rate, 2, false, j.Username)
 		if err != nil {
-			return err
+			fmt.Println("Error in lenidng:", err.Error())
+			continue
 		}
 		LoansCreated.Inc()
 		JobsDone.Inc()

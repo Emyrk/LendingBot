@@ -614,13 +614,13 @@ p, .normal-color h1, .normal-color h2, .normal-color h3 {
   text-indent: -8px;
 }
 
-#faq-questions p {
+#faq-questions p, #information p {
   color: #95989A;
   font-size: 18px;
   padding-left: 40px;
 }
 
-#faq-content a {
+#faq-content a, #information p  {
   text-decoration: none;
 }
 
