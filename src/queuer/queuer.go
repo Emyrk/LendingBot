@@ -116,6 +116,9 @@ func (q *Queuer) calcStats() {
 func (q *Queuer) AddJobs() {
 	for _, u := range q.AllUsers {
 		j := lender.NewManualJob(u.Username, u.MiniumumLoanAmts, u.LendingStrategy, u.EnablesCurrencies)
+		if j.Currency == nil || j.MinimumLend == nil {
+			continue
+		}
 		q.Lender.AddJob(j)
 		QueuerJobsMade.Inc()
 	}

@@ -398,6 +398,8 @@ func (l *Lender) ProcessJob(j *Job) error {
 }
 
 func (l *Lender) tierOneProcessJob(j *Job) error {
+	start := time.Now()
+	defer JobProcessDuration.Observe(float64(time.Since(start).Nanoseconds()))
 	s := l.State
 
 	bals, err := s.PoloniexGetAvailableBalances(j.Username)

@@ -10,6 +10,11 @@ var (
 		Help: "Number of jobs to be processed",
 	})
 
+	JobProcessDuration = prometheus.NewSummary(prometheus.SummaryOpts{
+		Name: "hodlzone_lender_job_duration",
+		Help: "How long to process a Job",
+	})
+
 	// Lending Rates
 	CurrentLoanRate = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: "hodlzone_lender_current_lend_rate",
@@ -283,6 +288,7 @@ func RegisterPrometheus() {
 	prometheus.MustRegister(PoloniexStatsMonthlyStd)
 	prometheus.MustRegister(LenderUpdateTicker)
 	prometheus.MustRegister(LenderCurrentAverageBasedRate)
+	prometheus.MustRegister(JobProcessDuration)
 
 	prometheus.MustRegister(TickerFCTValue)
 	prometheus.MustRegister(TickerBTSValue)
