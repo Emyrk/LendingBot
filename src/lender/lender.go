@@ -98,7 +98,6 @@ func (l *Lender) CalcLoop() {
 			if i >= max {
 				i = 0
 			}
-			fmt.Println(curarr[i])
 			err := l.CalculateLoanRate(curarr[i])
 			if err != nil {
 				log.Printf("[%s] Error in Lending: %s", curarr[i], err)
@@ -353,13 +352,14 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 	inactiveLentTotalRate := float64(0)
 	inactiveLentCount := float64(0)
 	for k, _ := range inact {
-		for _, loan := range inact[k] {
+		for curr, loan := range inact[k] {
+			fmt.Println(loan, stats.TotalCurrencyMap[curr])
 			//if l.Currency == "BTC" {
-			inactiveLentBal += l.getBTCAmount(loan.Amount, k)
+			inactiveLentBal += l.getBTCAmount(loan.Amount, curr)
 			inactiveLentTotalRate += loan.Rate
 			inactiveLentCount++
 			//}
-			stats.TotalCurrencyMap[loan.Currency] += l.getBTCAmount(loan.Amount, k)
+			stats.TotalCurrencyMap[curr] += l.getBTCAmount(loan.Amount, curr)
 		}
 	}
 
@@ -428,7 +428,6 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 
 	// 3 types of balances: Not lent, Inactive, Active
 	inactiveLoans, _ := s.PoloniexGetInactiveLoans(j.Username)
-	fmt.Println(inactiveLoans)
 
 	activeLoans, err := s.PoloniexGetActiveLoans(j.Username)
 	if err == nil && activeLoans != nil {
