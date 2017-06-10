@@ -97,9 +97,9 @@ func (q *Queuer) Start() {
 				}
 				last = time.Now()
 			}
-			if time.Since(lastCalc).Seconds() > 30 {
-				q.calcStats()
-			}
+			// if time.Since(lastCalc).Seconds() > 30 {
+			// 	q.calcStats()
+			// }
 			q.AddJobs()
 		}
 	}

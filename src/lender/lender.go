@@ -89,8 +89,28 @@ func NewLender(s *core.State) *Lender {
 	return l
 }
 
+func (l *Lender) CalcLoop() {
+	ticker := time.NewTicker(time.Second)
+	for {
+		i := 0
+		max := len(curarr)
+		for {
+			if i >= max {
+				i = 0
+			}
+			err := l.CalculateLoanRate(curarr[i])
+			if err != nil {
+				log.Printf("[%s] Error in Lending: %s", j.Currency, err)
+			}
+			l.LastCalculateLoanRate[c] = time.Now()
+			time.Sleep(1 * time.Second)
+		}
+	}
+}
+
 func (l *Lender) Start() {
 	l.UpdateTicker()
+	go l.CalcLoop()
 	for {
 		select {
 		case <-l.quit:
@@ -101,16 +121,6 @@ func (l *Lender) Start() {
 			if j.Currency == nil {
 				fmt.Println("Seems we got a ni currency string:", j.Username)
 				break
-			}
-			// Update loan rate
-			for _, c := range j.Currency {
-				if v, ok := l.LastCalculateLoanRate[c]; !ok || time.Since(v).Seconds() >= l.CalculateLoanInterval {
-					err := l.CalculateLoanRate(c)
-					if err != nil {
-						log.Printf("[%s] Error in Lending: %s", j.Currency, err)
-					}
-					l.LastCalculateLoanRate[c] = time.Now()
-				}
 			}
 
 			// Update Ticker
