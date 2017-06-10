@@ -172,8 +172,6 @@ func (r AppAuthRequired) SettingsDashboardUser() revel.Result {
 		r.ViewArgs["poloniexSecret"] = ""
 	}
 
-	fmt.Println(r.ViewArgs["poloniexKey"], r.ViewArgs["poloniexSecret"])
-
 	return r.RenderTemplate("AppAuthRequired/SettingsDashboardUser.html")
 }
 

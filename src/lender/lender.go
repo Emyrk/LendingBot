@@ -447,20 +447,25 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 		amt := MaxLendAmt[j.Currency[i]]
 		if avail < MaxLendAmt[j.Currency[i]] {
 			amt = avail
+		} else if avail < MaxLendAmt[j.Currency[i]]+MinLendAmt[j.Currency[i]] {
+			// If we make a loan, and don't have enough to make a following one, make this one to the available balance
+			amt = avail
 		}
 
 		// To little for a loan
 		if amt < MinLendAmt[j.Currency[i]] {
-			return nil
+			continue
 		}
 
 		// Yea.... no
 		if rate == 0 {
-			return nil
+			continue
 		}
+
 		_, err = s.PoloniexCreateLoanOffer(j.Currency[i], amt, rate, 2, false, j.Username)
 		if err != nil {
-			return err
+			fmt.Println("Error in lenidng:", err.Error())
+			continue
 		}
 		LoansCreated.Inc()
 		JobsDone.Inc()

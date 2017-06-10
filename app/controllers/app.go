@@ -98,7 +98,6 @@ func (c App) Login() revel.Result {
 	twofa := c.Params.Form.Get("2fa")
 
 	data := make(map[string]interface{})
-	fmt.Println(email, pass, twofa)
 	ok, _, err := state.AuthenticateUser2FA(email, pass, twofa)
 	if err != nil {
 		fmt.Printf("Error authenticating err: %s\n", err.Error())
