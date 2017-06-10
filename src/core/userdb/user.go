@@ -581,6 +581,7 @@ func (m *MiniumumLendStruct) Get(currency string) float64 {
 	case "FCT ":
 		return m.FCT
 	}
+	fmt.Println("No currency:", currency)
 	return 0
 }
 
