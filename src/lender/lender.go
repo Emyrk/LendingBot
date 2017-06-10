@@ -454,6 +454,10 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 			return nil
 		}
 
+		// Yea.... no
+		if rate == 0 {
+			return nil
+		}
 		_, err = s.PoloniexCreateLoanOffer(j.Currency[i], amt, rate, 2, false, j.Username)
 		if err != nil {
 			return err
