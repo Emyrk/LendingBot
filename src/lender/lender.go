@@ -90,7 +90,7 @@ func NewLender(s *core.State) *Lender {
 }
 
 func (l *Lender) CalcLoop() {
-	ticker := time.NewTicker(time.Second)
+	// ticker := time.NewTicker(time.Second)
 	for {
 		i := 0
 		max := len(curarr)
