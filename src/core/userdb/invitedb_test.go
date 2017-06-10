@@ -27,4 +27,25 @@ func TestInviteCode(t *testing.T) {
 	if err == nil || good {
 		t.Error("Should error")
 	}
+
+	// v, err := id.ListAll()
+	// t.Log(v, err)
+}
+
+func TestInviteEntry(t *testing.T) {
+	ie := NewInviteCode("Hello", 2, time.Now())
+	data, err := ie.MarshalBinary()
+	if err != nil {
+		t.Error(err)
+	}
+
+	ie2 := new(InviteEntry)
+	nd, err := ie2.UnmarshalBinaryData(data)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(nd) > 0 {
+		t.Error("Should be 0")
+	}
 }

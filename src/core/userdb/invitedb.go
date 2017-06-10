@@ -64,7 +64,7 @@ func newInviteDB(mapDB bool) *InviteDB {
 }
 
 func (ie *InviteDB) ListAll() ([]InviteEntry, error) {
-	_, data, err := ie.db.GetAll(InviteCodeBucket)
+	data, _, err := ie.db.GetAll(InviteCodeBucket)
 	if err != nil {
 		return nil, err
 	}
@@ -74,6 +74,7 @@ func (ie *InviteDB) ListAll() ([]InviteEntry, error) {
 		var i InviteEntry
 		err := i.UnmarshalBinary(d)
 		if err != nil {
+			fmt.Println(err)
 			continue
 		}
 		list = append(list, i)
@@ -113,6 +114,7 @@ func (ie *InviteDB) ClaimInviteCode(username string, code string) (bool, error) 
 
 func (ie *InviteDB) CreateInviteCode(code string, capacity int, expires time.Time) error {
 	i := NewInviteCode(code, capacity, expires)
+	fmt.Println(code)
 	return ie.putInviteCode(i)
 }
 

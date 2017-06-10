@@ -15,7 +15,6 @@ func TestUserMarshal(t *testing.T) {
 		t.Error(err)
 	}
 
-	u.PoloniexEnabled.Enable(true)
 	u.LendingStrategy = 10
 
 	data, err := u.MarshalBinary()
@@ -110,7 +109,6 @@ func TestUserWithKeys(t *testing.T) {
 	accessKey := "abceaskljfhdfjklfkjsdhfklsdhf"
 	secret := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
-	u.PoloniexEnabled.Enable(true)
 	u.LendingStrategy = 10
 
 	var key [32]byte
