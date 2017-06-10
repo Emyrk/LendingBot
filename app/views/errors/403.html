@@ -13,30 +13,32 @@
 [[else]]
 
 [[set . "title" "Home"]]
+[[set . "Inverse" true]]
 [[template "index/indexHeader.html" .]]
 [[template "index/indexnav.html" .]]
 
-<div class="nav-md">
-	<div class="container body">
-		<div class="main_container">
-			<!-- page content -->
-			<div class="col-md-12">
-				<div class="col-middle">
-					<div class="text-center text-center">
-						<h1 class="error-number">403</h1>
-						<h2>Access denied</h2>
-						<p>Full authentication is required to access this resource.
-						</p>
-					</div>
+
+<section id="faq-content" class="push-footer">
+	<section id="faq-title" class="container">
+		<div class="row">
+			<div class="col-xs-12 center-text">
+				<h1 class="error-number">403</h1>
+			</div>
+		</div>
+	</section>
+
+	<section id="information" class="push-footer">
+		<div class="container-fluid center-text">
+			<div class="row">
+				<div class="col-xs-12 col-sm-12">
+					<h1>Access denied</h1>
+					<h3>Full authentication is required to access this resource.</h3>
 				</div>
 			</div>
-			<!-- /page content -->
 		</div>
-	</div>
-</div>
-<div class="buffer"></div>
-<div class="buffer"></div>
-<div class="buffer"></div>
+	</section>
+</section>
+
 [[template "index/footer.html" .]]
 
 [[end]]
