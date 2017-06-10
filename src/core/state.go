@@ -222,7 +222,7 @@ func (s *State) SetUserKeys(username string, acessKey string, secretKey string) 
 		return fmt.Errorf("There was a database error. Please try again in a few minutes, then contact Support@hodl.zon")
 	}
 
-	_, err = s.PoloniexGetBalances(Username)
+	_, err = s.PoloniexGetBalances(username)
 	if err != nil {
 		return fmt.Errorf("There was an error using your Poloniex keys. There is a chance they are not valid. Try setting them again, and if this continues contact Support@hodl.zone")
 	}
