@@ -52,6 +52,7 @@ app.controller('indexController', ['$scope', '$http', '$log',
 				data: $.param({
 					email: indexScope.register.email,
 					pass: indexScope.register.pass,
+					ic: indexScope.register.invitecode,
 				}),
 				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
 				withCredentials: true

@@ -68,6 +68,7 @@ app.controller('sysAdminController', ['$scope', '$http', '$log', '$timeout',
 			.then((res) => {
 				//success
 				sysAdminScope.invites = res.data.data;
+				console.log("Retrieved invites :" + res.data.data)
 				$timeout(() => {
 					if (!$.fn.DataTable.isDataTable('#inviteTable')) {
 						inviteTable = $('#inviteTable').DataTable({
@@ -147,5 +148,6 @@ app.controller('sysAdminController', ['$scope', '$http', '$log', '$timeout',
 		sysAdminScope.updateUserError = '';
 		sysAdminScope.makeInviteError = '';
 		sysAdminScope.makeInvite = {};
+		sysAdminScope.getInvites();
 		//------
 	}]);
