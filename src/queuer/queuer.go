@@ -19,9 +19,10 @@ import (
 var _ = fmt.Print
 
 type SingleUser struct {
-	Username        string
-	MiniumumLoanAmt float64
-	LendingStrategy uint32
+	Username          string
+	EnablesCurrencies []string
+	MiniumumLoanAmts  []float64
+	LendingStrategy   uint32
 }
 
 type UserList []*SingleUser
@@ -114,14 +115,7 @@ func (q *Queuer) calcStats() {
 
 func (q *Queuer) AddJobs() {
 	for _, u := range q.AllUsers {
-		var mins []float64
-		keys := u.PoloniexEnabled.Keys()
-		for _, k := range keys {
-			r := u.MiniumLend.Get(k)
-			mins = append(mins, r)
-		}
-
-		j := lender.NewManualJob(u.Username, mins, u.LendingStrategy, keys)
+		j := lender.NewManualJob(u.Username, u.MiniumumLoanAmts, u.LendingStrategy, u.EnablesCurrencies)
 		q.Lender.AddJob(j)
 		QueuerJobsMade.Inc()
 	}
@@ -135,8 +129,14 @@ func (q *Queuer) LoadUsers() error {
 
 	var newAll []*SingleUser
 	for _, u := range all {
-		if u.PoloniexEnabled.BTC {
-			newAll = append(newAll, &SingleUser{Username: u.Username, MiniumumLoanAmt: u.MiniumLend.BTC})
+		if !u.PoloniexKeys.APIKeyEmpty() {
+			keys := u.PoloniexEnabled.Keys()
+			var mins []float64
+			for _, k := range keys {
+				r := u.MiniumLend.Get(k)
+				mins = append(mins, r)
+			}
+			newAll = append(newAll, &SingleUser{Username: u.Username, MiniumumLoanAmts: mins, EnablesCurrencies: keys})
 		}
 	}
 
