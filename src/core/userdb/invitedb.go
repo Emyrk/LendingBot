@@ -20,19 +20,19 @@ type InviteDB struct {
 }
 
 type InviteEntry struct {
-	RawCode string
+	RawCode string `json:"rawc"`
 
 	// Is a hash. Allows for user-readable codes
-	Code [32]byte
+	Code [32]byte `json:"c"`
 
 	// How many times it can be used
-	Capacity int
+	Capacity int `json:"cap"`
 
 	// Usernames who claimed
-	Users []UserEntry
+	Users []UserEntry `json:"users"`
 
 	// Invite code will expire at this time
-	Expires time.Time
+	Expires time.Time `json:"time"`
 }
 
 func (ie *InviteEntry) String() string {

@@ -2,6 +2,7 @@ app.controller('sysAdminController', ['$scope', '$http', '$log', '$timeout',
 	function($scope, $http, $log, $timeout) {
 		var sysAdminScope = $scope;
 		var userTable;
+		var inviteTable;
 
 		sysAdminScope.selectUser = function(i) {
 			sysAdminScope.selectedUser = angular.copy(sysAdminScope.users[i]);
@@ -67,30 +68,47 @@ app.controller('sysAdminController', ['$scope', '$http', '$log', '$timeout',
 			.then((res) => {
 				//success
 				sysAdminScope.invites = res.data.data;
+				$timeout(() => {
+					if (!$.fn.DataTable.isDataTable('#inviteTable')) {
+						inviteTable = $('#inviteTable').DataTable({
+							filter: true,
+						});
+					} else {
+						inviteTable.rows().invalidate('data');
+					}
+				});
 			}, (err) => {
 				//error
 				$log.error("getInvites: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
 			});
 		}
 
-		sysAdminScope.makeInvite = function(hr, cap, code) {
+		sysAdminScope.createInvite = function() {
+			sysAdminScope.makeInviteError = '';
 			$http(
 			{
-				method: 'GET',
+				method: 'POST',
 				url: '/dashboard/sysadmin/makeinvite',
-				data : {
-					hr: hours,
-					cap: cap,
-					code: code,
-				},
+				data : $.param({
+					rawc: sysAdminScope.makeInvite.rawc,
+					cap: sysAdminScope.makeInvite.cap,
+					hr: sysAdminScope.makeInvite.hr,
+				}),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
 				withCredentials: true
 			})
 			.then((res) => {
 				//success
 				sysAdminScope.invites = res.data.data;
+				sysAdminScope.makeInvite = {};
+				sysAdminScope.getInvites();
 			}, (err) => {
 				//error
 				$log.error("makeInvite: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				sysAdminScope.makeInviteError = err.data.error;
+			})
+			.then(() => {
+				sysAdminScope.makeInviteError = '';
 			});
 		}
 
@@ -110,8 +128,8 @@ app.controller('sysAdminController', ['$scope', '$http', '$log', '$timeout',
 			})
 			.then((res) => {
 				//success
-				sysAdminScope.users[sysAdminScope.selectedUser.index] = sysAdminScope.selectedUser;
 				userTable.row(sysAdminScope.selectedUser.index).invalidate();
+				sysAdminScope.users[sysAdminScope.selectedUser.index] = sysAdminScope.selectedUser;
 				sysAdminScope.selectedUser = null;
 			}, (err) => {
 				//error
@@ -127,5 +145,7 @@ app.controller('sysAdminController', ['$scope', '$http', '$log', '$timeout',
 		sysAdminScope.getUsers();
 		sysAdminScope.adminPass = "";
 		sysAdminScope.updateUserError = '';
+		sysAdminScope.makeInviteError = '';
+		sysAdminScope.makeInvite = {};
 		//------
 	}]);

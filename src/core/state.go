@@ -389,6 +389,11 @@ func (s *State) DeleteUser() error {
 	return nil
 }
 
+func (s *State) DeleteInvite(hash string) error {
+	//TODO DELETE Invite
+	return nil
+}
+
 func (s *State) UpdateUserPrivilege(email string, priv string) (*string, error) {
 	u, err := s.userDB.FetchUserIfFound(email)
 	if err != nil {

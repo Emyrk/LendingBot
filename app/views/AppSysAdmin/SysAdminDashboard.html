@@ -74,6 +74,81 @@
               </div>
            </div>
         </div>
+        <!-- /Change Password -->
+      </div>
+      <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12" >
+          <table id="inviteTable" class="table table-striped table-bordered dataTable no-footer dtr-inline collapsed" cellspacing="0" width="100%">
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Capacity</th>
+                <th>UserClaims</th>
+                <th>Expires</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="i in invites track by i.c" ng-click="selectInvite($index)">
+                <td>
+                  {{i.rawc}}
+                </td>
+                <td>
+                  {{i.cap}
+                </td>
+                <td>
+                  {{i.users}}
+                </td>
+                <td>
+                  {{i.time}}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-12 col-xs-12">
+           <div class="x_panel">
+              <div class="x_title">
+                 <h2>Make Invite</h2>
+                 <div class="clearfix"></div>
+              </div>
+              <div class="x_content">
+                <div class="alert alert-danger fade in" role="alert" ng-show="makeInviteError.length > 0">
+                  <strong>{{makeInviteError}}</strong>
+                </div>
+                 <br />
+                 <form class="form-horizontal form-label-left">
+                    <div class="ln_solid"></div>
+                    <div class="form-group">
+                       <label class="control-label col-md-3 col-sm-3 col-xs-12">Raw Code</label>
+                       <div class="col-md-9 col-sm-9 col-xs-12">
+                          <input ng-model="makeInvite.rawc" type="string" class="form-control" value="">
+                       </div>
+                    </div>
+                    <div class="form-group">
+                       <label class="control-label col-md-3 col-sm-3 col-xs-12">Capacity</label>
+                       <div class="col-md-9 col-sm-9 col-xs-12">
+                          <input ng-model="makeInvite.cap" type="number" class="form-control" value="">
+                       </div>
+                    </div>
+                    <div class="form-group">
+                       <label class="control-label col-md-3 col-sm-3 col-xs-12">Hour</label>
+                       <div class="col-md-9 col-sm-9 col-xs-12">
+                          <input ng-model="makeInvite.hr" type="number" class="form-control" value="">
+                       </div>
+                    </div>
+                    <div class="ln_solid"></div>
+                    <div class="form-group">
+                       <div class="col-md-9 col-md-offset-3">
+                          <button type="submit" class="btn btn-success" ng-click="createInvite()">Make</button>
+                          <button class="btn btn-primary" type="reset" ng-click="makeInvite=null;">Reset</button>
+                       </div>
+                    </div>
+                 </form>
+              </div>
+           </div>
+        </div>
       </div>
   </div>
 </div>
