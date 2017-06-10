@@ -445,7 +445,6 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 			}
 		}
 
-		fmt.Println(rate, min, j.Currency[i], j.Username)
 		if rate < min {
 			continue
 		}

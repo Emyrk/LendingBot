@@ -558,7 +558,7 @@ func (m *MiniumumLendStruct) Get(currency string) float64 {
 	switch currency {
 	case "BTC":
 		return m.BTC
-	case "BTS ":
+	case "BTS":
 		return m.BTS
 	case "CLAM":
 		return m.CLAM
@@ -566,22 +566,21 @@ func (m *MiniumumLendStruct) Get(currency string) float64 {
 		return m.DOGE
 	case "DASH":
 		return m.DASH
-	case "LTC ":
+	case "LTC":
 		return m.LTC
 	case "MAID":
 		return m.MAID
-	case "STR ":
+	case "STR":
 		return m.STR
-	case "XMR ":
+	case "XMR":
 		return m.XMR
-	case "XRP ":
+	case "XRP":
 		return m.XRP
-	case "ETH ":
+	case "ETH":
 		return m.ETH
-	case "FCT ":
+	case "FCT":
 		return m.FCT
 	}
-	fmt.Println("No currency:", currency)
 	return 0
 }
 

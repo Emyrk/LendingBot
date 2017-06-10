@@ -139,7 +139,6 @@ func (q *Queuer) LoadUsers() error {
 				r := u.MiniumLend.Get(k)
 				mins = append(mins, r)
 			}
-			fmt.Println(u.MiniumLend, keys, mins)
 			newAll = append(newAll, &SingleUser{Username: u.Username, MiniumumLoanAmts: mins, EnablesCurrencies: keys})
 		}
 	}
