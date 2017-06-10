@@ -454,43 +454,43 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 		// rate := l.decideRate(rate, avail, total)
 
 		// We need to find some more crypto to lkend
-		if avail < MaxLendAmt[j.Currency[i]] {
-			need := MaxLendAmt[j.Currency[i]] - avail
-			if inactiveLoans != nil {
-				currencyLoans := inactiveLoans[j.Currency[i]]
-				sort.Sort(poloniex.PoloniexLoanOfferArray(currencyLoans))
-				for _, loan := range currencyLoans {
-					// We don't need any more funds, so we can exit this loop. But if the rate is less
-					// than our minimum, we want to cancel that
-					if need < 0 || loan.Rate < min {
-						if loan.Rate < min {
-							s.PoloniexCancelLoanOffer(j.Currency[i], loan.ID, j.Username)
-						}
-						continue
+		//if avail < MaxLendAmt[j.Currency[i]] {
+		need := MaxLendAmt[j.Currency[i]] - avail
+		if inactiveLoans != nil {
+			currencyLoans := inactiveLoans[j.Currency[i]]
+			sort.Sort(poloniex.PoloniexLoanOfferArray(currencyLoans))
+			for _, loan := range currencyLoans {
+				// We don't need any more funds, so we can exit this loop. But if the rate is less
+				// than our minimum, we want to cancel that
+				if need < 0 || loan.Rate < min {
+					if loan.Rate < min {
+						s.PoloniexCancelLoanOffer(j.Currency[i], loan.ID, j.Username)
 					}
+					continue
+				}
 
-					// So if the rate is less than the min, we don't want to cancel anything, unless the condition above
-					if rate < min {
-						continue
-					}
+				// So if the rate is less than the min, we don't want to cancel anything, unless the condition above
+				if rate < min {
+					continue
+				}
 
-					// Too close, no point in canceling
-					if abs(loan.Rate-rate) < 0.00000009 {
-						continue
-					}
-					worked, err := s.PoloniexCancelLoanOffer(j.Currency[i], loan.ID, j.Username)
-					if err != nil {
-						fmt.Println(err)
-						continue
-					}
-					if worked && err == nil {
-						need -= loan.Amount
-						avail += loan.Amount
-						LoansCanceled.Inc()
-					}
+				// Too close, no point in canceling
+				if abs(loan.Rate-rate) < 0.00000009 {
+					continue
+				}
+				worked, err := s.PoloniexCancelLoanOffer(j.Currency[i], loan.ID, j.Username)
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
+				if worked && err == nil {
+					need -= loan.Amount
+					avail += loan.Amount
+					LoansCanceled.Inc()
 				}
 			}
 		}
+		//}
 
 		// Don't make the loan
 		if rate < min {
