@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/Emyrk/LendingBot/src/core"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"github.com/revel/revel"
 )
@@ -28,7 +29,18 @@ func (s AppSysAdmin) GetUsers() revel.Result {
 		return s.RenderJSON(data)
 	}
 
-	data[JSON_DATA] = *safeUsers
+	allLevels := userdb.AllLevels
+	lArr := make([]string, len(allLevels), len(allLevels))
+	for i, e := range allLevels {
+		lArr[i] = userdb.LevelToString(e)
+	}
+	data[JSON_DATA] = struct {
+		Users  []core.SafeUser `json:"users"`
+		Levels []string        `json:"lev"`
+	}{
+		*safeUsers,
+		lArr,
+	}
 
 	return s.RenderJSON(data)
 }
@@ -98,7 +110,7 @@ func (s AppSysAdmin) ChangeUserPrivilege() revel.Result {
 		return s.RenderJSON(data)
 	}
 
-	priv, err := state.UpdateUserPrivilege(s.Session[SESSION_EMAIL], s.Params.Form.Get("priv"))
+	priv, err := state.UpdateUserPrivilege(s.Params.Form.Get("email"), s.Params.Form.Get("priv"))
 	if err != nil {
 		fmt.Printf("WARNING: User failed to update privelege: [%s] error: %s\n", s.Session[SESSION_EMAIL], err.Error())
 		data[JSON_ERROR] = "Failed to change user privelege."

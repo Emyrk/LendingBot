@@ -1,6 +1,13 @@
-app.controller('sysAdminController', ['$scope', '$http', '$log',
-	function($scope, $http, $log) {
+app.controller('sysAdminController', ['$scope', '$http', '$log', '$timeout',
+	function($scope, $http, $log, $timeout) {
 		var sysAdminScope = $scope;
+		var userTable;
+
+		sysAdminScope.selectUser = function(i) {
+			sysAdminScope.selectedUser = angular.copy(sysAdminScope.users[i]);
+			sysAdminScope.selectedUser.index = i;
+		}
+
 		sysAdminScope.getUsers = function() {
 			$http(
 			{
@@ -11,7 +18,18 @@ app.controller('sysAdminController', ['$scope', '$http', '$log',
 			})
 			.then((res) => {
 				//success
-				sysAdminScope.users = res.data.data;
+				sysAdminScope.users = res.data.data.users;
+				sysAdminScope.lev = res.data.data.lev;
+				$timeout(() => {
+					if (!$.fn.DataTable.isDataTable('#userTable')) {
+						userTable = $('#userTable').DataTable({
+							filter: true,
+							select: 'single',
+						});
+					} else {
+						userTable.rows().invalidate('data');
+					}
+				});
 			}, (err) => {
 				//error
 				$log.error("getUsers: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
@@ -76,27 +94,38 @@ app.controller('sysAdminController', ['$scope', '$http', '$log',
 			});
 		}
 
-		sysAdminScope.changeUserPriv = function(priv, pass) {
+		sysAdminScope.changeUserPriv = function() {
+			sysAdminScope.updateUserError = '';
 			$http(
 			{
-				method: 'GET',
+				method: 'POST',
 				url: '/dashboard/sysadmin/changeuserpriv',
-				data : {
-					priv: priv,
-					pass: pass,
-				},
+				data : $.param({
+					email: sysAdminScope.selectedUser.email,
+					priv: sysAdminScope.selectedUser.priv,
+					pass: sysAdminScope.adminPass,
+				}),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
 				withCredentials: true
 			})
 			.then((res) => {
 				//success
-				sysAdminScope.invites = res.data.data;
+				sysAdminScope.users[sysAdminScope.selectedUser.index] = sysAdminScope.selectedUser;
+				userTable.row(sysAdminScope.selectedUser.index).invalidate();
+				sysAdminScope.selectedUser = null;
 			}, (err) => {
 				//error
 				$log.error("changeUserPriv: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				sysAdminScope.updateUserError = err.data.error;
+			})
+			.then(() => {
+				sysAdminScope.adminPass = "";
 			});
 		}
 
 		//--init
 		sysAdminScope.getUsers();
+		sysAdminScope.adminPass = "";
+		sysAdminScope.updateUserError = '';
 		//------
 	}]);

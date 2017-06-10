@@ -1,4 +1,4 @@
-var app=angular.module("lendingApp",["ngRoute","ngMask", "ngCookies", "ngTable"]);
+var app=angular.module("lendingApp",["ngRoute","ngMask", "ngCookies"]);
 
 app.config(['$routeProvider', '$locationProvider',
 	function($routeProvider, $locationProvider) {

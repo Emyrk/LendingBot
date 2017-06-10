@@ -24,6 +24,15 @@ const (
 	Unassigned UserLevel = 0
 )
 
+//please add to all levels
+var AllLevels = []UserLevel{
+	SysAdmin,
+	Admin,
+	Moderator,
+	CommonUser,
+	Unassigned,
+}
+
 func LevelToString(l UserLevel) string {
 	switch l {
 	case Unassigned:
