@@ -215,7 +215,6 @@ func (l *Lender) UpdateTicker() {
 }
 
 func (l *Lender) CalculateLoanRate(currency string) error {
-	fmt.Println("Calling POLO Public")
 	s := l.State
 	loans, err := s.PoloniexGetLoanOrders(currency)
 	if err != nil {
