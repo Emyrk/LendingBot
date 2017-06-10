@@ -1088,7 +1088,7 @@ func (p *Poloniex) SendAuthenticatedHTTPRequest(method, endpoint string, values 
 	headers["Sign"] = HexEncodeToString(hmac)
 
 	path := fmt.Sprintf("%s/%s", POLONIEX_API_URL, POLONIEX_API_TRADING_ENDPOINT)
-	resp, err := SendHTTPRequest(method, path, headers, bytes.NewBufferString(values.Encode()))
+	resp, sendErr := SendHTTPRequest(method, path, headers, bytes.NewBufferString(values.Encode()))
 
 	if StringContains(resp, `"error":"`) {
 		var poloError PoloError
@@ -1098,14 +1098,14 @@ func (p *Poloniex) SendAuthenticatedHTTPRequest(method, endpoint string, values 
 		}
 	}
 
-	if err != nil {
+	if sendErr != nil {
 		return err
 	}
 
 	err = JSONDecode([]byte(resp), &result)
 
 	if err != nil {
-		return errors.New(fmt.Sprintf("Unable to JSON Unmarshal response. Resp: %s, Err: %s", resp, err.Error()))
+		return errors.New(fmt.Sprintf("Unable to JSON Unmarshal response. Resp: %s, SendErr: %s, Err: %s", resp, sendErr))
 	}
 	return nil
 }

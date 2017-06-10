@@ -191,7 +191,7 @@ func SendHTTPRequest(method, path string, headers map[string]string, body io.Rea
 	req, err := http.NewRequest(method, path, body)
 
 	if err != nil {
-		return "", err
+		return "problem with NewReq()", err
 	}
 
 	for k, v := range headers {
@@ -201,7 +201,7 @@ func SendHTTPRequest(method, path string, headers map[string]string, body io.Rea
 	httpClient := &http.Client{}
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		return "", err
+		return "problem with .Do()", err
 	}
 
 	contents, err := ioutil.ReadAll(resp.Body)
