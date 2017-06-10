@@ -211,6 +211,7 @@ func SendHTTPRequest(method, path string, headers map[string]string, body io.Rea
 		return `{"error": "This IP has been banned for 2 minutes. Please adjust your timeout to 130 seconds."}`, fmt.Errorf(`{"error": "This IP has been banned for 2 minutes. Please adjust your timeout to 130 seconds."}`)
 	}
 
+	log.Println(string(contents))
 	if err != nil {
 		return string(contents), err
 	}

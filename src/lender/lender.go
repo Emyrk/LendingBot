@@ -49,6 +49,8 @@ func init() {
 	MinLendAmt["FCT"] = 100
 }
 
+var curarr = []string{"BTC", "BTS", "CLAM", "DOGE", "DASH", "LTC", "MAID", "STR", "XMR", "XRP", "ETH", "FCT"}
+
 type LoanRates struct {
 	Simple   float64
 	AvgBased float64
@@ -79,6 +81,10 @@ func NewLender(s *core.State) *Lender {
 	l.CurrentLoanRate = make(map[string]LoanRates)
 	l.CurrentLoanRate["BTC"] = LoanRates{Simple: 2.1}
 	l.LastCalculateLoanRate = make(map[string]time.Time)
+
+	for i, c := range curarr {
+		l.LastCalculateLoanRate[c] = time.Now().Add(time.Second * time.Duration(i))
+	}
 
 	return l
 }
