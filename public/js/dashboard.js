@@ -361,7 +361,7 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log', '$ti
 			}, (err) => {
 				//error
 				$log.error("SetPoloniexKeys: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
-				dashSettingsLendingScope.poloniexKeysSetError = 'Error setting poloniex keys.';
+				dashSettingsLendingScope.poloniexKeysSetError =  err.data.error;
 			})
 			.then(() => {
 				dashSettingsLendingScope.loadingPoloniexKeys = false;

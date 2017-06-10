@@ -43,6 +43,10 @@ const (
 	POLONIEX_AUTO_RENEW             = "toggleAutoRenew"
 )
 
+type PoloError struct {
+	Error string `json:"error"`
+}
+
 type Poloniex struct {
 	Name                    string
 	Enabled                 bool
@@ -1085,6 +1089,14 @@ func (p *Poloniex) SendAuthenticatedHTTPRequest(method, endpoint string, values 
 
 	path := fmt.Sprintf("%s/%s", POLONIEX_API_URL, POLONIEX_API_TRADING_ENDPOINT)
 	resp, err := SendHTTPRequest(method, path, headers, bytes.NewBufferString(values.Encode()))
+
+	if StringContains(resp, `"error":"`) {
+		var poloError PoloError
+		err := JSONDecode([]byte(resp), &poloError)
+		if err == nil {
+			return fmt.Errorf(poloError.Error)
+		}
+	}
 
 	if err != nil {
 		return err
