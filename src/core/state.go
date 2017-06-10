@@ -201,6 +201,10 @@ func (s *State) AddInviteCode(code string, capacity int, expires time.Time) erro
 }
 
 func (s *State) SetUserKeys(username string, acessKey string, secretKey string) error {
+	if len(secretKey) != 64 {
+		return fmt.Errorf("Your secret key must be 64 characters long")
+	}
+
 	u, err := s.userDB.FetchUserIfFound(username)
 	if err != nil {
 		return err
@@ -213,7 +217,17 @@ func (s *State) SetUserKeys(username string, acessKey string, secretKey string) 
 
 	u.PoloniexKeys = pk
 
-	return s.userDB.PutUser(u)
+	err = s.userDB.PutUser(u)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.PoloniexGetBalances(Username)
+	if err != nil {
+		return fmt.Errorf("There was an error using your Poloniex keys. There is a chance they are not valid. Try setting them again, and if this continues contact Support@hodl.zone")
+	}
+
+	return
 }
 
 func (s *State) GetUserStatistics(username string, dayRange int) ([][]userdb.UserStatistic, error) {
