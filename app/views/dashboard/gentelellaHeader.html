@@ -69,5 +69,16 @@
     <!-- Angular cookies -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.6.1/angular-cookies.min.js" type="text/javascript"></script>
 
-    <script src="/public/js/dashboard.js" type="text/javascript" charset="utf-8"></script>
-  </head>
+    <!-- Angular tables -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ng-table/1.0.0/ng-table.min.js" type="text/javascript"></script>
+
+    <script src="/public/js/dashboard.js" type="text/javascript" charset="
+    utf-8"></script>
+
+
+    [[if eq "1000" .UserLevel]]
+    <script src="/public/js/sysAdminDashboard.js" type="text/javascript" charset="
+    utf-8"></script>
+    [[end]]
+
+</head>

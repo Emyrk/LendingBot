@@ -1,4 +1,4 @@
-var app=angular.module("lendingApp",["ngRoute","ngMask", "ngCookies"]);
+var app=angular.module("lendingApp",["ngRoute","ngMask", "ngCookies", "ngTable"]);
 
 app.config(['$routeProvider', '$locationProvider',
 	function($routeProvider, $locationProvider) {
@@ -23,7 +23,7 @@ app.config(['$routeProvider', '$locationProvider',
 			templateUrl : "/dashboard/logs",
 			controller : "dashLogsController"
 		})
-		.when("/sysAdmin",{
+		.when("/sysadmin",{
 			templateUrl : "/dashboard/sysadmin",
 			controller : "sysAdminController"
 		})

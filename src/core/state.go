@@ -374,7 +374,7 @@ func (s *State) GetAllUsers() (*[]SafeUser, error) {
 	if err != nil {
 		return nil, fmt.Errorf("ERROR: Error getting all users: %s\n", err.Error())
 	}
-	var safeUsers []SafeUser
+	var safeUsers [len(users)]SafeUser
 	for i, u := range users {
 		safeUsers[i] = SafeUser{
 			u.Username,
