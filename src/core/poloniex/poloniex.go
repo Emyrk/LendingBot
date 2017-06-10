@@ -1089,13 +1089,11 @@ func (p *Poloniex) SendAuthenticatedHTTPRequest(method, endpoint string, values 
 
 	path := fmt.Sprintf("%s/%s", POLONIEX_API_URL, POLONIEX_API_TRADING_ENDPOINT)
 	resp, err := SendHTTPRequest(method, path, headers, bytes.NewBufferString(values.Encode()))
-	fmt.Println(resp)
 
 	if StringContains(resp, `"error":"`) {
 		var poloError PoloError
 		err := JSONDecode([]byte(resp), &poloError)
 		if err == nil {
-			fmt.Println(resp)
 			return fmt.Errorf(poloError.Error)
 		}
 	}

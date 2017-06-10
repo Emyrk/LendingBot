@@ -158,6 +158,7 @@ func (s *State) PoloniexCancelLoanOffer(currency string, orderNumber int64, user
 }
 
 func (s *State) PoloniexGetLoanOrders(currency string) (*poloniex.PoloniexLoanOrders, error) {
+	PoloPublicCalls.Inc()
 	return s.PoloniexAPI.GetLoanOrders(currency)
 }
 

@@ -10,6 +10,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"hash"
 	"io"
 	"io/ioutil"
@@ -205,6 +206,10 @@ func SendHTTPRequest(method, path string, headers map[string]string, body io.Rea
 
 	contents, err := ioutil.ReadAll(resp.Body)
 	defer resp.Body.Close()
+
+	if string(contents) == `{"error": "This IP has been banned for 2 minutes. Please adjust your timeout to 130 seconds."}` {
+		return `{"error": "This IP has been banned for 2 minutes. Please adjust your timeout to 130 seconds."}`, fmt.Errorf(`{"error": "This IP has been banned for 2 minutes. Please adjust your timeout to 130 seconds."}`)
+	}
 
 	if err != nil {
 		return "", err

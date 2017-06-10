@@ -16,6 +16,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+func init() {
+	RegisterPrometheus()
+}
+
 type State struct {
 	userDB          *userdb.UserDatabase
 	userStatistic   *userdb.UserStatisticsDB
