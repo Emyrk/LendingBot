@@ -227,7 +227,7 @@ func (s *State) SetUserKeys(username string, acessKey string, secretKey string) 
 		return fmt.Errorf("There was an error using your Poloniex keys. There is a chance they are not valid. Try setting them again, and if this continues contact Support@hodl.zone")
 	}
 
-	return
+	return nil
 }
 
 func (s *State) GetUserStatistics(username string, dayRange int) ([][]userdb.UserStatistic, error) {
