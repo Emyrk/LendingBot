@@ -55,7 +55,7 @@ func (s AppSysAdmin) DeleteUser() revel.Result {
 func (s AppSysAdmin) DeleteInvite() revel.Result {
 	data := make(map[string]interface{})
 
-	err := state.DeleteInvite(s.Params.Form.Get("rawCode"))
+	err := state.DeleteInvite(s.Params.Form.Get("rawc"))
 	if err != nil {
 		fmt.Printf("WARNING: User failed to delete invite: [%s] error: %s\n", s.Session[SESSION_EMAIL], err.Error())
 		data[JSON_ERROR] = "Failed to change delete invite."
