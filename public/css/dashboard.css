@@ -33,3 +33,7 @@
 		left: 20% !important;
 	}
 }
+
+#dashboard-logo {
+	max-width: 100%;
+}

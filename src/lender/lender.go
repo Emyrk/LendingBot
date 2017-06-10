@@ -91,6 +91,7 @@ func (l *Lender) Start() {
 			l.quit <- struct{}{}
 			return
 		case j := <-l.JobQueue:
+			JobQueueCurrent.Set(float64(len(l.JobQueue)))
 			// Update loan rate
 			for _, c := range j.Currency {
 				if v, ok := l.LastCalculateLoanRate[c]; !ok || time.Since(v).Seconds() >= l.CalculateLoanInterval {

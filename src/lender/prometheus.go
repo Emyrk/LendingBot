@@ -5,6 +5,11 @@ import (
 )
 
 var (
+	JobQueueCurrent = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_current_job_queue_length",
+		Help: "Number of jobs to be processed",
+	})
+
 	// Lending Rates
 	CurrentLoanRate = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: "hodlzone_lender_current_lend_rate",

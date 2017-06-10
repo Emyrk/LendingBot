@@ -827,3 +827,7 @@ Usage: You can use this code for free in personal and commercial projects if you
   #speakers img {max-width: 300px;}
 
 }
+
+.push-footer {
+  min-height: 85%;
+}
