@@ -212,7 +212,7 @@ func SendHTTPRequest(method, path string, headers map[string]string, body io.Rea
 	}
 
 	if err != nil {
-		return "", err
+		return string(contents), err
 	}
 
 	return string(contents), nil
