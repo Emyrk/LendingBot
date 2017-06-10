@@ -114,7 +114,7 @@ func (ie *InviteDB) ClaimInviteCode(username string, code string) (bool, error) 
 
 func (ie *InviteDB) CreateInviteCode(code string, capacity int, expires time.Time) error {
 	if v, _ := ie.getInviteCode(code); v != nil {
-		return fmt.Errorf("Code already exists")
+		return fmt.Errorf("Code %s already exists", code)
 	}
 	i := NewInviteCode(code, capacity, expires)
 	return ie.putInviteCode(i)

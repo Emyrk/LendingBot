@@ -13,6 +13,7 @@ import (
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"github.com/badoux/checkmail"
 	"github.com/revel/revel"
+	log "github.com/sirupsen/logrus"
 )
 
 type State struct {
@@ -181,6 +182,7 @@ func (s *State) NewUser(username string, password string) *primitives.ApiError {
 
 	err = s.userDB.PutUser(u)
 	if err != nil {
+		log.Errorf("[NewUser - 5] Failed: %s :: %v", err.Error(), u)
 		return &primitives.ApiError{
 			err,
 			fmt.Errorf("Internal error. Please try again."),
