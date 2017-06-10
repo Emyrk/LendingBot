@@ -124,8 +124,24 @@ func (c App) Login() revel.Result {
 func (c App) Register() revel.Result {
 	email := c.Params.Form.Get("email")
 	pass := c.Params.Form.Get("pass")
+	code := c.Params.Form.Get("ic")
 
 	data := make(map[string]interface{})
+
+	ok, err := state.ClaimInviteCode(email, code)
+	if apiErr != nil {
+		fmt.Printf("ERROR: Error claiming invite code: %s\n", err.Error())
+		data[JSON_ERROR] = "Error with invite code. Please contact support@hodl.zone"
+		c.Response.Status = 500
+		return c.RenderJSON(data)
+	}
+
+	if !ok {
+		fmt.Printf("WARNING: Invite code invalid: %s\n", err.Error())
+		data[JSON_ERROR] = "Invite code invalid."
+		c.Response.Status = 400
+		return c.RenderJSON(data)
+	}
 
 	apiErr := state.NewUser(email, pass)
 	if apiErr != nil {
