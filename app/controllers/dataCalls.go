@@ -139,7 +139,7 @@ func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
 
 		today.LoanRate = now.AverageActiveRate
 		today.BTCLent = now.ActiveLentBalance
-		today.BTCNotLent = now.AverageOnOrderRate + now.AvailableBalance
+		today.BTCNotLent = now.OnOrderBalance + now.AvailableBalance
 		today.LendingPercent = today.BTCLent / (today.BTCLent + today.BTCNotLent)
 
 		yesterday := userdb.GetDayAvg(userStats[1])

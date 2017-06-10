@@ -120,7 +120,7 @@ func (l *Lender) Start() {
 		case j := <-l.JobQueue:
 			JobQueueCurrent.Set(float64(len(l.JobQueue)))
 			if j.Currency == nil {
-				fmt.Println("Seems we got a ni currency string:", j.Username)
+				fmt.Println("Seems we got a nil currency string:", j.Username)
 				break
 			}
 
@@ -353,13 +353,13 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 	inactiveLentCount := float64(0)
 	for k, _ := range inact {
 		for _, loan := range inact[k] {
-			fmt.Println(loan, stats.TotalCurrencyMap[k])
 			//if l.Currency == "BTC" {
-			inactiveLentBal += l.getBTCAmount(loan.Amount, k)
+			btcAmt := l.getBTCAmount(loan.Amount, k)
+			inactiveLentBal += btcAmt
 			inactiveLentTotalRate += loan.Rate
 			inactiveLentCount++
 			//}
-			stats.TotalCurrencyMap[k] += l.getBTCAmount(loan.Amount, k)
+			stats.TotalCurrencyMap[k] += btcAmt
 		}
 	}
 
