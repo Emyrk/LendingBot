@@ -27,3 +27,4 @@ hodl.log
 UserStatisticsDB.db
 UserStats.db
 database/*
+InviteUserDB.db

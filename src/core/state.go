@@ -83,6 +83,12 @@ func newState(withMap bool, fakePolo bool) *State {
 
 	s.poloniexCache = NewPoloniexAccessCache()
 
+	if withMap {
+		s.userInviteCodes = userdb.NewInviteMapDB()
+	} else {
+		s.userInviteCodes = userdb.NewInviteDB()
+	}
+
 	return s
 }
 
