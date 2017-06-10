@@ -102,7 +102,7 @@ func (l *Lender) CalcLoop() {
 			if err != nil {
 				log.Printf("[%s] Error in Lending: %s", curarr[i], err)
 			}
-			l.LastCalculateLoanRate[c] = time.Now()
+			l.LastCalculateLoanRate[curarr[i]] = time.Now()
 			time.Sleep(1 * time.Second)
 		}
 	}
