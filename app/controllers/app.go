@@ -129,7 +129,7 @@ func (c App) Register() revel.Result {
 	data := make(map[string]interface{})
 
 	ok, err := state.ClaimInviteCode(email, code)
-	if apiErr != nil {
+	if err != nil {
 		fmt.Printf("ERROR: Error claiming invite code: %s\n", err.Error())
 		data[JSON_ERROR] = "Error with invite code. Please contact support@hodl.zone"
 		c.Response.Status = 500
