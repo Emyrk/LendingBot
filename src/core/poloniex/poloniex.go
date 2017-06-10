@@ -1099,7 +1099,7 @@ func (p *Poloniex) SendAuthenticatedHTTPRequest(method, endpoint string, values 
 	}
 
 	if sendErr != nil {
-		return err
+		return sendErr
 	}
 
 	err = JSONDecode([]byte(resp), &result)
