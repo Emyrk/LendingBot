@@ -126,6 +126,7 @@ func (ie *InviteDB) CreateInviteCode(code string, capacity int, expires time.Tim
 }
 
 func (ie *InviteDB) ExpireInviteCode(code string) error {
+	fmt.Println("EXPIRE", code)
 	c, err := ie.getInviteCode(code)
 	if err != nil {
 		return err

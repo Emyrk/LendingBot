@@ -92,6 +92,10 @@ func (l *Lender) Start() {
 			return
 		case j := <-l.JobQueue:
 			JobQueueCurrent.Set(float64(len(l.JobQueue)))
+			if j.Currency == nil {
+				fmt.Println("Seems we got a ni currency string:", j.Username)
+				break
+			}
 			// Update loan rate
 			for _, c := range j.Currency {
 				if v, ok := l.LastCalculateLoanRate[c]; !ok || time.Since(v).Seconds() >= l.CalculateLoanInterval {
