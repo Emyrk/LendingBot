@@ -1,8 +1,12 @@
 package lender
 
 import (
+	"fmt"
+
 	"github.com/prometheus/client_golang/prometheus"
 )
+
+var _ = fmt.Println
 
 var (
 	JobQueueCurrent = prometheus.NewGauge(prometheus.GaugeOpts{
@@ -329,6 +333,7 @@ func SetSimple(currency string, rate float64) {
 	switch currency {
 	case "BTC":
 		CurrentLoanRate.Set(rate)
+
 	case "BTS":
 		CurrentLoanRateBTS.Set(rate)
 	case "CLAM":

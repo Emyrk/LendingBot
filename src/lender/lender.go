@@ -98,6 +98,7 @@ func (l *Lender) CalcLoop() {
 			if i >= max {
 				i = 0
 			}
+			fmt.Println(curarr[i])
 			err := l.CalculateLoanRate(curarr[i])
 			if err != nil {
 				log.Printf("[%s] Error in Lending: %s", curarr[i], err)
@@ -219,6 +220,7 @@ func (l *Lender) CalculateLoanRate(currency string) error {
 	s := l.State
 	loans, err := s.PoloniexGetLoanOrders(currency)
 	if err != nil {
+		log.Printf("Error when grabbing loans for CalcRate: %s", err.Error())
 		return err
 	}
 
@@ -246,6 +248,7 @@ func (l *Lender) CalculateLoanRate(currency string) error {
 	lr := l.CurrentLoanRate[currency]
 	lr.Simple = lowest
 	l.CurrentLoanRate[currency] = lr
+	fmt.Println(currency, lowest)
 	if l.CurrentLoanRate[currency].Simple < 2 {
 		SetSimple(currency, lowest)
 		s.RecordPoloniexStatistics(currency, lowest)
