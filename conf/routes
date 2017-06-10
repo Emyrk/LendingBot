@@ -15,7 +15,7 @@ GET		/landing								App.Landing
 
 GET		/faq									App.FAQ
 GET		/contact								App.Contact
-GET		/tutorials								App.Tutorials
+GET		/information							App.Information
 GET		/donate									App.Donate
 
 GET		/verifyemail/:email/:hash				App.VerifyEmail
