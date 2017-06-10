@@ -104,6 +104,7 @@ func (l *Lender) CalcLoop() {
 			}
 			l.LastCalculateLoanRate[curarr[i]] = time.Now()
 			time.Sleep(1 * time.Second)
+			i++
 		}
 	}
 }
