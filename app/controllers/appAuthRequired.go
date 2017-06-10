@@ -124,7 +124,7 @@ func (r AppAuthRequired) SetPoloniexKeys() revel.Result {
 	err := state.SetUserKeys(email, r.Params.Form.Get("poloniexkey"), r.Params.Form.Get("poloniexsecret"))
 	if err != nil {
 		fmt.Printf("Error authenticating setting Poloniex Keys err: %s\n", err.Error())
-		data[JSON_ERROR] = "Error with Setting Poloniex Keys"
+		data[JSON_ERROR] = fmt.Sprintf("Error: %s", err.Error())
 		r.Response.Status = 500
 		return r.RenderJSON(data)
 	}

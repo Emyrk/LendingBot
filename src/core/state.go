@@ -207,19 +207,19 @@ func (s *State) SetUserKeys(username string, acessKey string, secretKey string) 
 
 	u, err := s.userDB.FetchUserIfFound(username)
 	if err != nil {
-		return err
+		return fmt.Errorf("There was an internal problem. Please log out and try again. If problems continue, contact Support@hodl.zone")
 	}
 
 	pk, err := userdb.NewPoloniexKeys(acessKey, secretKey, u.GetCipherKey(s.CipherKey))
 	if err != nil {
-		return err
+		return fmt.Errorf("There was a problem setting your keys. Please double check the keys and try again. Contact Support@hodl.zone if the problem persists")
 	}
 
 	u.PoloniexKeys = pk
 
 	err = s.userDB.PutUser(u)
 	if err != nil {
-		return err
+		return fmt.Errorf("There was a database error. Please try again in a few minutes, then contact Support@hodl.zon")
 	}
 
 	_, err = s.PoloniexGetBalances(Username)
