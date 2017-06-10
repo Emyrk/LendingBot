@@ -23,7 +23,7 @@ func init() {
 	MaxLendAmt = make(map[string]float64)
 	MaxLendAmt["BTC"] = .1
 	MaxLendAmt["BTS"] = 1
-	MaxLendAmt["CLAM"] = 1
+	MaxLendAmt["CLAM"] = 20
 	MaxLendAmt["DOGE"] = 1
 	MaxLendAmt["DASH"] = 1
 	MaxLendAmt["LTC"] = 1
@@ -37,7 +37,7 @@ func init() {
 	MinLendAmt = make(map[string]float64)
 	MinLendAmt["BTC"] = .01
 	MinLendAmt["BTS"] = 1
-	MinLendAmt["CLAM"] = 1
+	MinLendAmt["CLAM"] = 10
 	MinLendAmt["DOGE"] = 1
 	MinLendAmt["DASH"] = 1
 	MinLendAmt["LTC"] = 1
