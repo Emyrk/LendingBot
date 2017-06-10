@@ -132,6 +132,7 @@ func NewInviteCode(code string, capacity int, expires time.Time) *InviteEntry {
 	i.Code = sha256.Sum256([]byte(code))
 	i.Capacity = capacity
 	i.Expires = expires
+	i.RawCode = code
 
 	return i
 }

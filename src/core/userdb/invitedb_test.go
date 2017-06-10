@@ -28,8 +28,8 @@ func TestInviteCode(t *testing.T) {
 		t.Error("Should error")
 	}
 
-	// v, err := id.ListAll()
-	// t.Log(v, err)
+	v, err := id.ListAll()
+	t.Log(v, err)
 }
 
 func TestInviteEntry(t *testing.T) {
@@ -48,4 +48,9 @@ func TestInviteEntry(t *testing.T) {
 	if len(nd) > 0 {
 		t.Error("Should be 0")
 	}
+
+	if ie2.RawCode != ie.RawCode {
+		t.Error("Raw code does not match")
+	}
+	t.Log(ie2, ie)
 }
