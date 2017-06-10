@@ -153,6 +153,16 @@ func (l *Lender) UpdateTicker() {
 	}
 
 	l.PoloniexStats["FCT"] = l.State.GetPoloniexStatistics("FCT")
+	l.PoloniexStats["BTS"] = l.State.GetPoloniexStatistics("BTS")
+	l.PoloniexStats["CLAM"] = l.State.GetPoloniexStatistics("CLAM")
+	l.PoloniexStats["DOGE"] = l.State.GetPoloniexStatistics("DOGE")
+	l.PoloniexStats["DASH"] = l.State.GetPoloniexStatistics("DASH")
+	l.PoloniexStats["LTC"] = l.State.GetPoloniexStatistics("LTC")
+	l.PoloniexStats["MAID"] = l.State.GetPoloniexStatistics("MAID")
+	l.PoloniexStats["STR"] = l.State.GetPoloniexStatistics("STR")
+	l.PoloniexStats["XMR"] = l.State.GetPoloniexStatistics("XMR")
+	l.PoloniexStats["XRP"] = l.State.GetPoloniexStatistics("XRP")
+	l.PoloniexStats["ETH"] = l.State.GetPoloniexStatistics("ETH")
 
 	if v, ok := ticker["BTC_FCT"]; ok {
 		TickerFCTValue.Set(v.Last)
@@ -267,6 +277,9 @@ func (l *Lender) calculateAvgBasedLoanRate(currency string) {
 //		1 for rising
 //		2 for more rising
 func (l *Lender) rising(currency string) int {
+	if v, ok := l.PoloniexStats[currency]; !ok || v == nil {
+		return 0
+	}
 	if l.PoloniexStats[currency].HrAvg > l.PoloniexStats[currency].DayAvg {
 		return 1
 	}
