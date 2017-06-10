@@ -82,9 +82,9 @@ func NewLender(s *core.State) *Lender {
 	l.CurrentLoanRate["BTC"] = LoanRates{Simple: 2.1}
 	l.LastCalculateLoanRate = make(map[string]time.Time)
 
-	for i, c := range curarr {
-		l.LastCalculateLoanRate[c] = time.Now().Add(time.Second * time.Duration(i))
-	}
+	// for i, c := range curarr {
+	// 	l.LastCalculateLoanRate[c] = time.Now().Add(time.Second * time.Duration(i))
+	// }
 
 	return l
 }
@@ -102,7 +102,7 @@ func (l *Lender) CalcLoop() {
 			if err != nil {
 				log.Printf("[%s] Error in Lending: %s", curarr[i], err)
 			}
-			l.LastCalculateLoanRate[curarr[i]] = time.Now()
+			// l.LastCalculateLoanRate[curarr[i]] = time.Now()
 			time.Sleep(300 * time.Millisecond)
 			i++
 		}
@@ -247,9 +247,10 @@ func (l *Lender) CalculateLoanRate(currency string) error {
 	lr := l.CurrentLoanRate[currency]
 	lr.Simple = lowest
 	l.CurrentLoanRate[currency] = lr
-	if l.CurrentLoanRate[currency].Simple < 2 {
+	if l.CurrentLoanRate[currency].Simple < 2 && time.Since(l.LastCalculateLoanRate[currency]).Seconds() > 5 {
 		SetSimple(currency, lowest)
 		s.RecordPoloniexStatistics(currency, lowest)
+		l.LastCalculateLoanRate[currency] = time.Now()
 	}
 	// lr.AvgBased = lr.Simple
 
