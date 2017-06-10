@@ -135,6 +135,7 @@ func (q *Queuer) LoadUsers() error {
 		if !u.PoloniexKeys.APIKeyEmpty() {
 			keys := u.PoloniexEnabled.Keys()
 			var mins []float64
+			fmt.Println(u.MiniumLend, keys)
 			for _, k := range keys {
 				r := u.MiniumLend.Get(k)
 				mins = append(mins, r)
