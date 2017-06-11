@@ -61,7 +61,6 @@ GET     /public/*filepath                       Static.Serve("public")
 
 # REMOVE FOR PROD
 GET     /sand                                   App.Sandbox
-GET		/userdashboard							AppAuthRequired.UserDashboard
 
 GET		/dashboard/logs							AppSysAdmin.LogsDashboard
 GET		/dashboard/logs/export					AppSysAdmin.ExportLogs
