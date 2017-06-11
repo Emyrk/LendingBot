@@ -5,6 +5,8 @@ import (
 	"log"
 	"math"
 	"sort"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/Emyrk/LendingBot/src/core"
@@ -68,6 +70,9 @@ type Lender struct {
 	GetTickerInterval     float64
 	Ticker                map[string]poloniex.PoloniexTicker
 	PoloniexStats         map[string]*userdb.PoloniexStats
+
+	UserLendingLock sync.RWMutex
+	UsersLending    map[string]bool
 }
 
 func NewLender(s *core.State) *Lender {
@@ -81,12 +86,35 @@ func NewLender(s *core.State) *Lender {
 	l.CurrentLoanRate = make(map[string]LoanRates)
 	l.CurrentLoanRate["BTC"] = LoanRates{Simple: 2.1}
 	l.LastCalculateLoanRate = make(map[string]time.Time)
+	l.UsersLending = make(map[string]bool)
 
 	// for i, c := range curarr {
 	// 	l.LastCalculateLoanRate[c] = time.Now().Add(time.Second * time.Duration(i))
 	// }
 
 	return l
+}
+
+func (l *Lender) StartLending(username string) {
+	l.UserLendingLock.Lock()
+	l.UsersLending[username] = true
+	l.UserLendingLock.Unlock()
+}
+
+func (l *Lender) FinishLending(username string) {
+	l.UserLendingLock.Lock()
+	l.UsersLending[username] = false
+	l.UserLendingLock.Unlock()
+}
+
+func (l *Lender) IsLending(username string) bool {
+	l.UserLendingLock.RLock()
+	v, ok := l.UsersLending[username]
+	l.UserLendingLock.RUnlock()
+	if !ok {
+		return false
+	}
+	return v
 }
 
 func (l *Lender) CalcLoop() {
@@ -129,6 +157,10 @@ func (l *Lender) proccessWorker() {
 			l.quit <- struct{}{}
 			return
 		case j := <-l.JobQueue:
+			if l.IsLending(j.Username) {
+				break
+			}
+			l.StartLending(j.Username)
 			start := time.Now()
 			JobQueueCurrent.Set(float64(len(l.JobQueue)))
 			if j.Currency == nil {
@@ -142,6 +174,7 @@ func (l *Lender) proccessWorker() {
 			}
 			JobProcessDuration.Observe(float64(time.Since(start).Nanoseconds()))
 			JobsDone.Inc()
+			l.FinishLending(j.Username)
 		}
 	}
 }
@@ -530,8 +563,14 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 		}
 
 		_, err = s.PoloniexCreateLoanOffer(j.Currency[i], amt, rate, 2, false, j.Username)
+		if strings.Contains(err.Error(), "Too many requests") {
+			// Sleep in our inner loop. This can be dangerous, should put these calls in a seperate queue to handle
+			time.Sleep(1 * time.Second)
+			_, err = s.PoloniexCreateLoanOffer(j.Currency[i], amt, rate, 2, false, j.Username)
+		}
+
 		if err != nil {
-			fmt.Println("Error in lenidng:", err.Error())
+			fmt.Printf("[Offer:%s] (%s) Error in lending: %s\n", j.Currency[i], j.Username, err.Error())
 			continue
 		}
 		JobPart2.Observe(float64(time.Since(part2).Nanoseconds()))
