@@ -184,6 +184,12 @@ func (r AppAuthRequired) LendingHistory() revel.Result {
 
 	//to cache
 	completeLoans, err := state.PoloniexAuthenticatedLendingHistory(u.Username, "", "", "100")
+	if err != nil {
+		completeLoans, err = state.PoloniexAuthenticatedLendingHistory(u.Username, "", "", "100")
+	}
+	if err != nil {
+		fmt.Printf("Error getting lend history for %s: %s\n", email, err.Error())
+	}
 	data := make(map[string]interface{})
 	data["CompleteLoans"] = completeLoans.Data
 	if len(completeLoans.Data) == 0 && revel.DevMode {
