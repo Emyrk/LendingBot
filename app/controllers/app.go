@@ -43,6 +43,9 @@ func MakeURL(safeUrl string) string {
 }
 
 func (c App) Sandbox() revel.Result {
+	if !revel.DevMode {
+		return c.RenderTemplate("errors/404.html")
+	}
 	c.ViewArgs["UserLevel"] = "1000"
 	c.ViewArgs["Inverse"] = true
 	return c.Render()

@@ -138,15 +138,23 @@ func (s AppSysAdmin) ChangeUserPrivilege() revel.Result {
 }
 
 func (s AppSysAdmin) LogsDashboard() revel.Result {
-	fmt.Println("logs")
+	if !revel.DevMode {
+		return s.RenderTemplate("errors/404.html")
+	}
 	return s.RenderTemplate("AppSysAdmin/LogsDashboard.html")
 }
 
 func (s AppSysAdmin) ExportLogs() revel.Result {
+	if !revel.DevMode {
+		return s.RenderTemplate("errors/404.html")
+	}
 	return s.Render()
 }
 
 func (s AppSysAdmin) DeleteLogs() revel.Result {
+	if !revel.DevMode {
+		return s.RenderTemplate("errors/404.html")
+	}
 	return s.Render()
 }
 
