@@ -522,6 +522,25 @@ type MiniumumLendStruct struct {
 	FCT  float64 `json:"FCT"`
 }
 
+func (m *MiniumumLendStruct) GetAll() []float64 {
+	var mins []float64
+
+	mins = append(mins, m.BTC)
+	mins = append(mins, m.BTS)
+	mins = append(mins, m.CLAM)
+	mins = append(mins, m.DOGE)
+	mins = append(mins, m.DASH)
+	mins = append(mins, m.LTC)
+	mins = append(mins, m.MAID)
+	mins = append(mins, m.STR)
+	mins = append(mins, m.XMR)
+	mins = append(mins, m.XRP)
+	mins = append(mins, m.ETH)
+	mins = append(mins, m.FCT)
+
+	return mins
+}
+
 func (m *MiniumumLendStruct) Set(currency string, min float64) bool {
 	switch currency {
 	case "BTC":
@@ -761,6 +780,28 @@ type PoloniexEnabledStruct struct {
 	XRP  bool `json:"XRP"`
 	ETH  bool `json:"ETH"`
 	FCT  bool `json:"FCT"`
+}
+
+type EnabledStruct struct {
+	Currency string `json:"currency"`
+	Enabled  bool   `json:"enabled"`
+}
+
+func (pe *PoloniexEnabledStruct) GetAll() []EnabledStruct {
+	var arr []EnabledStruct
+	arr = append(arr, EnabledStruct{"BTC", pe.BTC})
+	arr = append(arr, EnabledStruct{"BTS", pe.BTS})
+	arr = append(arr, EnabledStruct{"CLAM", pe.CLAM})
+	arr = append(arr, EnabledStruct{"DOGE", pe.DOGE})
+	arr = append(arr, EnabledStruct{"DASH", pe.DASH})
+	arr = append(arr, EnabledStruct{"LTC", pe.LTC})
+	arr = append(arr, EnabledStruct{"MAID", pe.MAID})
+	arr = append(arr, EnabledStruct{"STR", pe.STR})
+	arr = append(arr, EnabledStruct{"XMR", pe.XMR})
+	arr = append(arr, EnabledStruct{"XRP", pe.XRP})
+	arr = append(arr, EnabledStruct{"ETH", pe.ETH})
+	arr = append(arr, EnabledStruct{"FCT", pe.FCT})
+	return arr
 }
 
 func (pe *PoloniexEnabledStruct) Keys() []string {

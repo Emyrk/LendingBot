@@ -1,0 +1,111 @@
+  <div class="">
+  	<div class="page-title">
+  		<div class="title_left">
+  			<h3>Admin Settings</h3>
+  		</div>
+  		<div class="clearfix"></div>
+
+  		<div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12" >
+          <table id="userTable" class="table table-striped table-bordered dataTable no-footer" cellspacing="0" width="100%">
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Level</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="u in users track by u.email" ng-click="selectUser($index)">
+                <td>
+                  {{u.email}}
+                </td>
+                <td>
+                  {{u.priv}}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="row" ng-show="selectedUser">
+        <!-- Change Password -->
+                        STATS: {{userStats.Stats}}
+        <div class="col-md-12 col-sm-12 col-xs-12">
+          <div class="x_panel">
+            <div class="x_title">
+              <h2>User Details <small> for {{selectedUser.email}}</small></h2>
+              <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+              <div class="alert alert-danger fade in" role="alert" ng-show="updateUserError.length > 0">
+                <strong>{{updateUserError}}</strong>
+              </div>
+              <div class="x_content">
+              <!-- Lending Info -->
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Coin</th>
+                      <th>Enabled</th>
+                      <th>Minimum</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr ng-repeat="cur in selectedUser.enabled">
+                      <th scope="row">{{cur.currency}}</th>
+                      <td>{{selectedUser.enabled[$index].enabled}}</td>
+                      <td>{{selectedUser.minimum[$index]}}</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <!-- Lending Stats -->
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>User</th>
+                      <th>Loan Rate</th>
+                      <th>BTC Lent</th>
+                      <th>BTC Not Lent</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <th scope="row">{{selectedUser.email}}</th>
+                      <td>{{userStats.Stats.loanrate}}</td>
+                      <td>{{userStats.Stats.btclent}}</td>
+                      <td>{{userStats.Stats.btcnotlent}}</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <!-- Balances -->
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Currency</th>
+                      <th>Amount</th>
+                      <th>Percent</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  <tr ng-repeat="(key, value) in userStats.Bals.currencymap" ng-click="selectUser($index)">
+                      <th scope="row">{{key}}</th>
+                      <td>{{value}}</td>
+                      <td>{{userStats.Bals.percentmap[key].toFixed(4)}}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>

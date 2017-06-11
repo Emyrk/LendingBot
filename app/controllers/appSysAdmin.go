@@ -18,15 +18,14 @@ func (s AppSysAdmin) SysAdminDashboard() revel.Result {
 	return s.RenderTemplate("AppSysAdmin/SysAdminDashboard.html")
 }
 
-func (s AppSysAdmin) GetUsers() revel.Result {
+func getUsers() (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 
 	safeUsers, err := state.GetAllUsers()
 	if err != nil {
-		fmt.Printf("WARNING: User failed to get all users: [%s] error: %s\n", s.Session[SESSION_EMAIL], err.Error())
+		fmt.Printf("WARNING: User failed to get all users: error: %s\n", err.Error())
 		data[JSON_ERROR] = "Failed to get all users. Look at logs."
-		s.Response.Status = 500
-		return s.RenderJSON(data)
+		return nil, err
 	}
 
 	allLevels := userdb.AllLevels
@@ -42,6 +41,15 @@ func (s AppSysAdmin) GetUsers() revel.Result {
 		lArr,
 	}
 
+	return data, nil
+}
+
+func (s AppSysAdmin) GetUsers() revel.Result {
+	data, err := getUsers()
+	if err != nil {
+		s.Response.Status = 500
+		return s.RenderJSON(err)
+	}
 	return s.RenderJSON(data)
 }
 

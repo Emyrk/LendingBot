@@ -27,6 +27,10 @@ app.config(['$routeProvider', '$locationProvider',
 			templateUrl : "/dashboard/sysadmin",
 			controller : "sysAdminController"
 		})
+		.when("/admin",{
+			templateUrl : "/dashboard/admin",
+			controller : "adminController"
+		})
 		.otherwise({redirectTo:'/'});
 
 

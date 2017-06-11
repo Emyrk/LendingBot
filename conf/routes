@@ -46,6 +46,10 @@ POST	/dashboard/sysadmin/deleteinvite		AppSysAdmin.DeleteInvite
 GET 	/dashboard/sysadmin/getinvites			AppSysAdmin.GetInvites
 POST	/dashboard/sysadmin/changeuserpriv		AppSysAdmin.ChangeUserPrivilege
 
+GET		/dashboard/admin						AppAdmin.AdminDashboard
+GET		/dashboard/admin/getusers				AppAdmin.GetUsers
+POST	/dashboard/admin/getuserstats			AppAdmin.GetUserStats
+
 GET 	/dashboard/data/currentuserstats		AppAuthRequired.CurrentUserStats
 GET 	/dashboard/data/lendinghistory			AppAuthRequired.LendingHistory
 
