@@ -158,7 +158,7 @@ func (r AppAuthRequired) CurrentUserStats() revel.Result {
 	email := r.Session[SESSION_EMAIL]
 	u, err := state.FetchUser(email)
 	if err != nil || u == nil {
-		fmt.Println("Error fetching user for dashboard")
+		fmt.Println("Error: CurrentUserStats: fetching user for dashboard")
 		return r.Redirect(App.Index)
 	}
 
@@ -178,7 +178,7 @@ func (r AppAuthRequired) LendingHistory() revel.Result {
 	email := r.Session[SESSION_EMAIL]
 	u, err := state.FetchUser(email)
 	if err != nil || u == nil {
-		fmt.Println("Error fetching user for dashboard")
+		fmt.Println("Error: LendingHistory: fetching user for dashboard")
 		return r.Redirect(App.Index)
 	}
 

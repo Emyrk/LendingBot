@@ -73,7 +73,7 @@ func (r AppAuthRequired) Dashboard() revel.Result {
 	email := r.Session[SESSION_EMAIL]
 	u, err := state.FetchUser(email)
 	if err != nil || u == nil {
-		fmt.Println("Error fetching user for dashboard")
+		fmt.Println("Error: Dashboard: fetching user for dashboard")
 		return r.Redirect(App.Index)
 	}
 	r.ViewArgs["UserLevel"] = fmt.Sprintf("%d", u.Level)
@@ -373,17 +373,19 @@ func (r AppAuthRequired) AuthUser() revel.Result {
 	if !ValidCacheEmail(r.Session.ID(), r.Session[SESSION_EMAIL]) {
 		fmt.Printf("WARNING: AuthUser has invalid cache: [%s] sessionId:[%s]\n", r.Session[SESSION_EMAIL], r.Session.ID())
 		r.Session[SESSION_EMAIL] = ""
-		return r.Redirect(App.Index)
+		r.Response.Status = 403
+		return r.RenderTemplate("errors/403.html")
 	}
 
 	err := SetCacheEmail(r.Session.ID(), r.Session[SESSION_EMAIL])
 	if err != nil {
 		fmt.Printf("WARNING: AuthUser failed to set cache: [%s] and error: %s\n", r.Session.ID(), err.Error())
 		r.Session[SESSION_EMAIL] = ""
-		return r.Redirect(App.Index)
+		r.Response.Status = 403
+		return r.RenderTemplate("errors/403.html")
 	}
 	//do not cache auth pages
-	r.Response.Out.Header().Set("Cache-Control", "no-cache, max-age=0, must-revalidate, no-store")
+	// r.Response.Out.Header().Set("Cache-Control", "no-cache, max-age=0, must-revalidate, no-store")
 
 	r.SetCookie(GetTimeoutCookie())
 

@@ -80,10 +80,32 @@ app.controller('indexController', ['$scope', '$http', '$log',
 			indexScope.register.pass2 = "";
 		}
 
+		indexScope.validAuth = function() {
+			$http(
+			{
+				method: 'GET',
+				url: '/validauth',
+				data : {},
+				withCredentials: true,
+				headers: {
+					'Cache-Control' : 'no-cache'
+				}
+			})
+			.then((res) => {
+				//success
+				indexScope.isLoggedIn = res.data.data;
+			}, (err) => {
+				//error
+				//$log.error("validAuth: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				indexScope.isLoggedIn = false;
+			});
+		}
+
 		//--init
 		indexScope.attemptingLogin = false;
 		indexScope.attemptingRegister = false;
 		init_validator()
+		indexScope.validAuth();
 		//
 	}]);
 

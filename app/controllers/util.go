@@ -35,7 +35,7 @@ func ValidCacheEmail(sessionId string, email string) bool {
 
 	fmt.Printf("Comparing strings [%s]s, [%s]\n", e, email)
 
-	return e == email
+	return e == email && len(e) > 0 && len(email) > 0
 }
 
 func percentChange(a float64, b float64) float64 {
