@@ -279,7 +279,6 @@ func RegisterPrometheus() {
 	registered = true
 
 	prometheus.MustRegister(JobQueueCurrent)
-	prometheus.MustRegister(JobProcessDuration)
 
 	prometheus.MustRegister(CurrentLoanRate)
 	prometheus.MustRegister(JobsDone)
