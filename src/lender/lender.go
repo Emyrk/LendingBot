@@ -73,7 +73,7 @@ type Lender struct {
 func NewLender(s *core.State) *Lender {
 	l := new(Lender)
 	l.State = s
-	l.JobQueue = make(chan *Job, 1000)
+	l.JobQueue = make(chan *Job, 100)
 	l.CalculateLoanInterval = 1
 	l.GetTickerInterval = 30
 	l.Ticker = make(map[string]poloniex.PoloniexTicker)
@@ -118,6 +118,8 @@ func (l *Lender) Start() {
 			l.quit <- struct{}{}
 			return
 		case j := <-l.JobQueue:
+			start := time.Now()
+			defer JobProcessDuration.Observe(float64(time.Since(start).Nanoseconds()))
 			JobQueueCurrent.Set(float64(len(l.JobQueue)))
 			if j.Currency == nil {
 				fmt.Println("Seems we got a nil currency string:", j.Username)
@@ -133,6 +135,7 @@ func (l *Lender) Start() {
 			if err != nil {
 				log.Println("Error in Lending for", j.Username, ":", err)
 			}
+			JobsDone.Inc()
 		}
 	}
 }
@@ -420,8 +423,6 @@ func (l *Lender) ProcessJob(j *Job) error {
 }
 
 func (l *Lender) tierOneProcessJob(j *Job) error {
-	start := time.Now()
-	defer JobProcessDuration.Observe(float64(time.Since(start).Nanoseconds()))
 	s := l.State
 
 	bals, err := s.PoloniexGetAvailableBalances(j.Username)
@@ -521,7 +522,6 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 			continue
 		}
 		LoansCreated.Inc()
-		JobsDone.Inc()
 	}
 
 	return nil
