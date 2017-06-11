@@ -177,7 +177,7 @@ func (s AppSysAdmin) AuthUserSysAdmin() revel.Result {
 		return s.Redirect(App.Index)
 	}
 
-	//do not cache auth pages
+	//do not cache auth pages yet
 	s.Response.Out.Header().Set("Cache-Control", "no-cache, max-age=0, must-revalidate, no-store")
 
 	s.SetCookie(GetTimeoutCookie())
