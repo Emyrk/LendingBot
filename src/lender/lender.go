@@ -454,7 +454,9 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 
 	for i, min := range j.MinimumLend {
 		rate := l.CurrentLoanRate[j.Currency[i]].AvgBased
-		if l.CurrentLoanRate[j.Currency[i]].Simple == l.CurrentLoanRate[j.Currency[i]].AvgBased {
+		if j.Currency[i] == "FCT" {
+			rate = l.CurrentLoanRate[j.Currency[i]].Simple
+		} else if l.CurrentLoanRate[j.Currency[i]].Simple == l.CurrentLoanRate[j.Currency[i]].AvgBased {
 			if l.rising(j.Currency[i]) == 1 {
 				rate += l.PoloniexStats[j.Currency[i]].DayStd * .1
 			}

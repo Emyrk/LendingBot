@@ -118,7 +118,7 @@ func (c App) Login() revel.Result {
 		return c.RenderJSON(data)
 	}
 	if !ok {
-		fmt.Printf("Error authenticating email: %s pass: %s\n", email, pass)
+		fmt.Printf("Error authenticating email: %s\n", email)
 		data[JSON_ERROR] = "Invalid username, password or 2fa, please try again."
 		c.Response.Status = 400
 		return c.RenderJSON(data)
