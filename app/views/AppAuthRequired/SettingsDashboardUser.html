@@ -71,17 +71,20 @@
 						<div class="alert alert-danger fade in" role="alert" ng-show="enable2FAError.length > 0">
 							<strong>{{enable2FAError}}</strong>
 						</div>
-						<span ng-class="enabled2FA ? 'green' : 'red'">Currently 2FA is: {{enabled2FA ? 'Enabled' : 'Disabled'}}</span>
+						<div class="alert alert-danger fade in" role="alert" ng-show="create2FAError.length > 0">
+							<strong>{{create2FAError}}</strong>
+						</div>
+						<b><span ng-class="enabled2FA ? 'green' : 'red'">Currently 2FA is: {{enabled2FA ? 'Enabled' : 'Disabled'}}</span></b>
 						<div class="ln_solid"></div>
 						<form class="form-horizontal form-label-left" name="twofaForm">
 							<div class="form-group">
 								<label class="control-label col-md-3 col-sm-3 col-xs-12">Password:<span class="required">*</span></label>
 								<div class="col-md-7 col-sm-9 col-xs-9">
-									<input ng-model="pass2FA" placeholder="Password..." type="password" class="form-control" ng-disabled="loadingEnable2FA">
+									<input ng-model="pass2FA" name="pass2FA" required="required" placeholder="Password..." type="password" class="form-control" ng-disabled="loadingEnable2FA">
 								</div>
 							</div>
 							<div class="form-group">
-								<label class="control-label col-md-3 col-sm-3 col-xs-12" for="token">Token<span class="required">*</span>
+								<label class="control-label col-md-3 col-sm-3 col-xs-12" for="token">Token:<span class="required">*</span>
 								</label>
 								<div class="col-md-7 col-sm-9 col-xs-12">
 									<input type="text" ng-model="token" placeholder="Token..." required="required" class="form-control col-md-7 col-xs-12" ng-disabled="loadingEnable2FA" mask="999999">
@@ -90,10 +93,16 @@
 							<div class="ln_solid"></div>
 
 							<div class="form-group">
-								<div class="col-md-9 col-md-offset-3">
-									<button class="btn btn-success" ng-click="enable2FA(!enabled2FA)" ng-disabled="!twofaForm.$valid || loadingEnable2FA">
+								<div class="col-md-2 col-md-offset-3">
+									<button ng-class="'btn ' + (!enabled2FA ? 'btn-success' : 'btn-danger')" ng-click="enable2FA(!enabled2FA)" ng-disabled="!twofaForm.$valid || loadingEnable2FA">
 										{{(!enabled2FA ? 'Enable' : 'Disable') + '2FA'}}
 									</button>
+								</div>
+								<div class="col-md-3 col-md-offset-3">
+									<button class="btn btn-danger" ng-click="create2FA()" ng-disabled="!twofaForm.pass2FA.$valid || loadingCreate2FA">Create New 2FA
+									</button>
+									<br>
+									<sub>Only a password is required to create new 2FA</sub>
 								</div>
 							</div>
 						</form>
