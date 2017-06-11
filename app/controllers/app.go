@@ -220,11 +220,16 @@ func (c App) NewPassRequestGET() revel.Result {
 func (c App) NewPassRequestPOST() revel.Result {
 	e := c.Params.Form.Get("email")
 
+	c.ViewArgs["get"] = false
+	c.ViewArgs["Inverse"] = true
+	AppPageHitNewPassGet.Inc()
+
 	tokenString, err := state.GetNewJWTOTP(e)
 	if err != nil {
 		fmt.Printf("ERROR: getting new JWTOTP email: [%s] error:%s\n", err.Error())
-		c.Response.Status = 500
-		return c.RenderTemplate("errors/500.html")
+		// c.Response.Status = 500
+		// return c.RenderTemplate("errors/500.html")
+		return c.RenderTemplate("App/NewPassRequest.html")
 	}
 
 	emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_USER, []string{
@@ -239,19 +244,18 @@ func (c App) NewPassRequestPOST() revel.Result {
 
 	if err != nil {
 		fmt.Printf("ERROR: Parsing template: %s\n", err.Error())
-		c.Response.Status = 500
-		return c.RenderTemplate("errors/500.html")
+		// c.Response.Status = 500
+		// return c.RenderTemplate("errors/500.html")
+		return c.RenderTemplate("App/NewPassRequest.html")
 	}
 
 	if err = emailRequest.SendEmail(); err != nil {
 		fmt.Printf("ERROR: Sending new password email: %s\n", err.Error())
-		c.Response.Status = 500
-		return c.RenderTemplate("errors/500.html")
+		// c.Response.Status = 500
+		// return c.RenderTemplate("errors/500.html")
+		return c.RenderTemplate("App/NewPassRequest.html")
 	}
 
-	c.ViewArgs["get"] = false
-	c.ViewArgs["Inverse"] = true
-	AppPageHitNewPassGet.Inc()
 	return c.RenderTemplate("App/NewPassRequest.html")
 }
 
