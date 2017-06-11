@@ -28,8 +28,7 @@
         </div>
       </div>
       <div class="row" ng-show="selectedUser">
-        <!-- Change Password -->
-                        STATS: {{userStats.Stats}}
+
         <div class="col-md-12 col-sm-12 col-xs-12">
           <div class="x_panel">
             <div class="x_title">
@@ -41,24 +40,6 @@
                 <strong>{{updateUserError}}</strong>
               </div>
               <div class="x_content">
-              <!-- Lending Info -->
-                <table class="table table-hover">
-                  <thead>
-                    <tr>
-                      <th>Coin</th>
-                      <th>Enabled</th>
-                      <th>Minimum</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr ng-repeat="cur in selectedUser.enabled">
-                      <th scope="row">{{cur.currency}}</th>
-                      <td>{{selectedUser.enabled[$index].enabled}}</td>
-                      <td>{{selectedUser.minimum[$index]}}</td>
-                    </tr>
-                  </tbody>
-                </table>
-
                 <!-- Lending Stats -->
                 <table class="table table-hover">
                   <thead>
@@ -89,10 +70,28 @@
                     </tr>
                   </thead>
                   <tbody>
-                  <tr ng-repeat="(key, value) in userStats.Bals.currencymap" ng-click="selectUser($index)">
+                    <tr ng-repeat="(key, value) in userStats.Bals.currencymap" ng-click="selectUser($index)">
                       <th scope="row">{{key}}</th>
                       <td>{{value}}</td>
                       <td>{{userStats.Bals.percentmap[key].toFixed(4)}}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                
+                <!-- Lending Info -->
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Coin</th>
+                      <th>Enabled</th>
+                      <th>Minimum</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr ng-repeat="cur in selectedUser.enabled">
+                      <th scope="row">{{cur.currency}}</th>
+                      <td>{{selectedUser.enabled[$index].enabled}}</td>
+                      <td>{{selectedUser.minimum[$index]}}</td>
                     </tr>
                   </tbody>
                 </table>
