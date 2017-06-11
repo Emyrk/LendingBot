@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Emyrk/LendingBot/src/core/userdb"
+	"github.com/Emyrk/LendingBot/src/core"
+	"github.com/revel/revel"
+	// "github.com/Emyrk/LendingBot/src/core/userdb"
 )
 
 func main() {
@@ -16,6 +18,8 @@ func main() {
 		username = flag.String("u", "", "Username to change level of")
 		level    = flag.String("l", "", "Level to set user, 'admin', 'sysadmin', user")
 		auth     = flag.String("a", "", "2fa auth")
+		newUser  = flag.Bool("n", false, "Make the user")
+		pass     = flag.String("pass", "", "Password")
 		listall  = flag.Bool("la", false, "List all users")
 	)
 
@@ -25,13 +29,25 @@ func main() {
 		panic("No username chosen")
 	}
 
-	db := userdb.NewBoltUserDatabase("UserDatabase.db")
-	if db == nil {
-		panic("DB not opened")
+	revel.DevMode = true
+	s := core.NewState()
+	s.FetchAllUsers()
+
+	if *newUser {
+		if *pass == "" {
+			panic("No pass given")
+		}
+		err := s.NewUser(*username, *pass)
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+		fmt.Println("Successfully made user")
+		return
 	}
 
 	if *listall {
-		users, err := db.FetchAllUsers()
+		users, err := s.FetchAllUsers()
 		if err != nil {
 			fmt.Printf("Error when loading users: %s\n", err.Error())
 			panic(err)
@@ -43,7 +59,7 @@ func main() {
 		return
 	}
 
-	u, err := db.FetchUserIfFound(*username)
+	u, err := s.FetchUser(*username)
 	if err != nil {
 		fmt.Printf("Error when loading user: %s\n", *username)
 		panic(err)
@@ -70,17 +86,17 @@ func main() {
 
 	switch *level {
 	case "admin":
-		db.SetUserLevel(*username, userdb.Admin)
+		s.UpdateUserPrivilege(*username, "Admin")
 	case "sysadmin":
-		db.SetUserLevel(*username, userdb.SysAdmin)
+		s.UpdateUserPrivilege(*username, "SysAdmin")
 	case "user":
-		db.SetUserLevel(*username, userdb.CommonUser)
+		s.UpdateUserPrivilege(*username, "CommonUser")
 	default:
 		fmt.Println("No level detected. Expect: 'sysadmin', admin', or 'user'")
 		return
 	}
 
-	u, err = db.FetchUserIfFound(*username)
+	u, err = s.FetchUser(*username)
 	if err != nil {
 		fmt.Printf("Error when loading user: %s\n", *username)
 		panic(err)
