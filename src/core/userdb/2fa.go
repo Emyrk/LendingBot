@@ -8,8 +8,8 @@ import (
 )
 
 func (u *User) Create2FA(issuer string) ([]byte, error) {
-	if u.Has2FA {
-		return nil, fmt.Errorf("2FA is already enabled")
+	if u.Enabled2FA {
+		return nil, fmt.Errorf("2FA is enabled. Disable it before creating.")
 	}
 
 	tfa, err := twofactor.NewTOTP(u.Username, issuer, crypto.SHA1, 6)
