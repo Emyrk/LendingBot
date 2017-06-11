@@ -206,7 +206,7 @@ func (s *State) ListInviteCodes() ([]userdb.InviteEntry, error) {
 
 func (s *State) ClaimInviteCode(username string, code string) (bool, error) {
 	if code == "" {
-		return fmt.Errorf("Code cannot be length 0")
+		return false, fmt.Errorf("Code cannot be length 0")
 	}
 	return s.userInviteCodes.ClaimInviteCode(username, code)
 }
