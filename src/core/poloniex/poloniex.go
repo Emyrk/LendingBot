@@ -1089,6 +1089,7 @@ func (p *Poloniex) SendAuthenticatedHTTPRequest(method, endpoint string, values 
 
 	path := fmt.Sprintf("%s/%s", POLONIEX_API_URL, POLONIEX_API_TRADING_ENDPOINT)
 	resp, sendErr := SendHTTPRequest(method, path, headers, bytes.NewBufferString(values.Encode()))
+	PoloPrivateCalls.Inc()
 
 	if StringContains(resp, `"error":"`) {
 		var poloError PoloError
