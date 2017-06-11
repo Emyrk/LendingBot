@@ -248,7 +248,7 @@ func (r AppAuthRequired) RequestEmailVerification() revel.Result {
 	}{
 		link,
 	})
-	fmt.Printf("Template %s\n", emailRequest.Body)
+
 	if err != nil {
 		fmt.Printf("ERROR: Parsing template: %s\n", err)
 		data[JSON_ERROR] = "Internal Error. Please contact support at: support@hodl.zone"

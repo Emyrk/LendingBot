@@ -8,6 +8,7 @@ import (
 	"github.com/Emyrk/LendingBot/src/core"
 	"github.com/Emyrk/LendingBot/src/core/email"
 	"github.com/revel/revel"
+	"net/url"
 
 	// Init logger
 	_ "github.com/Emyrk/LendingBot/src/log"
@@ -132,13 +133,13 @@ func (c App) Login() revel.Result {
 }
 
 func (c App) Register() revel.Result {
-	email := c.Params.Form.Get("email")
+	e := c.Params.Form.Get("email")
 	pass := c.Params.Form.Get("pass")
 	code := c.Params.Form.Get("ic")
 
 	data := make(map[string]interface{})
 
-	ok, err := state.ClaimInviteCode(email, code)
+	ok, err := state.ClaimInviteCode(e, code)
 	if err != nil {
 		fmt.Printf("ERROR: Error claiming invite code: %s\n", err.Error())
 		data[JSON_ERROR] = "Invite code invalid."
@@ -153,7 +154,7 @@ func (c App) Register() revel.Result {
 		return c.RenderJSON(data)
 	}
 
-	apiErr := state.NewUser(email, pass)
+	apiErr := state.NewUser(e, pass)
 	if apiErr != nil {
 		fmt.Printf("Error registering user: %s\n", apiErr.LogError.Error())
 		data[JSON_ERROR] = apiErr.UserError.Error()
@@ -161,9 +162,34 @@ func (c App) Register() revel.Result {
 		return c.RenderJSON(data)
 	}
 
-	c.Session[SESSION_EMAIL] = email
+	c.Session[SESSION_EMAIL] = e
 
-	SetCacheEmail(c.Session.ID(), email)
+	SetCacheEmail(c.Session.ID(), e)
+
+	u, err := state.FetchUser(e)
+	if err != nil {
+		fmt.Printf("ERROR: Register fetching new user: %s\n", err)
+	} else {
+		link := MakeURL("verifyemail/" + url.QueryEscape(u.Username) + "/" + url.QueryEscape(u.VerifyString))
+
+		emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_USER, []string{
+			c.Session[SESSION_EMAIL],
+		}, "Verify Account")
+
+		err = emailRequest.ParseTemplate("verify.html", struct {
+			Link string
+		}{
+			link,
+		})
+
+		if err != nil {
+			fmt.Printf("ERROR: Register Parsing template: %s\n", err)
+		} else {
+			if err = emailRequest.SendEmail(); err != nil {
+				fmt.Printf("ERROR: Register Sending email: %s\n", err)
+			}
+		}
+	}
 
 	AppPageHitRegister.Inc()
 

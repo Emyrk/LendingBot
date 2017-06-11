@@ -38,10 +38,6 @@ Get 	/dashboard/settings/enableuserlending	AppAuthRequired.GetEnableUserLending
 POST	/dashboard/settings/enableuserlending	AppAuthRequired.SetEnableUserLending
 POST	/dashboard/settings/changepass			AppAuthRequired.ChangePassword
 
-GET		/dashboard/logs							AppSysAdmin.LogsDashboard
-GET		/dashboard/logs/export					AppSysAdmin.ExportLogs
-GET		/dashboard/logs/delete					AppSysAdmin.DeleteLogs
-
 GET		/dashboard/sysadmin						AppSysAdmin.SysAdminDashboard
 GET		/dashboard/sysadmin/getusers			AppSysAdmin.GetUsers
 POST	/dashboard/sysadmin/deleteuser			AppSysAdmin.DeleteUser
@@ -66,3 +62,7 @@ GET     /public/*filepath                       Static.Serve("public")
 # REMOVE FOR PROD
 GET     /sand                                   App.Sandbox
 GET		/userdashboard							AppAuthRequired.UserDashboard
+
+GET		/dashboard/logs							AppSysAdmin.LogsDashboard
+GET		/dashboard/logs/export					AppSysAdmin.ExportLogs
+GET		/dashboard/logs/delete					AppSysAdmin.DeleteLogs
