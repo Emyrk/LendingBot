@@ -94,6 +94,7 @@
                     <th>Delete</th>
                   </tr>
                 </thead>
+                {{invites}}
                 <tbody>
                   <tr ng-repeat="i in invites track by i.c" ng-click="selectInvite($index)">
                     <td>
@@ -109,7 +110,7 @@
                       {{i.time}}
                     </td>
                     <td>
-                      <button class="btn btn-danger" ng-click="deleteInvite(i.c)">Delete</button>
+                      <button class="btn btn-danger" ng-click="deleteInvite(i.rawc)">Delete</button>
                     </td>
                   </tr>
                 </tbody>
