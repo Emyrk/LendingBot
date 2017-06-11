@@ -105,6 +105,11 @@ func (l *Lender) CalcLoop() {
 			// l.LastCalculateLoanRate[curarr[i]] = time.Now()
 			time.Sleep(300 * time.Millisecond)
 			i++
+
+			// Update Ticker
+			if time.Since(l.LastTickerUpdate).Seconds() >= l.GetTickerInterval {
+				go l.UpdateTicker()
+			}
 		}
 	}
 }
@@ -112,6 +117,12 @@ func (l *Lender) CalcLoop() {
 func (l *Lender) Start() {
 	l.UpdateTicker()
 	go l.CalcLoop()
+	for i := 0; i < 10; i++ {
+		go l.proccessWorker()
+	}
+}
+
+func (l *Lender) proccessWorker() {
 	for {
 		select {
 		case <-l.quit:
@@ -123,11 +134,6 @@ func (l *Lender) Start() {
 			if j.Currency == nil {
 				fmt.Println("Seems we got a nil currency string:", j.Username)
 				break
-			}
-
-			// Update Ticker
-			if time.Since(l.LastTickerUpdate).Seconds() >= l.GetTickerInterval {
-				go l.UpdateTicker()
 			}
 
 			err := l.ProcessJob(j)
@@ -424,6 +430,8 @@ func (l *Lender) ProcessJob(j *Job) error {
 
 func (l *Lender) tierOneProcessJob(j *Job) error {
 	s := l.State
+	part1 := time.Now()
+	//JobPart2
 
 	bals, err := s.PoloniexGetAvailableBalances(j.Username)
 	// if err != nil {
@@ -440,6 +448,9 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 			log.Printf("Error in calculating statistic for %s: %s", j.Username, err.Error())
 		}
 	}
+
+	JobPart1.Observe(float64(time.Since(part1).Nanoseconds()))
+	part2 := time.Now()
 
 	for i, min := range j.MinimumLend {
 		rate := l.CurrentLoanRate[j.Currency[i]].AvgBased
@@ -521,6 +532,7 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 			fmt.Println("Error in lenidng:", err.Error())
 			continue
 		}
+		JobPart2.Observe(float64(time.Since(part2).Nanoseconds()))
 		LoansCreated.Inc()
 	}
 

@@ -167,6 +167,16 @@ var (
 		Help: "The counter of how many jobs are done",
 	})
 
+	JobPart1 = prometheus.NewSummary(prometheus.SummaryOpts{
+		Name: "hodlzone_lender_job_part1_ns",
+		Help: "Part 1 of job",
+	})
+
+	JobPart2 = prometheus.NewSummary(prometheus.SummaryOpts{
+		Name: "hodlzone_lender_job_part2_ns",
+		Help: "Part 2 of job",
+	})
+
 	// Poloniex Stats
 	//		Avg
 	PoloniexStatsHourlyAvg = prometheus.NewGauge(prometheus.GaugeOpts{
@@ -277,6 +287,9 @@ func RegisterPrometheus() {
 		return
 	}
 	registered = true
+
+	prometheus.MustRegister(JobPart1)
+	prometheus.MustRegister(JobPart2)
 
 	prometheus.MustRegister(JobQueueCurrent)
 
