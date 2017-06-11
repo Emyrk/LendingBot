@@ -28,7 +28,7 @@
       <div class="count red">{{currentUserStats.btcnotlent | number : 3}} BTC</div>
        <!-- Change -->
         <span ng-hide="currentUserStats.btcnotlentchange.toFixed(3) == 0" class="count_bottom">
-            <i ng-class="currentUserStats.btcnotlentchange > 0.0 ? 'red' : 'greed'">
+            <i ng-class="currentUserStats.btcnotlentchange > 0.0 ? 'red' : 'green'">
             <i ng-class="currentUserStats.btcnotlentchange > 0.0 ? 'fa fa-sort-desc' : 'fa fa-sort-asc'">
         </i> {{currentUserStats.btcnotlentchange | number : 2}}% </i> From last Week</span>
     </div>

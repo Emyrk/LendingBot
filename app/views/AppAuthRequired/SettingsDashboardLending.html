@@ -65,12 +65,12 @@
               <div class="alert alert-danger fade in" role="alert" ng-show="poloniexKeysEnabledError.length > 0">
                 <strong>{{poloniexKeysEnabledError}}</strong>
               </div>
-  						Enabling lending will begin lending any crypto in your lending account. You can disable it at any time.
-  						<br />
+  						Enabling lending will begin lending any crypto in your lending account. You can disable it at any time. The left column is the MINIMUM loan rate the bot will use when lending with that crypto. If the rate goes below your minimum, the bot will stop making loans. Setting this rate is reccomended if you do not wish for loans to fall below a certain daily %.
   						<br />
   						<form class="form-horizontal form-label-left">
   							<div class="ln_solid"></div>
                   <div class="col-md-12 col-sm-12 col-xs-12">
+                    Miniumum Loan Rate
                     <div class="row" ng-repeat="(key,value) in coinsEnabled track by key">
                       <label class="col-md-3 col-sm-3 col-xs-3">
                         <input type="number" limit="true" min="0.0" max="2.0" step="0.05" class="form-control" placeholder="Percent..." ng-model="coinsMinLend[key]">

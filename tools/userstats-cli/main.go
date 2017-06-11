@@ -17,6 +17,10 @@ var TotalAmt = float64(10)
 
 var _, _ = fmt.Println, os.Readlink
 
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
 func main() {
 	var (
 		username  = flag.String("u", "", "Username to change level of")
@@ -65,7 +69,7 @@ func PoloFix(db *userdb.UserStatisticsDB) {
 
 func PoloData(db *userdb.UserStatisticsDB) {
 
-	stats := db.GetPoloniexStatistics()
+	stats := db.GetPoloniexStatistics("BTC")
 	fmt.Println(stats)
 }
 
@@ -77,12 +81,15 @@ func Populate(username string, db *userdb.UserStatisticsDB) {
 		stats.Currency = "BTC"
 		db.CurrentIndex = i
 		stats.TotalCurrencyMap["BTC"] = 1
-		stats.TotalCurrencyMap["FCT"] = 0.5
+		stats.TotalCurrencyMap["FCT"] = 0.3
+		stats.TotalCurrencyMap["CLAM"] = 0.1
+		stats.TotalCurrencyMap["ETH"] = 0.8
+		stats.TotalCurrencyMap["DOGE"] = 0.05
 		db.RecordData(stats)
 		stats.Time = time.Now().Add(500 * time.Duration(i) * time.Second)
 		db.RecordData(stats)
 
-		db.RecordPoloniexStatisticTime(stats.AverageActiveRate, time.Now().Add(time.Duration(-i)*time.Minute))
+		db.RecordPoloniexStatisticTime("BTC", stats.AverageActiveRate, time.Now().Add(time.Duration(-i)*time.Minute))
 	}
 }
 
@@ -121,14 +128,14 @@ type UserStatistic struct {
 func RandStats() *userdb.UserStatistic {
 	left := TotalAmt
 
+	p = randomFloat(left*80, left*100) / 100
+	left -= p
+	stats.ActiveLentBalance = p
+
 	stats := userdb.NewUserStatistic()
 	p := randomFloat(0, left*100) / 100
 	left -= p
 	stats.AvailableBalance = p
-
-	p = randomFloat(0, left*100) / 100
-	left -= p
-	stats.ActiveLentBalance = p
 
 	stats.OnOrderBalance = left
 
