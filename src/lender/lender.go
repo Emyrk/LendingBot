@@ -47,7 +47,7 @@ func init() {
 	MinLendAmt["STR"] = 1
 	MinLendAmt["XMR"] = 1
 	MinLendAmt["XRP"] = 1
-	MinLendAmt["ETH"] = .2
+	MinLendAmt["ETH"] = 1
 	MinLendAmt["FCT"] = 100
 }
 
