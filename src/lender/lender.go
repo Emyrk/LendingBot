@@ -119,7 +119,6 @@ func (l *Lender) Start() {
 			return
 		case j := <-l.JobQueue:
 			start := time.Now()
-			defer JobProcessDuration.Observe(float64(time.Since(start).Nanoseconds()))
 			JobQueueCurrent.Set(float64(len(l.JobQueue)))
 			if j.Currency == nil {
 				fmt.Println("Seems we got a nil currency string:", j.Username)
@@ -128,13 +127,14 @@ func (l *Lender) Start() {
 
 			// Update Ticker
 			if time.Since(l.LastTickerUpdate).Seconds() >= l.GetTickerInterval {
-				l.UpdateTicker()
+				go l.UpdateTicker()
 			}
 
 			err := l.ProcessJob(j)
 			if err != nil {
 				log.Println("Error in Lending for", j.Username, ":", err)
 			}
+			JobProcessDuration.Observe(float64(time.Since(start).Nanoseconds()))
 			JobsDone.Inc()
 		}
 	}
