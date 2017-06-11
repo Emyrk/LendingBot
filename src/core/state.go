@@ -205,10 +205,16 @@ func (s *State) ListInviteCodes() ([]userdb.InviteEntry, error) {
 }
 
 func (s *State) ClaimInviteCode(username string, code string) (bool, error) {
+	if code == "" {
+		return fmt.Errorf("Code cannot be length 0")
+	}
 	return s.userInviteCodes.ClaimInviteCode(username, code)
 }
 
 func (s *State) AddInviteCode(code string, capacity int, expires time.Time) error {
+	if code == "" {
+		return fmt.Errorf("Code cannot be length 0")
+	}
 	return s.userInviteCodes.CreateInviteCode(code, capacity, expires)
 }
 
