@@ -68,6 +68,8 @@ func (r AppAuthRequired) unmarshalPass(body io.ReadCloser) string {
 }
 
 func (r AppAuthRequired) Dashboard() revel.Result {
+	r.ViewArgs["Version"] = VersionNumber
+
 	email := r.Session[SESSION_EMAIL]
 	u, err := state.FetchUser(email)
 	if err != nil || u == nil {
