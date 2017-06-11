@@ -142,6 +142,33 @@ app.controller('sysAdminController', ['$scope', '$http', '$log', '$timeout',
 			});
 		}
 
+		sysAdminScope.deleteInvite = function(c) {
+			sysAdminScope.updateUserError = '';
+			$http(
+			{
+				method: 'POST',
+				url: '/dashboard/sysadmin/deleteinvite',
+				data : $.param({
+					c: c
+				}),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				withCredentials: true
+			})
+			.then((res) => {
+				//success
+				userTable.row(sysAdminScope.selectedUser.index).invalidate();
+				sysAdminScope.users[sysAdminScope.selectedUser.index] = sysAdminScope.selectedUser;
+				sysAdminScope.selectedUser = null;
+			}, (err) => {
+				//error
+				$log.error("changeUserPriv: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				sysAdminScope.updateUserError = err.data.error;
+			})
+			.then(() => {
+				sysAdminScope.adminPass = "";
+			});
+		}
+
 		//--init
 		sysAdminScope.getUsers();
 		sysAdminScope.adminPass = "";
