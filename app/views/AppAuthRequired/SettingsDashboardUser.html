@@ -42,15 +42,17 @@
 
 			<!-- QRCode -->
 			<div class="col-sm-12 col-xs-12" ng-show="qrcode">
+			<!-- <div class="col-sm-12 col-xs-12"> -->
 				<div class="x_panel">
 					<div class="x_title">
 						<h2>QRCode</h2>
 						<div class="clearfix"></div>
 					</div>
-					<div class="x_content">
+					<div class="x_content text-center">
 						<form class="form-horizontal form-label-left">
-							<h2>HEY COPY THIS CODE IN ORDER TO LINK YOUR QR</h2>
+							<h2>Scan this QR code with your Google Authenticator. Once you leave this page, this will never be displayed again, it might be wise to print this page out. Once you do that, refresh this page and ENABLE 2fa. Two Factor must be ENABLED to work, and won't be enabled until you input your 2fa token string after the page is refreshed.</h2>
 							<img  ng-src="{{qrcode}}"/>
+							<!-- <img  src="/public/img/donateaddress.png"/> -->
 						</form>
 					</div>
 				</div>

@@ -28,6 +28,11 @@ func TestInviteCode(t *testing.T) {
 		t.Error("Should error")
 	}
 
+	err = id.ExpireInviteCode("Code1")
+	if err != nil {
+		t.Error(err)
+	}
+
 	v, err := id.ListAll()
 	t.Log(v, err)
 }
