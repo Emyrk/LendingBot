@@ -17,6 +17,7 @@ import (
 var state *core.State
 
 func init() {
+	RegisterPrometheus()
 }
 
 type JSONUser struct {
@@ -55,30 +56,36 @@ func (c App) Index() revel.Result {
 	} else {
 		c.ViewArgs["poloniexStats"] = string(stats)
 	}
+	AppPageHitIndex.Inc()
 	return c.RenderTemplate("App/Index.html")
 }
 
 func (c App) FAQ() revel.Result {
 	c.ViewArgs["Inverse"] = true
+	AppPageHitFAQ.Inc()
 	return c.RenderTemplate("App/FAQ.html")
 }
 
 func (c App) Donate() revel.Result {
 	c.ViewArgs["Inverse"] = true
+	AppPageHitDonate.Inc()
 	return c.RenderTemplate("App/Donate.html")
 }
 
 func (c App) Information() revel.Result {
 	c.ViewArgs["Inverse"] = true
+	AppPageHitInformation.Inc()
 	return c.RenderTemplate("App/Information.html")
 }
 
 func (c App) Contact() revel.Result {
 	c.ViewArgs["Inverse"] = true
+	AppPageHitContact.Inc()
 	return c.RenderTemplate("App/Contact.html")
 }
 
 func (c App) Landing() revel.Result {
+	AppPageHitLanding.Inc()
 	return c.Render()
 }
 
@@ -90,6 +97,7 @@ func (c App) unmarshalUser(body io.ReadCloser) (string, string) {
 		return "", ""
 	}
 	defer body.Close()
+	AppPageHitLogin.Inc()
 	return jsonUser.Email, jsonUser.Pass
 }
 
@@ -118,6 +126,8 @@ func (c App) Login() revel.Result {
 	SetCacheEmail(c.Session.ID(), email)
 
 	c.SetCookie(GetTimeoutCookie())
+
+	AppPageHitLogin.Inc()
 
 	return c.RenderJSON(data)
 }
@@ -181,6 +191,8 @@ func (c App) Register() revel.Result {
 		}
 	}
 
+	AppPageHitRegister.Inc()
+
 	return c.RenderJSON(data)
 }
 
@@ -194,6 +206,8 @@ func (c App) VerifyEmail() revel.Result {
 		return c.NotFound("Invalid link. Please verify your email again.")
 	}
 	c.ViewArgs["email"] = email
+
+	AppPageHitVerifyEmail.Inc()
 	return c.RenderTemplate("App/verifiedEmailSuccess.html")
 }
 
@@ -237,6 +251,7 @@ func (c App) NewPassRequestPOST() revel.Result {
 
 	c.ViewArgs["get"] = false
 	c.ViewArgs["Inverse"] = true
+	AppPageHitNewPassGet.Inc()
 	return c.RenderTemplate("App/NewPassRequest.html")
 }
 
@@ -244,6 +259,7 @@ func (c App) NewPassResponseGet() revel.Result {
 	c.ViewArgs["get"] = true
 	c.ViewArgs["tokenString"] = c.Params.Route.Get("jwt")
 	c.ViewArgs["Inverse"] = true
+	AppPageHitNewPassGet.Inc()
 	return c.RenderTemplate("App/NewPass.html")
 }
 
@@ -259,5 +275,6 @@ func (c App) NewPassResponsePost() revel.Result {
 		c.Response.Status = 400
 	}
 	c.ViewArgs["Inverse"] = true
+	AppPageHitNewPassPost.Inc()
 	return c.RenderTemplate("App/NewPass.html")
 }

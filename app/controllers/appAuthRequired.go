@@ -76,15 +76,18 @@ func (r AppAuthRequired) Dashboard() revel.Result {
 	}
 	r.ViewArgs["UserLevel"] = fmt.Sprintf("%d", u.Level)
 	r.ViewArgs["email"] = u.Username
+	AppPageHitDashboard.Inc()
 	return r.Render()
 }
 
 func (r AppAuthRequired) Logout() revel.Result {
 	DeleteCacheToken(r.Session.ID())
+	AppPageHitInfoLogout.Inc()
 	return r.Redirect(App.Index)
 }
 
 func (r AppAuthRequired) InfoDashboard() revel.Result {
+	AppPageHitInfoDashboard.Inc()
 	return r.RenderTemplate("AppAuthRequired/InfoDashboard.html")
 }
 
@@ -110,10 +113,12 @@ func (r AppAuthRequired) Enable2FA() revel.Result {
 	u, _ := state.FetchUser(email)
 	data[JSON_DATA] = fmt.Sprintf("%t", u.Enabled2FA)
 
+	AppPageHitInfoEnable2fa.Inc()
 	return r.RenderJSON(data)
 }
 
 func (r AppAuthRequired) InfoAdvancedDashboard() revel.Result {
+	AppPageHitAdvInfoDashboard.Inc()
 	return r.RenderTemplate("AppAuthRequired/InfoAdvancedDashboard.html")
 }
 
@@ -144,6 +149,7 @@ func (r AppAuthRequired) SetPoloniexKeys() revel.Result {
 		return r.RenderJSON(data)
 	}
 
+	AppPageHitSetPoloKeys.Inc()
 	data[JSON_DATA] = fmt.Sprintf("%s", d)
 	return r.RenderJSON(data)
 }
@@ -172,6 +178,7 @@ func (r AppAuthRequired) SettingsDashboardUser() revel.Result {
 		r.ViewArgs["poloniexSecret"] = ""
 	}
 
+	AppPageHitSetSettingDashUser.Inc()
 	return r.RenderTemplate("AppAuthRequired/SettingsDashboardUser.html")
 }
 
@@ -195,6 +202,7 @@ func (r AppAuthRequired) SettingsDashboardLending() revel.Result {
 		r.ViewArgs["poloniexSecret"] = ""
 	}
 
+	AppPageHitSetSettingDashLend.Inc()
 	return r.RenderTemplate("AppAuthRequired/SettingsDashboardLending.html")
 }
 
@@ -213,6 +221,7 @@ func (r AppAuthRequired) Create2FA() revel.Result {
 
 	data[JSON_DATA] = qr
 
+	AppPageHitCreate2fa.Inc()
 	return r.RenderJSON(data)
 }
 
@@ -253,6 +262,7 @@ func (r AppAuthRequired) RequestEmailVerification() revel.Result {
 		r.Response.Status = 500
 		return r.RenderJSON(data)
 	}
+	AppPageHitReqEmailVerify.Inc()
 	return r.RenderJSON(data)
 }
 
@@ -284,6 +294,7 @@ func (r AppAuthRequired) GetEnableUserLending() revel.Result {
 		u.MiniumLend,
 	}
 
+	AppPageHitEnableUserLending.Inc()
 	return r.RenderJSON(data)
 }
 
@@ -327,6 +338,7 @@ func (r AppAuthRequired) SetEnableUserLending() revel.Result {
 	}
 	// /SET USER LENDING AMOUNT
 
+	AppPageHitSetEnableUserLending.Inc()
 	return r.RenderJSON(data)
 }
 
@@ -340,7 +352,7 @@ func (r AppAuthRequired) ChangePassword() revel.Result {
 		r.Response.Status = 400
 		return r.RenderJSON(data)
 	}
-
+	AppPageHitChangePass.Inc()
 	return r.RenderJSON(data)
 }
 
@@ -373,5 +385,6 @@ func (r AppAuthRequired) AuthUser() revel.Result {
 
 	r.SetCookie(GetTimeoutCookie())
 
+	AppPageAuthUser.Inc()
 	return nil
 }
