@@ -322,7 +322,7 @@ func (l *Lender) calculateAvgBasedLoanRate(currency string) {
 	if a < stats.HrAvg {
 		// Lends are raising, go up
 		if l.rising(currency) == 1 {
-			a = stats.HrAvg + (stats.DayStd * 0.2)
+			a = stats.HrAvg + (stats.DayStd * 0.35)
 		} else {
 			a = stats.HrAvg
 		}
