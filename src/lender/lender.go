@@ -322,7 +322,7 @@ func (l *Lender) calculateAvgBasedLoanRate(currency string) {
 	if a < stats.HrAvg {
 		// Lends are raising, go up
 		if l.rising(currency) == 1 {
-			a = stats.HrAvg + (stats.DayStd * 0.35)
+			a = stats.HrAvg + (stats.DayStd * 0.40)
 		} else {
 			a = stats.HrAvg
 		}
@@ -343,7 +343,7 @@ func (l *Lender) rising(currency string) int {
 	if v, ok := l.PoloniexStats[currency]; !ok || v == nil {
 		return 0
 	}
-	if l.PoloniexStats[currency].HrAvg > l.PoloniexStats[currency].DayAvg+(.2*l.PoloniexStats[currency].DayStd) {
+	if l.PoloniexStats[currency].HrAvg > l.PoloniexStats[currency].DayAvg+(.05*l.PoloniexStats[currency].DayStd) {
 		return 1
 	}
 	return 0
@@ -486,6 +486,8 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 	part2 := time.Now()
 
 	for i, min := range j.MinimumLend {
+		// Move min from a % to it's value
+		min = min / 100
 		rate := l.CurrentLoanRate[j.Currency[i]].AvgBased
 		if j.Currency[i] == "FCT" {
 			rate = l.CurrentLoanRate[j.Currency[i]].Simple
