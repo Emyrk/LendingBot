@@ -60,6 +60,7 @@ func (c App) Index() revel.Result {
 		c.ViewArgs["poloniexStats"] = string(stats)
 	}
 	AppPageHitIndex.Inc()
+	c.ViewArgs["IsLoggedIn"] = len(c.Session[SESSION_EMAIL]) > 0
 	return c.RenderTemplate("App/Index.html")
 }
 
@@ -284,4 +285,25 @@ func (c App) NewPassResponsePost() revel.Result {
 	c.ViewArgs["Inverse"] = true
 	AppPageHitNewPassPost.Inc()
 	return c.RenderTemplate("App/NewPass.html")
+}
+
+func (c App) ValidAuth() revel.Result {
+	data := make(map[string]interface{})
+	data[JSON_DATA] = len(c.Session[SESSION_EMAIL]) > 0
+	return c.RenderJSON(data)
+}
+
+//called before any auth required function
+func (c App) AppAuthUser() revel.Result {
+	fmt.Println("HEY: ", c.Session[SESSION_EMAIL])
+	if !ValidCacheEmail(c.Session.ID(), c.Session[SESSION_EMAIL]) {
+		c.Session[SESSION_EMAIL] = ""
+	} else {
+		err := SetCacheEmail(c.Session.ID(), c.Session[SESSION_EMAIL])
+		if err != nil {
+			c.Session[SESSION_EMAIL] = ""
+		}
+	}
+
+	return nil
 }

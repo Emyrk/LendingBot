@@ -1,7 +1,23 @@
 var app=angular.module("lendingApp",["ngRoute","ngMask", "ngCookies"]);
 
-app.config(['$routeProvider', '$locationProvider',
-	function($routeProvider, $locationProvider) {
+app.factory('redirectInterceptor', function($q,$location,$window){
+    return  {
+        response:function(response) {
+        	console.log("RESPONSE: " + response);
+        	return response
+        },
+        responseError:function(response) {
+        	console.log("RESPONSE: " + response);
+        	if (response.status == 403) {
+        		window.location = "/";
+        		return $q.reject(response);
+        	}
+        }
+    }
+});
+
+app.config(['$routeProvider', '$locationProvider', '$httpProvider',
+	function($routeProvider, $locationProvider, $httpProvider) {
 		$routeProvider
 		.when("/",{
 			templateUrl : "/dashboard/info",
@@ -35,7 +51,10 @@ app.config(['$routeProvider', '$locationProvider',
 
 
 		$locationProvider.html5Mode({enabled: false, requireBase: false});
+
+		$httpProvider.interceptors.push('redirectInterceptor');
 	}]);
+
 app.controller('dashBaseController', ['$scope', '$http', '$log', "$location", "$window", "$rootScope", "$cookies", "$interval",
 	function($scope, $http, $log, $location, $window, $rootScope, $cookies, $interval) {
 		var dashBaseScope = $scope;

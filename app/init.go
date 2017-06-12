@@ -32,6 +32,7 @@ func init() {
 		revel.CompressFilter,          // Compress the result.
 		revel.ActionInvoker,           // Invoke the action.
 	}
+	revel.InterceptMethod(controllers.App.AppAuthUser, revel.BEFORE)
 	revel.InterceptMethod(controllers.AppAuthRequired.AuthUser, revel.BEFORE)
 	revel.InterceptMethod(controllers.AppSysAdmin.AuthUserSysAdmin, revel.BEFORE)
 	revel.InterceptMethod(controllers.AppAdmin.AuthUserAdmin, revel.BEFORE)
