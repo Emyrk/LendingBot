@@ -5,6 +5,7 @@ import (
 
 	"github.com/Emyrk/LendingBot/src/core"
 	"github.com/Emyrk/LendingBot/src/lender"
+	"github.com/Emyrk/LendingBot/src/lender/otherBots/poloBot"
 	"github.com/Emyrk/LendingBot/src/queuer"
 
 	// For Prometheus
@@ -31,7 +32,13 @@ func Launch() {
 	lenderBot := lender.NewLender(state)
 	queuerBot := queuer.NewQueuer(state, lenderBot)
 
-	err := state.VerifyState()
+	poloBotChannel := make(chan *poloBot.PoloBotParams)
+	_, err := poloBot.NewPoloBot(poloBotChannel)
+	if err != nil {
+		fmt.Printf("ERRRROROROASDOFOASDOF", err)
+	}
+
+	err = state.VerifyState()
 	if err != nil {
 		panic(err)
 	}
