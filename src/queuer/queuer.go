@@ -96,9 +96,9 @@ func (q *Queuer) Start() {
 
 			if time.Since(last).Seconds() > 60 {
 				var str = ""
-				str += fmt.Sprintf("Have %d users to make jobs for", len(q.AllUsers))
+				str += fmt.Sprintf("Have %d users to make jobs for\n", len(q.AllUsers))
 				for _, us := range q.AllUsers {
-					str += fmt.Sprintf("     %s, %v", us.Username, us.EnablesCurrencies)
+					str += fmt.Sprintf("     %s, %v\n", us.Username, us.EnablesCurrencies)
 				}
 				fmt.Println(str)
 				q.Status = str
