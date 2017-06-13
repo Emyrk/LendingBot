@@ -82,9 +82,10 @@ type Lender struct {
 	UserLendingLock sync.RWMutex
 	UsersLending    map[string]bool
 
-	PoloChannel  chan *poloBot.PoloBotParams
-	OtherPoloBot *poloBot.PoloBotClient
-	LastPoloBot  poloBot.PoloBotParams
+	PoloChannel     chan *poloBot.PoloBotParams
+	OtherPoloBot    *poloBot.PoloBotClient
+	LastPoloBot     map[string]poloBot.PoloBotCoin
+	LastPoloBotTime time.Time
 }
 
 func NewLender(s *core.State) *Lender {
@@ -104,6 +105,7 @@ func NewLender(s *core.State) *Lender {
 	// 	l.LastCalculateLoanRate[c] = time.Now().Add(time.Second * time.Duration(i))
 	// }
 
+	l.LastPoloBot = make(map[string]poloBot.PoloBotCoin)
 	poloBotChannel := make(chan *poloBot.PoloBotParams, 10)
 	go func() {
 		p, err := poloBot.NewPoloBot(poloBotChannel)
@@ -153,7 +155,17 @@ func (l *Lender) MonitorPoloBot() {
 			PoloBotRateDOGE.Set(p.DOGE.GetBestReturnRate())
 			PoloBotRateBTS.Set(p.BTS.GetBestReturnRate())
 
-			l.LastPoloBot = *p
+			l.LastPoloBot["BTC"] = p.BTC
+			l.LastPoloBot["BTS"] = p.BTS
+			l.LastPoloBot["ETH"] = p.ETH
+			l.LastPoloBot["XMR"] = p.XMR
+			l.LastPoloBot["DASH"] = p.DASH
+			l.LastPoloBot["LTC"] = p.LTC
+			l.LastPoloBot["DOGE"] = p.DOGE
+			l.LastPoloBot["XRP"] = p.XRP
+
+			l.LastPoloBotTime = p.Time
+
 		}
 	}
 }
@@ -636,6 +648,19 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 		// Yea.... no
 		if rate == 0 {
 			continue
+		}
+
+		if time.Since(l.LastPoloBotTime).Seconds() < 10 {
+			if v, ok := l.LastPoloBot[j.Currency[i]]; ok && v.GetBestReturnRate() > 0 {
+				poloRate := v.GetBestReturnRate()
+				if rate < poloRate {
+					rate = (rate + poloRate) / 2
+				}
+			}
+		}
+
+		if j.Currency[i] == "BTC" {
+			CompromisedBTC.Set(rate)
 		}
 
 		_, err = s.PoloniexCreateLoanOffer(j.Currency[i], amt, rate, 2, false, j.Username)

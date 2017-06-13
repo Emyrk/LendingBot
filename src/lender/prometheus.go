@@ -10,6 +10,11 @@ var _ = fmt.Println
 
 var (
 	// Polo Bot
+	CompromisedBTC = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_compromise_rate_btc",
+		Help: "Compromised rate",
+	})
+
 	PoloBotRateBTC = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: "hodlzone_lender_polobot_rate_btc",
 		Help: "BTC For polobot",
@@ -334,6 +339,7 @@ func RegisterPrometheus() {
 		return
 	}
 	registered = true
+	prometheus.MustRegister(CompromisedBTC)
 
 	prometheus.MustRegister(JobPart1)
 	prometheus.MustRegister(JobPart2)
