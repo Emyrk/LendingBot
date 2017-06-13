@@ -179,6 +179,11 @@ var (
 
 	// Poloniex Stats
 	//		Avg
+	PoloniexStatsFiveMinAvg = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_poloniex_stats_avg_fivemin",
+		Help: "Hourly Avg for poloniex data",
+	})
+
 	PoloniexStatsHourlyAvg = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: "hodlzone_lender_poloniex_stats_avg_hourly",
 		Help: "Hourly Avg for poloniex data",

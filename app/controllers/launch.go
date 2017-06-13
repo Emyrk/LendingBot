@@ -17,6 +17,11 @@ import (
 	"github.com/revel/revel"
 )
 
+var _ = revel.Equal
+
+var Queuer *queuer.Queuer
+var Lender *lender.Lender
+
 func Launch() {
 	// Prometheus
 	lender.RegisterPrometheus()
@@ -31,9 +36,13 @@ func Launch() {
 		panic(err)
 	}
 
+	Queuer = queuerBot
+	Lender = lenderBot
+
 	if revel.DevMode {
 		return
 	}
+
 	// Start go lending
 	go lenderBot.Start()
 	go queuerBot.Start()

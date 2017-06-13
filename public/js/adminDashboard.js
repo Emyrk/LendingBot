@@ -1,3 +1,13 @@
+app.controller('adminControllerQuererStatus', ['$scope', '$http', '$log',
+	function($scope, $http, $log) {
+		var dashInfoAdvScope = $scope;
+	}]);
+
+app.controller('adminControllerLogs', ['$scope', '$http', '$log',
+	function($scope, $http, $log) {
+		var dashInfoAdvScope = $scope;
+	}]);
+
 app.controller('adminController', ['$scope', '$http', '$log', '$timeout',
 	function($scope, $http, $log, $timeout) {
 		var adminScope = $scope;

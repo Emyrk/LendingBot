@@ -47,6 +47,14 @@ app.config(['$routeProvider', '$locationProvider', '$httpProvider',
 			templateUrl : "/dashboard/admin",
 			controller : "adminController"
 		})
+		.when("/admin/queuerstatus",{
+			templateUrl : "/dashboard/admin/queuerstatus",
+			controller : "adminControllerQuererStatus"
+		})
+		.when("/admin/logs",{
+			templateUrl : "/dashboard/admin/logs",
+			controller : "adminControllerLogs"
+		})
 		.otherwise({redirectTo:'/'});
 
 

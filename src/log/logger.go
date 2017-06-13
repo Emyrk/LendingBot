@@ -1,6 +1,7 @@
 package log
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"io/ioutil"
@@ -16,6 +17,7 @@ var LogPath string
 
 func init() {
 	log.SetOutput(os.Stdout)
+	log.SetLevel(log.InfoLevel)
 	logPath := os.Getenv("LOG_PATH")
 	if len(logPath) > 0 {
 		// Rename any existing file
@@ -30,6 +32,8 @@ func init() {
 			LogPath = logPath
 		}
 	}
+	log.Info("Logger has initiated")
+	log.Info("Logs will now be appended")
 }
 
 func Close() {
@@ -41,12 +45,43 @@ func ReadLogs() (string, error) {
 		return "", fmt.Errorf("Cannot read logs unless its going to a file")
 	}
 
-	logs, err := ioutil.ReadAll(LogFile)
+	return ReadLogFile(LogPath)
+}
+
+func ReadLogFile(path string) (string, error) {
+	rf, err := os.OpenFile(path, os.O_RDONLY, 0666)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("Could not read err: %s", err.Error())
 	}
 
-	return string(logs), nil
+	fi, err := os.Stat(path)
+	if err != nil {
+		return "", fmt.Errorf("Could not stat file err: %s %s", path, err.Error())
+	}
+
+	max := int64(120000)
+	var buf []byte
+	if fi.Size() < max {
+		max = fi.Size()
+	}
+
+	_, err = rf.Seek(fi.Size()-max, 0)
+	if err != nil {
+		return "", fmt.Errorf("Could not seek file err: %s", err.Error())
+	}
+
+	scanner := bufio.NewScanner(rf)
+	for scanner.Scan() {
+		buf = append([]byte(scanner.Text()+"\n"), buf...)
+		// buf.WriteString(scanner.Text() + "\n")
+	}
+
+	// logs, err := ioutil.ReadAll(rf)
+	// if err != nil {
+	// 	return "", err
+	// }
+
+	return string(buf), nil
 }
 
 func ExportLogs() (string, error) {

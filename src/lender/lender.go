@@ -2,7 +2,6 @@ package lender
 
 import (
 	"fmt"
-	"log"
 	"math"
 	"sort"
 	"strings"
@@ -12,7 +11,13 @@ import (
 	"github.com/Emyrk/LendingBot/src/core"
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
+
+	log "github.com/sirupsen/logrus"
 )
+
+var clog = log.WithFields(log.Fields{
+	"package": "Lender",
+})
 
 var _ = fmt.Print
 
@@ -128,7 +133,8 @@ func (l *Lender) CalcLoop() {
 			}
 			err := l.CalculateLoanRate(curarr[i])
 			if err != nil {
-				log.Printf("[%s] Error in Lending: %s", curarr[i], err)
+				clog.WithFields(log.Fields{"method": "CalcLoop", "currency": curarr[i]}).Errorf("Error in Lending: %s", err)
+				// log.Printf("(CalcLoop) [%s] Error in Lending: %s", curarr[i], err)
 			}
 			// l.LastCalculateLoanRate[curarr[i]] = time.Now()
 			time.Sleep(300 * time.Millisecond)
@@ -164,13 +170,13 @@ func (l *Lender) proccessWorker() {
 			start := time.Now()
 			JobQueueCurrent.Set(float64(len(l.JobQueue)))
 			if j.Currency == nil {
-				fmt.Println("Seems we got a nil currency string:", j.Username)
+				clog.WithFields(log.Fields{"method": "procesWorker"}).Warnf("Seems we got a nil currency string for", j.Username)
 				break
 			}
 
 			err := l.ProcessJob(j)
 			if err != nil {
-				log.Println("Error in Lending for", j.Username, ":", err)
+				clog.WithFields(log.Fields{"method": "ProcJob", "user": j.Username}).Warnf("Error in Lending : %s", err.Error())
 			}
 			JobProcessDuration.Observe(float64(time.Since(start).Nanoseconds()))
 			JobsDone.Inc()
@@ -201,6 +207,7 @@ func (l *Lender) UpdateTicker() {
 	l.PoloniexStats["BTC"] = l.State.GetPoloniexStatistics("BTC")
 	// Prometheus
 	if l.PoloniexStats["BTC"] != nil {
+		PoloniexStatsFiveMinAvg.Set(l.PoloniexStats["BTC"].FiveMinAvg)
 		PoloniexStatsHourlyAvg.Set(l.PoloniexStats["BTC"].HrAvg)
 		PoloniexStatsDailyAvg.Set(l.PoloniexStats["BTC"].DayAvg)
 		PoloniexStatsWeeklyAvg.Set(l.PoloniexStats["BTC"].WeekAvg)
@@ -261,7 +268,7 @@ func (l *Lender) CalculateLoanRate(currency string) error {
 	s := l.State
 	loans, err := s.PoloniexGetLoanOrders(currency)
 	if err != nil {
-		log.Printf("Error when grabbing loans for CalcRate: %s", err.Error())
+		clog.WithFields(log.Fields{"method": "CalcLoan"}).Errorf("Error when grabbing loans for CalcRate: %s", err.Error())
 		return err
 	}
 
@@ -312,7 +319,7 @@ func (l *Lender) calculateAvgBasedLoanRate(currency string) {
 
 	stats, ok := l.PoloniexStats[currency]
 	if !ok || stats == nil {
-		log.Printf("No poloniex stats for %s", currency)
+		clog.WithFields(log.Fields{"method": "CalcAvg"}).Errorf("[CalcAvg] No poloniex stats for %s", currency)
 		l.CurrentLoanRate[currency] = rates
 		return
 	}
@@ -321,11 +328,15 @@ func (l *Lender) calculateAvgBasedLoanRate(currency string) {
 	// If less than hour average, we need to decide on whether or not to go higher
 	if a < stats.HrAvg {
 		// Lends are raising, go up
-		if l.rising(currency) == 1 {
-			a = stats.HrAvg + (stats.DayStd * 0.40)
+		if l.rising(currency) >= 1 {
+			a = stats.HrAvg + (stats.DayStd * 0.50)
 		} else {
 			a = stats.HrAvg
 		}
+	}
+
+	if a < stats.FiveMinAvg && stats.FiveMinAvg > stats.HrAvg {
+		a = stats.FiveMinAvg
 	}
 
 	rates.AvgBased = a
@@ -343,9 +354,12 @@ func (l *Lender) rising(currency string) int {
 	if v, ok := l.PoloniexStats[currency]; !ok || v == nil {
 		return 0
 	}
-	if l.PoloniexStats[currency].HrAvg > l.PoloniexStats[currency].DayAvg+(.05*l.PoloniexStats[currency].DayStd) {
+	if l.PoloniexStats[currency].HrAvg > l.PoloniexStats[currency].DayAvg+(1*l.PoloniexStats[currency].DayStd) {
+		return 2
+	} else if l.PoloniexStats[currency].HrAvg > l.PoloniexStats[currency].DayAvg+(.05*l.PoloniexStats[currency].DayStd) {
 		return 1
 	}
+
 	return 0
 }
 
@@ -462,6 +476,11 @@ func (l *Lender) ProcessJob(j *Job) error {
 }
 
 func (l *Lender) tierOneProcessJob(j *Job) error {
+	llog := clog.WithFields(log.Fields{
+		"method": "T1ProcJob",
+		"user":   j.Username,
+	})
+
 	s := l.State
 	part1 := time.Now()
 	//JobPart2
@@ -478,7 +497,7 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 	if err == nil && activeLoans != nil {
 		err := l.recordStatistics(j.Username, bals, inactiveLoans, activeLoans)
 		if err != nil {
-			log.Printf("Error in calculating statistic for %s: %s", j.Username, err.Error())
+			llog.Errorf("Error in calculating statistic: %s", err.Error())
 		}
 	}
 
@@ -489,22 +508,28 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 		// Move min from a % to it's value
 		min = min / 100
 		rate := l.CurrentLoanRate[j.Currency[i]].AvgBased
-		if j.Currency[i] == "FCT" {
-			rate = l.CurrentLoanRate[j.Currency[i]].Simple
-		} else if l.CurrentLoanRate[j.Currency[i]].Simple == l.CurrentLoanRate[j.Currency[i]].AvgBased {
-			if l.rising(j.Currency[i]) == 1 {
-				rate += l.PoloniexStats[j.Currency[i]].DayStd * .1
+
+		ri := l.rising(j.Currency[i])
+
+		if l.CurrentLoanRate[j.Currency[i]].Simple == l.CurrentLoanRate[j.Currency[i]].AvgBased {
+			if ri >= 1 {
+				rate += l.PoloniexStats[j.Currency[i]].DayStd * .05
 			}
 		}
 
 		avail, ok := bals["lending"][j.Currency[i]]
 		var _ = ok
 
+		maxLend := MaxLendAmt[j.Currency[i]]
+		if ri == 2 {
+			maxLend = maxLend * 2
+		}
+
 		// rate := l.decideRate(rate, avail, total)
 
 		// We need to find some more crypto to lkend
 		//if avail < MaxLendAmt[j.Currency[i]] {
-		need := MaxLendAmt[j.Currency[i]] - avail
+		need := maxLend - avail
 		if inactiveLoans != nil {
 			currencyLoans := inactiveLoans[j.Currency[i]]
 			sort.Sort(poloniex.PoloniexLoanOfferArray(currencyLoans))
@@ -529,7 +554,8 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 				}
 				worked, err := s.PoloniexCancelLoanOffer(j.Currency[i], loan.ID, j.Username)
 				if err != nil {
-					fmt.Println(err)
+					llog.WithField("currency", j.Currency[i]).Errorf("[Cancel] Error in Lending: %s", err.Error())
+					// log.Printf("[Cancel Loan] Error for %s (%s) : %s", j.Username, j.Currency[i], err.Error())
 					continue
 				}
 				if worked && err == nil {
@@ -546,10 +572,10 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 			continue
 		}
 
-		amt := MaxLendAmt[j.Currency[i]]
-		if avail < MaxLendAmt[j.Currency[i]] {
+		amt := maxLend
+		if avail < maxLend {
 			amt = avail
-		} else if avail < MaxLendAmt[j.Currency[i]]+MinLendAmt[j.Currency[i]] {
+		} else if avail < maxLend+MinLendAmt[j.Currency[i]] {
 			// If we make a loan, and don't have enough to make a following one, make this one to the available balance
 			amt = avail
 		}
@@ -572,7 +598,7 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 		}
 
 		if err != nil {
-			fmt.Printf("[Offer:%s] (%s) Error in lending: %s\n", j.Currency[i], j.Username, err.Error())
+			llog.WithField("currency", j.Currency[i]).Errorf("[Offer] Error in Lending: %s", err.Error())
 			continue
 		}
 		JobPart2.Observe(float64(time.Since(part2).Nanoseconds()))

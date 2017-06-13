@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Emyrk/LendingBot/src/core/userdb"
+	ourlog "github.com/Emyrk/LendingBot/src/log"
 	"github.com/revel/revel"
 )
 
@@ -11,8 +12,22 @@ type AppAdmin struct {
 	*revel.Controller
 }
 
-func (s AppAdmin) AdminDashboard() revel.Result {
-	return s.RenderTemplate("AppAdmin/AdminDashboard.html")
+func (s AppAdmin) AdminDashboardUsers() revel.Result {
+	return s.RenderTemplate("AppAdmin/AdminDashboardUsers.html")
+}
+
+func (s AppAdmin) AdminDashboardQueuerStatus() revel.Result {
+	s.ViewArgs["QueuerStatus"] = Queuer.Status
+	return s.RenderTemplate("AppAdmin/AdminDashboardQueuerStatus.html")
+}
+
+func (s AppAdmin) AdminDashboardLogs() revel.Result {
+	logs, err := ourlog.ReadLogs()
+	if err != nil {
+		logs = fmt.Sprintf("Error reading log: %s", err.Error())
+	}
+	s.ViewArgs["LogFile"] = logs
+	return s.RenderTemplate("AppAdmin/AdminDashboardLogs.html")
 }
 
 //called before any auth required function

@@ -479,10 +479,11 @@ func (us *UserStatisticsDB) GetPoloniexDataLastXDays(dayRange int, currency stri
 }
 
 type PoloniexStats struct {
-	HrAvg    float64 `json:"hravg"`
-	DayAvg   float64 `json:"dayavg"`
-	WeekAvg  float64 `json:"weekavg"`
-	MonthAvg float64 `json:"monthavg"`
+	FiveMinAvg float64 `json:"fiveminavg"`
+	HrAvg      float64 `json:"hravg"`
+	DayAvg     float64 `json:"dayavg"`
+	WeekAvg    float64 `json:"weekavg"`
+	MonthAvg   float64 `json:"monthavg"`
 
 	HrStd    float64 `json:"hrstd"`
 	DayStd   float64 `json:"daystd"`
@@ -506,6 +507,7 @@ func (us *UserStatisticsDB) GetPoloniexStatistics(currency string) *PoloniexStat
 
 	sec := GetSeconds(time.Now())
 	var lastHr []PoloniexRateSample
+	var fivemin []PoloniexRateSample
 
 	in := 0
 	not := 0
@@ -513,6 +515,9 @@ func (us *UserStatisticsDB) GetPoloniexStatistics(currency string) *PoloniexStat
 		if v.SecondsPastMidnight > sec-3600 {
 			in++
 			lastHr = append(lastHr, v)
+			if v.SecondsPastMidnight > sec-300 {
+				fivemin = append(fivemin, v)
+			}
 		} else {
 			not++
 		}
@@ -532,6 +537,7 @@ func (us *UserStatisticsDB) GetPoloniexStatistics(currency string) *PoloniexStat
 		}
 	}
 
+	poloStats.FiveMinAvg, _ = GetAvgAndStd(fivemin)
 	poloStats.HrAvg, poloStats.HrStd = GetAvgAndStd(lastHr)
 	poloStats.DayAvg, poloStats.DayStd = GetAvgAndStd(all[:dayCutoff])
 	poloStats.WeekAvg, poloStats.WeekStd = GetAvgAndStd(all[:weekCutoff])

@@ -7,13 +7,14 @@ package queuer
 
 import (
 	"fmt"
-	"log"
 	"sort"
 	"strings"
 	"time"
 
 	"github.com/Emyrk/LendingBot/src/core"
 	"github.com/Emyrk/LendingBot/src/lender"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var _ = fmt.Print
@@ -49,6 +50,8 @@ type Queuer struct {
 	State    *core.State
 	Lender   *lender.Lender
 
+	Status string
+
 	quit chan struct{}
 }
 
@@ -57,6 +60,7 @@ func NewQueuer(s *core.State, l *lender.Lender) *Queuer {
 	q.quit = make(chan struct{})
 	q.State = s
 	q.Lender = l
+	q.Status = "Initiated"
 
 	return q
 }
@@ -67,7 +71,7 @@ func (q *Queuer) Close() error {
 }
 
 func (q *Queuer) Start() {
-	ticker := time.NewTicker(time.Second * 5)
+	ticker := time.NewTicker(time.Second * 10)
 	interval := 0
 	q.LoadUsers()
 
@@ -91,10 +95,12 @@ func (q *Queuer) Start() {
 			}
 
 			if time.Since(last).Seconds() > 60 {
-				log.Printf("Have %d users to make jobs for", len(q.AllUsers))
+				var str = ""
+				str += fmt.Sprintf("Have %d users to make jobs for", len(q.AllUsers))
 				for _, us := range q.AllUsers {
-					log.Printf("     %s, %v", us.Username, us.EnablesCurrencies)
+					str += fmt.Sprintf("     %s, %v", us.Username, us.EnablesCurrencies)
 				}
+				q.Status = str
 				last = time.Now()
 			}
 			// if time.Since(lastCalc).Seconds() > 30 {
