@@ -526,12 +526,18 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 	//JobPart2
 
 	bals, err := s.PoloniexGetAvailableBalances(j.Username)
+	if err != nil {
+		llog.Errorf("Error getting balances: %s", err.Error())
+	}
 	// if err != nil {
 	// 	return fmt.Errorf("[T1-1] %s", err.Error())
 	// }
 
 	// 3 types of balances: Not lent, Inactive, Active
-	inactiveLoans, _ := s.PoloniexGetInactiveLoans(j.Username)
+	inactiveLoans, err := s.PoloniexGetInactiveLoans(j.Username)
+	if err != nil {
+		llog.Errorf("Error getting inactive loans: %s", err.Error())
+	}
 
 	activeLoans, err := s.PoloniexGetActiveLoans(j.Username)
 	if err == nil && activeLoans != nil {
@@ -539,6 +545,8 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 		if err != nil {
 			llog.Errorf("Error in calculating statistic: %s", err.Error())
 		}
+	} else {
+		llog.Errorf("Error getting active loans: %s", err.Error())
 	}
 
 	JobPart1.Observe(float64(time.Since(part1).Nanoseconds()))
