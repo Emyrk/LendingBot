@@ -82,7 +82,7 @@ type Lender struct {
 
 	PoloChannel  chan *poloBot.PoloBotParams
 	OtherPoloBot *poloBot.PoloBotClient
-	LastPoloBot  map[string]poloBot.PoloBotParams
+	LastPoloBot  poloBot.PoloBotParams
 }
 
 func NewLender(s *core.State) *Lender {
@@ -109,7 +109,6 @@ func NewLender(s *core.State) *Lender {
 		clog.Errorf("Error starting POLOBot %s", err.Error())
 	}
 
-	l.LastPoloBot = make(map[string]poloBot.PoloBotParams)
 	l.OtherPoloBot = p
 	l.PoloChannel = poloBotChannel
 
@@ -151,7 +150,7 @@ func (l *Lender) MonitorPoloBot() {
 			PoloBotRateDOGE.Set(p.DOGE.GetBestReturnRate())
 			PoloBotRateBTS.Set(p.BTS.GetBestReturnRate())
 
-			l.LastPoloBot[""] = *p
+			l.LastPoloBot = *p
 		}
 	}
 }
@@ -185,6 +184,7 @@ func (l *Lender) CalcLoop() {
 func (l *Lender) Start() {
 	l.UpdateTicker()
 	go l.CalcLoop()
+	go l.MonitorPoloBot()
 	for i := 0; i < 10; i++ {
 		go l.proccessWorker()
 	}
