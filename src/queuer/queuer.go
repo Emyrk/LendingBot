@@ -75,7 +75,7 @@ func (q *Queuer) Start() {
 	interval := 0
 	q.LoadUsers()
 
-	last := time.Now()
+	last := time.Now().Add(time.Second * -70)
 	// lastCalc := time.Now()
 
 	for {
@@ -100,6 +100,7 @@ func (q *Queuer) Start() {
 				for _, us := range q.AllUsers {
 					str += fmt.Sprintf("     %s, %v", us.Username, us.EnablesCurrencies)
 				}
+				fmt.Println(str)
 				q.Status = str
 				last = time.Now()
 			}
