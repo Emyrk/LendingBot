@@ -32,12 +32,6 @@ func Launch() {
 	lenderBot := lender.NewLender(state)
 	queuerBot := queuer.NewQueuer(state, lenderBot)
 
-	poloBotChannel := make(chan *poloBot.PoloBotParams)
-	_, err := poloBot.NewPoloBot(poloBotChannel)
-	if err != nil {
-		fmt.Printf("ERRRROROROASDOFOASDOF", err)
-	}
-
 	err = state.VerifyState()
 	if err != nil {
 		panic(err)

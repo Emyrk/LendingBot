@@ -11,6 +11,7 @@ import (
 	"github.com/Emyrk/LendingBot/src/core"
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
+	"github.com/Emyrk/LendingBot/src/lender/otherBots/poloBot"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -78,6 +79,10 @@ type Lender struct {
 
 	UserLendingLock sync.RWMutex
 	UsersLending    map[string]bool
+
+	PoloChannel  chan *poloBot.PoloBotParams
+	OtherPoloBot *poloBot.PoloBotClient
+	LastPoloBot  map[string]poloBot.PoloBotParams
 }
 
 func NewLender(s *core.State) *Lender {
@@ -96,6 +101,17 @@ func NewLender(s *core.State) *Lender {
 	// for i, c := range curarr {
 	// 	l.LastCalculateLoanRate[c] = time.Now().Add(time.Second * time.Duration(i))
 	// }
+
+	poloBotChannel := make(chan *poloBot.PoloBotParams, 10)
+	p, err := poloBot.NewPoloBot(poloBotChannel)
+	if err != nil {
+		fmt.Printf("Error Starting POLOBot %s", err)
+		clog.Errorf("Error starting POLOBot %s", err.Error())
+	}
+
+	l.LastPoloBot = make(map[string]poloBot.PoloBotParams)
+	l.PoloBot = p
+	l.PoloChannel = poloBotChannel
 
 	return l
 }
@@ -120,6 +136,33 @@ func (l *Lender) IsLending(username string) bool {
 		return false
 	}
 	return v
+}
+
+func (l *Lender) MonitorPoloBot() {
+	for {
+		select {
+		case p := <-l.PoloChannel:
+			switch "" {
+			case "BTC":
+				PoloBotRateBTC.Set(p.BestReturnRate)
+			case "ETH":
+				PoloBotRateETH.Set(p.BestReturnRate)
+			case "XMR":
+				PoloBotRateXMR.Set(p.BestReturnRate)
+			case "XRP":
+				PoloBotRateXRP.Set(p.BestReturnRate)
+			case "DASH":
+				PoloBotRateDASH.Set(p.BestReturnRate)
+			case "LTC":
+				PoloBotRateLTC.Set(p.BestReturnRate)
+			case "DOGE":
+				PoloBotRateDOGE.Set(p.BestReturnRate)
+			case "BTS":
+				PoloBotRateBTS.Set(p.BestReturnRate)
+			}
+			l.LastPoloBot[""] = *p
+		}
+	}
 }
 
 func (l *Lender) CalcLoop() {
@@ -187,6 +230,7 @@ func (l *Lender) proccessWorker() {
 
 func (l *Lender) Close() {
 	l.quit <- struct{}{}
+	l.OtherPoloBot.Close()
 }
 
 func (l *Lender) AddJob(j *Job) error {

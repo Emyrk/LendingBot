@@ -9,6 +9,48 @@ import (
 var _ = fmt.Println
 
 var (
+	// Polo Bot
+	PoloBotRateBTC = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_polobot_rate_btc",
+		Help: "BTC For polobot",
+	})
+
+	PoloBotRateETH = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_polobot_rate_eth",
+		Help: "BTC For polobot",
+	})
+
+	PoloBotRateXMR = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_polobot_rate_xmr",
+		Help: "BTC For polobot",
+	})
+
+	PoloBotRateXRP = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_polobot_rate_xrp",
+		Help: "BTC For polobot",
+	})
+
+	PoloBotRateDASH = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_polobot_rate_dash",
+		Help: "BTC For polobot",
+	})
+
+	PoloBotRateLTC = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_polobot_rate_ltc",
+		Help: "BTC For polobot",
+	})
+
+	PoloBotRateDOGE = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_polobot_rate_doge",
+		Help: "BTC For polobot",
+	})
+
+	PoloBotRateBTS = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "hodlzone_lender_polobot_rate_bts",
+		Help: "BTC For polobot",
+	})
+
+	// Jobs
 	JobQueueCurrent = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: "hodlzone_lender_current_job_queue_length",
 		Help: "Number of jobs to be processed",
