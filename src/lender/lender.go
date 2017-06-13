@@ -567,8 +567,9 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 	for i, min := range j.MinimumLend {
 		// Move min from a % to it's value
 		min = min / 100
-		rate := l.CurrentLoanRate[j.Currency[i]].AvgBased
 
+		// Rate calculation
+		rate := l.CurrentLoanRate[j.Currency[i]].AvgBased
 		ri := l.rising(j.Currency[i])
 
 		if l.CurrentLoanRate[j.Currency[i]].Simple == l.CurrentLoanRate[j.Currency[i]].AvgBased {
@@ -576,6 +577,21 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 				rate += l.PoloniexStats[j.Currency[i]].DayStd * .05
 			}
 		}
+
+		if time.Since(l.LastPoloBotTime).Seconds() < 10 {
+			if v, ok := l.LastPoloBot[j.Currency[i]]; ok && v.GetBestReturnRate() > 0 {
+				poloRate := v.GetBestReturnRate()
+				if rate < poloRate {
+					rate = (rate + poloRate) / 2
+				}
+			}
+		}
+
+		if j.Currency[i] == "BTC" {
+			CompromisedBTC.Set(rate)
+		}
+
+		// End Rate Calculation
 
 		avail, ok := bals["lending"][j.Currency[i]]
 		var _ = ok
@@ -648,19 +664,6 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 		// Yea.... no
 		if rate == 0 {
 			continue
-		}
-
-		if time.Since(l.LastPoloBotTime).Seconds() < 10 {
-			if v, ok := l.LastPoloBot[j.Currency[i]]; ok && v.GetBestReturnRate() > 0 {
-				poloRate := v.GetBestReturnRate()
-				if rate < poloRate {
-					rate = (rate + poloRate) / 2
-				}
-			}
-		}
-
-		if j.Currency[i] == "BTC" {
-			CompromisedBTC.Set(rate)
 		}
 
 		_, err = s.PoloniexCreateLoanOffer(j.Currency[i], amt, rate, 2, false, j.Username)
