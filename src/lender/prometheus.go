@@ -344,6 +344,7 @@ func RegisterPrometheus() {
 	prometheus.MustRegister(JobsDone)
 	prometheus.MustRegister(LoansCreated)
 	prometheus.MustRegister(LoansCanceled)
+	prometheus.MustRegister(PoloniexStatsFiveMinAvg)
 	prometheus.MustRegister(PoloniexStatsHourlyAvg)
 	prometheus.MustRegister(PoloniexStatsDailyAvg)
 	prometheus.MustRegister(PoloniexStatsWeeklyAvg)

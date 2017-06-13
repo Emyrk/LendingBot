@@ -7,6 +7,8 @@ import (
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"github.com/revel/revel"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // Struct to UserDash
@@ -188,6 +190,7 @@ func (r AppAuthRequired) LendingHistory() revel.Result {
 		completeLoans, err = state.PoloniexAuthenticatedLendingHistory(u.Username, "", "", "100")
 	}
 	if err != nil {
+		log.WithField("package", "App").Errorf("Error getting lend history for %s: %s\n", email, err.Error())
 		fmt.Printf("Error getting lend history for %s: %s\n", email, err.Error())
 	}
 	data := make(map[string]interface{})

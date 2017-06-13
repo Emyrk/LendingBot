@@ -100,7 +100,6 @@ func (q *Queuer) Start() {
 				for _, us := range q.AllUsers {
 					str += fmt.Sprintf("     %s, %v\n", us.Username, us.EnablesCurrencies)
 				}
-				fmt.Println(str)
 				q.Status = str
 				last = time.Now()
 			}
