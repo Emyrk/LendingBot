@@ -389,6 +389,15 @@ func RegisterPrometheus() {
 	prometheus.MustRegister(LenderCurrentAverageBasedRateETH)
 	prometheus.MustRegister(CurrentLoanRateFCT)
 	prometheus.MustRegister(LenderCurrentAverageBasedRateFCT)
+
+	prometheus.MustRegister(PoloBotRateBTC)
+	prometheus.MustRegister(PoloBotRateETH)
+	prometheus.MustRegister(PoloBotRateXMR)
+	prometheus.MustRegister(PoloBotRateXRP)
+	prometheus.MustRegister(PoloBotRateDASH)
+	prometheus.MustRegister(PoloBotRateLTC)
+	prometheus.MustRegister(PoloBotRateDOGE)
+	prometheus.MustRegister(PoloBotRateBTS)
 }
 
 func SetSimple(currency string, rate float64) {

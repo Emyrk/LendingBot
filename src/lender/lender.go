@@ -103,13 +103,14 @@ func NewLender(s *core.State) *Lender {
 	// }
 
 	poloBotChannel := make(chan *poloBot.PoloBotParams, 10)
-	p, err := poloBot.NewPoloBot(poloBotChannel)
-	if err != nil {
-		fmt.Printf("Error Starting POLOBot %s", err)
-		clog.Errorf("Error starting POLOBot %s", err.Error())
-	}
-
-	l.OtherPoloBot = p
+	go func() {
+		p, err := poloBot.NewPoloBot(poloBotChannel)
+		if err != nil {
+			fmt.Printf("Error Starting POLOBot %s", err)
+			clog.Errorf("Error starting POLOBot %s", err.Error())
+		}
+		l.OtherPoloBot = p
+	}()
 	l.PoloChannel = poloBotChannel
 
 	return l
@@ -221,7 +222,9 @@ func (l *Lender) proccessWorker() {
 
 func (l *Lender) Close() {
 	l.quit <- struct{}{}
-	l.OtherPoloBot.Close()
+	if l.OtherPoloBot != nil {
+		l.OtherPoloBot.Close()
+	}
 }
 
 func (l *Lender) AddJob(j *Job) error {
@@ -630,6 +633,7 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 			// Sleep in our inner loop. This can be dangerous, should put these calls in a seperate queue to handle
 			time.Sleep(1 * time.Second)
 			_, err = s.PoloniexCreateLoanOffer(j.Currency[i], amt, rate, 2, false, j.Username)
+			llog.WithField("currency", j.Currency[i]).Infof("Created Loan: %f loaned at %f", amt, rate)
 		}
 
 		if err != nil {
