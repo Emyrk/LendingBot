@@ -1,7 +1,7 @@
 package poloBot
 
 import (
-	// "encoding/json"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -17,10 +17,21 @@ type PoloBotClient struct {
 }
 
 type PoloBotParams struct {
-	Time               time.Time `json:"time"`
-	AvgLoadHoldingTime string    `json:"averageLoanHoldingTime"`
-	BestReturnRate     float32   `json:"bestReturnRate"`
-	BestDuration       int32     `json:"bestDuration"`
+	Time time.Time   `json:"time"`
+	BTC  PoloBotCoin `json:"BTC"`
+	ETH  PoloBotCoin `json:"ETH"`
+	XMR  PoloBotCoin `json:"XMR"`
+	XRP  PoloBotCoin `json:"XRP"`
+	DASH PoloBotCoin `json:"DASH"`
+	LTC  PoloBotCoin `json:"LTC"`
+	DOGE PoloBotCoin `json:"DOGE"`
+	BTS  PoloBotCoin `json:"BTS"`
+}
+
+type PoloBotCoin struct {
+	AvgLoadHoldingTime string `json:"averageLoanHoldingTime"`
+	BestDuration       string `json:"bestDuration"`
+	BestReturnRate     string `json:"bestReturnRate"`
 }
 
 func NewPoloBot(channel chan *PoloBotParams) (*PoloBotClient, error) {
@@ -34,16 +45,20 @@ func NewPoloBot(channel chan *PoloBotParams) (*PoloBotClient, error) {
 		return nil, fmt.Errorf("Error opening client to poloBoy: %s", err.Error())
 	}
 
-	err = client.On("send:loanOfferParameters", func(h *gosocketio.Channel, args PoloBotParams) {
+	err = client.On("send:loanOfferParameters", func(h *gosocketio.Channel, args interface{}) {
 		llog.Info("PoloBot received loanOffersParams")
 
-		// var pbp PoloBotParams
-		// err := json.Unmarshal(args, &pbp)
-		// if err != nil {
-		// 	llog.Error("Unable to unmarshal loadofferparameters.")
-		// }
+		data, err := json.Marshal(args)
+		if err != nil {
+			llog.Error("Error marshalling: " + err.Error())
+		}
 
-		channel <- &args
+		var temp PoloBotParams
+		err = json.Unmarshal(data, &temp)
+		if err != nil {
+			llog.Error("Error umarshalling: " + err.Error())
+		}
+		channel <- &temp
 	})
 	if err != nil {
 		llog.Error("PoloBot received error on send:loanOfferParameters")
