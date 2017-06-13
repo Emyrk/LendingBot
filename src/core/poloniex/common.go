@@ -19,6 +19,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 const (
@@ -181,7 +182,7 @@ func CalculateNetProfit(amount, priceThen, priceNow, costs float64) float64 {
 	return (priceNow * amount) - (priceThen * amount) - costs
 }
 
-func SendHTTPRequest(method, path string, headers map[string]string, body io.Reader) (string, error) {
+func SendHTTPRequest(method, path string, headers map[string]string, body io.Reader, long bool) (string, error) {
 	result := strings.ToUpper(method)
 
 	if result != "POST" && result != "GET" && result != "DELETE" {
@@ -199,6 +200,9 @@ func SendHTTPRequest(method, path string, headers map[string]string, body io.Rea
 	}
 
 	httpClient := &http.Client{}
+	if long {
+		httpClient = &http.Client{Timeout: 60 * time.Second}
+	}
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		return "problem with .Do()", err

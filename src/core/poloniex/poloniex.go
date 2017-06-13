@@ -1087,8 +1087,13 @@ func (p *Poloniex) SendAuthenticatedHTTPRequest(method, endpoint string, values 
 	hmac := GetHMAC(HASH_SHA512, []byte(values.Encode()), []byte(secretKey))
 	headers["Sign"] = HexEncodeToString(hmac)
 
+	long := false
+	if endpoint == POLONIEX_CREATE_LOAN_OFFER {
+		long = true
+	}
+
 	path := fmt.Sprintf("%s/%s", POLONIEX_API_URL, POLONIEX_API_TRADING_ENDPOINT)
-	resp, sendErr := SendHTTPRequest(method, path, headers, bytes.NewBufferString(values.Encode()))
+	resp, sendErr := SendHTTPRequest(method, path, headers, bytes.NewBufferString(values.Encode()), long)
 	PoloPrivateCalls.Inc()
 
 	if StringContains(resp, `"error":"`) {

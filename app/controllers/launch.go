@@ -39,9 +39,9 @@ func Launch() {
 	Queuer = queuerBot
 	Lender = lenderBot
 
-	if revel.DevMode {
-		return
-	}
+	// if revel.DevMode {
+	// 	return
+	// }
 
 	// Start go lending
 	go lenderBot.Start()

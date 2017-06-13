@@ -16,6 +16,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var _ = strings.Split
+
 var clog = log.WithFields(log.Fields{
 	"package": "Lender",
 })
@@ -629,13 +631,13 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 		}
 
 		_, err = s.PoloniexCreateLoanOffer(j.Currency[i], amt, rate, 2, false, j.Username)
-		if err != nil && strings.Contains(err.Error(), "Too many requests") {
+		if err != nil { //} && strings.Contains(err.Error(), "Too many requests") {
 			// Sleep in our inner loop. This can be dangerous, should put these calls in a seperate queue to handle
-			time.Sleep(1 * time.Second)
+			time.Sleep(5 * time.Second)
 			_, err = s.PoloniexCreateLoanOffer(j.Currency[i], amt, rate, 2, false, j.Username)
-			llog.WithField("currency", j.Currency[i]).Infof("Created Loan: %f loaned at %f", amt, rate)
 		}
 
+		llog.WithField("currency", j.Currency[i]).Infof("Created Loan: %f loaned at %f", amt, rate)
 		if err != nil {
 			llog.WithField("currency", j.Currency[i]).Errorf("[Offer] Error in Lending: %s", err.Error())
 			continue
