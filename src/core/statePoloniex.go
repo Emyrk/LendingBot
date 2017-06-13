@@ -7,9 +7,23 @@ import (
 
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
 	//"github.com/Emyrk/LendingBot/src/core/userdb"
+
+	"go.uber.org/ratelimit"
 )
 
+var limiter ratelimit.Limiter
+
+func init() {
+	limiter = ratelimit.New(6)
+}
+
 var _ = fmt.Println
+
+func take() {
+	n := time.Now()
+	//limiter.Take()
+	PoloCallTakeWait.Observe(float64(time.Since(n).Nanoseconds()))
+}
 
 type PoloniexAccessCache struct {
 	Cache map[string]PoloniexAccessStruct
@@ -99,6 +113,7 @@ func (s *State) getAccessAndSecret(username string) (string, string, error) {
 }
 
 func (s *State) PoloniexGetBalances(username string) (*poloniex.PoloniexBalance, error) {
+	take()
 	accessKey, secretKey, err := s.getAccessAndSecret(username)
 	if err != nil {
 		return nil, err
@@ -110,6 +125,7 @@ func (s *State) PoloniexGetBalances(username string) (*poloniex.PoloniexBalance,
 //		map[string] :: key = "exchange", "lending", "margin"
 //		|-->	map[string] :: key = currency
 func (s *State) PoloniexGetAvailableBalances(username string) (map[string]map[string]float64, error) {
+	take()
 	accessKey, secretKey, err := s.getAccessAndSecret(username)
 	if err != nil {
 		return nil, err
@@ -120,6 +136,7 @@ func (s *State) PoloniexGetAvailableBalances(username string) (map[string]map[st
 
 // PoloniexCreateLoanOffer creates a loan offer
 func (s *State) PoloniexCreateLoanOffer(currency string, amount, rate float64, duration int, autoRenew bool, username string) (int64, error) {
+	take()
 	accessKey, secretKey, err := s.getAccessAndSecret(username)
 	if err != nil {
 		return 0, err
@@ -130,6 +147,7 @@ func (s *State) PoloniexCreateLoanOffer(currency string, amount, rate float64, d
 
 // PoloniexGetInactiveLoans returns your current loans that are not taken
 func (s *State) PoloniexGetInactiveLoans(username string) (map[string][]poloniex.PoloniexLoanOffer, error) {
+	take()
 	accessKey, secretKey, err := s.getAccessAndSecret(username)
 	if err != nil {
 		return nil, err
@@ -140,6 +158,7 @@ func (s *State) PoloniexGetInactiveLoans(username string) (map[string][]poloniex
 
 // PoloniexGetActiveLoans returns your current loans that are taken
 func (s *State) PoloniexGetActiveLoans(username string) (*poloniex.PoloniexActiveLoans, error) {
+	take()
 	accessKey, secretKey, err := s.getAccessAndSecret(username)
 	if err != nil {
 		return nil, err
@@ -149,6 +168,7 @@ func (s *State) PoloniexGetActiveLoans(username string) (*poloniex.PoloniexActiv
 }
 
 func (s *State) PoloniexCancelLoanOffer(currency string, orderNumber int64, username string) (bool, error) {
+	take()
 	accessKey, secretKey, err := s.getAccessAndSecret(username)
 	if err != nil {
 		return false, err
@@ -158,11 +178,13 @@ func (s *State) PoloniexCancelLoanOffer(currency string, orderNumber int64, user
 }
 
 func (s *State) PoloniexGetLoanOrders(currency string) (*poloniex.PoloniexLoanOrders, error) {
+	take()
 	PoloPublicCalls.Inc()
 	return s.PoloniexAPI.GetLoanOrders(currency)
 }
 
 func (s *State) PoloniexSingleAuthenticatedTradeHistory(currency, username, start, end string) (resp poloniex.PoloniexAuthenticatedTradeHistoryResponse, err error) {
+	take()
 	if currency == "all" {
 		return resp, fmt.Errorf("Cannot be 'all'")
 	}
@@ -177,6 +199,7 @@ func (s *State) PoloniexSingleAuthenticatedTradeHistory(currency, username, star
 }
 
 func (s *State) PoloniexAllAuthenticatedTradeHistory(username, start, end string) (resp poloniex.PoloniexAuthenticatedTradeHistoryAll, err error) {
+	take()
 	accessKey, secretKey, err := s.getAccessAndSecret(username)
 	if err != nil {
 		return resp, err
@@ -188,6 +211,7 @@ func (s *State) PoloniexAllAuthenticatedTradeHistory(username, start, end string
 }
 
 func (s *State) PoloniexAuthenticatedLendingHistory(username, start, end, limit string) (resp poloniex.PoloniexAuthentictedLendingHistoryRespone, err error) {
+	take()
 	accessKey, secretKey, err := s.getAccessAndSecret(username)
 	if err != nil {
 		return resp, err

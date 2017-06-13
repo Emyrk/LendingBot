@@ -5,6 +5,11 @@ import (
 )
 
 var (
+	PoloCallTakeWait = prometheus.NewSummary(prometheus.SummaryOpts{
+		Name: "hodlzone_poloniex_take_wait",
+		Help: "Wait for a polo call",
+	})
+
 	PoloPublicCalls = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "hodlezone_poloniex_public_calls_total",
 		Help: "Number of public polo calls",
@@ -21,5 +26,6 @@ func RegisterPrometheus() {
 	}
 	registered = true
 
+	prometheus.MustRegister(PoloCallTakeWait)
 	prometheus.MustRegister(PoloPublicCalls)
 }

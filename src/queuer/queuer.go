@@ -86,13 +86,13 @@ func (q *Queuer) Start() {
 		case <-ticker.C:
 			QueuerCycles.Inc()
 			interval++
-			if interval > 20 {
-				err := q.LoadUsers()
-				if err != nil {
-					log.Println(err)
-				}
-				interval = 0
+			//if interval > 20 {
+			err := q.LoadUsers()
+			if err != nil {
+				log.Println(err)
 			}
+			interval = 0
+			//}
 
 			if time.Since(last).Seconds() > 60 {
 				var str = ""
