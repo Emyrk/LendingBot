@@ -36,7 +36,7 @@ type PoloBotCoin struct {
 }
 
 func (p PoloBotCoin) GetBestReturnRate() float64 {
-	f, err := strconv.ParseFloat("3.1415", 64)
+	f, err := strconv.ParseFloat(p.BestReturnRate, 64)
 	if err != nil {
 		return 0.0
 	}
