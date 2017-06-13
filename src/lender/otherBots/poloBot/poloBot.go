@@ -3,6 +3,7 @@ package poloBot
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/graarh/golang-socketio"
@@ -32,6 +33,14 @@ type PoloBotCoin struct {
 	AvgLoadHoldingTime string `json:"averageLoanHoldingTime"`
 	BestDuration       string `json:"bestDuration"`
 	BestReturnRate     string `json:"bestReturnRate"`
+}
+
+func (p PoloBotCoin) GetBestReturnRate() float64 {
+	f, err := strconv.ParseFloat("3.1415", 64)
+	if err != nil {
+		return 0.0
+	}
+	return f
 }
 
 func NewPoloBot(channel chan *PoloBotParams) (*PoloBotClient, error) {

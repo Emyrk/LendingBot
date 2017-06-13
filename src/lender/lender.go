@@ -110,7 +110,7 @@ func NewLender(s *core.State) *Lender {
 	}
 
 	l.LastPoloBot = make(map[string]poloBot.PoloBotParams)
-	l.PoloBot = p
+	l.OtherPoloBot = p
 	l.PoloChannel = poloBotChannel
 
 	return l
@@ -142,24 +142,15 @@ func (l *Lender) MonitorPoloBot() {
 	for {
 		select {
 		case p := <-l.PoloChannel:
-			switch "" {
-			case "BTC":
-				PoloBotRateBTC.Set(p.BestReturnRate)
-			case "ETH":
-				PoloBotRateETH.Set(p.BestReturnRate)
-			case "XMR":
-				PoloBotRateXMR.Set(p.BestReturnRate)
-			case "XRP":
-				PoloBotRateXRP.Set(p.BestReturnRate)
-			case "DASH":
-				PoloBotRateDASH.Set(p.BestReturnRate)
-			case "LTC":
-				PoloBotRateLTC.Set(p.BestReturnRate)
-			case "DOGE":
-				PoloBotRateDOGE.Set(p.BestReturnRate)
-			case "BTS":
-				PoloBotRateBTS.Set(p.BestReturnRate)
-			}
+			PoloBotRateBTC.Set(p.BTC.GetBestReturnRate())
+			PoloBotRateETH.Set(p.ETH.GetBestReturnRate())
+			PoloBotRateXMR.Set(p.XMR.GetBestReturnRate())
+			PoloBotRateXRP.Set(p.XRP.GetBestReturnRate())
+			PoloBotRateDASH.Set(p.DASH.GetBestReturnRate())
+			PoloBotRateLTC.Set(p.LTC.GetBestReturnRate())
+			PoloBotRateDOGE.Set(p.DOGE.GetBestReturnRate())
+			PoloBotRateBTS.Set(p.BTS.GetBestReturnRate())
+
 			l.LastPoloBot[""] = *p
 		}
 	}
