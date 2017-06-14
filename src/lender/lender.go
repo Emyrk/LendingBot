@@ -185,7 +185,7 @@ func (l *Lender) CalcLoop() {
 				// log.Printf("(CalcLoop) [%s] Error in Lending: %s", curarr[i], err)
 			}
 			// l.LastCalculateLoanRate[curarr[i]] = time.Now()
-			time.Sleep(300 * time.Millisecond)
+			time.Sleep(500 * time.Millisecond)
 			i++
 
 			// Update Ticker
