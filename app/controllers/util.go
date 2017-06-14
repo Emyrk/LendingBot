@@ -2,16 +2,23 @@ package controllers
 
 import (
 	"fmt"
+	"github.com/Emyrk/LendingBot/src/core/poloniex"
 	"github.com/revel/revel"
 	"github.com/revel/revel/cache"
+	log "github.com/sirupsen/logrus"
+
 	"net/http"
 	"time"
 )
 
+var cachelog = log.WithField("package", "controllers")
+
 const (
-	CACHE_TIME          = 10 * time.Minute
-	CACHE_TIME_POLONIEX = 15 * time.Minute
-	SESSION_EMAIL       = "email"
+	CACHE_TIME           = 10 * time.Minute
+	CACHE_TIME_POLONIEX  = 15 * time.Minute
+	SESSION_EMAIL        = "email"
+	CACHE_LEND_HIST_TIME = 5 * time.Minute
+	CACHE_LENDING_ENDING = "_lendHist"
 )
 
 func DeleteCacheToken(sessionId string) error {
@@ -69,4 +76,21 @@ func GetTimeoutCookie() *http.Cookie {
 		MaxAge:  int(CACHE_TIME.Seconds()),
 	}
 	return timeoutCookie
+}
+
+func CacheGetLendingHistory(email string) (*poloniex.PoloniexAuthentictedLendingHistoryRespone, bool) {
+	llog := cachelog.WithField("method", "CacheGetLendingHistory")
+	var poloniexHistory poloniex.PoloniexAuthentictedLendingHistoryRespone
+	if err := cache.Get(email+CACHE_LENDING_ENDING, &poloniexHistory); err != nil {
+		llog.Infof("NOT found cache lending history for user %s\n", email)
+		return nil, false
+	}
+	llog.Infof("Found cache lending history for user %s\n", email)
+	return &poloniexHistory, true
+}
+
+func CacheSetLendingHistory(email string, p poloniex.PoloniexAuthentictedLendingHistoryRespone) {
+	llog := cachelog.WithField("method", "CacheGetLendingHistory")
+	llog.Infof("Setting lending history for user %s\n", email)
+	go cache.Set(email+CACHE_LENDING_ENDING, p, CACHE_LEND_HIST_TIME)
 }

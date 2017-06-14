@@ -178,41 +178,51 @@ func (r AppAuthRequired) CurrentUserStats() revel.Result {
 
 func (r AppAuthRequired) LendingHistory() revel.Result {
 	email := r.Session[SESSION_EMAIL]
-	u, err := state.FetchUser(email)
-	if err != nil || u == nil {
-		fmt.Println("Error: LendingHistory: fetching user for dashboard")
-		return r.Redirect(App.Index)
-	}
 
-	//to cache
-	completeLoans, err := state.PoloniexAuthenticatedLendingHistory(u.Username, "", "", "100")
-	if err != nil {
-		completeLoans, err = state.PoloniexAuthenticatedLendingHistory(u.Username, "", "", "100")
-	}
-	if err != nil {
-		log.WithField("package", "App").Errorf("Error getting lend history for %s: %s\n", email, err.Error())
-		fmt.Printf("Error getting lend history for %s: %s\n", email, err.Error())
-	}
 	data := make(map[string]interface{})
-	data["CompleteLoans"] = completeLoans.Data
-	if len(completeLoans.Data) == 0 && revel.DevMode {
-		var cl [20]poloniex.PoloniexAuthentictedLendingHistory
-		for i := 0; i < 20; i++ {
-			cl[i] = poloniex.PoloniexAuthentictedLendingHistory{
-				361915250,
-				"BTC",
-				"0.00066000",
-				"0.00011775",
-				"0.05150000",
-				"0.00000001",
-				"0.00000000",
-				"0.00000001",
-				"2017-06-03 22:55:30",
-				"2017-06-04 00:09:39",
+
+	var completeLoans *poloniex.PoloniexAuthentictedLendingHistoryRespone
+	tempCompleteLoans, found := CacheGetLendingHistory(email)
+	if !found {
+		u, err := state.FetchUser(email)
+		if err != nil || u == nil {
+			fmt.Println("Error: LendingHistory: fetching user for dashboard")
+			return r.Redirect(App.Index)
+		}
+
+		tc, err := state.PoloniexAuthenticatedLendingHistory(u.Username, "", "", "100")
+		if err != nil {
+			tc, err = state.PoloniexAuthenticatedLendingHistory(u.Username, "", "", "100")
+		}
+		if err != nil {
+			log.WithField("package", "App").Errorf("Error getting lend history for %s: %s\n", email, err.Error())
+		}
+		completeLoans = &tc
+		if len(completeLoans.Data) == 0 && revel.DevMode {
+			var cl [20]poloniex.PoloniexAuthentictedLendingHistory
+			for i := 0; i < 20; i++ {
+				cl[i] = poloniex.PoloniexAuthentictedLendingHistory{
+					361915250,
+					"BTC",
+					"0.00066000",
+					"0.00011775",
+					"0.05150000",
+					"0.00000001",
+					"0.00000000",
+					"0.00000001",
+					"2017-06-03 22:55:30",
+					"2017-06-04 00:09:39",
+				}
+			}
+			completeLoans = &poloniex.PoloniexAuthentictedLendingHistoryRespone{
+				cl[:],
 			}
 		}
-		data["CompleteLoans"] = cl
+		CacheSetLendingHistory(email, *completeLoans)
+	} else {
+		completeLoans = tempCompleteLoans
 	}
+	data["CompleteLoans"] = completeLoans.Data
 
 	return r.RenderJSON(data)
 }
