@@ -2,7 +2,6 @@ package core
 
 import (
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 
@@ -19,6 +18,10 @@ func init() {
 }
 
 var _ = fmt.Println
+
+func Take() {
+	take()
+}
 
 func take() {
 	n := time.Now()
@@ -128,7 +131,7 @@ func (s *State) PoloniexGetBalances(username string) (*poloniex.PoloniexBalance,
 func (s *State) PoloniexGetAvailableBalances(username string) (map[string]map[string]float64, error) {
 	take()
 	accessKey, secretKey, err := s.getAccessAndSecret(username)
-	if err != nil && !strings.Contains(err.Error(), "Unable to JSON Unmarshal response. Resp: []") {
+	if err != nil {
 		return nil, err
 	}
 
@@ -150,7 +153,7 @@ func (s *State) PoloniexCreateLoanOffer(currency string, amount, rate float64, d
 func (s *State) PoloniexGetInactiveLoans(username string) (map[string][]poloniex.PoloniexLoanOffer, error) {
 	take()
 	accessKey, secretKey, err := s.getAccessAndSecret(username)
-	if err != nil && !strings.Contains(err.Error(), "Unable to JSON Unmarshal response. Resp: []") {
+	if err != nil {
 		return nil, err
 	}
 
@@ -161,7 +164,7 @@ func (s *State) PoloniexGetInactiveLoans(username string) (map[string][]poloniex
 func (s *State) PoloniexGetActiveLoans(username string) (*poloniex.PoloniexActiveLoans, error) {
 	take()
 	accessKey, secretKey, err := s.getAccessAndSecret(username)
-	if err != nil && !strings.Contains(err.Error(), "Unable to JSON Unmarshal response. Resp: []") {
+	if err != nil {
 		return nil, err
 	}
 

@@ -11,6 +11,7 @@ import (
 
 	"github.com/Emyrk/LendingBot/src/core/common/primitives"
 	"github.com/Emyrk/LendingBot/src/core/database"
+	"github.com/tinylib/msgp/msgp"
 )
 
 var _ = strings.Compare
@@ -84,7 +85,7 @@ func newUserStatisticsDB(mapDB bool) (*UserStatisticsDB, error) {
 	return u, nil
 }
 
-type UserStatisticList []UserStatistic
+type UserStatisticList []AllUserStatistic
 
 func (slice UserStatisticList) Len() int {
 	return len(slice)
@@ -101,34 +102,24 @@ func (slice UserStatisticList) Swap(i, j int) {
 	slice[i], slice[j] = slice[j], slice[i]
 }
 
-type UserStatistic struct {
-	Username           string    `json:"username"`
-	AvailableBalance   float64   `json:"availbal"`
-	ActiveLentBalance  float64   `json:"availlent"`
-	OnOrderBalance     float64   `json:"onorder"`
-	AverageActiveRate  float64   `json:"activerate"`
-	AverageOnOrderRate float64   `json:"onorderrate"`
-	Time               time.Time `json:"time"`
-	Currency           string    `json:"currency"`
-
-	TotalCurrencyMap map[string]float64
-
-	day int
-}
-
-func NewUserStatistic() *UserStatistic {
-	us := new(UserStatistic)
-	us.Username = ""
-	us.AvailableBalance = 0
-	us.ActiveLentBalance = 0
-	us.OnOrderBalance = 0
-	us.AverageActiveRate = 0
-	us.AverageOnOrderRate = 0
-	us.Currency = ""
+func NewAllUserStatistic() *AllUserStatistic {
+	us := new(AllUserStatistic)
+	us.Currencies = make(map[string]*UserStatistic)
 
 	us.TotalCurrencyMap = make(map[string]float64)
 
 	return us
+}
+
+func NewUserStatistic(currency string) *UserStatistic {
+	s := new(UserStatistic)
+	s.AvailableBalance = 0
+	s.ActiveLentBalance = 0
+	s.OnOrderBalance = 0
+	s.AverageActiveRate = 0
+	s.AverageOnOrderRate = 0
+	s.Currency = currency
+	return s
 }
 
 func (us *UserStatistic) Scrub() {
@@ -153,10 +144,26 @@ func (us *UserStatistic) Scrub() {
 	}
 }
 
-func (a *UserStatistic) IsSameAs(b *UserStatistic) bool {
-	if a.Username != b.Username {
+func (a *AllUserStatistic) Scrub() {
+	for _, v := range a.Currencies {
+		v.Scrub()
+	}
+}
+
+func (a *AllUserStatistic) IsSameAs(b *AllUserStatistic) bool {
+	if len(a.Currencies) != len(b.Currencies) {
 		return false
 	}
+
+	for k, v := range a.Currencies {
+		if v2, ok := b.Currencies[k]; !ok || !v2.IsSameAs(v) {
+			return false
+		}
+	}
+	return true
+}
+
+func (a *UserStatistic) IsSameAs(b *UserStatistic) bool {
 	if a.AvailableBalance != b.AvailableBalance {
 		return false
 	}
@@ -176,181 +183,7 @@ func (a *UserStatistic) IsSameAs(b *UserStatistic) bool {
 		return false
 	}
 
-	if len(a.TotalCurrencyMap) != len(b.TotalCurrencyMap) {
-		return false
-	}
-
-	for k, v := range a.TotalCurrencyMap {
-		if b.TotalCurrencyMap[k] != v {
-			return false
-		}
-	}
-
 	return true
-}
-
-func (s *UserStatistic) MarshalBinary() ([]byte, error) {
-	buf := new(bytes.Buffer)
-	b, err := primitives.MarshalStringToBytes(s.Username, UsernameMaxLength)
-	if err != nil {
-		return nil, err
-	}
-	buf.Write(b)
-
-	b, err = primitives.Float64ToBytes(s.AvailableBalance)
-	if err != nil {
-		return nil, err
-	}
-	buf.Write(b)
-
-	b, err = primitives.Float64ToBytes(s.ActiveLentBalance)
-	if err != nil {
-		return nil, err
-	}
-	buf.Write(b)
-
-	b, err = primitives.Float64ToBytes(s.OnOrderBalance)
-	if err != nil {
-		return nil, err
-	}
-	buf.Write(b)
-
-	b, err = primitives.Float64ToBytes(s.AverageActiveRate)
-	if err != nil {
-		return nil, err
-	}
-	buf.Write(b)
-
-	b, err = primitives.Float64ToBytes(s.AverageOnOrderRate)
-	if err != nil {
-		return nil, err
-	}
-	buf.Write(b)
-
-	b = primitives.Uint32ToBytes(uint32(s.day))
-	buf.Write(b)
-
-	b, err = s.Time.MarshalBinary()
-	if err != nil {
-		return nil, err
-	}
-	buf.Write(b)
-
-	b, err = primitives.MarshalStringToBytes(s.Currency, 5)
-	if err != nil {
-		return nil, err
-	}
-	buf.Write(b)
-
-	l := len(s.TotalCurrencyMap)
-	buf.Write(primitives.Uint32ToBytes(uint32(l)))
-
-	for k, v := range s.TotalCurrencyMap {
-		data, err := primitives.MarshalStringToBytes(k, 5)
-		if err != nil {
-			return nil, err
-		}
-		buf.Write(data)
-
-		data, err = primitives.Float64ToBytes(v)
-		if err != nil {
-			return nil, err
-		}
-		buf.Write(data)
-	}
-
-	return buf.Next(buf.Len()), nil
-}
-
-func (s *UserStatistic) UnmarshalBinary(data []byte) error {
-	_, err := s.UnmarshalBinaryData(data)
-	return err
-}
-
-func (s *UserStatistic) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("[UserStatistic] A panic has occurred while unmarshaling: %s", r)
-			return
-		}
-	}()
-
-	newData = data
-
-	s.Username, newData, err = primitives.UnmarshalStringFromBytesData(newData, UsernameMaxLength)
-	if err != nil {
-		return nil, err
-	}
-
-	s.AvailableBalance, newData, err = primitives.BytesToFloat64Data(newData)
-	if err != nil {
-		return nil, err
-	}
-
-	s.ActiveLentBalance, newData, err = primitives.BytesToFloat64Data(newData)
-	if err != nil {
-		return nil, err
-	}
-
-	s.OnOrderBalance, newData, err = primitives.BytesToFloat64Data(newData)
-	if err != nil {
-		return nil, err
-	}
-
-	s.AverageActiveRate, newData, err = primitives.BytesToFloat64Data(newData)
-	if err != nil {
-		return nil, err
-	}
-
-	s.AverageOnOrderRate, newData, err = primitives.BytesToFloat64Data(newData)
-	if err != nil {
-		return nil, err
-	}
-
-	var u uint32
-	u, err = primitives.BytesToUint32(newData)
-	if err != nil {
-		return nil, err
-	}
-	s.day = int(u)
-	newData = newData[4:]
-
-	td := newData[:15]
-	newData = newData[15:]
-	err = s.Time.UnmarshalBinary(td)
-	if err != nil {
-		return nil, err
-	}
-
-	s.Currency, newData, err = primitives.UnmarshalStringFromBytesData(newData, 5)
-	if err != nil {
-		return nil, err
-	}
-
-	l, err := primitives.BytesToUint32(newData[:4])
-	if err != nil {
-		return nil, err
-	}
-	newData = newData[4:]
-
-	s.TotalCurrencyMap = make(map[string]float64)
-	for i := 0; i < int(l); i++ {
-		var key string
-		key, newData, err = primitives.UnmarshalStringFromBytesData(newData, 5)
-		if err != nil {
-			return nil, err
-		}
-
-		var v float64
-		v, newData, err = primitives.BytesToFloat64Data(newData)
-		if err != nil {
-			return nil, err
-		}
-		s.TotalCurrencyMap[key] = v
-	}
-	s.Scrub()
-
-	return
 }
 
 func (us *UserStatisticsDB) startDB() {
@@ -403,7 +236,7 @@ func (us *UserStatisticsDB) CalculateCurrentIndex() (err error) {
 	return nil
 }
 
-func (us *UserStatisticsDB) RecordData(stats *UserStatistic) error {
+func (us *UserStatisticsDB) RecordData(stats *AllUserStatistic) error {
 	if time.Since(us.LastCurrentIndexCalc).Hours() > 1 {
 		us.CalculateCurrentIndex()
 	}
@@ -412,12 +245,15 @@ func (us *UserStatisticsDB) RecordData(stats *UserStatistic) error {
 
 	stats.Scrub()
 
-	data, err := stats.MarshalBinary()
+	var buf bytes.Buffer
+	err := msgp.Encode(&buf, stats)
+	// err := stats.EncodeMsg(&buf)
+	// data, err := stats.MarshalMsg(b)
 	if err != nil {
 		return err
 	}
 
-	return us.putStats(stats.Username, seconds, data)
+	return us.putStats(stats.Username, seconds, buf.Bytes())
 }
 
 type PoloniexRateSample struct {
@@ -600,12 +436,12 @@ func (us *UserStatisticsDB) RecordPoloniexStatisticTime(currency string, rate fl
 	return us.db.Put(buck, secBytes, data)
 }
 
-func (us *UserStatisticsDB) GetStatistics(username string, dayRange int) ([][]UserStatistic, error) {
+func (us *UserStatisticsDB) GetStatistics(username string, dayRange int) ([][]AllUserStatistic, error) {
 	if dayRange > 30 {
 		return nil, fmt.Errorf("Day range must be less than 30")
 	}
 
-	stats := make([][]UserStatistic, dayRange)
+	stats := make([][]AllUserStatistic, dayRange)
 	for i := 0; i < dayRange; i++ {
 		buc := us.getBucketPlusX(username, i*-1)
 		statlist := us.getStatsFromBucket(buc)
@@ -617,21 +453,21 @@ func (us *UserStatisticsDB) GetStatistics(username string, dayRange int) ([][]Us
 
 type DayAvg struct {
 	LoanRate       float64
-	BTCLent        float64
-	BTCNotLent     float64
+	Lent           float64
+	NotLent        float64
 	LendingPercent float64
 }
 
 func (da *DayAvg) String() string {
 	return fmt.Sprintf("LoanRate: %f, BTCLent: %f, BTCNotLent: %f, LendingPercent: %f",
-		da.LoanRate, da.BTCLent, da.BTCNotLent, da.LendingPercent)
+		da.LoanRate, da.Lent, da.NotLent, da.LendingPercent)
 }
 
 func GetDayAvg(dayStats []UserStatistic) *DayAvg {
 	da := new(DayAvg)
 	da.LoanRate = float64(0)
-	da.BTCLent = float64(0)
-	da.BTCNotLent = float64(0)
+	da.Lent = float64(0)
+	da.NotLent = float64(0)
 	da.LendingPercent = float64(0)
 
 	if len(dayStats) == 0 {
@@ -647,15 +483,15 @@ func GetDayAvg(dayStats []UserStatistic) *DayAvg {
 	for _, s := range dayStats {
 		diff = timeDiff(last, s.Time)
 		da.LoanRate += diff * s.AverageActiveRate
-		da.BTCLent += diff * s.ActiveLentBalance
-		da.BTCNotLent += diff * (s.AvailableBalance + s.OnOrderBalance)
+		da.Lent += diff * s.ActiveLentBalance
+		da.NotLent += diff * (s.AvailableBalance + s.OnOrderBalance)
 		da.LendingPercent += diff * (s.ActiveLentBalance / (s.AvailableBalance + s.OnOrderBalance + s.ActiveLentBalance))
 		totalSeconds += diff
 	}
 
 	da.LoanRate = da.LoanRate / totalSeconds
-	da.BTCLent = da.BTCLent / totalSeconds
-	da.BTCNotLent = da.BTCNotLent / totalSeconds
+	da.Lent = da.Lent / totalSeconds
+	da.NotLent = da.NotLent / totalSeconds
 	da.LendingPercent = da.LendingPercent / totalSeconds
 
 	return da
@@ -669,18 +505,35 @@ func timeDiff(a time.Time, b time.Time) float64 {
 	return d
 }
 
-func (us *UserStatisticsDB) getStatsFromBucket(bucket []byte) []UserStatistic {
-	var resp []UserStatistic
+func (us *UserStatisticsDB) getStatsFromBucket(bucket []byte) []AllUserStatistic {
+	var resp []AllUserStatistic
 	values, _, err := us.db.GetAll(bucket)
 	if err != nil {
 		return resp
 	}
 
 	for _, data := range values {
-		var tmp UserStatistic
-		err := tmp.UnmarshalBinary(data)
+		var tmp AllUserStatistic
+		_, err := tmp.UnmarshalMsg(data)
+		// err := tmp.UnmarshalBinary(data)
 		if err != nil {
-			continue
+			// Try to unmarshal old
+			var old OldUserStatistic
+			err := old.UnmarshalBinary(data)
+			if err != nil {
+				continue
+			} else {
+				var n UserStatistic
+				tmp.Time = old.Time
+				tmp.TotalCurrencyMap = old.TotalCurrencyMap
+				n.AvailableBalance = old.AvailableBalance
+				n.ActiveLentBalance = old.ActiveLentBalance
+				n.OnOrderBalance = old.OnOrderBalance
+				n.AverageActiveRate = old.AverageActiveRate
+				n.AverageOnOrderRate = old.AverageOnOrderRate
+				tmp.Currencies = make(map[string]*UserStatistic)
+				tmp.Currencies["BTC"] = &n
+			}
 		}
 		resp = append(resp, tmp)
 	}

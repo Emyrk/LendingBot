@@ -248,7 +248,7 @@ func (s *State) SetUserKeys(username string, acessKey string, secretKey string) 
 	return nil
 }
 
-func (s *State) GetUserStatistics(username string, dayRange int) ([][]userdb.UserStatistic, error) {
+func (s *State) GetUserStatistics(username string, dayRange int) ([][]userdb.AllUserStatistic, error) {
 	return s.userStatistic.GetStatistics(username, dayRange)
 }
 
@@ -288,7 +288,7 @@ func (s *State) GetPoloniexStatsPastXDays(dayRange int, currency string) [][]use
 }
 
 // RecordStatistics is for recording an individual user's statistics at a given time
-func (s *State) RecordStatistics(stats *userdb.UserStatistic) error {
+func (s *State) RecordStatistics(stats *userdb.AllUserStatistic) error {
 	if !s.poloniexCache.shouldRecordStats(stats.Username) {
 		return nil
 	}

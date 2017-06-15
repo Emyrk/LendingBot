@@ -425,65 +425,52 @@ func abs(v float64) float64 {
 func (l *Lender) recordStatistics(username string, bals map[string]map[string]float64,
 	inact map[string][]poloniex.PoloniexLoanOffer, activeLoan *poloniex.PoloniexActiveLoans) error {
 
-	stats := userdb.NewUserStatistic()
+	stats := userdb.NewAllUserStatistic()
 	stats.Time = time.Now()
 	stats.Username = username
-	stats.Currency = "BTC"
 
-	var avail float64 = 0
+	for _, v := range curarr {
+		cstat := userdb.NewUserStatistic(v)
+		stats.Currencies[v] = cstat
+	}
+
 	// Avail balance
 	for k, v := range bals["lending"] {
 		if !math.IsNaN(v) {
-			avail += l.getBTCAmount(v, k)
+			stats.Currencies[k].AvailableBalance = v
+			stats.TotalCurrencyMap[k] += l.getBTCAmount(v, k)
 		}
 	}
 
-	stats.AvailableBalance = avail
-
 	// Active
-	activeLentBal := float64(0)
-	activeLentTotalRate := float64(0)
-	activeLentCount := float64(0)
+	activeLentCount := make(map[string]float64)
 
 	for _, loan := range activeLoan.Provided {
-		//if l.Currency == "BTC" {
-		activeLentBal += l.getBTCAmount(loan.Amount, loan.Currency)
-		activeLentTotalRate += loan.Rate
-		activeLentCount++
-		//}
+		stats.Currencies[loan.Currency].ActiveLentBalance += loan.Amount
+		stats.Currencies[loan.Currency].AverageActiveRate += loan.Amount
+		activeLentCount[loan.Currency] += 1
+
 		stats.TotalCurrencyMap[loan.Currency] += l.getBTCAmount(loan.Amount, loan.Currency)
 	}
 
-	stats.ActiveLentBalance = activeLentBal
-	stats.AverageActiveRate = activeLentTotalRate / activeLentCount
+	for k := range stats.Currencies {
+		stats.Currencies[k].AverageActiveRate = stats.Currencies[k].AverageActiveRate / activeLentCount[k]
+	}
 
 	// On Order
-
-	inactiveLentBal := float64(0)
-	inactiveLentTotalRate := float64(0)
-	inactiveLentCount := float64(0)
+	inactiveLentCount := make(map[string]float64)
 	for k, _ := range inact {
 		for _, loan := range inact[k] {
-			//if l.Currency == "BTC" {
-			btcAmt := l.getBTCAmount(loan.Amount, k)
-			inactiveLentBal += btcAmt
-			inactiveLentTotalRate += loan.Rate
-			inactiveLentCount++
-			//}
-			stats.TotalCurrencyMap[k] += btcAmt
+			stats.Currencies[loan.Currency].OnOrderBalance += loan.Amount
+			stats.Currencies[loan.Currency].AverageOnOrderRate += loan.Amount
+			inactiveLentCount[loan.Currency] += 1
+
+			stats.TotalCurrencyMap[k] += l.getBTCAmount(loan.Amount, k)
 		}
 	}
 
-	stats.OnOrderBalance = inactiveLentBal
-	stats.AverageOnOrderRate = inactiveLentTotalRate / inactiveLentCount
-
-	// Set totals for other coins
-	//		Set Available
-	availMap, ok := bals["lending"]
-	if ok {
-		for k, v := range availMap {
-			stats.TotalCurrencyMap[k] += l.getBTCAmount(v, k)
-		}
+	for k := range stats.Currencies {
+		stats.Currencies[k].AverageOnOrderRate = stats.Currencies[k].AverageOnOrderRate / inactiveLentCount[k]
 	}
 
 	return l.State.RecordStatistics(stats)
@@ -538,7 +525,7 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 	//JobPart2
 
 	bals, err := s.PoloniexGetAvailableBalances(j.Username)
-	if err != nil {
+	if err != nil && !strings.Contains(err.Error(), "Unable to JSON Unmarshal response. Resp: []") {
 		llog.Errorf("Error getting balances: %s", err.Error())
 	}
 	// if err != nil {
@@ -547,7 +534,7 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 
 	// 3 types of balances: Not lent, Inactive, Active
 	inactiveLoans, err := s.PoloniexGetInactiveLoans(j.Username)
-	if err != nil {
+	if err != nil && !strings.Contains(err.Error(), "Unable to JSON Unmarshal response. Resp: []") {
 		llog.Errorf("Error getting inactive loans: %s", err.Error())
 	}
 
@@ -557,7 +544,7 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 		if err != nil {
 			llog.Errorf("Error in calculating statistic: %s", err.Error())
 		}
-	} else {
+	} else if err != nil && !strings.Contains(err.Error(), "Unable to JSON Unmarshal response. Resp: []") {
 		llog.Errorf("Error getting active loans: %s", err.Error())
 	}
 
@@ -588,7 +575,9 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 		}
 
 		if j.Currency[i] == "BTC" {
-			CompromisedBTC.Set(rate)
+			if rate < 2 {
+				CompromisedBTC.Set(rate)
+			}
 		}
 
 		// End Rate Calculation

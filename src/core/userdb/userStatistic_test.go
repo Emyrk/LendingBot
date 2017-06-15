@@ -76,14 +76,17 @@ func TestGetDayAvg(t *testing.T) {
 	u, _ := NewUserStatisticsMapDB()
 	var _ = u
 
-	stats := NewUserStatistic()
+	stats := NewAllUserStatistic()
+	b := NewUserStatistic("BTC")
 	stats.Username = "steven"
-	stats.AvailableBalance = 0
-	stats.ActiveLentBalance = 100
-	stats.OnOrderBalance = 0
-	stats.AverageActiveRate = .4
-	stats.AverageOnOrderRate = .1
+	b.AvailableBalance = 0
+	b.ActiveLentBalance = 100
+	b.OnOrderBalance = 0
+	b.AverageActiveRate = .4
+	b.AverageOnOrderRate = .1
 	stats.Time = time.Now()
+	stats.Currency["BTC"] = b
+
 	var _ = stats
 
 	u.RecordData(stats)
