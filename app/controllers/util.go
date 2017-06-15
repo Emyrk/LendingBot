@@ -17,7 +17,7 @@ const (
 	CACHE_TIME           = 10 * time.Minute
 	CACHE_TIME_POLONIEX  = 15 * time.Minute
 	SESSION_EMAIL        = "email"
-	CACHE_LEND_HIST_TIME = 5 * time.Minute
+	CACHE_LEND_HIST_TIME = 2 * time.Hour
 	CACHE_LENDING_ENDING = "_lendHist"
 )
 
