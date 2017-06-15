@@ -28,9 +28,9 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 					dates = [];
 					d = -1
 					for(i = 0; i < res.data.CompleteLoans.length; i++) {
-						if (i > 0 && d > 0 && new Date(res.data.CompleteLoans[i].close).getDate() == new Date(dates[d]).getDate()) {
-							fee[i] += parseFloat(res.data.CompleteLoans[i].fee);
-							earned[i] += parseFloat(res.data.CompleteLoans[i].earned);
+						if (i > 0 && d >= 0 && new Date(res.data.CompleteLoans[i].close).getDate() == new Date(dates[d]).getDate()) {
+							fee[d] += parseFloat(res.data.CompleteLoans[i].fee);
+							earned[d] += parseFloat(res.data.CompleteLoans[i].earned);
 						} else {
 							fee.push(parseFloat(res.data.CompleteLoans[i].fee));
 							earned.push(parseFloat(res.data.CompleteLoans[i].earned));
