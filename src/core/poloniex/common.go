@@ -14,12 +14,14 @@ import (
 	"hash"
 	"io"
 	"io/ioutil"
-	"log"
+	// "log"
 	"math"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -200,9 +202,9 @@ func SendHTTPRequest(method, path string, headers map[string]string, body io.Rea
 	}
 
 	httpClient := &http.Client{}
-	if long {
-		httpClient = &http.Client{Timeout: 60 * time.Second}
-	}
+	//if long {
+	httpClient = &http.Client{Timeout: 75 * time.Second}
+	//}
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		return "problem with .Do()", err
@@ -210,6 +212,10 @@ func SendHTTPRequest(method, path string, headers map[string]string, body io.Rea
 
 	contents, err := ioutil.ReadAll(resp.Body)
 	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		log.WithFields(log.Fields{"package": "poloniex", "code": resp.StatusCode}).Errorf("Error in api call:", string(contents))
+	}
 
 	if string(contents) == `{"error": "This IP has been banned for 2 minutes. Please adjust your timeout to 130 seconds."}` {
 		return `{"error": "This IP has been banned for 2 minutes. Please adjust your timeout to 130 seconds."}`, fmt.Errorf(`{"error": "This IP has been banned for 2 minutes. Please adjust your timeout to 130 seconds."}`)
@@ -230,12 +236,13 @@ func SendHTTPGetRequest(url string, jsonDecode bool, result interface{}) (err er
 		return err
 	}
 
+	contents, err := ioutil.ReadAll(res.Body)
+
 	if res.StatusCode != 200 {
-		log.Printf("HTTP status code: %d\n", res.StatusCode)
+		log.WithFields(log.Fields{"package": "poloniex", "code": res.StatusCode}).Errorf("Error in GET api call: %s", string(contents))
+		// log.Printf("HTTP status code: %d\n", res.StatusCode)
 		return errors.New("Status code was not 200.")
 	}
-
-	contents, err := ioutil.ReadAll(res.Body)
 
 	if err != nil {
 		return err
