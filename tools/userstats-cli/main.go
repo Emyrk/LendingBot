@@ -78,7 +78,7 @@ func Populate(username string, db *userdb.UserStatisticsDB) {
 		stats := RandStats()
 		stats.Username = username
 		stats.Time = time.Now().Add(100 * time.Duration(i) * time.Second)
-		stats.Currency = "BTC"
+		// stats.Currency = "BTC"
 		db.CurrentIndex = i
 		stats.TotalCurrencyMap["BTC"] = 1
 		stats.TotalCurrencyMap["FCT"] = 0.3
@@ -89,7 +89,7 @@ func Populate(username string, db *userdb.UserStatisticsDB) {
 		stats.Time = time.Now().Add(500 * time.Duration(i) * time.Second)
 		db.RecordData(stats)
 
-		db.RecordPoloniexStatisticTime("BTC", stats.AverageActiveRate, time.Now().Add(time.Duration(-i)*time.Minute))
+		db.RecordPoloniexStatisticTime("BTC", stats.Currencies["BTC"].AverageActiveRate, time.Now().Add(time.Duration(-i)*time.Minute))
 	}
 }
 
@@ -100,13 +100,14 @@ func DailyAverages(username string, db *userdb.UserStatisticsDB) {
 	if err != nil {
 		panic(err)
 	}
+	var _ = stats
 
-	i := 0
-	for _, st := range stats {
-		da := userdb.GetDayAvg(st)
-		fmt.Println(da)
-		i++
-	}
+	//.	i := 0
+	// for k, _ := range stats.Currencies {
+	// 	da := userdb.GetDayAvg(st.Currencies[])
+	// 	fmt.Println(da)
+	// 	i++
+	// }
 }
 
 /*
@@ -125,22 +126,28 @@ type UserStatistic struct {
 }
 */
 
-func RandStats() *userdb.UserStatistic {
-	left := TotalAmt
+func RandStats() *userdb.AllUserStatistic {
+	stats := userdb.NewAllUserStatistic()
 
-	p = randomFloat(left*80, left*100) / 100
-	left -= p
-	stats.ActiveLentBalance = p
+	for _, v := range curarr {
+		s := userdb.NewUserStatistic(v)
+		left := TotalAmt
 
-	stats := userdb.NewUserStatistic()
-	p := randomFloat(0, left*100) / 100
-	left -= p
-	stats.AvailableBalance = p
+		p := randomFloat(left*80, left*100) / 100
+		left -= p
+		s.ActiveLentBalance = p
 
-	stats.OnOrderBalance = left
+		p = randomFloat(0, left*100) / 100
+		left -= p
+		s.AvailableBalance = p
 
-	stats.AverageActiveRate = randomFloat(0.001, 0.002)
-	stats.AverageOnOrderRate = randomFloat(0.002, 0.0025)
+		s.OnOrderBalance = left
+
+		s.AverageActiveRate = randomFloat(0.001, 0.002)
+		s.AverageOnOrderRate = randomFloat(0.002, 0.0025)
+
+		stats.Currencies[v] = s
+	}
 
 	return stats
 }
@@ -148,3 +155,5 @@ func RandStats() *userdb.UserStatistic {
 func randomFloat(min, max float64) float64 {
 	return rand.Float64()*(max-min) + min
 }
+
+var curarr = []string{"BTC", "BTS", "CLAM", "DOGE", "DASH", "LTC", "MAID", "STR", "XMR", "XRP", "ETH", "FCT"}

@@ -139,17 +139,23 @@ func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
 		balanceDetails.CurrencyMap = now.TotalCurrencyMap
 		balanceDetails.compute()
 
-		today.LoanRate = now.AverageActiveRate
-		today.BTCLent = now.ActiveLentBalance
-		today.BTCNotLent = now.OnOrderBalance + now.AvailableBalance
+		totalAct := float64(0)
+		for _, v := range now.Currencies {
+			today.LoanRate += v.AverageActiveRate * (v.ActiveLentBalance * v.BTCRate)
+			totalAct += v.ActiveLentBalance * v.BTCRate
+			today.BTCLent += v.ActiveLentBalance * v.BTCRate
+			today.BTCNotLent += (v.OnOrderBalance + v.AvailableBalance) * v.BTCRate
+		}
+		today.LoanRate = today.LoanRate / totalAct
+
 		today.LendingPercent = today.BTCLent / (today.BTCLent + today.BTCNotLent)
 
-		yesterday := userdb.GetDayAvg(userStats[1])
+		yesterday := userdb.GetCombinedDayAverage(userStats[1])
 		if yesterday != nil {
-			today.LoanRateChange = percentChange(today.LoanRate, yesterday.LoanRate)
-			today.BTCLentChange = percentChange(today.BTCLent, yesterday.BTCLent)
-			today.BTCNotLentChange = percentChange(today.BTCNotLent, yesterday.BTCNotLent)
-			today.LendingPercentChange = percentChange(today.LendingPercent, yesterday.LendingPercent)
+			today.LoanRateChange = today.LoanRate - yesterday.LoanRate
+			today.BTCLentChange = today.BTCLent - yesterday.Lent
+			today.BTCNotLentChange = today.BTCNotLent - yesterday.NotLent
+			today.LendingPercentChange = today.LendingPercent - yesterday.LendingPercent
 		}
 	}
 

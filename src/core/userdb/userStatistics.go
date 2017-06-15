@@ -17,6 +17,8 @@ import (
 var _ = strings.Compare
 var _ = fmt.Println
 
+var curarr = []string{"BTC", "BTS", "CLAM", "DOGE", "DASH", "LTC", "MAID", "STR", "XMR", "XRP", "ETH", "FCT"}
+
 var (
 	UserStatisticDBMetaDataBucket = []byte("UserStatisticsDBMeta")
 	CurrentDayKey                 = []byte("CurrentDay")
@@ -105,13 +107,13 @@ func (slice UserStatisticList) Swap(i, j int) {
 func NewAllUserStatistic() *AllUserStatistic {
 	us := new(AllUserStatistic)
 	us.Currencies = make(map[string]*UserStatistic)
-
 	us.TotalCurrencyMap = make(map[string]float64)
+	us.Time = time.Now()
 
 	return us
 }
 
-func NewUserStatistic(currency string) *UserStatistic {
+func NewUserStatistic(currency string, last float64) *UserStatistic {
 	s := new(UserStatistic)
 	s.AvailableBalance = 0
 	s.ActiveLentBalance = 0
@@ -119,6 +121,8 @@ func NewUserStatistic(currency string) *UserStatistic {
 	s.AverageActiveRate = 0
 	s.AverageOnOrderRate = 0
 	s.Currency = currency
+	s.BTCRate = last
+	s.Time = time.Now()
 	return s
 }
 
@@ -456,11 +460,50 @@ type DayAvg struct {
 	Lent           float64
 	NotLent        float64
 	LendingPercent float64
+
+	AvgBTCValue float64
 }
 
 func (da *DayAvg) String() string {
 	return fmt.Sprintf("LoanRate: %f, BTCLent: %f, BTCNotLent: %f, LendingPercent: %f",
 		da.LoanRate, da.Lent, da.NotLent, da.LendingPercent)
+}
+
+func GetCombinedDayAverage(dayStats []AllUserStatistic) *DayAvg {
+	da := new(DayAvg)
+	da.LoanRate = float64(0)
+	da.Lent = float64(0)
+	da.NotLent = float64(0)
+	da.LendingPercent = float64(0)
+
+	all := make(map[string][]UserStatistic)
+	for _, v := range dayStats {
+		for _, currency := range curarr {
+			tmp := v.Currencies[currency]
+			if tmp != nil {
+				all[currency] = append(all[currency], *tmp)
+			}
+		}
+	}
+
+	count := float64(0)
+	for _, currency := range curarr {
+		sD := GetDayAvg(all[currency])
+		if sD != nil {
+			total := sD.AvgBTCValue * (sD.NotLent + sD.Lent)
+			da.LoanRate += sD.LoanRate * (sD.Lent * sD.AvgBTCValue)
+			da.Lent += sD.Lent * total
+			da.NotLent += sD.NotLent * total
+			da.LendingPercent += sD.LendingPercent * total
+			count += total
+		}
+	}
+
+	da.LoanRate = da.LoanRate / count
+	da.Lent = da.Lent / count
+	da.NotLent = da.NotLent / count
+	da.LendingPercent = da.LendingPercent / count
+	return da
 }
 
 func GetDayAvg(dayStats []UserStatistic) *DayAvg {
@@ -482,10 +525,17 @@ func GetDayAvg(dayStats []UserStatistic) *DayAvg {
 
 	for _, s := range dayStats {
 		diff = timeDiff(last, s.Time)
+		// Override any use of time. It'll be off by a bit but ¯\_(ツ)_/¯
+		diff = 1
 		da.LoanRate += diff * s.AverageActiveRate
 		da.Lent += diff * s.ActiveLentBalance
 		da.NotLent += diff * (s.AvailableBalance + s.OnOrderBalance)
-		da.LendingPercent += diff * (s.ActiveLentBalance / (s.AvailableBalance + s.OnOrderBalance + s.ActiveLentBalance))
+		v := diff * (s.ActiveLentBalance / (s.AvailableBalance + s.OnOrderBalance + s.ActiveLentBalance))
+		if math.IsNaN(v) {
+			v = 0
+		}
+		da.LendingPercent += v
+		da.AvgBTCValue += diff * s.BTCRate
 		totalSeconds += diff
 	}
 
@@ -493,6 +543,7 @@ func GetDayAvg(dayStats []UserStatistic) *DayAvg {
 	da.Lent = da.Lent / totalSeconds
 	da.NotLent = da.NotLent / totalSeconds
 	da.LendingPercent = da.LendingPercent / totalSeconds
+	da.AvgBTCValue = da.AvgBTCValue / totalSeconds
 
 	return da
 }
@@ -531,8 +582,11 @@ func (us *UserStatisticsDB) getStatsFromBucket(bucket []byte) []AllUserStatistic
 				n.OnOrderBalance = old.OnOrderBalance
 				n.AverageActiveRate = old.AverageActiveRate
 				n.AverageOnOrderRate = old.AverageOnOrderRate
+				n.Time = old.Time
+				n.BTCRate = 1
 				tmp.Currencies = make(map[string]*UserStatistic)
 				tmp.Currencies["BTC"] = &n
+				tmp.Time = n.Time
 			}
 		}
 		resp = append(resp, tmp)

@@ -353,6 +353,11 @@ func (z *UserStatistic) DecodeMsg(dc *msgp.Reader) (err error) {
 			return
 		}
 		switch msgp.UnsafeString(field) {
+		case "BTCRate":
+			z.BTCRate, err = dc.ReadFloat64()
+			if err != nil {
+				return
+			}
 		case "AvailableBalance":
 			z.AvailableBalance, err = dc.ReadFloat64()
 			if err != nil {
@@ -400,9 +405,18 @@ func (z *UserStatistic) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *UserStatistic) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 7
+	// map header, size 8
+	// write "BTCRate"
+	err = en.Append(0x88, 0xa7, 0x42, 0x54, 0x43, 0x52, 0x61, 0x74, 0x65)
+	if err != nil {
+		return err
+	}
+	err = en.WriteFloat64(z.BTCRate)
+	if err != nil {
+		return
+	}
 	// write "AvailableBalance"
-	err = en.Append(0x87, 0xb0, 0x41, 0x76, 0x61, 0x69, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x42, 0x61, 0x6c, 0x61, 0x6e, 0x63, 0x65)
+	err = en.Append(0xb0, 0x41, 0x76, 0x61, 0x69, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x42, 0x61, 0x6c, 0x61, 0x6e, 0x63, 0x65)
 	if err != nil {
 		return err
 	}
@@ -470,9 +484,12 @@ func (z *UserStatistic) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *UserStatistic) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 7
+	// map header, size 8
+	// string "BTCRate"
+	o = append(o, 0x88, 0xa7, 0x42, 0x54, 0x43, 0x52, 0x61, 0x74, 0x65)
+	o = msgp.AppendFloat64(o, z.BTCRate)
 	// string "AvailableBalance"
-	o = append(o, 0x87, 0xb0, 0x41, 0x76, 0x61, 0x69, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x42, 0x61, 0x6c, 0x61, 0x6e, 0x63, 0x65)
+	o = append(o, 0xb0, 0x41, 0x76, 0x61, 0x69, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x42, 0x61, 0x6c, 0x61, 0x6e, 0x63, 0x65)
 	o = msgp.AppendFloat64(o, z.AvailableBalance)
 	// string "ActiveLentBalance"
 	o = append(o, 0xb1, 0x41, 0x63, 0x74, 0x69, 0x76, 0x65, 0x4c, 0x65, 0x6e, 0x74, 0x42, 0x61, 0x6c, 0x61, 0x6e, 0x63, 0x65)
@@ -511,6 +528,11 @@ func (z *UserStatistic) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			return
 		}
 		switch msgp.UnsafeString(field) {
+		case "BTCRate":
+			z.BTCRate, bts, err = msgp.ReadFloat64Bytes(bts)
+			if err != nil {
+				return
+			}
 		case "AvailableBalance":
 			z.AvailableBalance, bts, err = msgp.ReadFloat64Bytes(bts)
 			if err != nil {
@@ -559,6 +581,6 @@ func (z *UserStatistic) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *UserStatistic) Msgsize() (s int) {
-	s = 1 + 17 + msgp.Float64Size + 18 + msgp.Float64Size + 15 + msgp.Float64Size + 18 + msgp.Float64Size + 19 + msgp.Float64Size + 9 + msgp.StringPrefixSize + len(z.Currency) + 5 + msgp.TimeSize
+	s = 1 + 8 + msgp.Float64Size + 17 + msgp.Float64Size + 18 + msgp.Float64Size + 15 + msgp.Float64Size + 18 + msgp.Float64Size + 19 + msgp.Float64Size + 9 + msgp.StringPrefixSize + len(z.Currency) + 5 + msgp.TimeSize
 	return
 }

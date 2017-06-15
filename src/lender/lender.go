@@ -430,7 +430,11 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 	stats.Username = username
 
 	for _, v := range curarr {
-		cstat := userdb.NewUserStatistic(v)
+		var last float64 = 1
+		if v != "BTC" {
+			last = l.Ticker[v].Last
+		}
+		cstat := userdb.NewUserStatistic(v, last)
 		stats.Currencies[v] = cstat
 	}
 
@@ -461,9 +465,9 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 	inactiveLentCount := make(map[string]float64)
 	for k, _ := range inact {
 		for _, loan := range inact[k] {
-			stats.Currencies[loan.Currency].OnOrderBalance += loan.Amount
-			stats.Currencies[loan.Currency].AverageOnOrderRate += loan.Amount
-			inactiveLentCount[loan.Currency] += 1
+			stats.Currencies[k].OnOrderBalance += loan.Amount
+			stats.Currencies[k].AverageOnOrderRate += loan.Amount
+			inactiveLentCount[k] += 1
 
 			stats.TotalCurrencyMap[k] += l.getBTCAmount(loan.Amount, k)
 		}

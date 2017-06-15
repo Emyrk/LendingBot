@@ -15,6 +15,8 @@ type AllUserStatistic struct {
 }
 
 type UserStatistic struct {
+	BTCRate float64
+
 	AvailableBalance   float64   `json:"availbal",msg:"availbal"`
 	ActiveLentBalance  float64   `json:"availlent",msg:"availlent"`
 	OnOrderBalance     float64   `json:"onorder",msg:"onorder"`
