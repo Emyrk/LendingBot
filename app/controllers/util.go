@@ -37,7 +37,10 @@ func SetCacheEmail(sessionId string, email string) error {
 func ValidCacheEmail(sessionId string, email string) bool {
 	var e string
 	if err := cache.Get(sessionId, &e); err != nil {
-		return false
+		time.Sleep(100 * time.Millisecond)
+		if err := cache.Get(sessionId, &e); err != nil {
+			return false
+		}
 	}
 
 	fmt.Printf("Comparing strings [%s]s, [%s]\n", e, email)
