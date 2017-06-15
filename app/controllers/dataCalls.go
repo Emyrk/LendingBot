@@ -221,7 +221,9 @@ func (r AppAuthRequired) LendingHistory() revel.Result {
 		if err != nil {
 			llog.Errorf("Error getting lend history for %s: %s\n", email, err.Error())
 		} else {
-			CacheSetLendingHistory(email, *completeLoans)
+			if completeLoans != nil {
+				CacheSetLendingHistory(email, *completeLoans)
+			}
 		}
 		completeLoans = &tc
 		if len(completeLoans.Data) == 0 && revel.DevMode {
