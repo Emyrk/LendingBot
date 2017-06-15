@@ -295,14 +295,8 @@ func (c App) ValidAuth() revel.Result {
 
 //called before any auth required function
 func (c App) AppAuthUser() revel.Result {
-	fmt.Println("HEY: ", c.Session[SESSION_EMAIL])
 	if !ValidCacheEmail(c.Session.ID(), c.Session[SESSION_EMAIL]) {
 		c.Session[SESSION_EMAIL] = ""
-	} else {
-		err := SetCacheEmail(c.Session.ID(), c.Session[SESSION_EMAIL])
-		if err != nil {
-			c.Session[SESSION_EMAIL] = ""
-		}
 	}
 
 	return nil
