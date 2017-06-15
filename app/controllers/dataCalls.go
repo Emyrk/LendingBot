@@ -186,6 +186,21 @@ func (r AppAuthRequired) CurrentUserStats() revel.Result {
 	return r.RenderJSON(data)
 }
 
+func (r AppAuthRequired) CurrentDetailedUserStats() revel.Result {
+	email := r.Session[SESSION_EMAIL]
+	u, err := state.FetchUser(email)
+	if err != nil || u == nil {
+		fmt.Println("Error: CurrentUserStats: fetching user for dashboard")
+		return r.Redirect(App.Index)
+	}
+
+	stats := state.GetUserStatistics(email, 30)
+	var _ = stats
+	// 30 days are indexed here with all values
+
+	return r.RenderJSON(nil)
+}
+
 func (r AppAuthRequired) LendingHistory() revel.Result {
 	llog := dcLog.WithField("method", "LendingHistory")
 
