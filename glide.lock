@@ -1,5 +1,5 @@
 hash: a9704eb6e87b6f16d20211770b97ea82a3a82d69b7fa3474ef1e9fd7a8169fa1
-updated: 2017-06-12T21:01:49.258165709-05:00
+updated: 2017-06-14T21:20:02.862108398-05:00
 imports:
 - name: github.com/agtorre/gocolorize
   version: 99fea4bc9517f07eea8194702cb7076f4845b7de
@@ -54,24 +54,24 @@ imports:
   version: c12348ce28de40eed0136aa2b644d0ee0650e56c
   subpackages:
   - pbutil
+- name: github.com/philhofer/fwd
+  version: 98c11a7a6ec829d672b03833c3d69a7fae1ca972
 - name: github.com/prometheus/client_golang
   version: c5b7fccd204277076155f10851dad72b76a49317
   subpackages:
   - prometheus
 - name: github.com/prometheus/client_model
-  version: 6f3806018612930941127f2a7c6c453ba2c527d2
+  version: fa8ad6fec33561be4280a8f0514318c79d7f6cb6
   subpackages:
   - go
 - name: github.com/prometheus/common
-  version: 13ba4ddd0caa9c28ca7b7bffe1dfa9ed8d5ef207
+  version: 616e90af75cc300730196d04f3676f838d70414f
   subpackages:
   - expfmt
   - internal/bitbucket.org/ww/goautoneg
   - model
 - name: github.com/prometheus/procfs
-  version: 65c1f6f8f0fc1e2185eb9863a3bc751496404259
-  subpackages:
-  - xfs
+  version: abf152e5f3e97f2fafac028d2cc06c1feb87ffa5
 - name: github.com/revel/config
   version: 662332b741dd464a886ab0901379c02b9bc5dc30
 - name: github.com/revel/modules
@@ -109,7 +109,15 @@ imports:
   - jws
   - jwt
 - name: github.com/sirupsen/logrus
-  version: d26492970760ca5d33129d2d799e34be5c4782eb
+  version: 85b1699d505667d13f8ac4478c1debbf85d6c5de
+- name: github.com/tinylib/msgp
+  version: 02d047e07459c5a7b02b1244161d0f2f6d8f660d
+  subpackages:
+  - msgp
+- name: go.uber.org/ratelimit
+  version: d15fa2e2a63dd52104bc96d8ea7dc47ce8027de8
+  subpackages:
+  - internal/clock
 - name: golang.org/x/crypto
   version: beef0f4390813b96e8e68fd78570396d0f4751fc
   subpackages:
@@ -131,11 +139,11 @@ imports:
   - trace
   - websocket
 - name: golang.org/x/sys
-  version: b90f89a1e7a9c1f6b918820b3daa7f08488c8594
+  version: 7a6e5648d140666db5d920909e082ca00a87ba2c
   subpackages:
   - unix
 - name: golang.org/x/text
-  version: 210eee5cf7323015d097341bcf7166130d001cd8
+  version: 3491b61b9edc56653ad4333e605e2908e46a036b
   subpackages:
   - secure/bidirule
   - transform
