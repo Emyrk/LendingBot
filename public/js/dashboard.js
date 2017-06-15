@@ -55,6 +55,10 @@ app.config(['$routeProvider', '$locationProvider', '$httpProvider',
 			templateUrl : "/dashboard/admin/logs",
 			controller : "adminControllerLogs"
 		})
+		.when("/coin/:coin",{
+			templateUrl : "/dashboard/coin",
+			controller : "coinController"
+		})
 		.otherwise({redirectTo:'/'});
 
 

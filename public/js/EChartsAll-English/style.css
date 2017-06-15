@@ -1,0 +1,13 @@
+body {
+	background-color: #fff;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 16px; 
+	color: #000;
+}
+
+#main	{
+	width: 750px;
+	height: 500px;
+	border: 1px solid #ccc;
+	padding: 10px;
+}

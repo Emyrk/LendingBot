@@ -78,6 +78,7 @@ func (r AppAuthRequired) Dashboard() revel.Result {
 	}
 	r.ViewArgs["UserLevel"] = fmt.Sprintf("%d", u.Level)
 	r.ViewArgs["email"] = u.Username
+	r.ViewArgs["AvailableCoins"] = userdb.AvaiableCoins
 	AppPageHitDashboard.Inc()
 	return r.Render()
 }
@@ -86,6 +87,11 @@ func (r AppAuthRequired) Logout() revel.Result {
 	DeleteCacheToken(r.Session.ID())
 	AppPageHitInfoLogout.Inc()
 	return r.Redirect(App.Index)
+}
+
+func (r AppAuthRequired) CoinDashboard() revel.Result {
+	AppPageHitInfoDashboard.Inc()
+	return r.RenderTemplate("AppAuthRequired/CoinDashboard.html")
 }
 
 func (r AppAuthRequired) InfoDashboard() revel.Result {

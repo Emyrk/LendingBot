@@ -24,6 +24,30 @@ const (
 	Unassigned UserLevel = 0
 )
 
+var AvaiableCoins = []string{
+	"BTC",
+	"BTS",
+	"CLAM",
+	"DOGE",
+	"DASH",
+	"LTC",
+	"MAID",
+	"STR",
+	"XMR",
+	"XRP",
+	"ETH",
+	"FCT",
+}
+
+func CoinExists(coin string) bool {
+	for _, e := range AvaiableCoins {
+		if e == coin {
+			return true
+		}
+	}
+	return false
+}
+
 //please add to all levels
 var AllLevels = []UserLevel{
 	SysAdmin,

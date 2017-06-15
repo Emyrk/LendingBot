@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	<meta charset="utf-8">
+
+	<title>Bar Chart With Theme</title>
+
+<!-- CSS Stylesheet -->
+	<link rel="stylesheet" type="text/css" href="style.css" />
+
+	<!--[if lt IE 9]> 
+	<script async src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+	<![endif]-->
+
+</head>
+<body>
+ <!--Step:1 Prepare a dom for ECharts which (must) has size (width & hight)-->
+    <div id="main"></div>
+
+	<!--Step:2 Import echarts-all.js-->
+    <script src="echarts-all-english-v2.js"></script>
+
+    <script type="text/javascript">
+        // Step:3 echarts & zrender as a Global Interface by the echarts-plain.js.
+        var myChart = echarts.init(document.getElementById('main'), 'sakura');
+		// Themes: dark, macarons, infographic, green, blue, roma, shine, sakura, macarons2, helianthus, default
+        myChart.setOption({
+title : {
+        text: 'The worlds total population',
+        subtext: 'Data from the network'
+    },
+    tooltip : {
+        trigger: 'axis'
+    },
+    legend: {
+        data:['2011 Year', '2012 Year']
+    },
+// Changes width of X axis labels
+	grid: {
+    x: 175
+},
+// Adds toolbox - top right corner of chart area
+    toolbox: {
+        show : true, // Displays toolbox if set to true
+        feature : {
+            mark : {show: true},
+            dataView : {show: true, readOnly: false},
+            magicType: {show: true, type: ['line', 'bar']},
+            restore : {show: true},
+            saveAsImage : {show: true}
+        }
+    },
+    calculable : true,
+    xAxis : [
+        {
+            type : 'value',
+            boundaryGap : [0, 0.01]
+        }
+    ],
+    yAxis : [
+        {
+            type : 'category',
+            data : ['Brazil', 'Indonesia', 'America', 'India', 'China', 'World Population (million)']
+        }
+    ],
+    series : [
+        {
+            name:'2011 Year',
+            type:'bar',
+            data:[18203, 23489, 29034, 104970, 131744, 630230]
+        },
+        {
+            name:'2012 Year',
+            type:'bar',
+            data:[19325, 23438, 31000, 121594, 134141, 681807]
+        }
+    ]
+ });
+	</script>
+</body>
+</html>
