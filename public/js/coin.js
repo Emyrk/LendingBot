@@ -26,14 +26,16 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 					earned = [],
 					fee = [],
 					dates = [];
+					d = 0
 					for(i = 0; i < res.data.CompleteLoans.length; i++) {
-						if (i > 0 && new Date(res.data.CompleteLoans[i].close).getDate() == new Date(dates[i]).getDate()) {
+						if (i > 0 && new Date(res.data.CompleteLoans[i].close).getDate() == new Date(dates[d]).getDate()) {
 							fee[i] += parseFloat(res.data.CompleteLoans[i].fee);
 							earned[i] += parseFloat(res.data.CompleteLoans[i].earned);
 						} else {
 							fee.push(parseFloat(res.data.CompleteLoans[i].fee));
 							earned.push(parseFloat(res.data.CompleteLoans[i].earned));
 							dates.push(new Date(res.data.CompleteLoans[i].close));
+							d++
 						}
 					}
 					$timeout(() => {
