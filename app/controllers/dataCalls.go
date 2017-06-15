@@ -217,7 +217,11 @@ func (r AppAuthRequired) LendingHistory() revel.Result {
 			return r.Redirect(App.Index)
 		}
 
-		tc, err := state.PoloniexAuthenticatedLendingHistory(u.Username, "", "", "100")
+		past := time.Now().Add(-24 * time.Hour * 30)
+		start := fmt.Sprintf("%d", past.Unix())
+		end := fmt.Sprintf("%d", time.Now().Unix())
+
+		tc, err := state.PoloniexAuthenticatedLendingHistory(u.Username, start, end, "")
 		if err != nil {
 			llog.Errorf("Error getting lend history for %s: %s\n", email, err.Error())
 		} else {
