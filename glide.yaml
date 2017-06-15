@@ -18,7 +18,7 @@ import:
   - testrunner/app
   - testrunner/app/controllers
 - package: github.com/revel/revel
-  version: v0.15.0
+  version: 8b511737be1349346965fddaf7c107017c0c1b9a
   subpackages:
   - testing
 - package: golang.org/x/net

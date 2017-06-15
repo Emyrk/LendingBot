@@ -81,7 +81,7 @@ imports:
   - testrunner/app
   - testrunner/app/controllers
 - name: github.com/revel/revel
-  version: 880eaf4227081e0e9b11a29d93b7569184cf6a1c
+  version: 8b511737be1349346965fddaf7c107017c0c1b9a
   subpackages:
   - cache
   - testing
