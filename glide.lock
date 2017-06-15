@@ -75,7 +75,7 @@ imports:
 - name: github.com/revel/config
   version: 662332b741dd464a886ab0901379c02b9bc5dc30
 - name: github.com/revel/modules
-  version: c55b6f7e4a14f79cbe4987d1f0bf1895d33177ad
+  version: 209cc8b2b7ed93a55067bc0db97707b1432e49c4
   subpackages:
   - static/app/controllers
   - testrunner/app

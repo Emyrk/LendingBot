@@ -12,11 +12,6 @@ import:
 - package: github.com/prometheus/client_golang
   subpackages:
   - prometheus
-- package: github.com/revel/modules
-  subpackages:
-  - static/app/controllers
-  - testrunner/app
-  - testrunner/app/controllers
 - package: github.com/revel/revel
   version: 8b511737be1349346965fddaf7c107017c0c1b9a
   subpackages:
@@ -43,3 +38,11 @@ import:
   - status
   - tap
   - transport
+- name: github.com/revel/config
+  version: 662332b741dd464a886ab0901379c02b9bc5dc30
+- name: github.com/revel/modules
+  version: 209cc8b2b7ed93a55067bc0db97707b1432e49c4
+  subpackages:
+  - static/app/controllers
+  - testrunner/app
+  - testrunner/app/controllers
