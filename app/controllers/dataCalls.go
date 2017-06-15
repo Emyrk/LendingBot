@@ -3,6 +3,8 @@ package controllers
 import (
 	"fmt"
 	"math"
+	"math/rand"
+	"time"
 
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
@@ -10,6 +12,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 )
+
+var dcLog = log.WithField("package", "DataCalls")
 
 // Struct to UserDash
 type UserDashStructure struct {
@@ -177,6 +181,8 @@ func (r AppAuthRequired) CurrentUserStats() revel.Result {
 }
 
 func (r AppAuthRequired) LendingHistory() revel.Result {
+	llog := dcLog.WithField("method", "LendingHistory")
+
 	email := r.Session[SESSION_EMAIL]
 
 	data := make(map[string]interface{})
@@ -186,42 +192,57 @@ func (r AppAuthRequired) LendingHistory() revel.Result {
 	if !found {
 		u, err := state.FetchUser(email)
 		if err != nil || u == nil {
-			fmt.Println("Error: LendingHistory: fetching user for dashboard")
+			llog.Error("Error: LendingHistory: fetching user for dashboard")
 			return r.Redirect(App.Index)
 		}
 
 		tc, err := state.PoloniexAuthenticatedLendingHistory(u.Username, "", "", "100")
 		if err != nil {
-			tc, err = state.PoloniexAuthenticatedLendingHistory(u.Username, "", "", "100")
-		}
-		if err != nil {
-			log.WithField("package", "App").Errorf("Error getting lend history for %s: %s\n", email, err.Error())
+			llog.Errorf("Error getting lend history for %s: %s\n", email, err.Error())
+		} else {
+			CacheSetLendingHistory(email, *completeLoans)
 		}
 		completeLoans = &tc
 		if len(completeLoans.Data) == 0 && revel.DevMode {
 			var cl [20]poloniex.PoloniexAuthentictedLendingHistory
 			for i := 0; i < 20; i++ {
+				tempA := (20 - i) * 24
+				earned := rand.Float32()
 				cl[i] = poloniex.PoloniexAuthentictedLendingHistory{
 					361915250,
 					"BTC",
-					"0.00066000",
-					"0.00011775",
-					"0.05150000",
-					"0.00000001",
-					"0.00000000",
-					"0.00000001",
-					"2017-06-03 22:55:30",
-					"2017-06-04 00:09:39",
+					fmt.Sprintf("%f", rand.Float32()),
+					fmt.Sprintf("%f", rand.Float32()),
+					fmt.Sprintf("%f", rand.Float32()),
+					fmt.Sprintf("%f", rand.Float32()),
+					fmt.Sprintf("%f", (earned * .015)),
+					fmt.Sprintf("%f", earned),
+					time.Now().Add(-time.Duration(tempA) * time.Hour).Add(1 * time.Hour).String(),
+					time.Now().Add(-time.Duration(tempA) * time.Hour).Add(2 * time.Hour).String(),
 				}
 			}
 			completeLoans = &poloniex.PoloniexAuthentictedLendingHistoryRespone{
 				cl[:],
 			}
 		}
-		CacheSetLendingHistory(email, *completeLoans)
 	} else {
 		completeLoans = tempCompleteLoans
 	}
+
+	coin := r.Params.Get("coin")
+	if len(coin) > 0 && userdb.CoinExists(coin) {
+		llog.Info("Getting coin: " + coin)
+		var tempSpecificLoans []poloniex.PoloniexAuthentictedLendingHistory
+		for _, clCoin := range completeLoans.Data {
+			if clCoin.Currency == coin {
+				tempSpecificLoans = append(tempSpecificLoans, clCoin)
+			}
+		}
+		completeLoans = &poloniex.PoloniexAuthentictedLendingHistoryRespone{
+			tempSpecificLoans[:],
+		}
+	}
+
 	data["CompleteLoans"] = completeLoans.Data
 
 	return r.RenderJSON(data)

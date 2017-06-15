@@ -58,6 +58,9 @@ POST	/dashboard/admin/getuserstats			AppAdmin.GetUserStats
 
 GET 	/dashboard/data/currentuserstats		AppAuthRequired.CurrentUserStats
 GET 	/dashboard/data/lendinghistory			AppAuthRequired.LendingHistory
+GET 	/dashboard/data/lendinghistory/:coin	AppAuthRequired.LendingHistory
+
+Get 	/dashboard/coin           				AppAuthRequired.CoinDashboard
 
 # Ignore favicon requests
 GET     /favicon.ico                            404
