@@ -1,5 +1,5 @@
-hash: a9704eb6e87b6f16d20211770b97ea82a3a82d69b7fa3474ef1e9fd7a8169fa1
-updated: 2017-06-14T21:20:02.862108398-05:00
+hash: c1a7574bb8e797a4913af5b8794251fc5034316fd523e6a2e7cb316da591e41d
+updated: 2017-06-14T21:27:57.329075604-05:00
 imports:
 - name: github.com/agtorre/gocolorize
   version: 99fea4bc9517f07eea8194702cb7076f4845b7de
@@ -81,7 +81,7 @@ imports:
   - testrunner/app
   - testrunner/app/controllers
 - name: github.com/revel/revel
-  version: 82f20b40b667424de214a95607e67da67f39455a
+  version: 880eaf4227081e0e9b11a29d93b7569184cf6a1c
   subpackages:
   - cache
   - testing
