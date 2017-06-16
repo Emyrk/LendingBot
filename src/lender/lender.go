@@ -556,6 +556,8 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 	part2 := time.Now()
 
 	for i, min := range j.MinimumLend {
+		var total float64
+
 		// Move min from a % to it's value
 		min = min / 100
 
@@ -581,6 +583,8 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 		if j.Currency[i] == "BTC" {
 			if rate < 2 {
 				CompromisedBTC.Set(rate)
+			} else {
+				llog.Errorf("Rate is going to high. Trying to set at %f", rate)
 			}
 		}
 
@@ -592,6 +596,10 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 		maxLend := MaxLendAmt[j.Currency[i]]
 		if ri == 2 {
 			maxLend = maxLend * 2
+		}
+
+		if maxLend < avail*0.05 {
+			maxLend = avail * 0.05
 		}
 
 		// rate := l.decideRate(rate, avail, total)
