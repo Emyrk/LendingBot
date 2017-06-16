@@ -556,8 +556,6 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 	part2 := time.Now()
 
 	for i, min := range j.MinimumLend {
-		var total float64
-
 		// Move min from a % to it's value
 		min = min / 100
 
