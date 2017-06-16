@@ -130,7 +130,11 @@ func RandStats() *userdb.AllUserStatistic {
 	stats := userdb.NewAllUserStatistic()
 
 	for _, v := range curarr {
-		s := userdb.NewUserStatistic(v)
+		r := .1
+		if v == "BTC" {
+			r = 1
+		}
+		s := userdb.NewUserStatistic(v, r)
 		left := TotalAmt
 
 		p := randomFloat(left*80, left*100) / 100
