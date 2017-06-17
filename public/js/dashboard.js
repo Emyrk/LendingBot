@@ -451,6 +451,11 @@ function init_chart_doughnut(balanceData){
 	if( typeof (Chart) === 'undefined'){ return; }
 
 	console.log('init_chart_doughnut');
+	Object.keys(balanceData.currencymap).forEach(function(key) {
+	    value = balanceData.currencymap[key];
+	    balanceData.currencymap[key] = value.toFixed(3)
+	});
+
 
 	if ($('.canvasDoughnut').length){
 		var chart_doughnut_settings = {
