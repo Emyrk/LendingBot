@@ -5,8 +5,12 @@ import (
 	"strconv"
 
 	"github.com/Emyrk/LendingBot/app/controllers"
+	"github.com/Emyrk/LendingBot/src/core/database/mongo"
 	"github.com/revel/revel"
+	log "github.com/sirupsen/logrus"
 )
+
+var cLog = log.WithField("package", "init")
 
 var (
 	// AppVersion revel app version (ldflags)
@@ -75,7 +79,7 @@ func init() {
 		return formatFloat(a, precision)
 	}
 
-	revel.OnAppStart(controllers.Launch)
+	revel.OnAppStart(controllers.Launch, InitDB)
 
 	// revel. .OnAppShutdown(controllers.Shutdown)
 }
@@ -115,3 +119,13 @@ var HeaderFilter = func(c *revel.Controller, fc []revel.Filter) {
 //		// Dev mode
 //	}
 //}
+
+func InitDB() {
+	// llog := cLog.WithField("method", "InitDB")
+	// // The second argument are default values, for safety
+	// uri := revel.Config.StringDefault("database.uri", "mongodb://localhost:27017")
+	// name := revel.Config.StringDefault("database.name", "LendingBot")
+	// if err := mongo.Init(uri, name); err != nil {
+	// 	llog.Errorf("InitMongo: %s\n", err.Error())
+	// }
+}
