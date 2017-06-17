@@ -75,7 +75,12 @@ func init() {
 		return formatFloat(a, precision)
 	}
 
-	revel.OnAppStart(controllers.Launch)
+	if revel.RunMode == DEV_FAKE {
+		revel.OnAppStart(controllers.LaunchFake)
+	} else {
+		revel.OnAppStart(controllers.Launch)
+	}
+
 }
 
 func formatFloat(a float64, precision int) string {

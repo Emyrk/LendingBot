@@ -142,18 +142,29 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 			});
 		}
 
-		coinScope.profitPerDay = function() {
-
-		}
-
-		coinScope.rate = function() {
-			
+		coinScope.getDetailedLendingHistory = function() {
+			$http(
+			{
+				method: 'GET',
+				url: '/dashboard/data/detstats',
+				data : {
+				},
+				withCredentials: true
+			})
+			.then((res) => {
+				//success
+				console.log(res.data.data);
+			}, (err) => {
+				//error
+				$log.error("LendingHistory: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+			});
 		}
 
 
 		// /Coin
 		coinScope.coin = $routeParams.coin;
 		coinScope.getLendingHistory();
+		coinScope.getDetailedLendingHistory();
 		//resize charts
 		window.onresize = function() {
 			if (coinScope.hasCompleteLoans) {

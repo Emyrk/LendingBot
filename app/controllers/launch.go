@@ -49,6 +49,33 @@ func Launch() {
 	go launchPrometheus(9911)
 }
 
+func LaunchFake() {
+	// Prometheus
+	lender.RegisterPrometheus()
+	queuer.RegisterPrometheus()
+
+	state = core.NewState()
+	lenderBot := lender.NewLender(state)
+	queuerBot := queuer.NewQueuer(state, lenderBot)
+
+	err := state.VerifyState()
+	if err != nil {
+		panic(err)
+	}
+
+	Queuer = queuerBot
+	Lender = lenderBot
+
+	// if revel.DevMode {
+	// 	return
+	// }
+
+	// Start go lending
+	go lenderBot.Start()
+	go queuerBot.Start()
+	go launchPrometheus(9911)
+}
+
 func launchPrometheus(port int) {
 	http.Handle("/metrics", prometheus.Handler())
 	go http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
