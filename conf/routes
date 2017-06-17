@@ -38,7 +38,6 @@ Get 	/dashboard/settings/enableuserlending	AppAuthRequired.GetEnableUserLending
 POST	/dashboard/settings/enableuserlending	AppAuthRequired.SetEnableUserLending
 POST	/dashboard/settings/changepass			AppAuthRequired.ChangePassword
 
-
 GET		/validauth								App.ValidAuth
 
 GET		/dashboard/sysadmin						AppSysAdmin.SysAdminDashboard
@@ -59,6 +58,7 @@ POST	/dashboard/admin/getuserstats			AppAdmin.GetUserStats
 GET 	/dashboard/data/currentuserstats		AppAuthRequired.CurrentUserStats
 GET 	/dashboard/data/lendinghistory			AppAuthRequired.LendingHistory
 GET 	/dashboard/data/lendinghistory/:coin	AppAuthRequired.LendingHistory
+GET 	/dashboard/data/detstats 				AppAuthRequired.GetDetailedUserStats
 
 Get 	/dashboard/coin           				AppAuthRequired.CoinDashboard
 
