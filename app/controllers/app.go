@@ -28,8 +28,6 @@ type JSONUser struct {
 const (
 	JSON_DATA  = "data"
 	JSON_ERROR = "error"
-
-	DEV_FAKE = "devFake"
 )
 
 type App struct {
