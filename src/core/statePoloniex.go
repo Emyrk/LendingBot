@@ -14,7 +14,7 @@ import (
 var limiter ratelimit.Limiter
 
 func init() {
-	limiter = ratelimit.New(6)
+	limiter = ratelimit.New(5)
 }
 
 var _ = fmt.Println

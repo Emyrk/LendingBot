@@ -519,6 +519,7 @@ func (l *Lender) ProcessJob(j *Job) error {
 }
 
 func (l *Lender) tierOneProcessJob(j *Job) error {
+	var err error
 	llog := clog.WithFields(log.Fields{
 		"method": "T1ProcJob",
 		"user":   j.Username,
@@ -527,29 +528,53 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 	s := l.State
 	part1 := time.Now()
 	//JobPart2
-
-	bals, err := s.PoloniexGetAvailableBalances(j.Username)
-	if err != nil && !strings.Contains(err.Error(), "Unable to JSON Unmarshal response. Resp: []") {
-		llog.Errorf("Error getting balances: %s", err.Error())
+	bals := make(map[string]map[string]float64)
+	// Try 3 times if timeout
+	for i := 0; i < 3; i++ {
+		bals, err = s.PoloniexGetAvailableBalances(j.Username)
+		if err != nil && !strings.Contains(err.Error(), "Unable to JSON Unmarshal response. Resp: []") {
+			llog.WithField("retry", i).Errorf("Error getting balances: %s", err.Error())
+			if !strings.Contains(err.Error(), "Connection timed out. Please try again.") {
+				// Let it retry
+				continue
+			}
+		}
+		break
 	}
 	// if err != nil {
 	// 	return fmt.Errorf("[T1-1] %s", err.Error())
 	// }
 
+	var inactiveLoans map[string][]poloniex.PoloniexLoanOffer
 	// 3 types of balances: Not lent, Inactive, Active
-	inactiveLoans, err := s.PoloniexGetInactiveLoans(j.Username)
-	if err != nil && !strings.Contains(err.Error(), "Unable to JSON Unmarshal response. Resp: []") {
-		llog.Errorf("Error getting inactive loans: %s", err.Error())
+	for i := 0; i < 3; i++ {
+		inactiveLoans, err = s.PoloniexGetInactiveLoans(j.Username)
+		if err != nil && !strings.Contains(err.Error(), "Unable to JSON Unmarshal response. Resp: []") {
+			llog.WithField("retry", i).Errorf("Error getting inactive loans: %s", err.Error())
+			if !strings.Contains(err.Error(), "Connection timed out. Please try again.") {
+				// Let it retry
+				continue
+			}
+		}
+		break
 	}
 
-	activeLoans, err := s.PoloniexGetActiveLoans(j.Username)
-	if err == nil && activeLoans != nil {
-		err := l.recordStatistics(j.Username, bals, inactiveLoans, activeLoans)
-		if err != nil {
-			llog.Errorf("Error in calculating statistic: %s", err.Error())
+	var activeLoans *poloniex.PoloniexActiveLoans
+	for i := 0; i < 3; i++ {
+		activeLoans, err = s.PoloniexGetActiveLoans(j.Username)
+		if err == nil && activeLoans != nil {
+			err := l.recordStatistics(j.Username, bals, inactiveLoans, activeLoans)
+			if err != nil {
+				llog.WithField("retry", i).Errorf("Error in calculating statistic: %s", err.Error())
+			}
+		} else if err != nil && !strings.Contains(err.Error(), "Unable to JSON Unmarshal response. Resp: []") {
+			llog.WithField("retry", i).Errorf("Error getting active loans: %s", err.Error())
+			if !strings.Contains(err.Error(), "Connection timed out. Please try again.") {
+				// Let it retry
+				continue
+			}
 		}
-	} else if err != nil && !strings.Contains(err.Error(), "Unable to JSON Unmarshal response. Resp: []") {
-		llog.Errorf("Error getting active loans: %s", err.Error())
+		break
 	}
 
 	JobPart1.Observe(float64(time.Since(part1).Nanoseconds()))
