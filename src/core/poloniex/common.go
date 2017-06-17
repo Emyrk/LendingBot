@@ -226,7 +226,7 @@ func SendConstructedRequest(reqH *RequestHolder) (string, error) {
 
 	httpClient := &http.Client{}
 	//if long {
-	httpClient = &http.Client{Timeout: 75 * time.Second}
+	httpClient = &http.Client{Timeout: 130 * time.Second}
 	//}
 	resp, err := httpClient.Do(req)
 	if err != nil {
