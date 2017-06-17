@@ -63,6 +63,10 @@ func newInviteDB(mapDB bool) *InviteDB {
 	return i
 }
 
+func (ie *InviteDB) Close() error {
+	return ie.db.Close()
+}
+
 func (ie *InviteDB) ListAll() ([]InviteEntry, error) {
 	data, _, err := ie.db.GetAll(InviteCodeBucket)
 	if err != nil {

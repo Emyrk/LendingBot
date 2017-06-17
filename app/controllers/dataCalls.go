@@ -145,6 +145,7 @@ func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
 
 		totalAct := float64(0)
 		for _, v := range now.Currencies {
+			// fmt.Println(v)
 			today.LoanRate += v.AverageActiveRate * (v.ActiveLentBalance * v.BTCRate)
 			totalAct += v.ActiveLentBalance * v.BTCRate
 			today.BTCLent += v.ActiveLentBalance * v.BTCRate

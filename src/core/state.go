@@ -83,7 +83,7 @@ func newState(withMap bool, fakePolo bool) *State {
 		s.userStatistic, err = userdb.NewUserStatisticsDB()
 	}
 	if err != nil {
-		panic(fmt.Sprintf("Could create user statistic database %s", err.Error()))
+		panic(fmt.Sprintf("Could not create user statistic database %s", err.Error()))
 	}
 
 	s.poloniexCache = NewPoloniexAccessCache()
@@ -122,7 +122,10 @@ func getCipherKey() [32]byte {
 }
 
 func (s *State) Close() error {
-	return s.userDB.Close()
+	s.userDB.Close()
+	s.userStatistic.Close()
+	s.userInviteCodes.Close()
+	return nil
 }
 
 func (s *State) SetAllUserMinimumLoan(username string, coins userdb.MiniumumLendStruct) error {

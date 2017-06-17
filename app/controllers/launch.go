@@ -82,6 +82,12 @@ func Launch() {
 	}
 }
 
+func Shutdown() {
+	state.Close()
+	Lender.Close()
+	Queuer.Close()
+}
+
 func launchPrometheus(port int) {
 	http.Handle("/metrics", prometheus.Handler())
 	go http.ListenAndServe(fmt.Sprintf(":%d", port), nil)

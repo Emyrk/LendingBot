@@ -432,7 +432,7 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 	for _, v := range curarr {
 		var last float64 = 1
 		if v != "BTC" {
-			last = l.Ticker[v].Last
+			last = l.Ticker[fmt.Sprintf("BTC_%s", v)].Last
 		}
 		cstat := userdb.NewUserStatistic(v, last)
 		stats.Currencies[v] = cstat

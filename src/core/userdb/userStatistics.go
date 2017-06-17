@@ -40,6 +40,10 @@ type UserStatisticsDB struct {
 	CurrentIndex         int // 0 to 30
 }
 
+func (u *UserStatisticsDB) Close() error {
+	return u.db.Close()
+}
+
 func NewUserStatisticsMapDB() (*UserStatisticsDB, error) {
 	return newUserStatisticsDB(true)
 }
