@@ -451,7 +451,7 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 
 	for _, loan := range activeLoan.Provided {
 		stats.Currencies[loan.Currency].ActiveLentBalance += loan.Amount
-		stats.Currencies[loan.Currency].AverageActiveRate += loan.Amount
+		stats.Currencies[loan.Currency].AverageActiveRate += loan.Rate
 		activeLentCount[loan.Currency] += 1
 
 		stats.TotalCurrencyMap[loan.Currency] += l.getBTCAmount(loan.Amount, loan.Currency)
@@ -466,7 +466,7 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 	for k, _ := range inact {
 		for _, loan := range inact[k] {
 			stats.Currencies[k].OnOrderBalance += loan.Amount
-			stats.Currencies[k].AverageOnOrderRate += loan.Amount
+			stats.Currencies[k].AverageOnOrderRate += loan.Rate
 			inactiveLentCount[k] += 1
 
 			stats.TotalCurrencyMap[k] += l.getBTCAmount(loan.Amount, k)
