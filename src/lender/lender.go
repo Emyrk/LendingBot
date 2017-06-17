@@ -594,7 +594,7 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 			}
 		}
 
-		if time.Since(l.LastPoloBotTime).Seconds() < 10 {
+		if time.Since(l.LastPoloBotTime).Seconds() < 15 {
 			if v, ok := l.LastPoloBot[j.Currency[i]]; ok && v.GetBestReturnRate() > 0 {
 				poloRate := v.GetBestReturnRate()
 				if rate < poloRate {
@@ -645,7 +645,7 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 
 				// So if the rate is less than the min, we don't want to cancel anything, unless the condition above
 				if rate < min {
-					continue
+					rate = min
 				}
 
 				// Too close, no point in canceling
