@@ -423,7 +423,7 @@ func abs(v float64) float64 {
 }
 
 func (l *Lender) recordStatistics(username string, bals map[string]map[string]float64,
-	inact map[string][]poloniex.PoloniexLoanOffer, activeLoan *poloniex.PoloniexActiveLoans) error {
+	inact map[string][]poloniex.PoloniexLoanOffer, activeLoan *poloniex.PoloniexActiveLoans) (*userdb.AllUserStatistic, error) {
 
 	stats := userdb.NewAllUserStatistic()
 	stats.Time = time.Now()
@@ -477,7 +477,7 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 		stats.Currencies[k].AverageOnOrderRate = stats.Currencies[k].AverageOnOrderRate / inactiveLentCount[k]
 	}
 
-	return l.State.RecordStatistics(stats)
+	return stats, l.State.RecordStatistics(stats)
 }
 
 func (l *Lender) getAmtForBTCValue(amount float64, currency string) float64 {
@@ -559,11 +559,12 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 		break
 	}
 
+	stats := userdb.NewAllUserStatistic()
 	var activeLoans *poloniex.PoloniexActiveLoans
 	for i := 0; i < 3; i++ {
 		activeLoans, err = s.PoloniexGetActiveLoans(j.Username)
 		if err == nil && activeLoans != nil {
-			err := l.recordStatistics(j.Username, bals, inactiveLoans, activeLoans)
+			stats, err = l.recordStatistics(j.Username, bals, inactiveLoans, activeLoans)
 			if err != nil {
 				llog.WithField("retry", i).Errorf("Error in calculating statistic: %s", err.Error())
 			}
@@ -621,8 +622,8 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 			maxLend = maxLend * 2
 		}
 
-		if maxLend < avail*0.05 {
-			maxLend = avail * 0.05
+		if maxLend < avail*0.20 {
+			maxLend = avail * 0.20
 		}
 
 		// rate := l.decideRate(rate, avail, total)
@@ -670,6 +671,13 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 		// Don't make the loan
 		if rate < min {
 			continue
+		}
+
+		if cStats, ok := stats.Currencies[j.Currency[i]]; ok {
+			total := cStats.OnOrderBalance + cStats.ActiveLentBalance + cStats.AvailableBalance
+			if total > maxLend {
+				maxLend = 0.1 * total
+			}
 		}
 
 		amt := maxLend
