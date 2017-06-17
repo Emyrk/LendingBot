@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	// "net/http"
 	"net/url"
 	"strconv"
 	"time"
@@ -558,6 +559,31 @@ type PoloniexAuthentictedLendingHistory struct {
 	Close    string `json:"close"`
 }
 
+type ResponseHolder struct {
+	ID       int64
+	Response string
+	Err      error
+}
+
+func (p *Poloniex) ConstructAuthenticatedLendingHistoryRequest(start, end, limit string, accessKey, secretKey string) (*RequestHolder, error) {
+	values := url.Values{}
+
+	if start != "" {
+		values.Set("start", start)
+	}
+
+	if end != "" {
+		values.Set("end", end)
+	}
+
+	if limit != "" {
+		values.Set("limit", limit)
+	}
+
+	result := PoloniexAuthentictedLendingHistoryRespone{}
+	return p.ConstructAuthenticatedHTTPRequest("POST", POLONIEX_LENDING_HISTORY, values, &result.Data, accessKey, secretKey)
+}
+
 func (p *Poloniex) GetAuthenticatedLendingHistory(start, end, limit string, accessKey, secretKey string) (PoloniexAuthentictedLendingHistoryRespone, error) {
 	values := url.Values{}
 
@@ -1073,6 +1099,24 @@ func (p *Poloniex) ToggleAutoRenew(orderNumber int64, accessKey, secretKey strin
 	return true, nil
 }
 
+func (p *Poloniex) ConstructAuthenticatedHTTPRequest(method, endpoint string, values url.Values, result interface{}, accessKey, secretKey string) (*RequestHolder, error) {
+	headers := make(map[string]string)
+	headers["Content-Type"] = "application/x-www-form-urlencoded"
+	headers["Key"] = accessKey
+
+	nonce := time.Now().UnixNano()
+	nonceStr := strconv.FormatInt(nonce, 10)
+
+	values.Set("nonce", nonceStr)
+	values.Set("command", endpoint)
+
+	hmac := GetHMAC(HASH_SHA512, []byte(values.Encode()), []byte(secretKey))
+	headers["Sign"] = HexEncodeToString(hmac)
+
+	path := fmt.Sprintf("%s/%s", POLONIEX_API_URL, POLONIEX_API_TRADING_ENDPOINT)
+	return ConstructHttpRequest(method, path, headers, bytes.NewBufferString(values.Encode()))
+}
+
 func (p *Poloniex) SendAuthenticatedHTTPRequest(method, endpoint string, values url.Values, result interface{}, accessKey, secretKey string) error {
 	headers := make(map[string]string)
 	headers["Content-Type"] = "application/x-www-form-urlencoded"
@@ -1087,13 +1131,8 @@ func (p *Poloniex) SendAuthenticatedHTTPRequest(method, endpoint string, values 
 	hmac := GetHMAC(HASH_SHA512, []byte(values.Encode()), []byte(secretKey))
 	headers["Sign"] = HexEncodeToString(hmac)
 
-	long := false
-	if endpoint == POLONIEX_CREATE_LOAN_OFFER {
-		long = true
-	}
-
 	path := fmt.Sprintf("%s/%s", POLONIEX_API_URL, POLONIEX_API_TRADING_ENDPOINT)
-	resp, sendErr := SendHTTPRequest(method, path, headers, bytes.NewBufferString(values.Encode()), long)
+	resp, sendErr := SendHTTPRequest(method, path, headers, bytes.NewBufferString(values.Encode()))
 	PoloPrivateCalls.Inc()
 
 	if StringContains(resp, `"error":"`) {

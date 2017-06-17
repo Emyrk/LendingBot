@@ -1,7 +1,10 @@
 package poloniex
 
 import (
+	"log"
 	"strconv"
+
+	"github.com/beatgammit/turnpike"
 )
 
 const (
@@ -129,7 +132,8 @@ func PoloniexOnDepthOrTrade(args []interface{}, kwargs map[string]interface{}) {
 }
 
 func (p *Poloniex) WebsocketClient() {
-	/*for p.Enabled && p.Websocket {
+	for p.Enabled && p.Websocket {
+		log.Printf("ENABLED")
 		c, err := turnpike.NewWebsocketClient(turnpike.JSON, POLONIEX_WEBSOCKET_ADDRESS, nil)
 		if err != nil {
 			log.Printf("%s Unable to connect to Websocket. Error: %s\n", p.GetName(), err)
@@ -156,6 +160,8 @@ func (p *Poloniex) WebsocketClient() {
 			log.Printf("%s Error subscribing to ticker channel: %s\n", p.GetName(), err)
 		}
 
+		// c.Subscribe(POLONIEX_OPEN_LOAN_OFFERS, fn)
+
 		if err := c.Subscribe(POLONIEX_WEBSOCKET_TROLLBOX, PoloniexOnTrollbox); err != nil {
 			log.Printf("%s Error subscribing to trollbox channel: %s\n", p.GetName(), err)
 		}
@@ -173,5 +179,5 @@ func (p *Poloniex) WebsocketClient() {
 
 		<-c.ReceiveDone
 		log.Printf("%s Websocket client disconnected.\n", p.GetName())
-	}*/
+	}
 }

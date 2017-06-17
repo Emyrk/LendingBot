@@ -29,8 +29,13 @@ func take() {
 	PoloCallTakeWait.Observe(float64(time.Since(n).Nanoseconds()))
 }
 
+type Lockable interface {
+	Lock()
+	Unlock()
+}
+
 type PoloniexAccessCache struct {
-	Cache map[string]PoloniexAccessStruct
+	Cache map[string]*PoloniexAccessStruct
 	sync.RWMutex
 
 	Remove chan string
@@ -38,7 +43,7 @@ type PoloniexAccessCache struct {
 
 func NewPoloniexAccessCache() *PoloniexAccessCache {
 	p := new(PoloniexAccessCache)
-	p.Cache = make(map[string]PoloniexAccessStruct)
+	p.Cache = make(map[string]*PoloniexAccessStruct)
 
 	return p
 }
@@ -49,6 +54,7 @@ type PoloniexAccessStruct struct {
 	Secret   string
 
 	LastStatsUpdate time.Time
+	sync.Mutex
 }
 
 func (p *PoloniexAccessCache) shouldRecordStats(username string) bool {
@@ -81,104 +87,114 @@ func (s *State) updateCache() {
 	}
 }
 
-func (s *State) getAccessAndSecret(username string) (string, string, error) {
+// getAccessAndSecret will return the access struct, but will also LOCK it. Be sure to unlock it
+func (s *State) getAccessAndSecret(username string) (*PoloniexAccessStruct, error) {
 	s.updateCache()
 	s.poloniexCache.RLock()
 	c, ok := s.poloniexCache.Cache[username]
 	s.poloniexCache.RUnlock()
 	if ok {
-		return c.APIKey, c.Secret, nil
+		c.Lock()
+		return c, nil
 	}
 
 	u, err := s.userDB.FetchUserIfFound(username)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 
 	ck := u.GetCipherKey(s.CipherKey)
 	accessKey, err := u.PoloniexKeys.DecryptAPIKeyString(ck)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 
 	secretKey, err := u.PoloniexKeys.DecryptAPISecretString(ck)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 	s.poloniexCache.Lock()
-	var tmp PoloniexAccessStruct
+	tmp := new(PoloniexAccessStruct)
 	tmp.Username = username
 	tmp.APIKey = accessKey
 	tmp.Secret = secretKey
 	s.poloniexCache.Cache[username] = tmp
 	s.poloniexCache.Unlock()
 
-	return accessKey, secretKey, nil
+	tmp.Lock()
+	return tmp, nil
 }
 
 func (s *State) PoloniexGetBalances(username string) (*poloniex.PoloniexBalance, error) {
-	take()
-	accessKey, secretKey, err := s.getAccessAndSecret(username)
+	acc, err := s.getAccessAndSecret(username)
 	if err != nil {
 		return nil, err
 	}
-	return s.PoloniexAPI.GetBalances(accessKey, secretKey)
+	defer acc.Unlock()
+
+	take()
+	return s.PoloniexAPI.GetBalances(acc.APIKey, acc.Secret)
 }
 
 // PoloniexGetAvailableBalances returns:
 //		map[string] :: key = "exchange", "lending", "margin"
 //		|-->	map[string] :: key = currency
 func (s *State) PoloniexGetAvailableBalances(username string) (map[string]map[string]float64, error) {
-	take()
-	accessKey, secretKey, err := s.getAccessAndSecret(username)
+	acc, err := s.getAccessAndSecret(username)
 	if err != nil {
 		return nil, err
 	}
+	defer acc.Unlock()
 
-	return s.PoloniexAPI.GetAvilableBalances(accessKey, secretKey)
+	take()
+	return s.PoloniexAPI.GetAvilableBalances(acc.APIKey, acc.Secret)
 }
 
 // PoloniexCreateLoanOffer creates a loan offer
 func (s *State) PoloniexCreateLoanOffer(currency string, amount, rate float64, duration int, autoRenew bool, username string) (int64, error) {
-	take()
-	accessKey, secretKey, err := s.getAccessAndSecret(username)
+	acc, err := s.getAccessAndSecret(username)
 	if err != nil {
 		return 0, err
 	}
+	defer acc.Unlock()
 
-	return s.PoloniexAPI.CreateLoanOffer(currency, amount, rate, duration, autoRenew, accessKey, secretKey)
+	take()
+	return s.PoloniexAPI.CreateLoanOffer(currency, amount, rate, duration, autoRenew, acc.APIKey, acc.Secret)
 }
 
 // PoloniexGetInactiveLoans returns your current loans that are not taken
 func (s *State) PoloniexGetInactiveLoans(username string) (map[string][]poloniex.PoloniexLoanOffer, error) {
-	take()
-	accessKey, secretKey, err := s.getAccessAndSecret(username)
+	acc, err := s.getAccessAndSecret(username)
 	if err != nil {
 		return nil, err
 	}
+	defer acc.Unlock()
 
-	return s.PoloniexAPI.GetOpenLoanOffers(accessKey, secretKey)
+	take()
+	return s.PoloniexAPI.GetOpenLoanOffers(acc.APIKey, acc.Secret)
 }
 
 // PoloniexGetActiveLoans returns your current loans that are taken
 func (s *State) PoloniexGetActiveLoans(username string) (*poloniex.PoloniexActiveLoans, error) {
-	take()
-	accessKey, secretKey, err := s.getAccessAndSecret(username)
+	acc, err := s.getAccessAndSecret(username)
 	if err != nil {
 		return nil, err
 	}
+	defer acc.Unlock()
 
-	return s.PoloniexAPI.GetActiveLoans(accessKey, secretKey)
+	take()
+	return s.PoloniexAPI.GetActiveLoans(acc.APIKey, acc.Secret)
 }
 
 func (s *State) PoloniexCancelLoanOffer(currency string, orderNumber int64, username string) (bool, error) {
-	take()
-	accessKey, secretKey, err := s.getAccessAndSecret(username)
+	acc, err := s.getAccessAndSecret(username)
 	if err != nil {
 		return false, err
 	}
+	defer acc.Unlock()
 
-	return s.PoloniexAPI.CancelLoanOffer(currency, orderNumber, accessKey, secretKey)
+	take()
+	return s.PoloniexAPI.CancelLoanOffer(currency, orderNumber, acc.APIKey, acc.Secret)
 }
 
 func (s *State) PoloniexGetLoanOrders(currency string) (*poloniex.PoloniexLoanOrders, error) {
@@ -188,39 +204,42 @@ func (s *State) PoloniexGetLoanOrders(currency string) (*poloniex.PoloniexLoanOr
 }
 
 func (s *State) PoloniexSingleAuthenticatedTradeHistory(currency, username, start, end string) (resp poloniex.PoloniexAuthenticatedTradeHistoryResponse, err error) {
-	take()
 	if currency == "all" {
 		return resp, fmt.Errorf("Cannot be 'all'")
 	}
-	accessKey, secretKey, err := s.getAccessAndSecret(username)
+	acc, err := s.getAccessAndSecret(username)
 	if err != nil {
 		return resp, err
 	}
+	defer acc.Unlock()
 
-	respNonCast, err := s.PoloniexAPI.GetAuthenticatedTradeHistory(currency, start, end, accessKey, secretKey)
+	take()
+	respNonCast, err := s.PoloniexAPI.GetAuthenticatedTradeHistory(currency, start, end, acc.APIKey, acc.Secret)
 	resp = respNonCast.(poloniex.PoloniexAuthenticatedTradeHistoryResponse)
 	return
 }
 
 func (s *State) PoloniexAllAuthenticatedTradeHistory(username, start, end string) (resp poloniex.PoloniexAuthenticatedTradeHistoryAll, err error) {
-	take()
-	accessKey, secretKey, err := s.getAccessAndSecret(username)
+	acc, err := s.getAccessAndSecret(username)
 	if err != nil {
 		return resp, err
 	}
+	defer acc.Unlock()
 
-	respNonCast, err := s.PoloniexAPI.GetAuthenticatedTradeHistory("", start, end, accessKey, secretKey)
+	take()
+	respNonCast, err := s.PoloniexAPI.GetAuthenticatedTradeHistory("", start, end, acc.APIKey, acc.Secret)
 	resp = respNonCast.(poloniex.PoloniexAuthenticatedTradeHistoryAll)
 	return
 }
 
 func (s *State) PoloniexAuthenticatedLendingHistory(username, start, end, limit string) (resp poloniex.PoloniexAuthentictedLendingHistoryRespone, err error) {
-	take()
-	accessKey, secretKey, err := s.getAccessAndSecret(username)
+	acc, err := s.getAccessAndSecret(username)
 	if err != nil {
 		return resp, err
 	}
+	defer acc.Unlock()
 
-	resp, err = s.PoloniexAPI.GetAuthenticatedLendingHistory(start, end, limit, accessKey, secretKey)
+	take()
+	resp, err = s.PoloniexAPI.GetAuthenticatedLendingHistory(start, end, limit, acc.APIKey, acc.Secret)
 	return
 }

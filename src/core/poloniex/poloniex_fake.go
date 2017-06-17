@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	// "net/http"
 	"net/url"
 	"sync"
 	"time"
@@ -291,6 +292,10 @@ func (p *FakePoloniex) GetActiveLoans(accessKey, secretKey string) (*PoloniexAct
 //
 //
 //
+
+func (p *FakePoloniex) ConstructAuthenticatedLendingHistoryRequest(start, end, limit string, accessKey, secretKey string) (*RequestHolder, error) {
+	return nil, nil
+}
 
 func (p *FakePoloniex) GetAuthenticatedLendingHistory(start, end, limit string, accessKey, secretKey string) (resp PoloniexAuthentictedLendingHistoryRespone, err error) {
 	return

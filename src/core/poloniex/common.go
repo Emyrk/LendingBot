@@ -1,6 +1,7 @@
 package poloniex
 
 import (
+	"bytes"
 	"crypto/hmac"
 	"crypto/md5"
 	"crypto/sha1"
@@ -184,20 +185,42 @@ func CalculateNetProfit(amount, priceThen, priceNow, costs float64) float64 {
 	return (priceNow * amount) - (priceThen * amount) - costs
 }
 
-func SendHTTPRequest(method, path string, headers map[string]string, body io.Reader, long bool) (string, error) {
+type RequestHolder struct {
+	ID      int64
+	Method  string
+	Path    string
+	Body    []byte
+	Headers map[string]string
+}
+
+func ConstructHttpRequest(method, path string, headers map[string]string, body io.Reader) (*RequestHolder, error) {
 	result := strings.ToUpper(method)
 
 	if result != "POST" && result != "GET" && result != "DELETE" {
-		return "", errors.New("Invalid HTTP method specified.")
+		return nil, errors.New("Invalid HTTP method specified.")
 	}
+	var err error
 
-	req, err := http.NewRequest(method, path, body)
-
+	req := new(RequestHolder)
+	req.Method = method
+	req.Path = path
+	req.Body, err = ioutil.ReadAll(body)
 	if err != nil {
-		return "problem with NewReq()", err
+		return nil, err
+	}
+	req.Headers = headers
+
+	return req, nil
+}
+
+func SendConstructedRequest(reqH *RequestHolder) (string, error) {
+	b := bytes.NewBuffer(reqH.Body)
+	req, err := http.NewRequest(reqH.Method, reqH.Path, b)
+	if err != nil {
+		return "", err
 	}
 
-	for k, v := range headers {
+	for k, v := range reqH.Headers {
 		req.Header.Add(k, v)
 	}
 
@@ -214,7 +237,7 @@ func SendHTTPRequest(method, path string, headers map[string]string, body io.Rea
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		log.WithFields(log.Fields{"package": "poloniex", "code": resp.StatusCode}).Errorf("Error in api call:", string(contents))
+		log.WithFields(log.Fields{"package": "poloniex", "code": resp.StatusCode}).Errorf("Error in api call: %s", string(contents))
 	}
 
 	if string(contents) == `{"error": "This IP has been banned for 2 minutes. Please adjust your timeout to 130 seconds."}` {
@@ -227,6 +250,15 @@ func SendHTTPRequest(method, path string, headers map[string]string, body io.Rea
 	}
 
 	return string(contents), nil
+}
+
+func SendHTTPRequest(method, path string, headers map[string]string, body io.Reader) (string, error) {
+	req, err := ConstructHttpRequest(method, path, headers, body)
+	if err != nil {
+		return "problem with construct()", err
+	}
+
+	return SendConstructedRequest(req)
 }
 
 func SendHTTPGetRequest(url string, jsonDecode bool, result interface{}) (err error) {

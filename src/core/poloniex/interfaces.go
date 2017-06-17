@@ -1,6 +1,7 @@
 package poloniex
 
 import (
+	// "net/http"
 	"net/url"
 )
 
@@ -54,4 +55,6 @@ type IPoloniex interface {
 	ToggleAutoRenew(orderNumber int64, accessKey, secretKey string) (bool, error)
 	SendAuthenticatedHTTPRequest(method, endpoint string, values url.Values, result interface{}, accessKey, secretKey string) error
 	GetAuthenticatedLendingHistory(start, end, limit string, accessKey, secretKey string) (PoloniexAuthentictedLendingHistoryRespone, error)
+
+	ConstructAuthenticatedLendingHistoryRequest(start, end, limit string, accessKey, secretKey string) (*RequestHolder, error)
 }

@@ -80,26 +80,26 @@ func TestUserAuth(t *testing.T) {
 		t.Error(err)
 	}
 
-	v, u2, err := s.AuthenticateUser2FA("testing", "testing", "")
-	if err != nil {
-		t.Error(err)
+	v, u2, err2 := s.AuthenticateUser2FA("testing", "testing", "")
+	if err2 != nil {
+		t.Error(err2.Error())
 	}
 
 	if !v {
 		t.Error("User did not validate")
 	}
 
-	u, err := s.FetchUser("testing")
-	if err != nil {
-		t.Error(err)
+	u, err3 := s.FetchUser("testing")
+	if err3 != nil {
+		t.Error(err3.Error())
 		if !u2.IsSameAs(u) {
 			t.Error("User is not the same")
 		}
 	}
 
-	err = s.VerifyEmail("testing", u.VerifyString)
-	if err != nil {
-		t.Error(err)
+	err4 := s.VerifyEmail("testing", u.VerifyString)
+	if err4 != nil {
+		t.Error(err4.Error())
 	}
 }
 
@@ -110,9 +110,9 @@ func TestUserKeys(t *testing.T) {
 		t.Error(err)
 	}
 
-	u, err := s.FetchUser("testing")
-	if err != nil {
-		t.Error(err)
+	u, err2 := s.FetchUser("testing")
+	if err2 != nil {
+		t.Error(err2.Error())
 	}
 
 	if !u.PoloniexKeys.APIKeyEmpty() {
@@ -121,9 +121,9 @@ func TestUserKeys(t *testing.T) {
 	//fmt.Printf("%t\n", u.PoloniexKeys.APIKeyEmpty())
 	s.SetUserKeys("testing", "accesskey", "secretkey")
 
-	u, err = s.FetchUser("testing")
-	if err != nil {
-		t.Error(err)
+	u, err2 = s.FetchUser("testing")
+	if err2 != nil {
+		t.Error(err2.Error())
 	}
 
 	if u.PoloniexKeys.APIKeyEmpty() {
