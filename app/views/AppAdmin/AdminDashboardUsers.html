@@ -70,7 +70,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr ng-repeat="(key, value) in userStats.Bals.currencymap" ng-click="selectUser($index)">
+                    <tr ng-repeat="(key, value) in userStats.Bals.currencymap">
                       <th scope="row">{{key}}</th>
                       <td>{{value}}</td>
                       <td>{{userStats.Bals.percentmap[key].toFixed(4)}}</td>
