@@ -705,6 +705,14 @@ func NewAllLendingHistoryEntry() *AllLendingHistoryEntry {
 	return l
 }
 
+func (a *AllLendingHistoryEntry) Pop() {
+	for _, v := range AvaiableCoins {
+		if _, ok := a.Data[v]; !ok {
+			a.Data[v] = new(LendingHistoryEntry)
+		}
+	}
+}
+
 // LendingHistory
 func (us *UserStatisticsDB) SaveLendingHistory(lendHist *AllLendingHistoryEntry) error {
 	ld := GetDay(lendHist.Time)
@@ -724,16 +732,16 @@ func (us *UserStatisticsDB) GetLendHistorySummary(username string, t time.Time) 
 	ld := GetDay(t)
 	buc := getLHBucket(username)
 	key := append([]byte("Polo"), primitives.Uint32ToBytes(uint32(ld))...)
+	tmp := NewAllLendingHistoryEntry()
 	v, err := us.db.Get(buc, key)
 	if v != nil && err == nil {
-		tmp := NewAllLendingHistoryEntry()
 		_, err := tmp.UnmarshalMsg(v)
 		if err != nil {
-			return nil, err
+			return tmp, err
 		}
 		return tmp, nil
 	}
-	return nil, fmt.Errorf("Not found or an error: %v", err)
+	return tmp, fmt.Errorf("Not found or an error: %v", err)
 }
 
 func getLHBucket(username string) []byte {

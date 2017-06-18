@@ -1,10 +1,12 @@
-hash: c1a7574bb8e797a4913af5b8794251fc5034316fd523e6a2e7cb316da591e41d
-updated: 2017-06-14T21:27:57.329075604-05:00
+hash: 0c1fba76b98dda3807464cfa07d7aa64791eddc02a5f52ccae80a901f93efd4f
+updated: 2017-06-18T17:21:03.511214645-05:00
 imports:
 - name: github.com/agtorre/gocolorize
   version: 99fea4bc9517f07eea8194702cb7076f4845b7de
 - name: github.com/badoux/checkmail
   version: d0a759655d62bcdc95c50a0676f3e9702ed59453
+- name: github.com/beatgammit/turnpike
+  version: aaa21ce8fe51ce110e43204dc642e765e34e7611
 - name: github.com/beorn7/perks
   version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
   subpackages:
@@ -25,7 +27,7 @@ imports:
 - name: github.com/DistributedSolutions/twofactor
   version: 70189459dfeb9c4b243763440e51a29ad0452147
 - name: github.com/garyburd/redigo
-  version: 95d11dba2d44531bdb8022752b98912baafae03a
+  version: 57f1cd7de6175c96b423e7ac2534ff2b39e2ef79
   subpackages:
   - internal
   - redis
@@ -55,7 +57,7 @@ imports:
   subpackages:
   - pbutil
 - name: github.com/philhofer/fwd
-  version: 98c11a7a6ec829d672b03833c3d69a7fae1ca972
+  version: 1612a298117663d7bc9a760ae20d383413859798
 - name: github.com/prometheus/client_golang
   version: c5b7fccd204277076155f10851dad72b76a49317
   subpackages:
@@ -110,10 +112,16 @@ imports:
   - jwt
 - name: github.com/sirupsen/logrus
   version: 85b1699d505667d13f8ac4478c1debbf85d6c5de
+- name: github.com/streamrail/concurrent-map
+  version: 8bf1e9bacbf65b10c81d0f4314cf2b1ebef728b5
 - name: github.com/tinylib/msgp
   version: 02d047e07459c5a7b02b1244161d0f2f6d8f660d
   subpackages:
   - msgp
+- name: github.com/ugorji/go
+  version: 708a42d246822952f38190a8d8c4e6b16a0e600c
+  subpackages:
+  - codec
 - name: go.uber.org/ratelimit
   version: d15fa2e2a63dd52104bc96d8ea7dc47ce8027de8
   subpackages:
@@ -143,7 +151,7 @@ imports:
   subpackages:
   - unix
 - name: golang.org/x/text
-  version: 3491b61b9edc56653ad4333e605e2908e46a036b
+  version: 9e2f80a6ba7ed4ba13e0cd4b1f094bf916875735
   subpackages:
   - secure/bidirule
   - transform
@@ -173,6 +181,13 @@ imports:
   - transport
 - name: gopkg.in/fsnotify.v1
   version: 629574ca2a5df945712d3079857300b5e4da0236
+- name: gopkg.in/mgo.v2
+  version: 3f83fa5005286a7fe593b055f0d7771a7dce4655
+  subpackages:
+  - bson
+  - internal/json
+  - internal/sasl
+  - internal/scram
 testImports:
 - name: github.com/leanovate/gopter
   version: 9e6101e5a87586b269acf3d0d61f363e4317309f

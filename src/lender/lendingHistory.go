@@ -45,6 +45,7 @@ func NewLendingHistoryKeeper(s *core.State) *LendingHistoryKeeper {
 }
 
 func (l *LendingHistoryKeeper) SaveMonth(username string) {
+	fmt.Println(username)
 	l.WorkOnLock.RLock()
 	v, ok := l.WorkingOn[username]
 	l.WorkOnLock.RUnlock()
@@ -79,6 +80,7 @@ func (l *LendingHistoryKeeper) SaveMonth(username string) {
 	top.Add(-48 * time.Hour)
 	curr := top.Add(time.Hour * -72).Add(1 * time.Second)
 	for i := 0; i < 28; i++ {
+		fmt.Println(i)
 		v, err := l.St.LoadLendingSummary(username, curr)
 		if v == nil || err != nil {
 			resp, err := l.getLendhist(username, fmt.Sprintf("%d", curr.Unix()-1), fmt.Sprintf("%d", top.Unix()), "")

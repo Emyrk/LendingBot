@@ -58,6 +58,8 @@ GET 	/dashboard/data/currentuserstats		AppAuthRequired.CurrentUserStats
 GET 	/dashboard/data/lendinghistory			AppAuthRequired.LendingHistory
 GET 	/dashboard/data/lendinghistory/:coin	AppAuthRequired.LendingHistory
 GET 	/dashboard/data/detstats 				AppAuthRequired.GetDetailedUserStats
+GET 	/dashboard/data/lendinghistorysummary	AppAuthRequired.LendingHistorySummary
+
 
 Get 	/dashboard/coin           				AppAuthRequired.CoinDashboard
 

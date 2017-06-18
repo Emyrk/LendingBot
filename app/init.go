@@ -10,6 +10,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var _ = mongo.CreateMongoDB
+
 var cLog = log.WithField("package", "init")
 
 var (
@@ -79,7 +81,7 @@ func init() {
 		return formatFloat(a, precision)
 	}
 
-	revel.OnAppStart(controllers.Launch, InitDB)
+	revel.OnAppStart(controllers.Launch)
 
 	// revel. .OnAppShutdown(controllers.Shutdown)
 }

@@ -46,6 +46,10 @@ func NewStateWithMap() *State {
 	return newState(true, false)
 }
 
+func (s *State) GetUserStatsDB() *userdb.UserStatisticsDB {
+	return s.userStatistic
+}
+
 func (s *State) VerifyState() error {
 	return s.userDB.VerifyDatabase(s.CipherKey)
 }
@@ -439,7 +443,12 @@ func (s *State) SaveLendingHistory(lendHist *userdb.AllLendingHistoryEntry) erro
 }
 
 func (s *State) LoadLendingSummary(username string, t time.Time) (*userdb.AllLendingHistoryEntry, error) {
-	return s.userStatistic.GetLendHistorySummary(username, t)
+	data, err := s.userStatistic.GetLendHistorySummary(username, t)
+	data.Pop()
+	if err != nil {
+		return data, err
+	}
+	return data, err
 }
 
 func (s *State) HasUserPrivilege(email string, priv userdb.UserLevel) bool {

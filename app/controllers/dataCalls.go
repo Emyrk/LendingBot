@@ -211,8 +211,35 @@ func (r AppAuthRequired) GetDetailedUserStats() revel.Result {
 	return r.RenderJSON(data)
 }
 
+func (r AppAuthRequired) LendingHistorySummary() revel.Result {
+	llog := dcLog.WithField("method", "LendingHistorySummary()")
+	data := make(map[string]interface{})
+
+	email := r.Session[SESSION_EMAIL]
+	var month []*userdb.AllLendingHistoryEntry
+
+	t := time.Now().Add(-48 * time.Hour)
+	for i := 0; i < 28; i++ {
+		day, err := state.LoadLendingSummary(email, t)
+		if err != nil {
+			llog.Errorf("Error loading %s: %s", t, err.Error())
+		}
+		t = t.Add(-24 * time.Hour)
+		month = append(month, day)
+	}
+
+	data["LoanHistory"] = month
+	if Lender.Ticker != nil {
+		if v, ok := Lender.Ticker["USDT_BTC"]; ok {
+			data["USD"] = v
+		}
+	}
+
+	return r.RenderJSON(data)
+}
+
 func (r AppAuthRequired) LendingHistory() revel.Result {
-	llog := dcLog.WithField("method", "LendingHistory")
+	llog := dcLog.WithField("method", "LendingHistory()")
 
 	email := r.Session[SESSION_EMAIL]
 

@@ -13,31 +13,37 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 			$http(
 			{
 				method: 'GET',
-				url: '/dashboard/data/lendinghistory/' + coinScope.coin,
+				url: '/dashboard/data/lendinghistorysummary', //' + coinScope.coin
 				data : {
 				},
 				withCredentials: true
 			})
 			.then((res) => {
 				//success
-				coinScope.hasCompleteLoans = res.data.CompleteLoans ? true : false;
-				if (coinScope.hasCompleteLoans) {
+				coinScope.hasCompleteLoans = res.data.LoanHistory ? true : false;
+				if (true || coinScope.hasCompleteLoans) {
 					earnedFeeChart = echarts.init(document.getElementById('lendingHistoryChart')),
 					earned = [],
 					fee = [],
 					dates = [];
 					d = -1
-					for(i = 0; i < res.data.CompleteLoans.length; i++) {
-						if (i > 0 && d >= 0 && new Date(res.data.CompleteLoans[i].close).getDate() == new Date(dates[d]).getDate()) {
-							fee[d] += parseFloat(res.data.CompleteLoans[i].fee);
-							earned[d] += parseFloat(res.data.CompleteLoans[i].earned);
-						} else {
-							fee.push(parseFloat(res.data.CompleteLoans[i].fee));
-							earned.push(parseFloat(res.data.CompleteLoans[i].earned));
-							dates.push(new Date(res.data.CompleteLoans[i].close));
-							d++
-						}
+					// res.data.LoanHistory
+					for(i = 0; i < res.data.LoanHistory.length; i++) {
+						fee.push(parseFloat(res.data.LoanHistory[i].data[coinScope.coin].fees));
+						earned.push(parseFloat(res.data.LoanHistory[i].data[coinScope.coin].earned));
+					 	dates.push(new Date(res.data.LoanHistory[i].time));
 					}
+					// for(i = 0; i < res.data.CompleteLoans.length; i++) {
+					// 	if (i > 0 && d >= 0 && new Date(res.data.CompleteLoans[i].close).getDate() == new Date(dates[d]).getDate()) {
+					// 		fee[d] += parseFloat(res.data.CompleteLoans[i].fee);
+					// 		earned[d] += parseFloat(res.data.CompleteLoans[i].earned);
+					// 	} else {
+					// 		fee.push(parseFloat(res.data.CompleteLoans[i].fee));
+					// 		earned.push(parseFloat(res.data.CompleteLoans[i].earned));
+					// 		dates.push(new Date(res.data.CompleteLoans[i].close));
+					// 		d++
+					// 	}
+					// }
 					var option = {
 						dataZoom : {
 							show : true,
