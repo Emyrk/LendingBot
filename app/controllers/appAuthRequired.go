@@ -125,11 +125,6 @@ func (r AppAuthRequired) Enable2FA() revel.Result {
 	return r.RenderJSON(data)
 }
 
-func (r AppAuthRequired) InfoAdvancedDashboard() revel.Result {
-	AppPageHitAdvInfoDashboard.Inc()
-	return r.RenderTemplate("AppAuthRequired/InfoAdvancedDashboard.html")
-}
-
 func (r AppAuthRequired) SetPoloniexKeys() revel.Result {
 	data := make(map[string]interface{})
 
