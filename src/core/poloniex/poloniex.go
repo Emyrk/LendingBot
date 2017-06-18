@@ -125,6 +125,7 @@ func (p *Poloniex) GetFee() float64 {
 }
 
 func (p *Poloniex) Run() {
+	return
 	if p.Verbose {
 		log.Printf("%s Websocket: %s (url: %s).\n", p.GetName(), IsEnabled(p.Websocket), POLONIEX_WEBSOCKET_ADDRESS)
 		log.Printf("%s polling delay: %ds.\n", p.GetName(), p.RESTPollingDelay)

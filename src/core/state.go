@@ -28,6 +28,8 @@ type State struct {
 	CipherKey       [32]byte
 	JWTSecret       [32]byte
 
+	Master *Master
+
 	// Poloniex Cache
 	poloniexCache *PoloniexAccessCache
 }
@@ -93,6 +95,9 @@ func newState(withMap bool, fakePolo bool) *State {
 	} else {
 		s.userInviteCodes = userdb.NewInviteDB()
 	}
+
+	s.Master = NewMaster()
+	s.Master.Run(6667)
 
 	return s
 }
@@ -427,6 +432,14 @@ func (s *State) UpdateUserPrivilege(email string, priv string) (*string, error) 
 
 	userLevelString := userdb.LevelToString(u.Level)
 	return &userLevelString, s.userDB.PutUser(u)
+}
+
+func (s *State) SaveLendingHistory(lendHist *userdb.AllLendingHistoryEntry) error {
+	return s.userStatistic.SaveLendingHistory(lendHist)
+}
+
+func (s *State) LoadLendingSummary(username string, t time.Time) (*userdb.AllLendingHistoryEntry, error) {
+	return s.userStatistic.GetLendHistorySummary(username, t)
 }
 
 func (s *State) HasUserPrivilege(email string, priv userdb.UserLevel) bool {

@@ -232,6 +232,31 @@ func (s *State) PoloniexAllAuthenticatedTradeHistory(username, start, end string
 	return
 }
 
+func (s *State) PoloniexOffloadAuthenticatedLendingHistory(username, start, end, limit string) (resp poloniex.PoloniexAuthentictedLendingHistoryRespone, err error) {
+	acc, err := s.getAccessAndSecret(username)
+	if err != nil {
+		return resp, err
+	}
+	defer acc.Unlock()
+
+	req, err := s.PoloniexAPI.ConstructAuthenticatedLendingHistoryRequest(start, end, limit, acc.APIKey, acc.Secret)
+	if err != nil {
+		return resp, err
+	}
+
+	sendResp, err := s.Master.SendConstructedCall(req)
+	if err != nil {
+		return resp, err
+	}
+
+	if sendResp.Err != nil {
+		return resp, sendResp.Err
+	}
+
+	err = poloniex.JSONDecode([]byte(sendResp.Response), &resp)
+	return
+}
+
 func (s *State) PoloniexAuthenticatedLendingHistory(username, start, end, limit string) (resp poloniex.PoloniexAuthentictedLendingHistoryRespone, err error) {
 	acc, err := s.getAccessAndSecret(username)
 	if err != nil {

@@ -86,6 +86,8 @@ type Lender struct {
 	OtherPoloBot    *poloBot.PoloBotClient
 	LastPoloBot     map[string]poloBot.PoloBotCoin
 	LastPoloBotTime time.Time
+
+	LHKeeper *LendingHistoryKeeper
 }
 
 func NewLender(s *core.State) *Lender {
@@ -100,6 +102,7 @@ func NewLender(s *core.State) *Lender {
 	l.CurrentLoanRate["BTC"] = LoanRates{Simple: 2.1}
 	l.LastCalculateLoanRate = make(map[string]time.Time)
 	l.UsersLending = make(map[string]bool)
+	l.LHKeeper = NewLendingHistoryKeeper(s)
 
 	// for i, c := range curarr {
 	// 	l.LastCalculateLoanRate[c] = time.Now().Add(time.Second * time.Duration(i))
@@ -118,6 +121,10 @@ func NewLender(s *core.State) *Lender {
 	l.PoloChannel = poloBotChannel
 
 	return l
+}
+
+func (l *Lender) SaveMonth(username string) {
+	l.LHKeeper.SaveMonth(username)
 }
 
 func (l *Lender) StartLending(username string) {
@@ -338,14 +345,19 @@ func (l *Lender) CalculateLoanRate(currency string) error {
 		}
 	}
 
-	lowest := float64(2.1)
+	lr := l.CurrentLoanRate[currency]
+
+	lowest := float64(1)
+	if lr.AvgBased > 0 {
+		lowest = lr.AvgBased * 2
+	}
+
 	for _, o := range all[index].Orders {
 		if o.Rate < lowest {
 			lowest = o.Rate
 		}
 	}
 
-	lr := l.CurrentLoanRate[currency]
 	lr.Simple = lowest
 	l.CurrentLoanRate[currency] = lr
 	if l.CurrentLoanRate[currency].Simple < 2 {

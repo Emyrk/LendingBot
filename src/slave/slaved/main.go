@@ -9,7 +9,7 @@ import (
 
 func main() {
 	var (
-		address = flag.String("a", "localhost:1234", "Master to connect to")
+		address = flag.String("a", "34.211.81.174:6667", "Master to connect to")
 	)
 
 	flag.Parse()

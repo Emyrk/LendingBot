@@ -92,7 +92,6 @@ func (q *Queuer) Start() {
 				log.Println(err)
 			}
 			interval = 0
-			//}
 
 			if time.Since(last).Seconds() > 60 {
 				var str = ""
@@ -107,6 +106,7 @@ func (q *Queuer) Start() {
 			// 	q.calcStats()
 			// }
 			q.AddJobs()
+
 		}
 	}
 }
@@ -125,6 +125,7 @@ func (q *Queuer) AddJobs() {
 		if j.Currency == nil || j.MinimumLend == nil {
 			continue
 		}
+		q.Lender.SaveMonth(u.Username)
 		q.Lender.AddJob(j)
 		QueuerJobsMade.Inc()
 	}

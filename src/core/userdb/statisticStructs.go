@@ -2,6 +2,7 @@
 package userdb
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -24,4 +25,31 @@ type UserStatistic struct {
 	AverageOnOrderRate float64   `json:"onorderrate",msg:"onorderrate"`
 	Currency           string    `json:"currency",msg:"currency"`
 	Time               time.Time `json:"time",msg:"time"`
+}
+
+type AllLendingHistoryEntry struct {
+	Data      map[string]*LendingHistoryEntry `json:"data",msg:"data"`
+	Time      time.Time                       `json:"time",msg:"time"`
+	ShortTime string                          `json:"shorttime",msg:"shorttime"`
+	Username  string                          `json:"username",msg:"username"`
+}
+
+type LendingHistoryEntry struct {
+	Earned      float64 `json:"earned",msg:"earned"`
+	Fees        float64 `json:"fees",msg:"fees"`
+	AvgDuration float64 `json:"avgduration",msg:"avgduration"`
+	Currency    string  `json:"currency",msg:"currency"`
+	LoanCounts  int     `json:"loancount",msg:"loancount"`
+}
+
+func (l *AllLendingHistoryEntry) String() string {
+	str := fmt.Sprintf("[%s] %s: \n", l.Username, l.ShortTime)
+	for _, v := range l.Data {
+		str += v.String()
+	}
+	return str
+}
+
+func (l *LendingHistoryEntry) String() string {
+	return fmt.Sprintf("  [%s] E: %f, F: %f, D: %f, LC: %d\n", l.Currency, l.Earned, l.Fees, l.AvgDuration, l.LoanCounts)
 }

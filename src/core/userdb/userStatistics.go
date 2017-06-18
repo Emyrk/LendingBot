@@ -25,6 +25,7 @@ var (
 	CurrentIndex                  = []byte("CurrentIndex")
 	PoloniexPrefix                = []byte("PoloniexBucket")
 	BucketMarkForDelete           = []byte("Mark for delete")
+	LendingHistoryPrefix          = []byte("LendingHistory")
 )
 
 var (
@@ -226,6 +227,7 @@ func (us *UserStatisticsDB) CalculateCurrentIndex() (err error) {
 	}
 
 	day := GetDay(time.Now())
+	us.CurrentDay = day
 	oldDay := int(u)
 	if day > oldDay {
 		err = us.db.Put(UserStatisticDBMetaDataBucket, CurrentDayKey, primitives.Uint32ToBytes(uint32(day)))
@@ -695,6 +697,48 @@ func GetDay(t time.Time) int {
 
 func GetDayBytes(day int) []byte {
 	return primitives.Uint32ToBytes(uint32(day))
+}
+
+func NewAllLendingHistoryEntry() *AllLendingHistoryEntry {
+	l := new(AllLendingHistoryEntry)
+	l.Data = make(map[string]*LendingHistoryEntry)
+	return l
+}
+
+// LendingHistory
+func (us *UserStatisticsDB) SaveLendingHistory(lendHist *AllLendingHistoryEntry) error {
+	ld := GetDay(lendHist.Time)
+	buc := getLHBucket(lendHist.Username)
+	key := append([]byte("Polo"), primitives.Uint32ToBytes(uint32(ld))...)
+
+	var buf bytes.Buffer
+	err := msgp.Encode(&buf, lendHist)
+	if err != nil {
+		return err
+	}
+
+	return us.db.Put(buc, key, buf.Bytes())
+}
+
+func (us *UserStatisticsDB) GetLendHistorySummary(username string, t time.Time) (*AllLendingHistoryEntry, error) {
+	ld := GetDay(t)
+	buc := getLHBucket(username)
+	key := append([]byte("Polo"), primitives.Uint32ToBytes(uint32(ld))...)
+	v, err := us.db.Get(buc, key)
+	if v != nil && err == nil {
+		tmp := NewAllLendingHistoryEntry()
+		_, err := tmp.UnmarshalMsg(v)
+		if err != nil {
+			return nil, err
+		}
+		return tmp, nil
+	}
+	return nil, fmt.Errorf("Not found or an error: %v", err)
+}
+
+func getLHBucket(username string) []byte {
+	h := GetUsernameHash(username)
+	return append(LendingHistoryPrefix, h[:]...)
 }
 
 func GetSeconds(t time.Time) int {

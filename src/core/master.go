@@ -75,6 +75,7 @@ func (m *Master) NewConnection(con net.Conn) {
 	m.ConMap.Lock()
 	m.Connections[s.ID] = s
 	m.ConMap.Unlock()
+	NumberOfSlaves.Set(float64(len(m.Connections)))
 }
 
 func (m *Master) HandleCommands() {
@@ -85,6 +86,7 @@ func (m *Master) HandleCommands() {
 			case Shutdown:
 				m.ConMap.Lock()
 				delete(m.Connections, c.ID)
+				NumberOfSlaves.Set(float64(len(m.Connections)))
 				m.ConMap.Unlock()
 			}
 		}
@@ -106,6 +108,8 @@ func (m *Master) HandleReturns() {
 }
 
 func (m *Master) SendConstructedCall(req *poloniex.RequestHolder) (*poloniex.ResponseHolder, error) {
+	start := time.Now()
+	defer SlaveCallTime.Observe(float64(time.Since(start).Nanoseconds()))
 	m.ConMap.RLock()
 	if len(m.Connections) == 0 {
 		return nil, fmt.Errorf("No slaves to use")
@@ -132,6 +136,7 @@ func (m *Master) SendConstructedCall(req *poloniex.RequestHolder) (*poloniex.Res
 		time.Sleep(130 * time.Second)
 		timeout <- true
 	}()
+	SlaveCalls.Inc()
 
 	select {
 	case resp := <-m.SingleResponses[req.ID]:
@@ -144,6 +149,8 @@ func (m *Master) SendConstructedCall(req *poloniex.RequestHolder) (*poloniex.Res
 		m.ConMap.Lock()
 		delete(m.Connections, slave.ID)
 		m.ConMap.Unlock()
+		NumberOfSlaves.Set(float64(len(m.Connections)))
+		SlaveTimeouts.Inc()
 		return nil, fmt.Errorf("Timedout trying to send to slave")
 	}
 	return nil, fmt.Errorf("Should never hit this")
