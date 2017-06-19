@@ -52,6 +52,7 @@ func (m *Master) Run(port int) {
 	m.Listen(port)
 	go m.Accept()
 	go m.HandleReturns()
+	go m.HandleCommands()
 }
 
 // Listen will listen on a port and add connections

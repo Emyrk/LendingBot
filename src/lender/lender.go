@@ -675,15 +675,14 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 			maxLend = avail * 0.20
 		}
 
-		if j.Username == "stevenmasley@gmail.com" {
-			llog.Infof("stevenmasley@gmail.com has %f %s available", avail, j.Currency[i])
-		}
-
 		// rate := l.decideRate(rate, avail, total)
 
 		// We need to find some more crypto to lkend
 		//if avail < MaxLendAmt[j.Currency[i]] {
 		need := maxLend - avail
+		if j.Username == "stevenmasley@gmail.com" {
+			llog.Infof("stevenmasley@gmail.com has %f %s available. Max %f, need: %f. Rate %f, Min %f", avail, j.Currency[i], maxLend, need, rate, MinLendAmt[j.Currency[i]])
+		}
 		if inactiveLoans != nil {
 			currencyLoans := inactiveLoans[j.Currency[i]]
 			sort.Sort(poloniex.PoloniexLoanOfferArray(currencyLoans))
