@@ -731,7 +731,7 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 
 		if cStats, ok := stats.Currencies[j.Currency[i]]; ok {
 			total := cStats.OnOrderBalance + cStats.ActiveLentBalance + cStats.AvailableBalance
-			if total > maxLend {
+			if total*0.1 > maxLend {
 				maxLend = 0.1 * total
 			}
 		}
@@ -745,7 +745,7 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 		}
 
 		if j.Username == "stevenmasley@gmail.com" {
-			llog.Infof("stevenmasley@gmail.com Second A: %f, Min: %f", amt, MinLendAmt[j.Currency[i]])
+			llog.Infof("stevenmasley@gmail.com Third A: %f, Min: %f", amt, MinLendAmt[j.Currency[i]])
 		}
 
 		// To little for a loan
