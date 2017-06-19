@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/Emyrk/LendingBot/src/core/userdb"
@@ -29,6 +30,7 @@ func main() {
 		polo      = flag.Bool("polo", false, "Polo data")
 		fix       = flag.Bool("f", false, "Fix polo data")
 		del       = flag.Bool("del", false, "Delete user stats")
+		purge     = flag.Bool("purge", false, "Purge db")
 	)
 
 	flag.Parse()
@@ -38,8 +40,27 @@ func main() {
 		panic(err)
 	}
 
+	if *purge {
+		if *username == "" {
+			panic("No user")
+		}
+
+		arr := strings.Split(*username, " ")
+		if len(arr) > 1 {
+			for _, u := range arr {
+				db.Purge(u)
+			}
+		} else {
+			db.Purge(*username)
+		}
+		return
+	}
+
 	if *del {
-		db.Purge(*username)
+		if *username == "" {
+			panic("No user")
+		}
+		db.WipeUser(*username)
 		return
 	}
 
