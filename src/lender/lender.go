@@ -680,9 +680,6 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 		// We need to find some more crypto to lkend
 		//if avail < MaxLendAmt[j.Currency[i]] {
 		need := maxLend - avail
-		if j.Username == "stevenmasley@gmail.com" {
-			llog.Infof("stevenmasley@gmail.com has %f %s available. Max %f, need: %f. Rate %f, Min %f, MinR: %f", avail, j.Currency[i], maxLend, need, rate, MinLendAmt[j.Currency[i]], min)
-		}
 		if inactiveLoans != nil {
 			currencyLoans := inactiveLoans[j.Currency[i]]
 			sort.Sort(poloniex.PoloniexLoanOfferArray(currencyLoans))
@@ -720,10 +717,6 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 		}
 		//}
 
-		if j.Username == "stevenmasley@gmail.com" {
-			llog.Infof("stevenmasley@gmail.com Second R: %f, Min: %f", rate, min)
-		}
-
 		// Don't make the loan
 		if rate < min {
 			continue
@@ -744,10 +737,6 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 			amt = avail
 		}
 
-		if j.Username == "stevenmasley@gmail.com" {
-			llog.Infof("stevenmasley@gmail.com Third A: %f, Min: %f", amt, MinLendAmt[j.Currency[i]])
-		}
-
 		// To little for a loan
 		if amt < MinLendAmt[j.Currency[i]] {
 			continue
@@ -756,9 +745,6 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 		// Yea.... no
 		if rate == 0 {
 			continue
-		}
-		if j.Username == "stevenmasley@gmail.com" {
-			llog.Infof("stevenmasley@gmail.com fourth for %s. Amt: %f Max %f. Rate %f, Min %f, MinR: %f", j.Currency[i], amt, maxLend, rate, MinLendAmt[j.Currency[i]], min)
 		}
 
 		_, err = s.PoloniexCreateLoanOffer(j.Currency[i], amt, rate, 2, false, j.Username)
