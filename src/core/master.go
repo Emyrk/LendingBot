@@ -85,6 +85,7 @@ func (m *Master) HandleCommands() {
 		case c := <-m.Commands:
 			switch c.Action {
 			case Shutdown:
+				plog.WithField("func", "HandleCommand()").Errorf("Recieved command to shut down a slave")
 				m.ConMap.Lock()
 				delete(m.Connections, c.ID)
 				NumberOfSlaves.Set(float64(len(m.Connections)))
