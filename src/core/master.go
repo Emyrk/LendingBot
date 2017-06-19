@@ -80,11 +80,15 @@ func (m *Master) NewConnection(con net.Conn) {
 }
 
 func (m *Master) HandleCommands() {
+	last := time.Now()
 	for {
 		select {
 		case c := <-m.Commands:
 			switch c.Action {
 			case Shutdown:
+				if time.Since(last).Seconds() < 60 {
+					break
+				}
 				plog.WithField("func", "HandleCommand()").Errorf("Recieved command to shut down a slave")
 				m.ConMap.Lock()
 				delete(m.Connections, c.ID)
@@ -211,7 +215,7 @@ func (s *Slave) HandleSends() {
 			s.limiter.Take()
 			err := s.Encoder.Encode(req)
 			if err != nil {
-				if time.Since(lastprint).Seconds() < 60 {
+				if time.Since(lastprint).Seconds() > 60 {
 					hLog.Errorf("Error encoding request: %s", err.Error())
 					lastprint = time.Now()
 				}
@@ -233,7 +237,7 @@ func (s *Slave) HandleRecieves() {
 		var m poloniex.ResponseHolder
 		err := s.Decoder.Decode(&m)
 		if err != nil && err != io.EOF {
-			if time.Since(lastprint).Seconds() < 60 {
+			if time.Since(lastprint).Seconds() > 60 {
 				hLog.Errorf("Error decoding request: %s", err.Error())
 				lastprint = time.Now()
 			}
