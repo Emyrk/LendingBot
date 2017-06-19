@@ -153,7 +153,31 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 			})
 			.then((res) => {
 				//success
-				console.log(res.data.data);
+				var averagePoints = [];
+				var rangePoints = [];
+				// for(i =0; i < 10; i++) {
+				// 	averagePoints.push([i, i])
+				// 	rangePoints.push([i, i,i+5])
+				// }
+
+				for(i = 0; i < res.data.data.length; i++) {
+					if (res.data.data[i] == undefined) {
+						continue
+					}
+					for(c = 0; c < res.data.data[i].length; c++) {
+						var cur = res.data.data[i][c].currencies[coinScope.coin]
+						var unix = new Date(cur.time).getTime()
+						var avg = [unix, (cur.activerate*100)]
+						var range = [unix, (cur.lowestrate*100), (cur.highestrate*100)]
+						averagePoints.push(avg)
+						rangePoints.push(range)
+					}
+				}
+
+
+				initLineRangeGraph(averagePoints, rangePoints)
+
+
 			}, (err) => {
 				//error
 				$log.error("LendingHistory: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
@@ -177,3 +201,53 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 
 	}]);
 
+function initLineRangeGraph(averages, ranges) {
+	Highcharts.chart('lending-rate-graph', {
+
+		title: {
+			text: 'Lending Rates in Percent'
+		},
+
+		xAxis: {
+			type: 'datetime'
+		},
+
+		yAxis: {
+			title: {
+				text: null
+			}
+		},
+
+		tooltip: {
+			crosshairs: true,
+			shared: true,
+			valueSuffix: '%'
+		},
+
+		legend: {
+		},
+
+		series: [{
+			name: 'Average Rate',
+			data: averages,
+			zIndex: 1,
+			marker: {
+				fillColor: 'white',
+				lineWidth: 2,
+				lineColor: Highcharts.getOptions().colors[0]
+			}
+		}, {
+			name: 'Range',
+			data: ranges,
+			type: 'arearange',
+			lineWidth: 0,
+			linkedTo: ':previous',
+			color: Highcharts.getOptions().colors[0],
+			fillOpacity: 0.3,
+			zIndex: 0,
+			marker: {
+				enabled: false
+			}
+		}]
+	});
+}

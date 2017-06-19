@@ -831,6 +831,16 @@ func (z *UserStatistic) DecodeMsg(dc *msgp.Reader) (err error) {
 			if err != nil {
 				return
 			}
+		case "HighestRate":
+			z.HighestRate, err = dc.ReadFloat64()
+			if err != nil {
+				return
+			}
+		case "LowestRate":
+			z.LowestRate, err = dc.ReadFloat64()
+			if err != nil {
+				return
+			}
 		case "Currency":
 			z.Currency, err = dc.ReadString()
 			if err != nil {
@@ -853,9 +863,9 @@ func (z *UserStatistic) DecodeMsg(dc *msgp.Reader) (err error) {
 
 // EncodeMsg implements msgp.Encodable
 func (z *UserStatistic) EncodeMsg(en *msgp.Writer) (err error) {
-	// map header, size 8
+	// map header, size 10
 	// write "BTCRate"
-	err = en.Append(0x88, 0xa7, 0x42, 0x54, 0x43, 0x52, 0x61, 0x74, 0x65)
+	err = en.Append(0x8a, 0xa7, 0x42, 0x54, 0x43, 0x52, 0x61, 0x74, 0x65)
 	if err != nil {
 		return err
 	}
@@ -908,6 +918,24 @@ func (z *UserStatistic) EncodeMsg(en *msgp.Writer) (err error) {
 	if err != nil {
 		return
 	}
+	// write "HighestRate"
+	err = en.Append(0xab, 0x48, 0x69, 0x67, 0x68, 0x65, 0x73, 0x74, 0x52, 0x61, 0x74, 0x65)
+	if err != nil {
+		return err
+	}
+	err = en.WriteFloat64(z.HighestRate)
+	if err != nil {
+		return
+	}
+	// write "LowestRate"
+	err = en.Append(0xaa, 0x4c, 0x6f, 0x77, 0x65, 0x73, 0x74, 0x52, 0x61, 0x74, 0x65)
+	if err != nil {
+		return err
+	}
+	err = en.WriteFloat64(z.LowestRate)
+	if err != nil {
+		return
+	}
 	// write "Currency"
 	err = en.Append(0xa8, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x63, 0x79)
 	if err != nil {
@@ -932,9 +960,9 @@ func (z *UserStatistic) EncodeMsg(en *msgp.Writer) (err error) {
 // MarshalMsg implements msgp.Marshaler
 func (z *UserStatistic) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 8
+	// map header, size 10
 	// string "BTCRate"
-	o = append(o, 0x88, 0xa7, 0x42, 0x54, 0x43, 0x52, 0x61, 0x74, 0x65)
+	o = append(o, 0x8a, 0xa7, 0x42, 0x54, 0x43, 0x52, 0x61, 0x74, 0x65)
 	o = msgp.AppendFloat64(o, z.BTCRate)
 	// string "AvailableBalance"
 	o = append(o, 0xb0, 0x41, 0x76, 0x61, 0x69, 0x6c, 0x61, 0x62, 0x6c, 0x65, 0x42, 0x61, 0x6c, 0x61, 0x6e, 0x63, 0x65)
@@ -951,6 +979,12 @@ func (z *UserStatistic) MarshalMsg(b []byte) (o []byte, err error) {
 	// string "AverageOnOrderRate"
 	o = append(o, 0xb2, 0x41, 0x76, 0x65, 0x72, 0x61, 0x67, 0x65, 0x4f, 0x6e, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x52, 0x61, 0x74, 0x65)
 	o = msgp.AppendFloat64(o, z.AverageOnOrderRate)
+	// string "HighestRate"
+	o = append(o, 0xab, 0x48, 0x69, 0x67, 0x68, 0x65, 0x73, 0x74, 0x52, 0x61, 0x74, 0x65)
+	o = msgp.AppendFloat64(o, z.HighestRate)
+	// string "LowestRate"
+	o = append(o, 0xaa, 0x4c, 0x6f, 0x77, 0x65, 0x73, 0x74, 0x52, 0x61, 0x74, 0x65)
+	o = msgp.AppendFloat64(o, z.LowestRate)
 	// string "Currency"
 	o = append(o, 0xa8, 0x43, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x63, 0x79)
 	o = msgp.AppendString(o, z.Currency)
@@ -1006,6 +1040,16 @@ func (z *UserStatistic) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			if err != nil {
 				return
 			}
+		case "HighestRate":
+			z.HighestRate, bts, err = msgp.ReadFloat64Bytes(bts)
+			if err != nil {
+				return
+			}
+		case "LowestRate":
+			z.LowestRate, bts, err = msgp.ReadFloat64Bytes(bts)
+			if err != nil {
+				return
+			}
 		case "Currency":
 			z.Currency, bts, err = msgp.ReadStringBytes(bts)
 			if err != nil {
@@ -1029,6 +1073,6 @@ func (z *UserStatistic) UnmarshalMsg(bts []byte) (o []byte, err error) {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *UserStatistic) Msgsize() (s int) {
-	s = 1 + 8 + msgp.Float64Size + 17 + msgp.Float64Size + 18 + msgp.Float64Size + 15 + msgp.Float64Size + 18 + msgp.Float64Size + 19 + msgp.Float64Size + 9 + msgp.StringPrefixSize + len(z.Currency) + 5 + msgp.TimeSize
+	s = 1 + 8 + msgp.Float64Size + 17 + msgp.Float64Size + 18 + msgp.Float64Size + 15 + msgp.Float64Size + 18 + msgp.Float64Size + 19 + msgp.Float64Size + 12 + msgp.Float64Size + 11 + msgp.Float64Size + 9 + msgp.StringPrefixSize + len(z.Currency) + 5 + msgp.TimeSize
 	return
 }

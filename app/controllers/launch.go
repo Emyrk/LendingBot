@@ -105,28 +105,34 @@ func launchPrometheus(port int) {
 var curarr = []string{"BTC", "BTS", "CLAM", "DOGE", "DASH", "LTC", "MAID", "STR", "XMR", "XRP", "ETH", "FCT"}
 
 func Populate(username string, db *userdb.UserStatisticsDB) {
+	n := time.Now()
 	for i := 0; i < 31; i++ {
-		stats := RandStats()
-		stats.Username = username
-		stats.Time = time.Now().Add(100 * time.Duration(i) * time.Second)
+		n = n.Add(-24 * time.Hour)
 		// stats.Currency = "BTC"
 		db.CurrentIndex = i
-		stats.TotalCurrencyMap["BTC"] = 1
-		stats.TotalCurrencyMap["FCT"] = 0.3
-		stats.TotalCurrencyMap["CLAM"] = 0.1
-		stats.TotalCurrencyMap["ETH"] = 0.8
-		stats.TotalCurrencyMap["DOGE"] = 0.05
-		db.RecordData(stats)
-		tot := rand.Intn(100)
-		for c := 0; c < tot; c++ {
-			stats.Time = time.Now().Add(500 * time.Duration(c) * time.Second)
-			db.RecordData(stats)
-		}
 
-		db.RecordPoloniexStatisticTime("BTC", stats.Currencies["BTC"].AverageActiveRate, time.Now().Add(time.Duration(-i)*time.Minute))
+		tot := rand.Intn(100)
+		t := n
+		for c := 0; c < tot; c++ {
+			t = t.Add(20 * time.Second)
+			stats := RandStats(t)
+			stats.Time = t
+			stats.Username = username
+			stats.TotalCurrencyMap["BTC"] = 1
+			stats.TotalCurrencyMap["FCT"] = 0.3
+			stats.TotalCurrencyMap["CLAM"] = 0.1
+			stats.TotalCurrencyMap["ETH"] = 0.8
+			stats.TotalCurrencyMap["DOGE"] = 0.05
+
+			stats.Time = t
+			db.RecordData(stats)
+			if c == 0 {
+				db.RecordPoloniexStatisticTime("BTC", stats.Currencies["BTC"].AverageActiveRate, n)
+			}
+		}
 	}
 
-	n := time.Now()
+	n = time.Now()
 	for i := 0; i < 31; i++ {
 		n = n.Add(-24 * time.Hour)
 		data := RandomLendingHistoryData(username)
@@ -135,7 +141,7 @@ func Populate(username string, db *userdb.UserStatisticsDB) {
 	}
 }
 
-func RandStats() *userdb.AllUserStatistic {
+func RandStats(t time.Time) *userdb.AllUserStatistic {
 	stats := userdb.NewAllUserStatistic()
 
 	for _, v := range curarr {
@@ -159,6 +165,16 @@ func RandStats() *userdb.AllUserStatistic {
 		s.AverageActiveRate = randomFloat(0.001, 0.002)
 		s.AverageOnOrderRate = randomFloat(0.002, 0.0025)
 
+		s.HighestRate = randomFloat(0.001, 0.002)
+		if s.HighestRate < s.AverageActiveRate {
+			s.HighestRate = s.AverageActiveRate
+		}
+		s.LowestRate = randomFloat(0.001, 0.002)
+		if s.LowestRate > s.AverageActiveRate {
+			s.LowestRate = s.AverageActiveRate
+		}
+
+		s.Time = t
 		stats.Currencies[v] = s
 	}
 
