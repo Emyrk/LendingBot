@@ -635,9 +635,15 @@ func (us *UserStatisticsDB) Purge(username string) error {
 		if err != nil {
 			continue
 		}
+		if len(keys) < 100 {
+			continue
+		}
 		for i := 0; i < len(keys); i++ {
 			if i%4 != 0 {
-				us.db.Delete(buc, keys[i])
+				err := us.db.Delete(buc, keys[i])
+				if err != nil {
+					fmt.Println(err)
+				}
 				del++
 			}
 		}
