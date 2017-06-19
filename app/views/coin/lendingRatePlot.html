@@ -28,7 +28,10 @@
 			<p>The middle line is the average active rate for that given moment in time. The area around it shows the highest and lowest rates.</p>
 		</div>
 		<div class="x_content">
-			<div id="lending-rate-graph" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+              <div class="alert alert-info fade in" role="alert" ng-show="loadingDetailedLendingHistory">Loading detailed lending history... this may take a moment.
+                <strong><span><i class="fa fa-spinner fa-spin"></i></span></strong>
+              </div>
+			<div id="lending-rate-graph" ng-show="detailedLendingHistory" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
 		</div>
 	</div>
 </div>

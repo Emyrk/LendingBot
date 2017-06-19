@@ -155,6 +155,7 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 		}
 
 		coinScope.getDetailedLendingHistory = function() {
+			coinScope.loadingDetailedLendingHistory = true;
 			$http(
 			{
 				method: 'GET',
@@ -171,6 +172,8 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 				// 	averagePoints.push([i, i])
 				// 	rangePoints.push([i, i,i+5])
 				// }
+
+				coinScope.detailedLendingHistory = res.data.data ? true : false;
 
 				for(i = 0; i < res.data.data.length; i++) {
 					if (res.data.data[i] == undefined) {
@@ -196,6 +199,9 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 			}, (err) => {
 				//error
 				$log.error("LendingHistory: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+			})
+			.then(() => {
+				coinScope.loadingDetailedLendingHistory = false;
 			});
 		}
 

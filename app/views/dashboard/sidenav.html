@@ -46,16 +46,12 @@
                     <li><a href="#/settings/lending">Lending Settings</a></li>
                   </ul>
                 </li>
-                [[if eq "1000" .UserLevel]]
-                <li><a><i class="fa fa-desktop"></i>Currencies<span class="fa fa-chevron-down"></span></a>
+                <li><a><i class="fa fa-desktop"></i>Currencies<span class="label label-success pull-right">New</span><span class="fa fa-chevron-down"></span></a>
                     <ul class="nav child_menu">
                     [[range .AvailableCoins]]
                         <li><a href="#/coin/[[.]]">[[.]]</a></li>
                     [[end]]
                     </ul>
-                [[else]]
-                <li><a><i class="fa fa-desktop"></i>Currencies<span class="label label-success pull-right">Coming Soon</span></a></a>
-                [[end]]
                 </li>
                 <li><a href="/logout"><i class="fa fa-angellist"></i>   Logout</a>
                 </li>
