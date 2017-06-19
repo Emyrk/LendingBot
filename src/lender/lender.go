@@ -489,10 +489,12 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 		if first {
 			stats.Currencies[loan.Currency].HighestRate = loan.Rate
 			stats.Currencies[loan.Currency].LowestRate = loan.Rate
+			first = false
 		} else {
 			if loan.Rate > stats.Currencies[loan.Currency].HighestRate {
 				stats.Currencies[loan.Currency].HighestRate = loan.Rate
-			} else if loan.Rate < stats.Currencies[loan.Currency].LowestRate {
+			}
+			if loan.Rate < stats.Currencies[loan.Currency].LowestRate {
 				stats.Currencies[loan.Currency].LowestRate = loan.Rate
 			}
 		}
@@ -671,6 +673,10 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 
 		if maxLend < avail*0.20 {
 			maxLend = avail * 0.20
+		}
+
+		if j.Username == "stevenmasley@gmail.com" {
+			llog.Infof("stevenmasley@gmail.com has %f %s available", avail, j.Currency[i])
 		}
 
 		// rate := l.decideRate(rate, avail, total)
