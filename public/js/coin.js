@@ -21,29 +21,18 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 			.then((res) => {
 				//success
 				coinScope.hasCompleteLoans = res.data.LoanHistory ? true : false;
-				if (true || coinScope.hasCompleteLoans) {
+				if (coinScope.hasCompleteLoans) {
 					earnedFeeChart = echarts.init(document.getElementById('lendingHistoryChart')),
 					earned = [],
 					fee = [],
 					dates = [];
-					d = -1
 					// res.data.LoanHistory
-					for(i = 0; i < res.data.LoanHistory.length; i++) {
+					for(i = res.data.LoanHistory.length-1; i >= 0; i--) {
 						fee.push(parseFloat(res.data.LoanHistory[i].data[coinScope.coin].fees));
 						earned.push(parseFloat(res.data.LoanHistory[i].data[coinScope.coin].earned));
-					 	dates.push(new Date(res.data.LoanHistory[i].time));
+						var t = new Date(res.data.LoanHistory[i].time)
+					 	dates.push(t.getMonth() + "/" + t.getDate());
 					}
-					// for(i = 0; i < res.data.CompleteLoans.length; i++) {
-					// 	if (i > 0 && d >= 0 && new Date(res.data.CompleteLoans[i].close).getDate() == new Date(dates[d]).getDate()) {
-					// 		fee[d] += parseFloat(res.data.CompleteLoans[i].fee);
-					// 		earned[d] += parseFloat(res.data.CompleteLoans[i].earned);
-					// 	} else {
-					// 		fee.push(parseFloat(res.data.CompleteLoans[i].fee));
-					// 		earned.push(parseFloat(res.data.CompleteLoans[i].earned));
-					// 		dates.push(new Date(res.data.CompleteLoans[i].close));
-					// 		d++
-					// 	}
-					// }
 					var option = {
 						dataZoom : {
 							show : true,
@@ -58,8 +47,8 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 							},
 							formatter: function (params){
 								return "Date: " + params[0].name + '<br/>'
-								+ params[0].seriesName + ' : ' + params[0].value + '<br/>'
-								+ params[1].seriesName + ' : ' + (params[1].value + params[0].value);
+								+ params[0].seriesName + ' : ' + params[0].value.toFixed(6) + '<br/>'
+								+ params[1].seriesName + ' : ' + params[1].value.toFixed(6);
 							}
 						},
 						legend: {
@@ -80,33 +69,17 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 						{
 							type : 'category',
 							data : dates,
+							name : "Month/Day",
 						}
 						],
 						yAxis : [
 						{
 							type : 'value',
-							boundaryGap: [0, 0.1]
+							boundaryGap: [0, 0.1],
+							name :  coinScope.coin + " Amount",
 						}
 						],
 						series : [
-						{
-							name:'Earned',
-							type:'bar',
-							stack: 'sum',
-							barCategoryGap: '50%',
-							itemStyle: {
-								normal: {
-									color: '#46D246',
-									barBorderColor: '#46D246',
-									barBorderWidth: 6,
-									barBorderRadius:0,
-									label : {
-										show: true, position: 'top'
-									}
-								}
-							},
-							data: earned,
-						},
 						{
 							name:'Fee',
 							type:'bar',
@@ -134,7 +107,28 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 								}
 							},
 							data: fee,
-						}
+						},
+						{
+							name:'Earned',
+							type:'bar',
+							stack: 'sum',
+							barCategoryGap: '50%',
+							itemStyle: {
+								normal: {
+									color: '#46D246',
+									barBorderColor: '#46D246',
+									barBorderWidth: 6,
+									barBorderRadius:0,
+									label : {
+										show: true, position: 'top',
+										formatter: function (params) {
+											return params.value.toFixed(5);
+										},
+									}
+								}
+							},
+							data: earned,
+						},
 						]
 					}
 					earnedFeeChart.setOption(option);

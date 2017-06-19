@@ -90,7 +90,11 @@ var setContentHeight = function () {
 					$SIDEBAR_MENU.find( "li" ).removeClass( "active active-sm" );
 					$SIDEBAR_MENU.find( "li ul" ).slideUp();
 				}
-			}
+			}	
+
+			// JESSE/STEVE - jesse touched this...may mess something up in the future
+			
+
             $li.addClass('active');
 
             $('ul:first', $li).slideDown(function() {
