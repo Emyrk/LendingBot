@@ -305,10 +305,6 @@ func (r AppAuthRequired) LendingHistory() revel.Result {
 		tc, err := state.PoloniexAuthenticatedLendingHistory(u.Username, start, end, "")
 		if err != nil {
 			llog.Errorf("Error getting lend history for %s: %s\n", email, err.Error())
-		} else {
-			if completeLoans != nil {
-				CacheSetLendingHistory(email, *completeLoans)
-			}
 		}
 		completeLoans = &tc
 		if len(completeLoans.Data) == 0 && revel.DevMode {
@@ -333,6 +329,7 @@ func (r AppAuthRequired) LendingHistory() revel.Result {
 				cl[:],
 			}
 		}
+		CacheSetLendingHistory(email, *completeLoans)
 	} else {
 		completeLoans = tempCompleteLoans
 	}
