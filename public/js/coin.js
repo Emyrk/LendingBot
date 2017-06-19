@@ -135,6 +135,10 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 							dates.push(mon + "/" + t.getDate());
 						}
 					}
+					if (earned.length == 0) {
+						coinScope.hasCompleteLoans = false;
+						return;
+					}
 					coinScope.loanHistory = {
 						earned : earned,
 						fee : fee,
