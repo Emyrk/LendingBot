@@ -249,7 +249,7 @@ func init() {
 }
 
 func getRates() map[string]float64 {
-	if Lender.Ticker != nil {
+	if Lender.Ticker == nil {
 		return Rates
 	}
 
