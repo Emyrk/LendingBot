@@ -186,7 +186,7 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 					for(c = 0; c < res.data.data[i].length; c++) {
 						var cur = res.data.data[i][c].currencies[coinScope.coin]
 						var unix = new Date(cur.time).getTime()
-						if ((cur.activerate*100) > 2) {
+						if ((cur.activerate*100) > 2 ||  cur.activerate == 0){
 							continue
 						}
 						var avg = [unix, (cur.activerate*100)]
