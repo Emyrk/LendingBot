@@ -5,14 +5,17 @@
 		</div>
 		<div class="clearfix"></div>
 
-    <div class="col-md-12 col-sm-12 col-xs-12">
+    <div class="col-md-12 col-sm-12 col-xs-12" ng-init="[[.LogFile]] = logFile;">
       <div class="x_panel">
         <div class="x_title">
           <h2>Log file dump</h2>
+          <div class="pull-right">
+            <button ng-click="getUserStats()" class="btn btn-primary"></span>Update Logs</button>
+          </div>
           <div class="clearfix"></div>
         </div>
+          {{logFile}}
         <pre>
-[[.LogFile]]
         </pre>
       </div>
     </div>
