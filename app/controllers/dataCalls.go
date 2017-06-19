@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"sync"
 	"time"
 
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
@@ -229,14 +230,48 @@ func (r AppAuthRequired) LendingHistorySummary() revel.Result {
 	}
 
 	data["LoanHistory"] = month
-	data["convert"] = 5.0 //STEVE MAKE THIS A FLOAT
-	if Lender.Ticker != nil {
-		if v, ok := Lender.Ticker["USDT_BTC"]; ok {
-			data["USD"] = v
-		}
-	}
+	data["USDRates"] = getRates()
+	rateLock.RLock()
+	defer rateLock.RUnlock()
 
 	return r.RenderJSON(data)
+}
+
+var rateLock sync.RWMutex
+var Rates map[string]float64
+var lastRates time.Time
+
+func getRates() map[string]float64 {
+	if Lender.Ticker != nil {
+		return nil
+	}
+
+	if Rates != nil && time.Since(lastRates).Seconds() < 100 {
+		return Rates
+	}
+	lastRates = time.Now()
+
+	m := make(map[string]float64)
+
+	Lender.TickerLock.RLock()
+	btcusd, _ := Lender.Ticker["USDT_BTC"]
+	for _, c := range curarr {
+		if c == "BTC" {
+			m["USD_BTC"] = btcusd.Last
+		} else {
+			btccur, ok := Lender.Ticker[fmt.Sprintf("BTC_%s", c)]
+			if !ok {
+				continue
+			}
+			m[fmt.Sprintf("USD_%s", c)] = btccur.Last * btcusd.Last
+		}
+	}
+	Lender.TickerLock.RUnlock()
+
+	rateLock.Lock()
+	Rates = m
+	rateLock.Unlock()
+	return m
 }
 
 func (r AppAuthRequired) LendingHistory() revel.Result {

@@ -121,8 +121,14 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 							e = parseFloat(res.data.LoanHistory[i].data[coinScope.coin].earned);
 						fee.push(f);
 						earned.push(e);
-						feeDollar.push(f*parseFloat(res.data.convert));
-						earnedDollar.push(e*parseFloat(res.data.convert));
+						var usdRate = res.data.USDRates["USD_"+coinScope.coin]
+						if usdRate == null {
+							usdRate = 1
+						}
+						console.log(res.data)
+
+						feeDollar.push(f*parseFloat(usdRate));
+						earnedDollar.push(e*parseFloat(usdRate));
 						var t = new Date(res.data.LoanHistory[i].time)
 					 	dates.push(t.getMonth() + "/" + t.getDate());
 					}

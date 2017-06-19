@@ -76,7 +76,7 @@ func (l *LendingHistoryKeeper) SaveMonth(username string) {
 	top := time.Date(n.Year(), n.Month(), n.Day(), 0, 0, 0, 0, time.UTC)
 	top = top.Add(time.Hour * 24).Add(-1 * time.Second)
 	// Must start 2 days back to ensure all loans covered
-	top.Add(-48 * time.Hour)
+	top = top.Add(-24 * time.Hour)
 	curr := top.Add(time.Hour * -72).Add(1 * time.Second)
 	for i := 0; i < 28; i++ {
 		v, err := l.St.LoadLendingSummary(username, curr)
