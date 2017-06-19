@@ -755,6 +755,9 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 			// Sleep in our inner loop. This can be dangerous, should put these calls in a seperate queue to handle
 			time.Sleep(5 * time.Second)
 			_, err = s.PoloniexCreateLoanOffer(j.Currency[i], amt, rate, 2, false, j.Username)
+			if err != nil {
+				llog.WithFields(log.Fields{"currency": j.Currency[i], "user": j.Username}).Errorf("Error creating loan: %s", err.Error())
+			}
 		}
 
 		llog.WithField("currency", j.Currency[i]).Infof("Created Loan: %f loaned at %f", amt, rate)
