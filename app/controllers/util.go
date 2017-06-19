@@ -85,7 +85,7 @@ func CacheGetLendingHistory(email string) (*poloniex.PoloniexAuthentictedLending
 	llog := cachelog.WithField("method", "CacheGetLendingHistory")
 	var poloniexHistory poloniex.PoloniexAuthentictedLendingHistoryRespone
 	if err := cache.Get(email+CACHE_LENDING_ENDING, &poloniexHistory); err != nil {
-		llog.Infof("NOT found cache lending history for user %s\n", email)
+		llog.Infof("NOT found cache lending history for user %s", email)
 		return nil, false
 	}
 	llog.Infof("Found cache lending history for user %s\n", email)
@@ -94,6 +94,6 @@ func CacheGetLendingHistory(email string) (*poloniex.PoloniexAuthentictedLending
 
 func CacheSetLendingHistory(email string, p poloniex.PoloniexAuthentictedLendingHistoryRespone) {
 	llog := cachelog.WithField("method", "CacheGetLendingHistory")
-	llog.Infof("Setting lending history for user %s\n", email)
+	llog.Infof("Setting lending history for user %s", email)
 	go cache.Set(email+CACHE_LENDING_ENDING, p, CACHE_LEND_HIST_TIME)
 }
