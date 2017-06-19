@@ -223,7 +223,7 @@ func (r AppAuthRequired) LendingHistorySummary() revel.Result {
 	for i := 0; i < 28; i++ {
 		day, err := state.LoadLendingSummary(email, t)
 		if err != nil {
-			llog.Errorf("Error loading %s: %s", t, err.Error())
+			llog.Errorf("Error loading %s: %s", email, err.Error())
 		}
 		t = t.Add(-24 * time.Hour)
 		month = append(month, day)
