@@ -624,6 +624,24 @@ func (us *UserStatisticsDB) putStats(username string, seconds int, data []byte) 
 	return us.db.Put(buc, key, data)
 }
 
+func (us *UserStatisticsDB) Purge(username string) error {
+	for i := 0; i < 30; i++ {
+		hash := GetUsernameHash(username)
+		index := primitives.Uint32ToBytes(uint32(i))
+		buc := append(hash[:], index...)
+		_, keys, err := us.db.GetAll(buc)
+		if err != nil {
+			continue
+		}
+		for i := 0; i < len(keys); i++ {
+			if i%4 != 0 {
+				us.db.Delete(buc, keys[i])
+			}
+		}
+	}
+	return nil
+}
+
 func (us *UserStatisticsDB) WipeUser(username string) error {
 	for i := 0; i < 30; i++ {
 		hash := GetUsernameHash(username)

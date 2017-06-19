@@ -39,7 +39,7 @@ func main() {
 	}
 
 	if *del {
-		db.WipeUser(*username)
+		db.Purge(*username)
 		return
 	}
 
