@@ -9,31 +9,8 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 			coinScope.poloniexSecret = coinScope.poloniexSecretOrig;
 		}
 
-		coinScope.getLendingHistory = function() {
-			$http(
-			{
-				method: 'GET',
-				url: '/dashboard/data/lendinghistorysummary', //' + coinScope.coin
-				data : {
-				},
-				withCredentials: true
-			})
-			.then((res) => {
-				//success
-				coinScope.hasCompleteLoans = res.data.LoanHistory ? true : false;
-				if (coinScope.hasCompleteLoans) {
-					earnedFeeChart = echarts.init(document.getElementById('lendingHistoryChart')),
-					earned = [],
-					fee = [],
-					dates = [];
-					// res.data.LoanHistory
-					for(i = res.data.LoanHistory.length-1; i >= 0; i--) {
-						fee.push(parseFloat(res.data.LoanHistory[i].data[coinScope.coin].fees));
-						earned.push(parseFloat(res.data.LoanHistory[i].data[coinScope.coin].earned));
-						var t = new Date(res.data.LoanHistory[i].time)
-					 	dates.push(t.getMonth() + "/" + t.getDate());
-					}
-					var option = {
+		coinScope.getLendingHistoryOption = function() {
+			return  {
 						dataZoom : {
 							show : true,
 							realtime: true,
@@ -76,7 +53,7 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 						{
 							type : 'value',
 							boundaryGap: [0, 0.1],
-							name :  coinScope.coin + " Amount",
+							name :  (coinScope.isLendingHistoryCrypto ? coinScope.coin : "Dollar") + " Amount",
 						}
 						],
 						series : [
@@ -90,23 +67,9 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 									barBorderColor: '#ff4c4c',
 									barBorderWidth: 6,
 									barBorderRadius:0,
-									label : {
-										show: false, 
-										position: 'top',
-										formatter: function (params) {
-											for (var i = 0, l = option.xAxis[0].data.length; i < l; i++) {
-												if (option.xAxis[0].data[i] == params.name) {
-													return option.series[0].data[i] + params.value;
-												}
-											}
-										},
-										textStyle: {
-											color: '#ff4c4c'
-										}
-									}
 								}
 							},
-							data: fee,
+							data: (coinScope.isLendingHistoryCrypto ? coinScope.loanHistory.fee : coinScope.loanHistory.feeDollar),
 						},
 						{
 							name:'Earned',
@@ -127,11 +90,52 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 									}
 								}
 							},
-							data: earned,
+							data: (coinScope.isLendingHistoryCrypto ? coinScope.loanHistory.earned : coinScope.loanHistory.earnedDollar),
 						},
 						]
 					}
-					earnedFeeChart.setOption(option);
+		}
+
+		coinScope.getLendingHistory = function() {
+			$http(
+			{
+				method: 'GET',
+				url: '/dashboard/data/lendinghistorysummary', //' + coinScope.coin
+				data : {
+				},
+				withCredentials: true
+			})
+			.then((res) => {
+				//success
+				coinScope.hasCompleteLoans = res.data.LoanHistory ? true : false;
+				res.data.convert = res.data.convert ? parseFloat(res.data.convert) : .5;
+				if (coinScope.hasCompleteLoans) {
+					earnedFeeChart = echarts.init(document.getElementById('lendingHistoryChart')),
+					earned = [],
+					fee = [],
+					dates = [],
+					earnedDollar = [],
+					feeDollar = [];
+					// res.data.LoanHistory
+					for(i = res.data.LoanHistory.length-1; i >= 0; i--) {
+						var f = parseFloat(res.data.LoanHistory[i].data[coinScope.coin].fees),
+							e = parseFloat(res.data.LoanHistory[i].data[coinScope.coin].earned);
+						fee.push(f);
+						earned.push(e);
+						feeDollar.push(f*parseFloat(res.data.convert));
+						earnedDollar.push(e*parseFloat(res.data.convert));
+						var t = new Date(res.data.LoanHistory[i].time)
+					 	dates.push(t.getMonth() + "/" + t.getDate());
+					}
+					coinScope.loanHistory = {
+						earned : earned,
+						fee : fee,
+						dates : dates,
+						earnedDollar : earnedDollar,
+						feeDollar : feeDollar,
+					}
+					
+					earnedFeeChart.setOption(coinScope.getLendingHistoryOption());
 					$timeout(() => {
 						earnedFeeChart.resize();
 					});
@@ -160,9 +164,15 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 			});
 		}
 
+		coinScope.swapLendingHistoryType = function() {
+			coinScope.isLendingHistoryCrypto = !coinScope.isLendingHistoryCrypto;
+			earnedFeeChart.setOption(coinScope.getLendingHistoryOption());
+		}
+
 
 		// /Coin
 		coinScope.coin = $routeParams.coin;
+		coinScope.isLendingHistoryCrypto = true;
 		coinScope.getLendingHistory();
 		coinScope.getDetailedLendingHistory();
 		//resize charts
