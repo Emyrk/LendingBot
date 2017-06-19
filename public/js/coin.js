@@ -108,7 +108,6 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 			.then((res) => {
 				//success
 				coinScope.hasCompleteLoans = res.data.LoanHistory ? true : false;
-				res.data.convert = res.data.convert ? parseFloat(res.data.convert) : .5;
 				if (coinScope.hasCompleteLoans) {
 					earnedFeeChart = echarts.init(document.getElementById('lendingHistoryChart')),
 					earned = [],

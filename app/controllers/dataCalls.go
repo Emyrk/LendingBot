@@ -229,6 +229,7 @@ func (r AppAuthRequired) LendingHistorySummary() revel.Result {
 	}
 
 	data["LoanHistory"] = month
+	data["convert"] = 5.0 //STEVE MAKE THIS A FLOAT
 	if Lender.Ticker != nil {
 		if v, ok := Lender.Ticker["USDT_BTC"]; ok {
 			data["USD"] = v
