@@ -86,9 +86,10 @@ func (m *Master) HandleCommands() {
 		case c := <-m.Commands:
 			switch c.Action {
 			case Shutdown:
-				if time.Since(last).Seconds() < 60 {
+				if time.Since(last).Seconds() > 60 {
 					break
 				}
+				last = time.Now()
 				plog.WithField("func", "HandleCommand()").Errorf("Recieved command to shut down a slave")
 				m.ConMap.Lock()
 				delete(m.Connections, c.ID)
