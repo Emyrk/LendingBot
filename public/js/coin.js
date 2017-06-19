@@ -117,7 +117,7 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 					feeDollar = [];
 					// res.data.LoanHistory
 					for(i = res.data.LoanHistory.length-1; i >= 0; i--) {
-						if (new Date(res.data.LoanHistory[i].time).getYear() > 2000) {
+						if (new Date(res.data.LoanHistory[i].time).getFullYear() > 2000) {
 							var f = parseFloat(res.data.LoanHistory[i].data[coinScope.coin].fees),
 							e = parseFloat(res.data.LoanHistory[i].data[coinScope.coin].earned);
 							fee.push(f);
