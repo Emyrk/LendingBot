@@ -1,11 +1,31 @@
 app.controller('adminControllerQuererStatus', ['$scope', '$http', '$log',
 	function($scope, $http, $log) {
-		var dashInfoAdvScope = $scope;
+		var adminQuererStatus = $scope;
 	}]);
 
 app.controller('adminControllerLogs', ['$scope', '$http', '$log',
 	function($scope, $http, $log) {
-		var dashInfoAdvScope = $scope;
+		var adminLogs = $scope;
+
+		adminLogs.getUserStats = function(e) {
+			$http(
+			{
+				method: 'POST',
+				url: '/dashboard/admin/getuserstats',
+				data: $.param({
+					email: e,
+				}),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				withCredentials: true
+			})
+			.then((res) => {
+				//success
+				adminLogs.logFile = res.data.log;
+			}, (err) => {
+				//error
+				$log.error("getUsers: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+			});
+		}
 	}]);
 
 app.controller('adminController', ['$scope', '$http', '$log', '$timeout',

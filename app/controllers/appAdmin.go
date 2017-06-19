@@ -6,28 +6,47 @@ import (
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	ourlog "github.com/Emyrk/LendingBot/src/log"
 	"github.com/revel/revel"
+	log "github.com/sirupsen/logrus"
 )
+
+var caLog = log.WithField("package", "appAdmin")
 
 type AppAdmin struct {
 	*revel.Controller
 }
 
-func (s AppAdmin) AdminDashboardUsers() revel.Result {
-	return s.RenderTemplate("AppAdmin/AdminDashboardUsers.html")
+func (s AppAdmin) DashboardUsers() revel.Result {
+	return s.RenderTemplate("AppAdmin/DashboardUsers.html")
 }
 
-func (s AppAdmin) AdminDashboardQueuerStatus() revel.Result {
+func (s AppAdmin) DashboardQueuerStatus() revel.Result {
 	s.ViewArgs["QueuerStatus"] = Queuer.Status
-	return s.RenderTemplate("AppAdmin/AdminDashboardQueuerStatus.html")
+	return s.RenderTemplate("AppAdmin/DashboardQueuerStatus.html")
 }
 
-func (s AppAdmin) AdminDashboardLogs() revel.Result {
+func (s AppAdmin) DashboardLogs() revel.Result {
+	llog := caLog.WithField("method", "DashboardLogs")
 	logs, err := ourlog.ReadLogs()
 	if err != nil {
 		logs = fmt.Sprintf("Error reading log: %s", err.Error())
+		llog.Errorf("Error reading logs: %s\n", err.Error())
 	}
 	s.ViewArgs["LogFile"] = logs
-	return s.RenderTemplate("AppAdmin/AdminDashboardLogs.html")
+	return s.RenderTemplate("AppAdmin/DashboardLogs.html")
+}
+
+func (s AppAdmin) GetLogs() revel.Result {
+	llog := caLog.WithField("method", "GetLogs")
+	logs, err := ourlog.ReadLogs()
+	if err != nil {
+		logs = fmt.Sprintf("Error reading log: %s", err.Error())
+		llog.Errorf("Error reading logs: %s\n", err.Error())
+	}
+	data := make(map[string]interface{})
+
+	data["log"] = logs
+
+	return s.RenderJSON(data)
 }
 
 //called before any auth required function

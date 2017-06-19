@@ -48,9 +48,10 @@ GET 	/dashboard/sysadmin/getinvites			AppSysAdmin.GetInvites
 POST	/dashboard/sysadmin/changeuserpriv		AppSysAdmin.ChangeUserPrivilege
 
 
-GET		/dashboard/admin/logs					AppAdmin.AdminDashboardLogs
-GET		/dashboard/admin/queuerstatus			AppAdmin.AdminDashboardQueuerStatus
-GET		/dashboard/admin						AppAdmin.AdminDashboardUsers
+GET		/dashboard/admin/logs					AppAdmin.DashboardLogs
+GET		/dashboard/admin/getlogs				AppAdmin.GetLogs
+GET		/dashboard/admin/queuerstatus			AppAdmin.DashboardQueuerStatus
+GET		/dashboard/admin						AppAdmin.DashboardUsers
 GET		/dashboard/admin/getusers				AppAdmin.GetUsers
 POST	/dashboard/admin/getuserstats			AppAdmin.GetUserStats
 
