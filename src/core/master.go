@@ -204,13 +204,17 @@ func (s *Slave) Run() {
 // HandleSends will take any requests in the channel and send them to the slave
 func (s *Slave) HandleSends() {
 	hLog := plog.WithFields(log.Fields{"func": "HandleSends()", "worker": "Slave"})
+	lastprint := time.Now()
 	for {
 		select {
 		case req := <-s.Requests:
 			s.limiter.Take()
 			err := s.Encoder.Encode(req)
 			if err != nil {
-				hLog.Errorf("Error encoding request: %s", err.Error())
+				if time.Since(lastprint).Seconds() < 60 {
+					hLog.Errorf("Error encoding request: %s", err.Error())
+					lastprint = time.Now()
+				}
 				resp := new(poloniex.ResponseHolder)
 				resp.Err = err
 				resp.ID = req.ID
@@ -223,12 +227,16 @@ func (s *Slave) HandleSends() {
 
 // HandleRecieves takes anything from the slave and sends it to the master
 func (s *Slave) HandleRecieves() {
+	lastprint := time.Now()
 	hLog := plog.WithFields(log.Fields{"func": "HandleRecs()", "worker": "Slave"})
 	for {
 		var m poloniex.ResponseHolder
 		err := s.Decoder.Decode(&m)
 		if err != nil && err != io.EOF {
-			hLog.Errorf("Error decoding request: %s", err.Error())
+			if time.Since(lastprint).Seconds() < 60 {
+				hLog.Errorf("Error decoding request: %s", err.Error())
+				lastprint = time.Now()
+			}
 			s.Master.Commands <- Command{ID: s.ID, Action: Shutdown}
 			continue
 		}

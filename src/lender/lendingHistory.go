@@ -84,16 +84,19 @@ func (l *LendingHistoryKeeper) SaveMonth(username string) {
 			resp, err := l.getLendhist(username, fmt.Sprintf("%d", curr.Unix()-1), fmt.Sprintf("%d", top.Unix()), "")
 			if err != nil {
 				flog.WithFields(log.Fields{"time": top.String()}).Errorf("Error getting Lending history: %s", err.Error())
+				break
 			} else {
 				compiled, err := compileData(resp.Data, top)
 				if err != nil {
 					flog.WithFields(log.Fields{"time": top.String()}).Errorf("Error compiling Lending history: %s", err.Error())
+					break
 				} else {
 					compiled.Username = username
 					compiled.SetTime(top)
 					err := l.St.SaveLendingHistory(compiled)
 					if err != nil {
 						flog.WithFields(log.Fields{"time": top.String()}).Errorf("Error saving Lending history: %s", err.Error())
+						break
 					}
 				}
 			}
