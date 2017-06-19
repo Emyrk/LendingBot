@@ -93,7 +93,7 @@ var setContentHeight = function () {
 			}	
 
 			// JESSE/STEVE - jesse touched this...may mess something up in the future
-			
+			$li.parent().children().removeClass('active');
 
             $li.addClass('active');
 
