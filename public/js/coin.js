@@ -122,7 +122,7 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 						fee.push(f);
 						earned.push(e);
 						var usdRate = res.data.USDRates["USD_"+coinScope.coin]
-						if usdRate == null {
+						if (usdRate == null) {
 							usdRate = 1
 						}
 						console.log(res.data)
