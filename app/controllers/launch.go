@@ -117,8 +117,11 @@ func Populate(username string, db *userdb.UserStatisticsDB) {
 		stats.TotalCurrencyMap["ETH"] = 0.8
 		stats.TotalCurrencyMap["DOGE"] = 0.05
 		db.RecordData(stats)
-		stats.Time = time.Now().Add(500 * time.Duration(i) * time.Second)
-		db.RecordData(stats)
+		tot := rand.Intn(100)
+		for c := 0; c < tot; c++ {
+			stats.Time = time.Now().Add(500 * time.Duration(c) * time.Second)
+			db.RecordData(stats)
+		}
 
 		db.RecordPoloniexStatisticTime("BTC", stats.Currencies["BTC"].AverageActiveRate, time.Now().Add(time.Duration(-i)*time.Minute))
 	}
