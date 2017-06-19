@@ -28,6 +28,7 @@ func main() {
 		dailyavgs = flag.Bool("d", false, "daily averages")
 		polo      = flag.Bool("polo", false, "Polo data")
 		fix       = flag.Bool("f", false, "Fix polo data")
+		del       = flag.Bool("del", false, "Delete user stats")
 	)
 
 	flag.Parse()
@@ -35,6 +36,11 @@ func main() {
 	db, err := userdb.NewUserStatisticsDB()
 	if err != nil {
 		panic(err)
+	}
+
+	if *del {
+		db.WipeUser(*username)
+		return
 	}
 
 	if *fix {
@@ -68,7 +74,6 @@ func PoloFix(db *userdb.UserStatisticsDB) {
 }
 
 func PoloData(db *userdb.UserStatisticsDB) {
-
 	stats := db.GetPoloniexStatistics("BTC")
 	fmt.Println(stats)
 }

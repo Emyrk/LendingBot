@@ -61,7 +61,7 @@ func (p *PoloniexAccessCache) shouldRecordStats(username string) bool {
 	p.Lock()
 	defer p.Unlock()
 	if v, ok := p.Cache[username]; ok {
-		if time.Since(v.LastStatsUpdate).Seconds() > 60 {
+		if time.Since(v.LastStatsUpdate).Seconds() > 7*60 {
 			v.LastStatsUpdate = time.Now()
 			p.Cache[username] = v
 			return true

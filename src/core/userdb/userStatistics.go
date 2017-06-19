@@ -616,6 +616,16 @@ func (us *UserStatisticsDB) putStats(username string, seconds int, data []byte) 
 	return us.db.Put(buc, key, data)
 }
 
+func (us *UserStatisticsDB) WipeUser(username string) error {
+	for i := 0; i < 30; i++ {
+		hash := GetUsernameHash(username)
+		index := primitives.Uint32ToBytes(uint32(i))
+		buc := append(hash[:], index...)
+		us.db.Clear(buc)
+	}
+	return nil
+}
+
 func (us *UserStatisticsDB) getBucket(username string) []byte {
 	hash := GetUsernameHash(username)
 	index := primitives.Uint32ToBytes(uint32(us.CurrentIndex))
