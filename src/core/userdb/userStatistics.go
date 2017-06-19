@@ -630,14 +630,18 @@ func (us *UserStatisticsDB) Purge(username string) error {
 		index := primitives.Uint32ToBytes(uint32(i))
 		buc := append(hash[:], index...)
 		_, keys, err := us.db.GetAll(buc)
+		fmt.Printf("Found %d elements for %s.\n", len(keys), username)
+		del := 0
 		if err != nil {
 			continue
 		}
 		for i := 0; i < len(keys); i++ {
 			if i%4 != 0 {
 				us.db.Delete(buc, keys[i])
+				del++
 			}
 		}
+		fmt.Printf("Deleted %d elements\n", del)
 	}
 	return nil
 }
