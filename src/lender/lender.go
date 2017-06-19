@@ -345,6 +345,10 @@ func (l *Lender) CalculateLoanRate(currency string) error {
 		return err
 	}
 
+	if len(loans.Offers) == 0 {
+		clog.WithFields(log.Fields{"method": "CalcLoan"}).Errorf("No offers found in loan book.")
+	}
+
 	breakoff := l.getAmtForBTCValue(5, currency)
 
 	index := 200
