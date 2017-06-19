@@ -592,6 +592,14 @@ func (us *UserStatisticsDB) getStatsFromBucket(bucket []byte) []AllUserStatistic
 				n.BTCRate = 1
 				tmp.Currencies = make(map[string]*UserStatistic)
 				tmp.Currencies["BTC"] = &n
+
+				for _, v := range curarr {
+					var o UserStatistic
+					o.Currency = v
+					o.Time = old.Time
+					tmp.Currencies[v] = &o
+				}
+
 				tmp.Time = n.Time
 			}
 		}

@@ -130,7 +130,8 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 						feeDollar.push(f*parseFloat(usdRate));
 						earnedDollar.push(e*parseFloat(usdRate));
 						var t = new Date(res.data.LoanHistory[i].time)
-					 	dates.push(t.getMonth() + "/" + t.getDate());
+						var mon = t.getMonth()+1;
+					 	dates.push(mon + "/" + t.getDate());
 					}
 					coinScope.loanHistory = {
 						earned : earned,
@@ -176,6 +177,9 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 					for(c = 0; c < res.data.data[i].length; c++) {
 						var cur = res.data.data[i][c].currencies[coinScope.coin]
 						var unix = new Date(cur.time).getTime()
+						if (cur.activerate > 2) {
+							continue
+						}
 						var avg = [unix, (cur.activerate*100)]
 						var range = [unix, (cur.lowestrate*100), (cur.highestrate*100)]
 						averagePoints.push(avg)
