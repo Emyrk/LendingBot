@@ -76,14 +76,20 @@ type Lender struct {
 	CalculateLoanInterval float64 // In seconds
 	LastTickerUpdate      time.Time
 	GetTickerInterval     float64
-	Ticker                map[string]poloniex.PoloniexTicker
-	PoloniexStats         map[string]*userdb.PoloniexStats
+
+	TickerLock sync.RWMutex
+	Ticker     map[string]poloniex.PoloniexTicker
+
+	PoloniexStatLock sync.RWMutex
+	PoloniexStats    map[string]*userdb.PoloniexStats
 
 	UserLendingLock sync.RWMutex
 	UsersLending    map[string]bool
 
-	PoloChannel     chan *poloBot.PoloBotParams
-	OtherPoloBot    *poloBot.PoloBotClient
+	PoloChannel  chan *poloBot.PoloBotParams
+	OtherPoloBot *poloBot.PoloBotClient
+
+	LastPoloBotLock sync.RWMutex
 	LastPoloBot     map[string]poloBot.PoloBotCoin
 	LastPoloBotTime time.Time
 
@@ -97,7 +103,9 @@ func NewLender(s *core.State) *Lender {
 	l.CalculateLoanInterval = 1
 	l.GetTickerInterval = 30
 	l.Ticker = make(map[string]poloniex.PoloniexTicker)
+
 	l.PoloniexStats = make(map[string]*userdb.PoloniexStats)
+
 	l.CurrentLoanRate = make(map[string]LoanRates)
 	l.CurrentLoanRate["BTC"] = LoanRates{Simple: 2.1}
 	l.LastCalculateLoanRate = make(map[string]time.Time)
@@ -162,6 +170,7 @@ func (l *Lender) MonitorPoloBot() {
 			PoloBotRateDOGE.Set(p.DOGE.GetBestReturnRate())
 			PoloBotRateBTS.Set(p.BTS.GetBestReturnRate())
 
+			l.LastPoloBotLock.Lock()
 			l.LastPoloBot["BTC"] = p.BTC
 			l.LastPoloBot["BTS"] = p.BTS
 			l.LastPoloBot["ETH"] = p.ETH
@@ -172,6 +181,7 @@ func (l *Lender) MonitorPoloBot() {
 			l.LastPoloBot["XRP"] = p.XRP
 
 			l.LastPoloBotTime = p.Time
+			l.LastPoloBotLock.Unlock()
 
 		}
 	}
@@ -263,6 +273,7 @@ func (l *Lender) UpdateTicker() {
 		l.Ticker = ticker
 	}
 	l.LastTickerUpdate = time.Now()
+	l.PoloniexStatLock.Lock()
 	l.PoloniexStats["BTC"] = l.State.GetPoloniexStatistics("BTC")
 	// Prometheus
 	if l.PoloniexStats["BTC"] != nil {
@@ -288,7 +299,9 @@ func (l *Lender) UpdateTicker() {
 	l.PoloniexStats["XMR"] = l.State.GetPoloniexStatistics("XMR")
 	l.PoloniexStats["XRP"] = l.State.GetPoloniexStatistics("XRP")
 	l.PoloniexStats["ETH"] = l.State.GetPoloniexStatistics("ETH")
+	l.PoloniexStatLock.Unlock()
 
+	l.TickerLock.RLock()
 	if v, ok := ticker["BTC_FCT"]; ok {
 		TickerFCTValue.Set(v.Last)
 	}
@@ -319,6 +332,7 @@ func (l *Lender) UpdateTicker() {
 	if v, ok := ticker["BTC_ETH"]; ok {
 		TickerETHValue.Set(v.Last)
 	}
+	l.TickerLock.RUnlock()
 
 	LenderUpdateTicker.Inc()
 }
@@ -415,6 +429,8 @@ func (l *Lender) calculateAvgBasedLoanRate(currency string) {
 //		1 for rising
 //		2 for more rising
 func (l *Lender) rising(currency string) int {
+	l.PoloniexStatLock.RLock()
+	defer l.PoloniexStatLock.RUnlock()
 	if v, ok := l.PoloniexStats[currency]; !ok || v == nil {
 		return 0
 	}
@@ -603,12 +619,17 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 
 		if l.CurrentLoanRate[j.Currency[i]].Simple == l.CurrentLoanRate[j.Currency[i]].AvgBased {
 			if ri >= 1 {
+				l.PoloniexStatLock.RLock()
 				rate += l.PoloniexStats[j.Currency[i]].DayStd * .05
+				l.PoloniexStatLock.RUnlock()
 			}
 		}
 
 		if time.Since(l.LastPoloBotTime).Seconds() < 15 {
-			if v, ok := l.LastPoloBot[j.Currency[i]]; ok && v.GetBestReturnRate() > 0 {
+			l.LastPoloBotLock.RLock()
+			v, ok := l.LastPoloBot[j.Currency[i]]
+			l.LastPoloBotLock.RUnlock()
+			if ok && v.GetBestReturnRate() > 0 {
 				poloRate := v.GetBestReturnRate()
 				if rate < poloRate {
 					rate = (rate + poloRate) / 2

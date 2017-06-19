@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/Emyrk/LendingBot/app/controllers"
 	"github.com/Emyrk/LendingBot/src/core/database/mongo"
@@ -60,6 +61,10 @@ func init() {
 
 	revel.TemplateFuncs["isEven"] = func(a int) bool {
 		return a%2 == 0
+	}
+
+	revel.TemplateFuncs["contains"] = func(s string, substr string) bool {
+		return strings.Contains(s, substr)
 	}
 
 	revel.TemplateFuncs["formatPercentString"] = func(a string, precision int) string {

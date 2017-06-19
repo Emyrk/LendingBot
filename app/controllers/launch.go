@@ -122,6 +122,14 @@ func Populate(username string, db *userdb.UserStatisticsDB) {
 
 		db.RecordPoloniexStatisticTime("BTC", stats.Currencies["BTC"].AverageActiveRate, time.Now().Add(time.Duration(-i)*time.Minute))
 	}
+
+	n := time.Now()
+	for i := 0; i < 31; i++ {
+		n = n.Add(-24 * time.Hour)
+		data := RandomLendingHistoryData(username)
+		data.SetTime(n)
+		db.SaveLendingHistory(data)
+	}
 }
 
 func RandStats() *userdb.AllUserStatistic {
@@ -156,4 +164,20 @@ func RandStats() *userdb.AllUserStatistic {
 
 func randomFloat(min, max float64) float64 {
 	return rand.Float64()*(max-min) + min
+}
+
+func RandomLendingHistoryData(username string) *userdb.AllLendingHistoryEntry {
+	all := userdb.NewAllLendingHistoryEntry()
+	for _, v := range curarr {
+		d := new(userdb.LendingHistoryEntry)
+		all.Data[v] = d
+		d.Currency = v
+		d.AvgDuration = randomFloat(0, 2)
+		interest := randomFloat(0.1, 0.005)
+		d.Earned = interest * .85
+		d.Fees = interest * .15
+		d.LoanCounts = rand.Intn(200)
+	}
+	all.Username = username
+	return all
 }

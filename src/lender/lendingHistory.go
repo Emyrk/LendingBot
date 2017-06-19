@@ -92,8 +92,7 @@ func (l *LendingHistoryKeeper) SaveMonth(username string) {
 					flog.WithFields(log.Fields{"time": top.String()}).Errorf("Error compiling Lending history: %s", err.Error())
 				} else {
 					compiled.Username = username
-					compiled.Time = top
-					compiled.ShortTime = top.Format("Mon Jan 02")
+					compiled.SetTime(top)
 					err := l.St.SaveLendingHistory(compiled)
 					if err != nil {
 						flog.WithFields(log.Fields{"time": top.String()}).Errorf("Error saving Lending history: %s", err.Error())

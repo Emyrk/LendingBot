@@ -42,6 +42,11 @@ type LendingHistoryEntry struct {
 	LoanCounts  int     `json:"loancount",msg:"loancount"`
 }
 
+func (l *AllLendingHistoryEntry) SetTime(t time.Time) {
+	l.Time = t
+	l.ShortTime = t.Format("Mon Jan 02")
+}
+
 func (l *AllLendingHistoryEntry) String() string {
 	str := fmt.Sprintf("[%s] %s: \n", l.Username, l.ShortTime)
 	for _, v := range l.Data {
