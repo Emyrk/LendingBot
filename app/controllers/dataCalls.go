@@ -223,7 +223,7 @@ func (r AppAuthRequired) LendingHistorySummary() revel.Result {
 	for i := 0; i < 28; i++ {
 		day, err := state.LoadLendingSummary(email, t)
 		if err != nil {
-			llog.Errorf("Error loading %s: %s", t, err.Error())
+			llog.Errorf("Error loading %s: %s", email, err.Error())
 		}
 		t = t.Add(-24 * time.Hour)
 		month = append(month, day)
@@ -241,9 +241,16 @@ var rateLock sync.RWMutex
 var Rates map[string]float64
 var lastRates time.Time
 
+func init() {
+	Rates = make(map[string]float64)
+	for _, c := range curarr {
+		Rates[fmt.Sprintf("USD_%s", c)] = 0
+	}
+}
+
 func getRates() map[string]float64 {
 	if Lender.Ticker != nil {
-		return nil
+		return Rates
 	}
 
 	if Rates != nil && time.Since(lastRates).Seconds() < 100 {
@@ -261,6 +268,7 @@ func getRates() map[string]float64 {
 		} else {
 			btccur, ok := Lender.Ticker[fmt.Sprintf("BTC_%s", c)]
 			if !ok {
+				m[fmt.Sprintf("USD_%s", c)] = 0
 				continue
 			}
 			m[fmt.Sprintf("USD_%s", c)] = btccur.Last * btcusd.Last

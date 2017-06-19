@@ -254,6 +254,9 @@ func (s *State) PoloniexOffloadAuthenticatedLendingHistory(username, start, end,
 	}
 
 	err = poloniex.JSONDecode([]byte(sendResp.Response), &resp.Data)
+	if err != nil {
+		err = fmt.Errorf("%s :: Resp: %s", err.Error(), sendResp.Response)
+	}
 	return
 }
 
