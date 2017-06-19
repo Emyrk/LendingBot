@@ -10,8 +10,8 @@ app.controller('adminControllerLogs', ['$scope', '$http', '$log',
 		adminLogs.getUserStats = function(e) {
 			$http(
 			{
-				method: 'POST',
-				url: '/dashboard/admin/getuserstats',
+				method: 'GET',
+				url: '/dashboard/admin/getlogs',
 				data: $.param({
 					email: e,
 				}),
