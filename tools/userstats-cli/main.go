@@ -41,6 +41,7 @@ func main() {
 	}
 
 	if *purge {
+		fmt.Println("Purging")
 		if *username == "" {
 			panic("No user")
 		}
@@ -48,6 +49,7 @@ func main() {
 		arr := strings.Split(*username, " ")
 		if len(arr) > 1 {
 			for _, u := range arr {
+				fmt.Println("Purging", u)
 				db.Purge(u)
 			}
 		} else {
