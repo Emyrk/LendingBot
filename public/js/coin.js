@@ -11,89 +11,89 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 
 		coinScope.getLendingHistoryOption = function() {
 			return  {
-						dataZoom : {
-							show : true,
-							realtime: true,
-							start : 50,
-							end : 100
-						},
-						tooltip : {
-							trigger: 'axis',
-							axisPointer : {
-								type : 'shadow'
-							},
-							formatter: function (params){
-								return "Date: " + params[0].name + '<br/>'
-								+ params[0].seriesName + ' : ' + params[0].value.toFixed(6) + '<br/>'
-								+ params[1].seriesName + ' : ' + params[1].value.toFixed(6);
-							}
-						},
-						legend: {
-							selectedMode:false,
-							data:['Earned', 'Fee']
-						},
-						toolbox: {
-							show : true,
-							feature : {
-								mark : {show: true},
-								dataView : {show: true, readOnly: false},
-								restore : {show: true},
-								saveAsImage : {show: true}
-							}
-						},
-						calculable : true,
-						xAxis : [
-						{
-							type : 'category',
-							data : dates,
-							name : "Month/Day",
-						}
-						],
-						yAxis : [
-						{
-							type : 'value',
-							boundaryGap: [0, 0.1],
-							name :  (coinScope.isLendingHistoryCrypto ? coinScope.coin : "Dollar") + " Amount",
-						}
-						],
-						series : [
-						{
-							name:'Fee',
-							type:'bar',
-							stack: 'sum',
-							itemStyle: {
-								normal: {
-									color: '#ff4c4c',
-									barBorderColor: '#ff4c4c',
-									barBorderWidth: 6,
-									barBorderRadius:0,
-								}
-							},
-							data: (coinScope.isLendingHistoryCrypto ? coinScope.loanHistory.fee : coinScope.loanHistory.feeDollar),
-						},
-						{
-							name:'Earned',
-							type:'bar',
-							stack: 'sum',
-							barCategoryGap: '50%',
-							itemStyle: {
-								normal: {
-									color: '#46D246',
-									barBorderColor: '#46D246',
-									barBorderWidth: 6,
-									barBorderRadius:0,
-									label : {
-										show: true, position: 'top',
-										formatter: function (params) {
-											return params.value.toFixed(5);
-										},
-									}
-								}
-							},
-							data: (coinScope.isLendingHistoryCrypto ? coinScope.loanHistory.earned : coinScope.loanHistory.earnedDollar),
-						},
-						]
+				dataZoom : {
+					show : true,
+					realtime: true,
+					start : 50,
+					end : 100
+				},
+				tooltip : {
+					trigger: 'axis',
+					axisPointer : {
+						type : 'shadow'
+					},
+					formatter: function (params){
+						return "Date: " + params[0].name + '<br/>'
+						+ params[0].seriesName + ' : ' + params[0].value.toFixed(6) + '<br/>'
+						+ params[1].seriesName + ' : ' + params[1].value.toFixed(6);
 					}
+				},
+				legend: {
+					selectedMode:false,
+					data:['Earned', 'Fee']
+				},
+				toolbox: {
+					show : true,
+					feature : {
+						mark : {show: true},
+						dataView : {show: true, readOnly: false},
+						restore : {show: true},
+						saveAsImage : {show: true}
+					}
+				},
+				calculable : true,
+				xAxis : [
+				{
+					type : 'category',
+					data : dates,
+					name : "Month/Day",
+				}
+				],
+				yAxis : [
+				{
+					type : 'value',
+					boundaryGap: [0, 0.1],
+					name :  (coinScope.isLendingHistoryCrypto ? coinScope.coin : "Dollar") + " Amount",
+				}
+				],
+				series : [
+				{
+					name:'Fee',
+					type:'bar',
+					stack: 'sum',
+					itemStyle: {
+						normal: {
+							color: '#ff4c4c',
+							barBorderColor: '#ff4c4c',
+							barBorderWidth: 6,
+							barBorderRadius:0,
+						}
+					},
+					data: (coinScope.isLendingHistoryCrypto ? coinScope.loanHistory.fee : coinScope.loanHistory.feeDollar),
+				},
+				{
+					name:'Earned',
+					type:'bar',
+					stack: 'sum',
+					barCategoryGap: '50%',
+					itemStyle: {
+						normal: {
+							color: '#46D246',
+							barBorderColor: '#46D246',
+							barBorderWidth: 6,
+							barBorderRadius:0,
+							label : {
+								show: true, position: 'top',
+								formatter: function (params) {
+									return params.value.toFixed(5);
+								},
+							}
+						}
+					},
+					data: (coinScope.isLendingHistoryCrypto ? coinScope.loanHistory.earned : coinScope.loanHistory.earnedDollar),
+				},
+				]
+			}
 		}
 
 		coinScope.getLendingHistory = function() {
@@ -117,21 +117,23 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 					feeDollar = [];
 					// res.data.LoanHistory
 					for(i = res.data.LoanHistory.length-1; i >= 0; i--) {
-						var f = parseFloat(res.data.LoanHistory[i].data[coinScope.coin].fees),
+						if (new Date(res.data.LoanHistory[i].time).getYear() > 2000) {
+							var f = parseFloat(res.data.LoanHistory[i].data[coinScope.coin].fees),
 							e = parseFloat(res.data.LoanHistory[i].data[coinScope.coin].earned);
-						fee.push(f);
-						earned.push(e);
-						var usdRate = res.data.USDRates["USD_"+coinScope.coin]
-						if (usdRate == null) {
-							usdRate = 1
-						}
-						console.log(res.data)
+							fee.push(f);
+							earned.push(e);
+							var usdRate = res.data.USDRates["USD_"+coinScope.coin]
+							if (usdRate == null) {
+								usdRate = 1
+							}
+							console.log(res.data)
 
-						feeDollar.push(f*parseFloat(usdRate));
-						earnedDollar.push(e*parseFloat(usdRate));
-						var t = new Date(res.data.LoanHistory[i].time)
-						var mon = t.getMonth()+1;
-					 	dates.push(mon + "/" + t.getDate());
+							feeDollar.push(f*parseFloat(usdRate));
+							earnedDollar.push(e*parseFloat(usdRate));
+							var t = new Date(res.data.LoanHistory[i].time)
+							var mon = t.getMonth()+1;
+							dates.push(mon + "/" + t.getDate());
+						}
 					}
 					coinScope.loanHistory = {
 						earned : earned,
