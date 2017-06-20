@@ -1,8 +1,10 @@
 package balancer
 
 const (
-	RequestIdentity int = iota
-	ResponseIdentity
+	RequestIdentityParcel int = iota
+	ResponseIdentityParcel
+
+	AssignmentParcel
 )
 
 type Parcel struct {
@@ -15,7 +17,7 @@ type Parcel struct {
 }
 
 func NewRequestIDParcel() *Parcel {
-	return newParcel("", RequestIdentity)
+	return newParcel("", RequestIdentityParcel)
 }
 
 type IDResponse struct {
@@ -24,14 +26,25 @@ type IDResponse struct {
 }
 
 func NewResponseIDParcel(id string, users []User) *Parcel {
-	p := newParcel(id, ResponseIdentity)
+	p := newParcel(id, ResponseIdentityParcel)
 
 	m := new(IDResponse)
 	m.ID = id
 	m.Users = users
 	p.Message = m
 
-	return
+	return p
+}
+
+type Assignment struct {
+	Users []User
+}
+
+func NewAssignment(id string, a Assignment) *Parcel {
+	p := newParcel(id, AssignmentParcel)
+	p.Message = a
+
+	return p
 }
 
 func newParcel(id string, t int) *Parcel {

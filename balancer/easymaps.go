@@ -1,8 +1,8 @@
 package balancer
 
 import (
-	"encoding/gob"
-	"net"
+	// "encoding/gob"
+	// "net"
 	"sync"
 )
 
@@ -25,7 +25,7 @@ func (s *Swarm) Lock() {
 	s.Lock()
 }
 
-func (s *Swarm) Lock() {
+func (s *Swarm) Unlock() {
 	s.Unlock()
 }
 
@@ -59,21 +59,21 @@ func (s *Swarm) SwamCountUnsafe() int {
 	return len(s.swarm)
 }
 
-func (s *Swarm) AddBeeFromRaw(id string, c net.Conn, e *gob.Encoder, d *gob.Decoder, p *Parcel) *Bee {
+func (s *Swarm) AttachWings(wb *WinglessBee) (*Bee, bool) {
 	// TODO: Deal with parcel for setting up Bee
 
 	s.Lock()
 	defer s.Unlock()
 	// If this bee already exists, check if it's offline
-	if b, ok := s.swarm[id]; ok {
+	if b, ok := s.swarm[wb.ID]; ok {
 		switch b.Status {
 		case Offline: // Ahh cool, it's reconnecting. Let's help him out
-			b.Connection = c
-			b.Encoder = e
-			b.Decoder = d
+			b.Connection = wb.Connection
+			b.Encoder = wb.Encoder
+			b.Decoder = wb.Decoder
 			// Go buzzing buddy!
 			b.Status = Online
-			return
+			return b, true
 		case Initializing:
 			// Umm... This is bizarre. They called twice quickly, we should replace the underlying
 			fallthrough
@@ -86,9 +86,9 @@ func (s *Swarm) AddBeeFromRaw(id string, c net.Conn, e *gob.Encoder, d *gob.Deco
 	}
 
 	// This bee does not currently exist. Welcome to the swarm buddy!
-	b := NewBeeFromRaw(id, c, e, d)
+	b := NewBeeFromWingleess(wb)
 	s.swarm[b.ID] = b
-	return b
+	return b, false
 }
 
 func (s *Swarm) AddBee(b *Bee) {

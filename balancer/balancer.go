@@ -68,33 +68,136 @@ func NewHive() *Hive {
 // FlyIn is like a gatekeeper for the swarm. Before they enter we need to know:
 //		Are you already here? (Yea the metaphor falls apart here)
 //		Are you a new guy?
+//		Who do you think you should be lending for?
 //	Initialize answers that question, then we add to the swarm
 func (h *Hive) FlyIn(c net.Conn) {
-	id, e, d, p := Initialize(c)
-	h.Slaves.AddBeeFromRaw(id, c, e, d, p)
+	// The protocol is:
+	//		1. Send IdentityRequest
+	//		2. Wait for IdentityResponse
+	//		3. Check if bee exists in map
+	//		4. Send Assignment confirmation
+	//		5. Wait for assignment confirmation
+	//		6. Launch bee
+
+	// 1,2. Send Identity Request, Wait for IdentityResponse
+	wb, p, err := Initialize(c)
+	if err != nil {
+		// Probably a timeout. Closing the bee, it will try to flyin again if it is alive
+		return
+	}
+
+	// 3. Check if bee exists
+	b, newbee := h.Slaves.AttachWings(wb)
+	b.Status = Initializing
+
+	resp, ok := p.Message.(*IDResponse)
+	if !ok {
+		// Ok, this is the wrong message. What a dumb fucking bee
+		// Also how? We check for this.
+		c.Close()
+		return
+	}
+
+	// 4. TODO: Fix this assignment, currently just responds with the same as given
+	assignment := Assignment{Users: resp.Users}
+	b.Connection.SetDeadline(time.Now().Add(60 * time.Second))
+	a := NewAssignment(b.ID, assignment)
+	err = b.Encoder.Encode(a)
+	if err != nil {
+		b.Close()
+		return
+	}
+
+	var m Parcel
+	// 5. Confirm their list
+	err = b.Decoder.Decode(&m)
+	if err != nil {
+		b.Close()
+		return
+	}
+
+	resp, ok = m.Message.(*IDResponse)
+	if !ok { // The wrong message. Comon man, the process is documented
+		b.Close()
+		return
+	}
+
+	//		See if the lists are the same
+	if !CompareUserList(assignment.Users, resp.Users) {
+		b.Close()
+		return
+	}
+
+	// 6. Go buzzing bee!
+	b.Connection.SetDeadline(time.Now().Add(60 * time.Second))
+	b.Status = Online
+	if newbee {
+		go b.Runloop()
+	}
+}
+
+type WinglessBee struct {
+	ID         string
+	Encoder    *gob.Encoder
+	Decoder    *gob.Decoder
+	Connection net.Conn
+}
+
+func NewWinglessBee(id string, c net.Conn, e *gob.Encoder, d *gob.Decoder) *WinglessBee {
+	wb := new(WinglessBee)
+	wb.ID = id
+	wb.Encoder = e
+	wb.Decoder = d
+	wb.Connection = c
+
+	return wb
 }
 
 // Initialize is called before the bee is added to the beemap. It is used to determine the
 // ID of the bee to see if it's a bee that we have offline
-func Initialize(c net.Conn) (string, *gob.Encoder, *gob.Decoder, *Parcel) {
+func Initialize(c net.Conn) (*WinglessBee, *Parcel, error) {
 	enc := gob.NewEncoder(c)
 	dec := gob.NewDecoder(c)
+
+	// Deadlines to prevent deadlocks
+	c.SetDeadline(time.Now().Add(60 * time.Second))
 
 	// Request the identity
 	err := enc.Encode(NewRequestIDParcel())
 	if err != nil {
 		// This bee never got added to the map, just let it die
 		c.Close()
+		return nil, nil, err
 	}
 
 	var m Parcel
-	err = dec.Decode(&m)
-	if err != nil {
-		// This bee never got added to the map, just let it die
-		c.Close()
+	tries := 0
+	for {
+		c.SetDeadline(time.Now().Add(60 * time.Second))
+		// We will allow 10 messages that are not the correct type.
+		if tries > 10 {
+			c.Close()
+			return nil, nil, err
+		}
+		err = dec.Decode(&m)
+		if err != nil {
+			// This bee never got added to the map, just let it die
+			c.Close()
+			return nil, nil, err
+		}
+		// If the message is not the correct type, keep listening. Maybe he will send us
+		// the right one eventually.
+		if m.Type != ResponseIdentityParcel {
+			tries++
+			continue
+		} else {
+			break
+		}
 	}
 
-	return m.ID, enc, dec, &m
+	// Remove deadline
+	c.SetDeadline(time.Time{})
+	return NewWinglessBee(m.ID, c, enc, dec), &m, nil
 }
 
 type LoanRate struct {
@@ -138,12 +241,12 @@ func NewBee(c net.Conn) *Bee {
 	return b
 }
 
-func NewBeeFromRaw(id string, c net.Conn, e *gob.Encoder, d *gob.Decoder) *Bee {
+func NewBeeFromWingleess(wb *WinglessBee) *Bee {
 	b := new(Bee)
-	b.ID = id
-	b.Connection = c
-	b.Encoder = e
-	b.Decoder = d
+	b.ID = wb.ID
+	b.Connection = wb.Connection
+	b.Encoder = wb.Encoder
+	b.Decoder = wb.Decoder
 
 	b.SendChannel = make(chan *Parcel)
 	b.RecieveChannel = make(chan *Parcel)
@@ -155,7 +258,6 @@ func NewBeeFromRaw(id string, c net.Conn, e *gob.Encoder, d *gob.Decoder) *Bee {
 func (b *Bee) Runloop() {
 	go b.HandleSends()
 	go b.HandleReceieves()
-	b.Initialize()
 	for {
 		// Handle Errors
 		b.HandleError()
@@ -186,6 +288,7 @@ func (a *Bee) ReconnectBee(b *Bee) error {
 	a.Connection = b.Connection
 	a.Encoder = b.Encoder
 	a.Decoder = b.Decoder
+	return nil
 }
 
 func (b *Bee) HandleError() {
@@ -229,6 +332,7 @@ func (b *Bee) HandleReceieves() {
 		if b.Status == Online {
 			select {
 			case p := <-b.RecieveChannel:
+				var _ = p
 			}
 		} else {
 			time.Sleep(1 * time.Second)
