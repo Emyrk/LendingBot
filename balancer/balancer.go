@@ -1,6 +1,7 @@
 package balancer
 
 import (
+	"crypto/rand"
 	"encoding/gob"
 	"fmt"
 	"io"
@@ -39,8 +40,23 @@ func (b *Balancer) Accept() {
 	}
 }
 
+func (b *Balancer) CalculateRateLoop() {
+	for {
+		// TODO: Calc rate and send to the hive
+	}
+}
+
 func (m *Balancer) NewConnection(c net.Conn) {
 	go m.ConnetionPool.FlyIn(c)
+}
+
+const (
+	ShutdownBeeCommand int = iota
+)
+
+type Command struct {
+	ID     string
+	Action int
 }
 
 // Hive controls all slave connections
@@ -49,11 +65,14 @@ type Hive struct {
 	Slaves      *Swarm
 	CurrentRate map[string]LoanRate
 	LastAudit   time.Time
+	PublicKey   []byte
 
 	// Send to bees
 	SendChannel chan *Parcel
 	// What the bees are buzzing about
 	RecieveChannel chan *Parcel
+
+	CommandChannel chan *Command
 }
 
 func NewHive() *Hive {
@@ -61,8 +80,31 @@ func NewHive() *Hive {
 	h.CurrentRate = make(map[string]LoanRate)
 	h.SendChannel = make(chan *Parcel, 1000)
 	h.RecieveChannel = make(chan *Parcel, 1000)
+	h.CommandChannel = make(chan *Command, 1000)
+	h.PublicKey = make([]byte, 32)
+	rand.Read(h.PublicKey)
 
 	return h
+}
+
+func (h *Hive) HandleReceives() {
+	for {
+		select {
+		case p := <-h.RecieveChannel:
+			var _ = p
+		case c := <-h.CommandChannel:
+			var _ = c
+		}
+	}
+}
+
+func (h *Hive) HandleSends() {
+	for {
+		select {
+		case p := <-h.SendChannel:
+			var _ = p
+		}
+	}
 }
 
 // FlyIn is like a gatekeeper for the swarm. Before they enter we need to know:
@@ -80,7 +122,7 @@ func (h *Hive) FlyIn(c net.Conn) {
 	//		6. Launch bee
 
 	// 1,2. Send Identity Request, Wait for IdentityResponse
-	wb, p, err := Initialize(c)
+	wb, p, err := h.Initialize(c)
 	if err != nil {
 		// Probably a timeout. Closing the bee, it will try to flyin again if it is alive
 		return
@@ -97,6 +139,7 @@ func (h *Hive) FlyIn(c net.Conn) {
 		c.Close()
 		return
 	}
+	b.PublicKey = resp.PublicKey
 
 	// 4. TODO: Fix this assignment, currently just responds with the same as given
 	assignment := Assignment{Users: resp.Users}
@@ -137,25 +180,27 @@ func (h *Hive) FlyIn(c net.Conn) {
 }
 
 type WinglessBee struct {
-	ID         string
-	Encoder    *gob.Encoder
-	Decoder    *gob.Decoder
-	Connection net.Conn
+	ID              string
+	Encoder         *gob.Encoder
+	Decoder         *gob.Decoder
+	Connection      net.Conn
+	ControllingHive *Hive
 }
 
-func NewWinglessBee(id string, c net.Conn, e *gob.Encoder, d *gob.Decoder) *WinglessBee {
+func NewWinglessBee(id string, c net.Conn, e *gob.Encoder, d *gob.Decoder, h *Hive) *WinglessBee {
 	wb := new(WinglessBee)
 	wb.ID = id
 	wb.Encoder = e
 	wb.Decoder = d
 	wb.Connection = c
+	wb.ControllingHive = h
 
 	return wb
 }
 
 // Initialize is called before the bee is added to the beemap. It is used to determine the
 // ID of the bee to see if it's a bee that we have offline
-func Initialize(c net.Conn) (*WinglessBee, *Parcel, error) {
+func (h *Hive) Initialize(c net.Conn) (*WinglessBee, *Parcel, error) {
 	enc := gob.NewEncoder(c)
 	dec := gob.NewDecoder(c)
 
@@ -163,7 +208,7 @@ func Initialize(c net.Conn) (*WinglessBee, *Parcel, error) {
 	c.SetDeadline(time.Now().Add(60 * time.Second))
 
 	// Request the identity
-	err := enc.Encode(NewRequestIDParcel())
+	err := enc.Encode(NewRequestIDParcel(h.PublicKey))
 	if err != nil {
 		// This bee never got added to the map, just let it die
 		c.Close()
@@ -197,7 +242,7 @@ func Initialize(c net.Conn) (*WinglessBee, *Parcel, error) {
 
 	// Remove deadline
 	c.SetDeadline(time.Time{})
-	return NewWinglessBee(m.ID, c, enc, dec), &m, nil
+	return NewWinglessBee(m.ID, c, enc, dec, h), &m, nil
 }
 
 type LoanRate struct {
@@ -211,6 +256,7 @@ type Bee struct {
 	Users        []User
 	ApiRate      float64
 	LoanJobRate  float64
+	PublicKey    []byte
 
 	// Send to Bee
 	SendChannel chan *Parcel
@@ -225,9 +271,12 @@ type Bee struct {
 	Decoder    *gob.Decoder
 
 	Status int
+
+	// We need reference to the master hive to send it messages
+	MasterHive *Hive
 }
 
-func NewBee(c net.Conn) *Bee {
+func NewBee(c net.Conn, h *Hive) *Bee {
 	b := new(Bee)
 	b.ID = "unknown"
 	b.Connection = c
@@ -237,6 +286,8 @@ func NewBee(c net.Conn) *Bee {
 	b.SendChannel = make(chan *Parcel)
 	b.RecieveChannel = make(chan *Parcel)
 	b.ErrorChannel = make(chan error)
+	b.MasterHive = h
+
 	b.Status = Initializing
 	return b
 }
@@ -252,6 +303,7 @@ func NewBeeFromWingleess(wb *WinglessBee) *Bee {
 	b.RecieveChannel = make(chan *Parcel)
 	b.ErrorChannel = make(chan error)
 	b.Status = Initializing
+	b.MasterHive = wb.ControllingHive
 	return b
 }
 
@@ -265,8 +317,11 @@ func (b *Bee) Runloop() {
 		// React on state changes
 		switch b.Status {
 		case Online:
+
 		case Offline:
+
 		case Shutdown:
+			// Shutdown means we close up shop and call it a day
 		}
 	}
 }

@@ -9,20 +9,24 @@ const (
 
 type Parcel struct {
 	// Header
-	ID   string
-	Type int
+	ID        string
+	Type      int
+	Encrypted bool
 
 	// Body
 	Message interface{}
 }
 
-func NewRequestIDParcel() *Parcel {
-	return newParcel("", RequestIdentityParcel)
+func NewRequestIDParcel(publicKey []byte) *Parcel {
+	p := newParcel("", RequestIdentityParcel)
+	p.Message = publicKey
+	return p
 }
 
 type IDResponse struct {
-	ID    string
-	Users []User
+	ID        string
+	Users     []User
+	PublicKey []byte
 }
 
 func NewResponseIDParcel(id string, users []User) *Parcel {

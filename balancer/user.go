@@ -40,11 +40,19 @@ func CompareUserList(a []User, b []User) bool {
 	return true
 }
 
+const (
+	PoloniexExchange int = iota
+	BitfinexExchange
+)
+
 type User struct {
 	SlaveID   string
 	LastTouch time.Time
 	Username  string
 	Active    bool
+	Exchange  int
+	AccessKey string
+	SecretKey string
 }
 
 func (a *User) IsSimilar(b *User) bool {
