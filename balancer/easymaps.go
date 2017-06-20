@@ -40,6 +40,24 @@ func (s *Swarm) GetBee(id string) (*Bee, bool) {
 	return v, ok
 }
 
+func (s *Swarm) SendParcelTo(id string, p *Parcel) bool {
+	s.Lock()
+	defer s.Unlock()
+	if id == "ALL" {
+		for _, b := range s.swarm {
+			b.SendChannel <- p
+		}
+		return true
+	}
+
+	b, ok := s.swarm[id]
+	if !ok {
+		return false
+	}
+	b.SendChannel <- p
+	return true
+}
+
 func (s *Swarm) GetAndLockBee(id string, readonly bool) (*Bee, bool) {
 	if readonly {
 		s.Rlock()

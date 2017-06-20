@@ -102,7 +102,10 @@ func (h *Hive) HandleSends() {
 	for {
 		select {
 		case p := <-h.SendChannel:
-			var _ = p
+			sent := h.Slaves.SendParcelTo(p.ID, p)
+			if !sent {
+				fmt.Println("Parcel could not be sent")
+			}
 		}
 	}
 }

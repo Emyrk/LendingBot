@@ -15,7 +15,7 @@ const (
 
 type Parcel struct {
 	// Header
-	ID   string
+	ID   string // Serves as 'To:' and 'From:' ID. It always refers to a Bee
 	Type int
 
 	// Body
