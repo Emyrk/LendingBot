@@ -9,9 +9,8 @@ const (
 
 type Parcel struct {
 	// Header
-	ID        string
-	Type      int
-	Encrypted bool
+	ID   string
+	Type int
 
 	// Body
 	Message interface{}
