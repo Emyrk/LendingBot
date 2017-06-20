@@ -311,9 +311,12 @@ func (b *Bee) Runloop() {
 	go b.HandleSends()
 	go b.HandleReceieves()
 	for {
+		time.Sleep(100 * time.Millisecond)
 		// Handle Errors
-		b.HandleError()
+		b.HandleErrors()
 
+		// Process Received Parcels
+		b.ProcessParcels()
 		// React on state changes
 		switch b.Status {
 		case Online:
@@ -322,6 +325,31 @@ func (b *Bee) Runloop() {
 
 		case Shutdown:
 			// Shutdown means we close up shop and call it a day
+			b.Close()
+			return
+		}
+	}
+}
+
+func (b *Bee) ProcessParcels() {
+	for {
+		select {
+		case p := <-b.RecieveChannel:
+			if p.ID != b.ID {
+				fmt.Println("Bee ID does not match ID in parcel")
+				break
+			}
+			switch p.Type {
+			case Heartbeat:
+				h, ok := p.Message.(Heartbeat)
+				if !ok {
+					fmt.Println("Type of parcel is Heartbeat, but failed to cast")
+					break
+				}
+				b.HandleHeartbeat(p)
+			}
+		default:
+			return
 		}
 	}
 }
@@ -346,15 +374,25 @@ func (a *Bee) ReconnectBee(b *Bee) error {
 	return nil
 }
 
-func (b *Bee) HandleError() {
+// HandleErrors will clear all the errors and act appropriately
+func (b *Bee) HandleErrors() {
+	alreadyKilled := false
 	for {
 		select {
 		case e := <-b.ErrorChannel:
 			// Handle errors
 			if e == io.EOF {
 				// Reinit connection
-			} else {
+				if !alreadyKilled {
+					alreadyKilled = true
+					b.Status = Offline
+					b.Close()
+				}
+			}
 
+			if !alreadyKilled {
+				b.Status = Offline
+				b.Close()
 			}
 		default:
 			return
@@ -385,10 +423,12 @@ func (b *Bee) HandleSends() {
 func (b *Bee) HandleReceieves() {
 	for {
 		if b.Status == Online {
-			select {
-			case p := <-b.RecieveChannel:
-				var _ = p
+			var p Parcel
+			err := b.Decoder.Decode(&p)
+			if err != nil {
+				b.ErrorChannel <- err
 			}
+			b.RecieveChannel <- &p
 		} else {
 			time.Sleep(1 * time.Second)
 		}
@@ -396,4 +436,11 @@ func (b *Bee) HandleReceieves() {
 			return
 		}
 	}
+}
+
+func (b *Bee) HandleHeartbeat(h Heartbeat) {
+	b.ApiRate = h.ApiRate
+	b.LoanJobRate = h.LoanJobRate
+	b.Users = h.Users
+	b.LastHearbeat = time.Now()
 }

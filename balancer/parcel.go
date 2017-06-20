@@ -1,10 +1,16 @@
 package balancer
 
+import (
+	"time"
+)
+
 const (
 	RequestIdentityParcel int = iota
 	ResponseIdentityParcel
 
 	AssignmentParcel
+
+	HeartbeatParcel
 )
 
 type Parcel struct {
@@ -46,6 +52,20 @@ type Assignment struct {
 func NewAssignment(id string, a Assignment) *Parcel {
 	p := newParcel(id, AssignmentParcel)
 	p.Message = a
+
+	return p
+}
+
+type Heartbeat struct {
+	SentTime    time.Time
+	Users       []User
+	ApiRate     float64
+	LoanJobRate float64
+}
+
+func NewHeartbeat(id string, h Heartbeat) *Parcel {
+	p := newParcel(id, HeartbeatParcel)
+	p.Message = h
 
 	return p
 }
