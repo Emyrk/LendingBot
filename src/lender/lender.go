@@ -486,15 +486,15 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 		stats.Currencies[loan.Currency].ActiveLentBalance += loan.Amount
 		stats.Currencies[loan.Currency].AverageActiveRate += loan.Rate
 		activeLentCount[loan.Currency] += 1
-		if first {
+		if first && loan.Rate != 0 {
 			stats.Currencies[loan.Currency].HighestRate = loan.Rate
 			stats.Currencies[loan.Currency].LowestRate = loan.Rate
 			first = false
 		} else {
-			if loan.Rate > stats.Currencies[loan.Currency].HighestRate {
+			if loan.Rate > stats.Currencies[loan.Currency].HighestRate && loan.Rate != 0 {
 				stats.Currencies[loan.Currency].HighestRate = loan.Rate
 			}
-			if loan.Rate < stats.Currencies[loan.Currency].LowestRate {
+			if loan.Rate < stats.Currencies[loan.Currency].LowestRate && loan.Rate != 0 {
 				stats.Currencies[loan.Currency].LowestRate = loan.Rate
 			}
 		}
