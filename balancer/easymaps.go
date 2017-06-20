@@ -1,6 +1,8 @@
 package balancer
 
 import (
+	"encoding/gob"
+	"net"
 	"sync"
 )
 
@@ -55,6 +57,38 @@ func (s *Swarm) AddUnsafe(b *Bee) {
 
 func (s *Swarm) SwamCountUnsafe() int {
 	return len(s.swarm)
+}
+
+func (s *Swarm) AddBeeFromRaw(id string, c net.Conn, e *gob.Encoder, d *gob.Decoder, p *Parcel) *Bee {
+	// TODO: Deal with parcel for setting up Bee
+
+	s.Lock()
+	defer s.Unlock()
+	// If this bee already exists, check if it's offline
+	if b, ok := s.swarm[id]; ok {
+		switch b.Status {
+		case Offline: // Ahh cool, it's reconnecting. Let's help him out
+			b.Connection = c
+			b.Encoder = e
+			b.Decoder = d
+			// Go buzzing buddy!
+			b.Status = Online
+			return
+		case Initializing:
+			// Umm... This is bizarre. They called twice quickly, we should replace the underlying
+			fallthrough
+		case Online:
+			// Also bizarre. Close it up, and let it fall through to the replacement
+			b.Close()
+		case Shutdown:
+			// Let it fall through to just replace the bee in the map
+		}
+	}
+
+	// This bee does not currently exist. Welcome to the swarm buddy!
+	b := NewBeeFromRaw(id, c, e, d)
+	s.swarm[b.ID] = b
+	return b
 }
 
 func (s *Swarm) AddBee(b *Bee) {
