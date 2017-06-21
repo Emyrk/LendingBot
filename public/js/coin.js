@@ -183,6 +183,7 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 					if (res.data.data[i] == undefined) {
 						continue
 					}
+					var prevLowest = 0
 					for(c = 0; c < res.data.data[i].length; c++) {
 						var cur = res.data.data[i][c].currencies[coinScope.coin]
 						var unix = new Date(cur.time).getTime()
@@ -190,7 +191,15 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 							continue
 						}
 						var avg = [unix, (cur.activerate*100)]
-						var range = [unix, (cur.lowestrate*100), (cur.highestrate*100)]
+						var lowest = cur.lowestrate*100
+						if(lowest == 0) {
+							lowest = prevLowest
+						}
+						if(lowest == 0) {
+							lowest = avg
+						}
+						prevLowest = lowest
+						var range = [unix, lowest, (cur.highestrate*100)]
 						averagePoints.push(avg)
 						rangePoints.push(range)
 					}
