@@ -219,7 +219,7 @@ func (r AppAuthRequired) LendingHistorySummary() revel.Result {
 	email := r.Session[SESSION_EMAIL]
 	var month []*userdb.AllLendingHistoryEntry
 
-	t := time.Now().Add(-48 * time.Hour)
+	t := time.Now().Add(-24 * time.Hour)
 	for i := 0; i < 28; i++ {
 		day, err := state.LoadLendingSummary(email, t)
 		if err != nil {
