@@ -1,64 +1,98 @@
 package mongo
 
 import (
-	"fmt"
 	"gopkg.in/mgo.v2"
 )
 
-/*
-Book's model connection
-*/
-var Books *mgo.Collection
+const (
+	USER_DB        = "userdb"
+	USER_DB_TEST   = "userdb_test"
+	USER_DB_C_USER = "user_c"
+)
 
 type MongoDB struct {
-	uri      string
-	dbName   string
-	sessions map[string]*mgo.Session
+	uri         string
+	DbName      string
+	baseSession *mgo.Session
 }
 
 func (c *MongoDB) GetURI() string {
 	return c.uri
 }
 
-func (c *MongoDB) GetDBName() string {
-	return c.dbName
-}
-
-func (c *MongoDB) GetSession(sessionName string) *mgo.Session {
-	return c.sessions[sessionName]
-}
-
-func CreateMongoDB(uri, dbname string) *MongoDB {
-	m := make(map[string]*mgo.Session)
+func createMongoDB(uri string, dbname string) *MongoDB {
 	mongoDB := &MongoDB{
 		uri,
 		dbname,
-		m,
+		nil,
 	}
 	return mongoDB
 }
 
-func (c *MongoDB) CreateSession(sessionName string) (*mgo.Session, error) {
-	session, err := mgo.Dial(c.uri)
-	if err != nil {
-		return nil, err
-	}
+func (c *MongoDB) CreateSession() (session *mgo.Session, err error) {
 
-	c.sessions[sessionName] = new(mgo.Session)
-	c.sessions[sessionName] = session
+	if c.baseSession == nil {
+		session, err = mgo.Dial(c.uri)
+		if err != nil {
+			return nil, err
+		}
+		c.baseSession = session
+	} else {
+		session = c.baseSession.Clone()
+	}
 
 	// See https://godoc.org/labix.org/v2/mgo#Session.SetMode
 	session.SetMode(mgo.Monotonic, true)
 
-	return session, nil
+	return
 }
 
-func (c *MongoDB) CloseSession(name string) error {
-	s, ok := c.sessions[name]
-	if !ok {
-		return fmt.Errorf("Session not found. Unable to close.")
+func CreateUserDB(uri string) (*MongoDB, error) {
+	db := createMongoDB(uri, USER_DB)
+
+	session, err := db.CreateSession()
+	if err != nil {
+		return nil, err
 	}
-	s.Close()
-	delete(c.sessions, name)
-	return nil
+
+	c := session.DB(USER_DB).C(USER_DB_C_USER)
+
+	index := mgo.Index{
+		Key:        []string{"username"},
+		Unique:     true,
+		DropDups:   true,
+		Background: true,
+		Sparse:     true,
+	}
+
+	err = c.EnsureIndex(index)
+	if err != nil {
+		return nil, err
+	}
+	return db, nil
+}
+
+func CreateTestUserDB(uri string) (*MongoDB, error) {
+	db := createMongoDB(uri, USER_DB_TEST)
+
+	session, err := db.CreateSession()
+	if err != nil {
+		return nil, err
+	}
+
+	c := session.DB(USER_DB_TEST).C(USER_DB_C_USER)
+
+	index := mgo.Index{
+		Key:        []string{"username"},
+		Unique:     true,
+		DropDups:   true,
+		Background: true,
+		Sparse:     true,
+	}
+
+	err = c.EnsureIndex(index)
+	if err != nil {
+		return nil, err
+	}
+	return db, nil
 }

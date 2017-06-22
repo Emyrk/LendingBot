@@ -13,6 +13,15 @@ type PoloniexKeys struct {
 	encryptedAPISecret []byte
 }
 
+func (a *PoloniexKeys) SetEmptyIfBlank() {
+	if a.encryptedAPIKey == nil {
+		a.encryptedAPIKey = []byte{0x00}
+	}
+	if a.encryptedAPISecret == nil {
+		a.encryptedAPISecret = []byte{0x00}
+	}
+}
+
 func (a *PoloniexKeys) IsSameAs(b *PoloniexKeys) bool {
 	if bytes.Compare(a.encryptedAPIKey, b.encryptedAPIKey) != 0 {
 		return false
