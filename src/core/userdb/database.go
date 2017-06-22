@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Emyrk/LendingBot/src/core/database"
+	"github.com/Emyrk/LendingBot/src/core/database/mongo"
 )
 
 var _ = fmt.Println
@@ -21,12 +22,14 @@ var (
 )
 
 type UserDatabase struct {
-	db database.IDatabase
+	db  database.IDatabase
+	mdb *mongo.MongoDB
 }
 
-func NewMapUserDatabase() *UserDatabase {
+func NewMapUserDatabase(uri string, dbname string) *UserDatabase {
 	u := new(UserDatabase)
 	u.db = database.NewMapDB()
+	u.mdb = nil
 
 	return u
 }
@@ -34,6 +37,15 @@ func NewMapUserDatabase() *UserDatabase {
 func NewBoltUserDatabase(path string) *UserDatabase {
 	u := new(UserDatabase)
 	u.db = database.NewBoltDB(path)
+	u.mdb = nil
+
+	return u
+}
+
+func NewMongoUserDatabase(uri string) *UserDatabase {
+	u := new(UserDatabase)
+	u.db = database.NewMapDB()
+	u.mdb, _ = mongo.CreateUserDB(uri)
 
 	return u
 }
@@ -43,8 +55,14 @@ func (ud *UserDatabase) Close() error {
 }
 
 func (ud *UserDatabase) PutUser(u *User) error {
-	hash := GetUsernameHash(u.Username)
-	return ud.put(UsersBucket, hash[:], u)
+	if ud.mdb != nil {
+		session, _ := ud.mdb.CreateSession()
+		defer session.Close()
+	} else {
+		hash := GetUsernameHash(u.Username)
+		return ud.put(UsersBucket, hash[:], u)
+	}
+	return nil
 }
 
 func (ud *UserDatabase) FetchUserIfFound(username string) (*User, error) {

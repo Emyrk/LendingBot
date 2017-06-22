@@ -57,7 +57,7 @@ func (s *State) VerifyState() error {
 func newState(withMap bool, fakePolo bool) *State {
 	s := new(State)
 	if withMap {
-		s.userDB = userdb.NewMapUserDatabase()
+		s.userDB = userdb.NewMapUserDatabase("mongodb://localhost:27017", "LendingBot")
 	} else {
 		v := os.Getenv("USER_DB")
 		if len(v) == 0 {
