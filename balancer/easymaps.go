@@ -3,8 +3,11 @@ package balancer
 import (
 	// "encoding/gob"
 	// "net"
+	"fmt"
 	"sync"
 )
+
+var _ = fmt.Sprintf
 
 type Swarm struct {
 	swarm map[string]*Bee
@@ -17,21 +20,21 @@ func NewSwarm() *Swarm {
 	return s
 }
 
-func (s *Swarm) Rlock() {
-	s.RLock()
-}
+// func (s *Swarm) Rlock() {
+// 	s.RLock()
+// }
 
-func (s *Swarm) Lock() {
-	s.Lock()
-}
+// func (s *Swarm) Lock() {
+// 	s.Lock()
+// }
 
-func (s *Swarm) Unlock() {
-	s.Unlock()
-}
+// func (s *Swarm) Unlock() {
+// 	s.Unlock()
+// }
 
-func (s *Swarm) RUnlock() {
-	s.RUnlock()
-}
+// func (s *Swarm) RUnlock() {
+// 	s.RUnlock()
+// }
 
 func (s *Swarm) GetBee(id string) (*Bee, bool) {
 	s.RLock()
@@ -60,7 +63,7 @@ func (s *Swarm) SendParcelTo(id string, p *Parcel) bool {
 
 func (s *Swarm) GetAndLockBee(id string, readonly bool) (*Bee, bool) {
 	if readonly {
-		s.Rlock()
+		s.RLock()
 	} else {
 		s.Lock()
 	}
@@ -77,9 +80,11 @@ func (s *Swarm) SwamCountUnsafe() int {
 	return len(s.swarm)
 }
 
+// AttachWings will add a bee to our swarm.
+//		true --> New bee
+//		false --> Exisitng bee
 func (s *Swarm) AttachWings(wb *WinglessBee) (*Bee, bool) {
 	// TODO: Deal with parcel for setting up Bee
-
 	s.Lock()
 	defer s.Unlock()
 	// If this bee already exists, check if it's offline
@@ -91,7 +96,7 @@ func (s *Swarm) AttachWings(wb *WinglessBee) (*Bee, bool) {
 			b.Decoder = wb.Decoder
 			// Go buzzing buddy!
 			b.Status = Online
-			return b, true
+			return b, false
 		case Initializing:
 			// Umm... This is bizarre. They called twice quickly, we should replace the underlying
 			fallthrough
@@ -106,7 +111,7 @@ func (s *Swarm) AttachWings(wb *WinglessBee) (*Bee, bool) {
 	// This bee does not currently exist. Welcome to the swarm buddy!
 	b := NewBeeFromWingleess(wb)
 	s.swarm[b.ID] = b
-	return b, false
+	return b, true
 }
 
 func (s *Swarm) AddBee(b *Bee) {
@@ -115,13 +120,18 @@ func (s *Swarm) AddBee(b *Bee) {
 	s.Unlock()
 }
 
-func (s *Swarm) GetAllBees() []*Bee {
+func (s *Swarm) GetAndLockAllBees() []*Bee {
 	var all []*Bee
 
 	s.RLock()
 	for _, b := range s.swarm {
 		all = append(all, b)
 	}
+	return all
+}
+
+func (s *Swarm) GetAllBees() []*Bee {
+	all := s.GetAndLockAllBees()
 	s.RUnlock()
 	return all
 }
