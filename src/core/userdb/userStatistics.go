@@ -11,7 +11,9 @@ import (
 
 	"github.com/Emyrk/LendingBot/src/core/common/primitives"
 	"github.com/Emyrk/LendingBot/src/core/database"
+	"github.com/Emyrk/LendingBot/src/core/database/mongo"
 	"github.com/tinylib/msgp/msgp"
+	"gopkg.in/mgo.v2/bson"
 )
 
 var _ = strings.Compare
@@ -33,7 +35,8 @@ var (
 )
 
 type UserStatisticsDB struct {
-	db database.IDatabase
+	db  database.IDatabase
+	mdb *mongo.MongoDB
 
 	LastPoloniexRateSave map[string]time.Time
 	LastCurrentIndexCalc time.Time
@@ -42,18 +45,30 @@ type UserStatisticsDB struct {
 }
 
 func (u *UserStatisticsDB) Close() error {
-	return u.db.Close()
+	if u.mdb == nil {
+		return u.db.Close()
+	}
+	return nil
 }
 
 func NewUserStatisticsMapDB() (*UserStatisticsDB, error) {
-	return newUserStatisticsDB(true)
+	return newUserStatisticsDB("map")
 }
 
 func NewUserStatisticsDB() (*UserStatisticsDB, error) {
-	return newUserStatisticsDB(false)
+	return newUserStatisticsDB("bolt")
 }
 
-func newUserStatisticsDB(mapDB bool) (*UserStatisticsDB, error) {
+func NewUserStatisticsMongoDB(mdb mongo.MongoDB) (*UserStatisticsDB, error) {
+	u, err := newUserStatisticsDB("mongo")
+	if err != nil {
+		return nil, err
+	}
+	u.mdb = &mdb
+	return u, nil
+}
+
+func newUserStatisticsDB(dbType string) (*UserStatisticsDB, error) {
 	u := new(UserStatisticsDB)
 
 	userStatsPath := os.Getenv("USER_STATS_DB")
@@ -61,34 +76,36 @@ func newUserStatisticsDB(mapDB bool) (*UserStatisticsDB, error) {
 		userStatsPath = "UserStats.db"
 	}
 
-	if mapDB {
-		u.db = database.NewMapDB()
-		u.startDB()
-	} else {
-		var newDB bool
-		if _, err := os.Stat(userStatsPath); os.IsNotExist(err) {
-			newDB = false
-		} else {
-			newDB = true
-		}
-
-		u.db = database.NewBoltDB(userStatsPath)
-		if !newDB {
+	if dbType != "mongo" {
+		if dbType == "bolt" {
+			u.db = database.NewMapDB()
 			u.startDB()
+		} else {
+			var newDB bool
+			if _, err := os.Stat(userStatsPath); os.IsNotExist(err) {
+				newDB = false
+			} else {
+				newDB = true
+			}
+
+			u.db = database.NewBoltDB(userStatsPath)
+			if !newDB {
+				u.startDB()
+			}
 		}
-	}
 
-	err := u.loadCurrentIndex()
-	if err != nil {
-		return u, err
-	}
+		err := u.loadCurrentIndex()
+		if err != nil {
+			return u, err
+		}
 
-	err = u.CalculateCurrentIndex()
-	if err != nil {
-		return u, err
-	}
+		err = u.CalculateCurrentIndex()
+		if err != nil {
+			return u, err
+		}
 
-	u.LastPoloniexRateSave = make(map[string]time.Time)
+		u.LastPoloniexRateSave = make(map[string]time.Time)
+	}
 	return u, nil
 }
 
@@ -196,8 +213,10 @@ func (a *UserStatistic) IsSameAs(b *UserStatistic) bool {
 }
 
 func (us *UserStatisticsDB) startDB() {
-	us.db.Put(UserStatisticDBMetaDataBucket, CurrentIndex, primitives.Uint32ToBytes(0))
-	us.db.Put(UserStatisticDBMetaDataBucket, CurrentDayKey, primitives.Uint32ToBytes(0))
+	if us.mdb == nil {
+		us.db.Put(UserStatisticDBMetaDataBucket, CurrentIndex, primitives.Uint32ToBytes(0))
+		us.db.Put(UserStatisticDBMetaDataBucket, CurrentDayKey, primitives.Uint32ToBytes(0))
+	}
 }
 
 func (us *UserStatisticsDB) loadCurrentIndex() error {
@@ -247,14 +266,31 @@ func (us *UserStatisticsDB) CalculateCurrentIndex() (err error) {
 }
 
 func (us *UserStatisticsDB) RecordData(stats *AllUserStatistic) error {
-	if time.Since(us.LastCurrentIndexCalc).Hours() > 1 {
-		us.CalculateCurrentIndex()
-	}
 	seconds := GetSeconds(stats.Time)
 	stats.day = GetDay(stats.Time)
 
 	stats.Scrub()
 
+	if us.mdb != nil {
+		s, c, err := us.mdb.GetCollection(mongo.C_UserStat_POL)
+		if err != nil {
+			return fmt.Errorf("Mongo: RecordData: createSession: %s\n", err)
+		}
+		defer s.Close()
+
+		b := c.Bulk()
+		b.Unordered()
+		b.Insert(stats)
+		_, err = b.Run()
+		if err != nil {
+			return fmt.Errorf("Mongo: RecordData: insert: %s\n", err)
+		}
+		return nil
+	}
+
+	if time.Since(us.LastCurrentIndexCalc).Hours() > 1 {
+		us.CalculateCurrentIndex()
+	}
 	var buf bytes.Buffer
 	err := msgp.Encode(&buf, stats)
 	// err := stats.EncodeMsg(&buf)
@@ -342,13 +378,119 @@ func (p *PoloniexStats) String() string {
 		p.HrAvg, p.DayAvg, p.WeekAvg, p.MonthAvg, p.HrStd, p.DayStd, p.WeekStd, p.MonthStd)
 }
 
-func (us *UserStatisticsDB) GetPoloniexStatistics(currency string) *PoloniexStats {
+func (us *UserStatisticsDB) GetPoloniexStatistics(currency string) (*PoloniexStats, error) {
 	poloStats := new(PoloniexStats)
 
+	if us.mdb != nil {
+		s, c, err := us.mdb.GetCollection(mongo.C_Exchange_POL)
+		if err != nil {
+			return nil, fmt.Errorf("Mongo: GetPoloniexStatistics: getcol: %s\n", err)
+		}
+		defer s.Close()
+		//time and the rate
+
+		//5min
+		pipe := c.Pipe([]bson.M{
+			{
+				"$match": bson.M{
+					"time": bson.M{"$lt": time.Now().Add(5 * time.Minute)},
+				},
+				"$group": bson.M{
+					"_id": nil,
+					"avg": bson.M{"$avg": "$rate"},
+				},
+			},
+		})
+		resp := bson.M{}
+		err = pipe.All(&resp)
+		if err != nil {
+			return nil, fmt.Errorf("Mongo: GetPoloniexStatistics: pipe 5min: %s\n", err)
+		}
+		poloStats.FiveMinAvg = resp["avg"].(float64)
+
+		//hravg
+		pipe = c.Pipe([]bson.M{
+			{
+				"$match": bson.M{
+					"time": bson.M{"$lt": time.Now().Add(1 * time.Hour)},
+				},
+				"$group": bson.M{
+					"_id": nil,
+					"avg": bson.M{"$avg": "$rate"},
+				},
+			},
+		})
+		resp = bson.M{}
+		err = pipe.All(&resp)
+		if err != nil {
+			return nil, fmt.Errorf("Mongo: GetPoloniexStatistics: pipe hr: %s\n", err)
+		}
+		poloStats.HrAvg = resp["avg"].(float64)
+		//dayavg
+		pipe = c.Pipe([]bson.M{
+			{
+				"$match": bson.M{
+					"time": bson.M{"$lt": time.Now().Add(24 * time.Hour)},
+				},
+				"$group": bson.M{
+					"_id": nil,
+					"avg": bson.M{"$avg": "$rate"},
+				},
+			},
+		})
+		resp = bson.M{}
+		err = pipe.All(&resp)
+		if err != nil {
+			return nil, fmt.Errorf("Mongo: GetPoloniexStatistics: pipe day: %s\n", err)
+		}
+		poloStats.DayAvg = resp["avg"].(float64)
+
+		//weekavg
+		pipe = c.Pipe([]bson.M{
+			{
+				"$match": bson.M{
+					"time": bson.M{"$lt": time.Now().Add(7 * 24 * time.Hour)},
+				},
+				"$group": bson.M{
+					"_id": nil,
+					"avg": bson.M{"$avg": "$rate"},
+				},
+			},
+		})
+		resp = bson.M{}
+		err = pipe.All(&resp)
+		if err != nil {
+			return nil, fmt.Errorf("Mongo: GetPoloniexStatistics: pipe week: %s\n", err)
+		}
+		poloStats.WeekAvg = resp["avg"].(float64)
+
+		//monthavg
+		pipe = c.Pipe([]bson.M{
+			{
+				"$match": bson.M{
+					"time": bson.M{"$lt": time.Now().Add(30 * 7 * 24 * time.Hour)},
+				},
+				"$group": bson.M{
+					"_id": nil,
+					"avg": bson.M{"$avg": "$rate"},
+				},
+			},
+		})
+		resp = bson.M{}
+		err = pipe.All(&resp)
+		if err != nil {
+			return nil, fmt.Errorf("Mongo: GetPoloniexStatistics: pipe month: %s\n", err)
+		}
+		poloStats.MonthAvg = resp["avg"].(float64)
+
+		return poloStats, nil
+	}
+
 	poloDatStats := us.GetPoloniexDataLastXDays(30, currency)
+
 	// No data
 	if len(poloDatStats[0]) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	sec := GetSeconds(time.Now())
@@ -388,7 +530,7 @@ func (us *UserStatisticsDB) GetPoloniexStatistics(currency string) *PoloniexStat
 	poloStats.DayAvg, poloStats.DayStd = GetAvgAndStd(all[:dayCutoff])
 	poloStats.WeekAvg, poloStats.WeekStd = GetAvgAndStd(all[:weekCutoff])
 	poloStats.MonthAvg, poloStats.MonthStd = GetAvgAndStd(all)
-	return poloStats
+	return poloStats, nil
 }
 
 func GetAvgAndStd(data []PoloniexRateSample) (avg float64, std float64) {

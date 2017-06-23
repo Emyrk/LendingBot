@@ -8,6 +8,16 @@ const (
 	USER_DB        = "userdb"
 	USER_DB_TEST   = "userdb_test"
 	USER_DB_C_USER = "user_c"
+
+	STAT_DB = "statdb"
+
+	C_UserStat_POL = "poloniexUserStat"
+	C_LendHist_POL = "poloniexLendingHist"
+	C_Exchange_POL = "poloniexExchange"
+
+	C_UserStat_BIT = "bitfinexUserStat"
+	C_LendHist_BIT = "bitfinexLendingHist"
+	C_Exchange_BIT = "bitfinexExchange"
 )
 
 type MongoDB struct {
@@ -29,6 +39,7 @@ func createMongoDB(uri string, dbname string) *MongoDB {
 	return mongoDB
 }
 
+//DONT USE THIS ONE
 func (c *MongoDB) CreateSession() (session *mgo.Session, err error) {
 
 	if c.baseSession == nil {
@@ -47,6 +58,15 @@ func (c *MongoDB) CreateSession() (session *mgo.Session, err error) {
 	return
 }
 
+func (c *MongoDB) GetCollection(collectionName string) (*mgo.Session, *mgo.Collection, error) {
+	session, err := c.CreateSession()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return session, session.DB(c.DbName).C(collectionName), nil
+}
+
 func CreateUserDB(uri string) (*MongoDB, error) {
 	db := createMongoDB(uri, USER_DB)
 
@@ -59,6 +79,59 @@ func CreateUserDB(uri string) (*MongoDB, error) {
 
 	index := mgo.Index{
 		Key:        []string{"username"},
+		Unique:     true,
+		DropDups:   true,
+		Background: true,
+		Sparse:     true,
+	}
+
+	err = c.EnsureIndex(index)
+	if err != nil {
+		return nil, err
+	}
+	return db, nil
+}
+
+func CreateStatDB(uri string) (*MongoDB, error) {
+	db := createMongoDB(uri, STAT_DB)
+
+	session, err := db.CreateSession()
+	if err != nil {
+		return nil, err
+	}
+
+	c := session.DB(STAT_DB).C(C_UserStat_POL)
+
+	index := mgo.Index{
+		Key:        []string{"time"},
+		Unique:     true,
+		DropDups:   true,
+		Background: true,
+		Sparse:     true,
+	}
+
+	err = c.EnsureIndex(index)
+	if err != nil {
+		return nil, err
+	}
+
+	c = session.DB(STAT_DB).C(C_LendHist_POL)
+	index = mgo.Index{
+		Key:        []string{},
+		Unique:     true,
+		DropDups:   true,
+		Background: true,
+		Sparse:     true,
+	}
+
+	err = c.EnsureIndex(index)
+	if err != nil {
+		return nil, err
+	}
+
+	c = session.DB(STAT_DB).C(C_Exchange_POL)
+	index = mgo.Index{
+		Key:        []string{},
 		Unique:     true,
 		DropDups:   true,
 		Background: true,
