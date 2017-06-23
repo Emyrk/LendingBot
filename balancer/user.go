@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type UserList []User
+type UserList []*User
 
 func (slice UserList) Len() int {
 	return len(slice)
@@ -24,7 +24,7 @@ func (slice UserList) Swap(i, j int) {
 }
 
 // CompareUserList returns true if the same
-func CompareUserList(a []User, b []User) bool {
+func CompareUserList(a []*User, b []*User) bool {
 	if len(a) != len(b) {
 		return false
 	}
@@ -33,7 +33,7 @@ func CompareUserList(a []User, b []User) bool {
 	sort.Sort(UserList(b))
 
 	for i, _ := range a {
-		if !a[i].IsSimilar(&b[i]) {
+		if !a[i].IsSimilar(b[i]) {
 			return false
 		}
 	}
@@ -53,6 +53,8 @@ type User struct {
 	Exchange  int
 	AccessKey string
 	SecretKey string
+
+	Notes string
 }
 
 func (a *User) IsSimilar(b *User) bool {

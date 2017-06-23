@@ -3,10 +3,14 @@ package balancer
 import (
 	"crypto/rand"
 	"encoding/gob"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net"
+	"sync"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -20,23 +24,45 @@ const (
 type Balancer struct {
 	ConnetionPool *Hive
 	Listener      net.Listener
+
+	quit bool
+}
+
+func (b *Balancer) Close() {
+	b.quit = true
+	b.Listener.Close()
+	b.ConnetionPool.Close()
 }
 
 func NewBalancer() *Balancer {
 	b := new(Balancer)
+	b.ConnetionPool = NewHive()
 	return b
+}
+func (b *Balancer) Run(port int) {
+	b.Listen(port)
+	go b.Accept()
+	go b.ConnetionPool.Run()
 }
 
 // Listen will listen on a port and add connections
 func (b *Balancer) Listen(port int) {
-	ln, _ := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	if err != nil {
+		panic(err)
+	}
 	b.Listener = ln
 }
 
 func (b *Balancer) Accept() {
 	for {
-		conn, _ := b.Listener.Accept()
-		b.NewConnection(conn)
+		conn, err := b.Listener.Accept()
+		if err == nil {
+			b.NewConnection(conn)
+		}
+		if b.quit {
+			return
+		}
 	}
 }
 
@@ -73,6 +99,8 @@ type Hive struct {
 	RecieveChannel chan *Parcel
 
 	CommandChannel chan *Command
+
+	quit chan bool
 }
 
 func NewHive() *Hive {
@@ -83,8 +111,24 @@ func NewHive() *Hive {
 	h.CommandChannel = make(chan *Command, 1000)
 	h.PublicKey = make([]byte, 32)
 	rand.Read(h.PublicKey)
+	h.quit = make(chan bool, 10)
+	h.Slaves = NewSwarm()
 
 	return h
+}
+
+func (h *Hive) Close() {
+	h.quit <- true
+	bees := h.Slaves.GetAllBees()
+	for _, b := range bees {
+		b.Status = Shutdown
+		b.Close()
+	}
+}
+
+func (h *Hive) Run() {
+	go h.HandleReceives()
+	go h.HandleSends()
 }
 
 func (h *Hive) HandleReceives() {
@@ -94,6 +138,8 @@ func (h *Hive) HandleReceives() {
 			var _ = p
 		case c := <-h.CommandChannel:
 			var _ = c
+		case <-h.quit:
+			h.quit <- true
 		}
 	}
 }
@@ -106,6 +152,8 @@ func (h *Hive) HandleSends() {
 			if !sent {
 				fmt.Println("Parcel could not be sent")
 			}
+		case <-h.quit:
+			h.quit <- true
 		}
 	}
 }
@@ -135,10 +183,12 @@ func (h *Hive) FlyIn(c net.Conn) {
 	b, newbee := h.Slaves.AttachWings(wb)
 	b.Status = Initializing
 
-	resp, ok := p.Message.(*IDResponse)
-	if !ok {
+	resp := new(IDResponse)
+	err = json.Unmarshal(p.Message, resp)
+	if err != nil {
 		// Ok, this is the wrong message. What a dumb fucking bee
 		// Also how? We check for this.
+		log.Error("Could not unmarshal IDResp")
 		c.Close()
 		return
 	}
@@ -150,6 +200,7 @@ func (h *Hive) FlyIn(c net.Conn) {
 	a := NewAssignment(b.ID, assignment)
 	err = b.Encoder.Encode(a)
 	if err != nil {
+		log.Error("2", err.Error())
 		b.Close()
 		return
 	}
@@ -158,18 +209,22 @@ func (h *Hive) FlyIn(c net.Conn) {
 	// 5. Confirm their list
 	err = b.Decoder.Decode(&m)
 	if err != nil {
+		log.Error("3", err.Error())
 		b.Close()
 		return
 	}
 
-	resp, ok = m.Message.(*IDResponse)
-	if !ok { // The wrong message. Comon man, the process is documented
+	resp = new(IDResponse)
+	err = json.Unmarshal(m.Message, resp)
+	if err != nil { // The wrong message. Comon man, the process is documented
+		log.Error("4", err.Error())
 		b.Close()
 		return
 	}
 
 	//		See if the lists are the same
 	if !CompareUserList(assignment.Users, resp.Users) {
+		log.Error("5", err.Error())
 		b.Close()
 		return
 	}
@@ -256,10 +311,13 @@ type LoanRate struct {
 type Bee struct {
 	ID           string
 	LastHearbeat time.Time
-	Users        []User
 	ApiRate      float64
 	LoanJobRate  float64
 	PublicKey    []byte
+
+	UserLock      sync.RWMutex
+	Users         []*User
+	exchangeCount map[int]int
 
 	// Send to Bee
 	SendChannel chan *Parcel
@@ -307,10 +365,16 @@ func NewBeeFromWingleess(wb *WinglessBee) *Bee {
 	b.ErrorChannel = make(chan error)
 	b.Status = Initializing
 	b.MasterHive = wb.ControllingHive
+	b.exchangeCount = make(map[int]int)
 	return b
 }
 
+func (b *Bee) ChangeUser(u *User, add, active bool) {
+	b.SendChannel <- NewChangeUserParcel(b.ID, *u, add, active)
+}
+
 func (b *Bee) Runloop() {
+	b.Recount()
 	go b.HandleSends()
 	go b.HandleReceieves()
 	for {
@@ -334,6 +398,22 @@ func (b *Bee) Runloop() {
 	}
 }
 
+func (b *Bee) Recount() {
+	b.UserLock.Lock()
+	b.exchangeCount = make(map[int]int)
+	for _, u := range b.Users {
+		b.exchangeCount[u.Exchange] += 1
+	}
+	b.UserLock.Unlock()
+}
+
+func (b *Bee) GetExchangeCount(exch int) (int, bool) {
+	b.UserLock.RLock()
+	v, ok := b.exchangeCount[exch]
+	b.UserLock.RUnlock()
+	return v, ok
+}
+
 func (b *Bee) ProcessParcels() {
 	for {
 		select {
@@ -343,13 +423,14 @@ func (b *Bee) ProcessParcels() {
 				break
 			}
 			switch p.Type {
-			case Heartbeat:
-				h, ok := p.Message.(Heartbeat)
-				if !ok {
+			case HeartbeatParcel:
+				h := new(Heartbeat)
+				err := json.Unmarshal(p.Message, h)
+				if err != nil {
 					fmt.Println("Type of parcel is Heartbeat, but failed to cast")
 					break
 				}
-				b.HandleHeartbeat(p)
+				b.HandleHeartbeat(*h)
 			}
 		default:
 			return
@@ -384,6 +465,7 @@ func (b *Bee) HandleErrors() {
 		select {
 		case e := <-b.ErrorChannel:
 			// Handle errors
+			fmt.Println(e)
 			if e == io.EOF {
 				// Reinit connection
 				if !alreadyKilled {

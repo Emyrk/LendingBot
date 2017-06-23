@@ -1,6 +1,7 @@
 package balancer
 
 import (
+	"encoding/json"
 	"time"
 )
 
@@ -11,6 +12,8 @@ const (
 	AssignmentParcel
 
 	HeartbeatParcel
+
+	ChangeUserParcel
 )
 
 type Parcel struct {
@@ -19,7 +22,7 @@ type Parcel struct {
 	Type int
 
 	// Body
-	Message interface{}
+	Message []byte
 }
 
 func NewRequestIDParcel(publicKey []byte) *Parcel {
@@ -30,42 +33,64 @@ func NewRequestIDParcel(publicKey []byte) *Parcel {
 
 type IDResponse struct {
 	ID        string
-	Users     []User
+	Users     []*User
 	PublicKey []byte
 }
 
-func NewResponseIDParcel(id string, users []User) *Parcel {
+func NewResponseIDParcel(id string, users []*User, public []byte) *Parcel {
 	p := newParcel(id, ResponseIdentityParcel)
 
 	m := new(IDResponse)
 	m.ID = id
 	m.Users = users
-	p.Message = m
+	m.PublicKey = public
+
+	msg, _ := json.Marshal(m)
+	p.Message = msg
 
 	return p
 }
 
 type Assignment struct {
-	Users []User
+	Users []*User
 }
 
 func NewAssignment(id string, a Assignment) *Parcel {
 	p := newParcel(id, AssignmentParcel)
-	p.Message = a
+	msg, _ := json.Marshal(a)
+	p.Message = msg
+
+	return p
+}
+
+type NewChangeUser struct {
+	U      User
+	Add    bool
+	Active bool
+}
+
+func NewChangeUserParcel(id string, u User, add, active bool) *Parcel {
+	p := newParcel(id, ChangeUserParcel)
+	m := new(NewChangeUser)
+	m.U = u
+
+	msg, _ := json.Marshal(m)
+	p.Message = msg
 
 	return p
 }
 
 type Heartbeat struct {
 	SentTime    time.Time
-	Users       []User
+	Users       []*User
 	ApiRate     float64
 	LoanJobRate float64
 }
 
 func NewHeartbeat(id string, h Heartbeat) *Parcel {
 	p := newParcel(id, HeartbeatParcel)
-	p.Message = h
+	msg, _ := json.Marshal(&h)
+	p.Message = msg
 
 	return p
 }
