@@ -129,7 +129,7 @@ func Test_stat_db_create(t *testing.T) {
 	}
 }
 
-func Test_stat(t *testing.T) {
+func Test_user_stat(t *testing.T) {
 	usdb, err = userdb.NewUserStatisticsMongoDB(db)
 	if err != nil {
 		t.Errorf("Error creating new stat mongodb: %s\n", err.Error())

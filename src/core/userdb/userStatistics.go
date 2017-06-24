@@ -2,7 +2,6 @@ package userdb
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"math"
 	"os"
@@ -668,7 +667,6 @@ func (us *UserStatisticsDB) GetStatistics(username string, dayRange int) ([][]Al
 			year, month, day = time.Now().Add(-time.Duration((i+1)*24) * time.Hour).Date()
 			timeDayRangeEnd := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
 
-			fmt.Println(timeDayRangeStart, timeDayRangeEnd)
 			o1 := bson.D{{"$match", bson.M{"_id": username}}}
 			o2 := bson.D{{"$unwind", "$userstats"}}
 			o3 := bson.D{{"$match", bson.M{"$and": []bson.M{
@@ -683,8 +681,6 @@ func (us *UserStatisticsDB) GetStatistics(username string, dayRange int) ([][]Al
 				tempS = append(tempS, mongoRetStruct.UserStats)
 			}
 			stats[i] = tempS
-			b, _ := json.MarshalIndent(tempS, "", "  ")
-			fmt.Println(string(b))
 		}
 
 		return stats, nil
