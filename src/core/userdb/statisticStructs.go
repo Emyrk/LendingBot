@@ -6,11 +6,16 @@ import (
 	"time"
 )
 
+type MongoAllUserStatistics struct {
+	Username       string             `bson:"_id"`
+	UserStatistics []AllUserStatistic `bson:"userstats"`
+}
+
 type AllUserStatistic struct {
 	Currencies map[string]*UserStatistic `json:"currencies",msg:"currencies"`
 
-	Username         string             `json:"username",msg:"username"`
-	TotalCurrencyMap map[string]float64 `json:"currencymap",msg:"currencymap"`
+	Username         string             `bson:"-" json:"username",msg:"username"`
+	TotalCurrencyMap map[string]float64 `bson:"currencymap" json:"currencymap",msg:"currencymap"`
 	Time             time.Time          `json:"time",msg:"time"`
 	day              int                `json:"day",msg:"day"`
 }
@@ -18,11 +23,11 @@ type AllUserStatistic struct {
 type UserStatistic struct {
 	BTCRate float64
 
-	AvailableBalance   float64   `json:"availbal",msg:"availbal"`
-	ActiveLentBalance  float64   `json:"availlent",msg:"availlent"`
-	OnOrderBalance     float64   `json:"onorder",msg:"onorder"`
-	AverageActiveRate  float64   `json:"activerate",msg:"activerate"`
-	AverageOnOrderRate float64   `json:"onorderrate",msg:"onorderrate"`
+	AvailableBalance   float64   `bson:"availbal" json:"availbal",msg:"availbal"`
+	ActiveLentBalance  float64   `bson:"availlent" json:"availlent",msg:"availlent"`
+	OnOrderBalance     float64   `bson:"onorder"json:"onorder",msg:"onorder"`
+	AverageActiveRate  float64   `bson:"activerate" json:"activerate",msg:"activerate"`
+	AverageOnOrderRate float64   `bson:"onorderrate" json:"onorderrate",msg:"onorderrate"`
 	HighestRate        float64   `json:"highestrate",msg:"highestrate"`
 	LowestRate         float64   `json:"lowestrate",msg:"lowestrate"`
 	Currency           string    `json:"currency",msg:"currency"`
@@ -33,7 +38,7 @@ type AllLendingHistoryEntry struct {
 	Data      map[string]*LendingHistoryEntry `json:"data",msg:"data"`
 	Time      time.Time                       `json:"time",msg:"time"`
 	ShortTime string                          `json:"shorttime",msg:"shorttime"`
-	Username  string                          `json:"username",msg:"username"`
+	Username  string                          `bson:"email" json:"username",msg:"username"`
 }
 
 type LendingHistoryEntry struct {
@@ -45,8 +50,9 @@ type LendingHistoryEntry struct {
 }
 
 type PoloniexStat struct {
-	Time time.Time
-	Rate float64
+	Time     time.Time `bson:"_id"`
+	Rate     float64
+	Currency string
 }
 
 func (l *AllLendingHistoryEntry) SetTime(t time.Time) {

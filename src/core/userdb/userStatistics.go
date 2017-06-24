@@ -2,6 +2,7 @@ package userdb
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"math"
 	"os"
@@ -13,6 +14,7 @@ import (
 	"github.com/Emyrk/LendingBot/src/core/database"
 	"github.com/Emyrk/LendingBot/src/core/database/mongo"
 	"github.com/tinylib/msgp/msgp"
+	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -59,12 +61,12 @@ func NewUserStatisticsDB() (*UserStatisticsDB, error) {
 	return newUserStatisticsDB("bolt")
 }
 
-func NewUserStatisticsMongoDB(mdb mongo.MongoDB) (*UserStatisticsDB, error) {
+func NewUserStatisticsMongoDB(mdb *mongo.MongoDB) (*UserStatisticsDB, error) {
 	u, err := newUserStatisticsDB("mongo")
 	if err != nil {
 		return nil, err
 	}
-	u.mdb = &mdb
+	u.mdb = mdb
 	return u, nil
 }
 
@@ -278,10 +280,40 @@ func (us *UserStatisticsDB) RecordData(stats *AllUserStatistic) error {
 		}
 		defer s.Close()
 
-		b := c.Bulk()
-		b.Unordered()
-		b.Insert(stats)
-		_, err = b.Run()
+		var eA []AllUserStatistic
+		mus := MongoAllUserStatistics{
+			stats.Username,
+			eA,
+		}
+		change := mgo.Change{
+			Update:    bson.M{"$setOnInsert": mus},
+			ReturnNew: false,
+			Upsert:    true,
+		}
+		//CAN OPTIMIZE LATER
+		_, err = c.Find(bson.M{"_id": stats.Username}).Apply(change, nil)
+		if err != nil {
+			return fmt.Errorf("Mongo: RecordData: create: %s\n", err)
+		}
+
+		// db.collection.findAndModify({
+		//   query: { _id: "some potentially existing id" },
+		//   update: {
+		//     $setOnInsert: { foo: "bar" }
+		//   },
+		//   new: true,   // return new doc if one is upserted
+		//   upsert: true // insert the document if it does not exist
+		// })
+
+		eA = append(eA, *stats)
+		updateAction := bson.M{
+			"$push": bson.M{
+				"userstats": bson.M{
+					"$each": eA,
+				},
+			},
+		}
+		err = c.UpdateId(stats.Username, updateAction)
 		if err != nil {
 			return fmt.Errorf("Mongo: RecordData: insert: %s\n", err)
 		}
@@ -567,6 +599,27 @@ func getCurrencyPre(currency string) []byte {
 }
 
 func (us *UserStatisticsDB) RecordPoloniexStatisticTime(currency string, rate float64, t time.Time) error {
+	if us.mdb != nil {
+		s, c, err := us.mdb.GetCollection(mongo.C_Exchange_POL)
+		if err != nil {
+			return fmt.Errorf("Mongo: RecordPoloniexStatisticTime: getcol: %s\n", err)
+		}
+		defer s.Close()
+
+		p := PoloniexStat{
+			t,
+			rate,
+			currency,
+		}
+
+		upsertAction := bson.M{"$set": p}
+		_, err = c.UpsertId(t, upsertAction)
+		if err != nil {
+			return fmt.Errorf("Mongo: RecordPoloniexStatisticTime: upsert: %s\n", err)
+		}
+		return nil
+	}
+
 	if t, ok := us.LastPoloniexRateSave[currency]; !ok {
 		us.LastPoloniexRateSave[currency] = time.Now()
 	} else if time.Since(t).Seconds() < 10 {
@@ -592,8 +645,51 @@ func (us *UserStatisticsDB) GetStatistics(username string, dayRange int) ([][]Al
 	if dayRange > 30 {
 		return nil, fmt.Errorf("Day range must be less than 30")
 	}
-
 	stats := make([][]AllUserStatistic, dayRange)
+
+	if us.mdb != nil {
+		s, c, err := us.mdb.GetCollection(mongo.C_UserStat_POL)
+		if err != nil {
+			return nil, fmt.Errorf("Mongo: GetStatistics: createSession: %s\n", err)
+		}
+		defer s.Close()
+
+		//CAN OPTIMIZE LATER
+		for i := 0; i < dayRange; i++ {
+			var temp AllUserStatistic
+			mongoRetStruct := struct {
+				UserStats AllUserStatistic
+			}{
+				temp,
+			}
+			year, month, day := time.Now().Add(-time.Duration(i*24) * time.Hour).Date()
+			timeDayRangeStart := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
+
+			year, month, day = time.Now().Add(-time.Duration((i+1)*24) * time.Hour).Date()
+			timeDayRangeEnd := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
+
+			fmt.Println(timeDayRangeStart, timeDayRangeEnd)
+			o1 := bson.D{{"$match", bson.M{"_id": username}}}
+			o2 := bson.D{{"$unwind", "$userstats"}}
+			o3 := bson.D{{"$match", bson.M{"$and": []bson.M{
+				bson.M{"userstats.time": bson.M{"$lt": timeDayRangeStart}},
+				bson.M{"userstats.time": bson.M{"$gt": timeDayRangeEnd}},
+			}}}}
+			o4 := bson.D{{"$project", bson.M{"_id": 0}}}
+			ops := []bson.D{o1, o2, o3, o4}
+			iter := c.Pipe(ops).Iter()
+			tempS := make([]AllUserStatistic, 0)
+			for iter.Next(&mongoRetStruct) {
+				tempS = append(tempS, mongoRetStruct.UserStats)
+			}
+			stats[i] = tempS
+			b, _ := json.MarshalIndent(tempS, "", "  ")
+			fmt.Println(string(b))
+		}
+
+		return stats, nil
+	}
+
 	for i := 0; i < dayRange; i++ {
 		buc := us.getBucketPlusX(username, i*-1)
 		statlist := us.getStatsFromBucket(buc)
