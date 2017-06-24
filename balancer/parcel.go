@@ -73,6 +73,8 @@ func NewChangeUserParcel(id string, u User, add, active bool) *Parcel {
 	p := newParcel(id, ChangeUserParcel)
 	m := new(NewChangeUser)
 	m.U = u
+	m.Active = active
+	m.Add = add
 
 	msg, _ := json.Marshal(m)
 	p.Message = msg

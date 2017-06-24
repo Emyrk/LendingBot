@@ -202,29 +202,43 @@ func (b *Bee) ProcessParcels() {
 				break
 			}
 			switch p.Type {
-			case balancer.AddUserParcel:
-				u := new(balancer.User)
-				err := json.Unmarshal(p.Message, u)
+			case balancer.ChangeUserParcel:
+				m := new(balancer.NewChangeUser)
+				err := json.Unmarshal(p.Message, m)
 				if err != nil {
 					break
 				}
 				// A new user
-				newU := false
+				newU := -1
 				b.userlock.Lock()
-				for _, mu := range b.Users {
-					if mu.Username == u.Username && mu.Exchange == u.Exchange {
+				for i, mu := range b.Users {
+					if mu.Username == m.U.Username && mu.Exchange == m.U.Exchange {
 						// Same user, get out
-						newU = true
+						newU = i
 						break
 					}
 				}
-				if newU {
-					b.userlock.Unlock()
-					break
-				}
 
-				// Add them
-				b.Users = append(b.Users, u)
+				// Adding
+				if m.Add {
+					// Found the user, set the active flag
+					if newU > -1 {
+						b.Users[newU].Active = m.Active
+						b.userlock.Unlock()
+						break
+					}
+					// Add them
+					b.Users = append(b.Users, &m.U)
+				} else {
+					// Removing the user
+					if newU > -1 {
+						// Found user
+						b.Users[newU] = b.Users[len(b.Users)-1]
+						b.Users = b.Users[:len(b.Users)-1]
+					}
+
+					// Not found? No need to remove
+				}
 				b.userlock.Unlock()
 			}
 		default:
