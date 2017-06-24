@@ -44,6 +44,11 @@ type LendingHistoryEntry struct {
 	LoanCounts  int     `json:"loancount",msg:"loancount"`
 }
 
+type PoloniexStat struct {
+	Time time.Time
+	Rate float64
+}
+
 func (l *AllLendingHistoryEntry) SetTime(t time.Time) {
 	l.Time = t
 	l.ShortTime = t.Format("Mon Jan 02")

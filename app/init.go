@@ -6,12 +6,12 @@ import (
 	"strings"
 
 	"github.com/Emyrk/LendingBot/app/controllers"
-	"github.com/Emyrk/LendingBot/src/core/database/mongo"
+	// "github.com/Emyrk/LendingBot/src/core/database/mongo"
 	"github.com/revel/revel"
 	log "github.com/sirupsen/logrus"
 )
 
-var _ = mongo.CreateMongoDB
+// var _ = mongo.CreateMongoDB
 
 var cLog = log.WithField("package", "init")
 
