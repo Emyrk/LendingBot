@@ -32,8 +32,8 @@ func PopulateUserTestDB() error {
 	// }
 
 	// users := make([]userdb.User, 100, 100)
-	balUsersPOL := make([]balancer.User, 100, 100)
-	balUsersBIT := make([]balancer.User, 100, 100)
+	BalUsersPOL = make([]balancer.User, 100, 100)
+	BalUsersBIT = make([]balancer.User, 100, 100)
 	for i := 0; i < 100; i++ {
 		n := fmt.Sprintf("jimbo_%d", i)
 		u, err := userdb.NewUser(n, n)
@@ -47,11 +47,11 @@ func PopulateUserTestDB() error {
 		// 	t.Errorf("upsert failed to add user: %s", err.Error())
 		// }
 		// users[i] = *u
-		balUsersPOL[i] = balancer.User{
+		BalUsersPOL[i] = balancer.User{
 			Username: u.Username,
 			Exchange: balancer.PoloniexExchange,
 		}
-		balUsersBIT[i] = balancer.User{
+		BalUsersBIT[i] = balancer.User{
 			Username: u.Username,
 			Exchange: balancer.PoloniexExchange,
 		}
