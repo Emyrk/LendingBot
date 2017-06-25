@@ -23,6 +23,7 @@ import (
 const (
 	DEV_FAKE  = "devFake"
 	DEV_EMPTY = "devEmpty"
+	DEV_MONGO = "devMongo"
 )
 
 var _ = revel.Equal
@@ -36,7 +37,8 @@ func Launch() {
 	queuer.RegisterPrometheus()
 
 	fmt.Println("MODE IS: ", revel.RunMode)
-	if revel.RunMode == DEV_FAKE {
+	switch revel.RunMode {
+	case DEV_FAKE:
 		//devFake mode
 		//should be all in memory with user account
 
@@ -61,7 +63,7 @@ func Launch() {
 		Populate("admin@admin.com", state.GetUserStatsDB())
 
 		//should be mainly used for gui creation
-	} else if revel.RunMode == DEV_EMPTY {
+	case DEV_EMPTY:
 		//devEmpty mode
 		//should be all in memory with empty data
 
@@ -70,7 +72,10 @@ func Launch() {
 		state.UpdateUserPrivilege("admin@admin.com", "SysAdmin")
 
 		//to be used for unit testing/regression testing
-	} else {
+	case DEV_MONGO:
+		//mongo
+		state = core.NewStateWithMongo()
+	default:
 		state = core.NewState()
 	}
 

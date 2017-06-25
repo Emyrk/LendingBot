@@ -16,6 +16,12 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const (
+	DB_MAP   = iota
+	DB_BOLT  = iota
+	DB_MONGO = iota
+)
+
 func init() {
 	RegisterPrometheus()
 }
@@ -35,15 +41,19 @@ type State struct {
 }
 
 func NewFakePoloniexState() *State {
-	return newState(true, true)
+	return newState(DB_MAP, true)
 }
 
 func NewState() *State {
-	return newState(false, false)
+	return newState(DB_BOLT, false)
 }
 
 func NewStateWithMap() *State {
-	return newState(true, false)
+	return newState(DB_MAP, false)
+}
+
+func NewStateWithMongo() *State {
+	return newState(DB_MONGO, false)
 }
 
 func (s *State) GetUserStatsDB() *userdb.UserStatisticsDB {
@@ -54,11 +64,21 @@ func (s *State) VerifyState() error {
 	return s.userDB.VerifyDatabase(s.CipherKey)
 }
 
-func newState(withMap bool, fakePolo bool) *State {
+func newState(dbType int, fakePolo bool) *State {
 	s := new(State)
-	if withMap {
-		s.userDB = userdb.NewMapUserDatabase("mongodb://localhost:27017", "LendingBot")
-	} else {
+	switch dbType {
+	case DB_MAP:
+		s.userDB = userdb.NewMapUserDatabase()
+	case DB_BOLT:
+		v := os.Getenv("USER_DB")
+		if len(v) == 0 {
+			v = "UserDatabase.db"
+		}
+		s.userDB = userdb.NewBoltUserDatabase(v)
+	case DB_MONGO:
+		//todo
+		fallthrough
+	default:
 		v := os.Getenv("USER_DB")
 		if len(v) == 0 {
 			v = "UserDatabase.db"
@@ -72,7 +92,7 @@ func newState(withMap bool, fakePolo bool) *State {
 		s.PoloniexAPI = poloniex.StartPoloniex()
 	}
 
-	if !withMap {
+	if !revel.DevMode {
 		s.CipherKey = getCipherKey()
 	}
 
@@ -83,10 +103,13 @@ func newState(withMap bool, fakePolo bool) *State {
 	}
 	copy(s.JWTSecret[:], jck[:])
 
-	if withMap {
+	switch dbType {
+	case DB_MAP:
 		s.userStatistic, err = userdb.NewUserStatisticsMapDB()
-	} else {
+	case DB_BOLT:
 		s.userStatistic, err = userdb.NewUserStatisticsDB()
+	case DB_MONGO:
+		s.userStatistic, err = userdb.NewUserStatisticsMongoDB()
 	}
 	if err != nil {
 		panic(fmt.Sprintf("Could not create user statistic database %s", err.Error()))
@@ -94,9 +117,15 @@ func newState(withMap bool, fakePolo bool) *State {
 
 	s.poloniexCache = NewPoloniexAccessCache()
 
-	if withMap {
+	switch dbType {
+	case DB_MAP:
 		s.userInviteCodes = userdb.NewInviteMapDB()
-	} else {
+	case DB_BOLT:
+		s.userInviteCodes = userdb.NewInviteDB()
+	case DB_MONGO:
+		//todo
+		fallthrough
+	default:
 		s.userInviteCodes = userdb.NewInviteDB()
 	}
 

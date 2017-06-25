@@ -126,13 +126,3 @@ var HeaderFilter = func(c *revel.Controller, fc []revel.Filter) {
 //		// Dev mode
 //	}
 //}
-
-func InitDB() {
-	// llog := cLog.WithField("method", "InitDB")
-	// // The second argument are default values, for safety
-	// uri := revel.Config.StringDefault("database.uri", "mongodb://localhost:27017")
-	// name := revel.Config.StringDefault("database.name", "LendingBot")
-	// if err := mongo.Init(uri, name); err != nil {
-	// 	llog.Errorf("InitMongo: %s\n", err.Error())
-	// }
-}

@@ -130,7 +130,7 @@ func Test_stat_db_create(t *testing.T) {
 }
 
 func Test_stat_user(t *testing.T) {
-	usdb, err = userdb.NewUserStatisticsMongoDB(db)
+	usdb, err = userdb.NewUserStatisticsMongoDBGiven(db)
 	if err != nil {
 		t.Errorf("Error creating new stat mongodb: %s\n", err.Error())
 		t.FailNow()
@@ -220,7 +220,7 @@ func Test_stat_purge(t *testing.T) {
 		t.Errorf("Error dropping database: %s\n", err.Error())
 		t.FailNow()
 	}
-	usdb, err = userdb.NewUserStatisticsMongoDB(db)
+	usdb, err = userdb.NewUserStatisticsMongoDBGiven(db)
 	if err != nil {
 		t.Errorf("Error creating new stat mongodb: %s\n", err.Error())
 		t.FailNow()
@@ -360,7 +360,7 @@ func Test_lending_history_db_create(t *testing.T) {
 }
 
 func Test_lending_history_stat(t *testing.T) {
-	usdb, err = userdb.NewUserStatisticsMongoDB(db)
+	usdb, err = userdb.NewUserStatisticsMongoDBGiven(db)
 	if err != nil {
 		t.Errorf("Error creating new stat mongodb: %s\n", err.Error())
 		t.FailNow()
@@ -407,7 +407,7 @@ func Test_exchange_poloniex_db_create(t *testing.T) {
 }
 
 func Test_exchange_poloniex_stat(t *testing.T) {
-	usdb, err = userdb.NewUserStatisticsMongoDB(db)
+	usdb, err = userdb.NewUserStatisticsMongoDBGiven(db)
 	if err != nil {
 		t.Errorf("Error creating new stat mongodb: %s\n", err.Error())
 		t.FailNow()

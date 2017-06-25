@@ -26,7 +26,7 @@ type UserDatabase struct {
 	mdb *mongo.MongoDB
 }
 
-func NewMapUserDatabase(uri string, dbname string) *UserDatabase {
+func NewMapUserDatabase() *UserDatabase {
 	u := new(UserDatabase)
 	u.db = database.NewMapDB()
 	u.mdb = nil

@@ -12,6 +12,7 @@ import (
 	"github.com/Emyrk/LendingBot/src/core/common/primitives"
 	"github.com/Emyrk/LendingBot/src/core/database"
 	"github.com/Emyrk/LendingBot/src/core/database/mongo"
+	"github.com/revel/revel"
 	"github.com/tinylib/msgp/msgp"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -60,7 +61,16 @@ func NewUserStatisticsDB() (*UserStatisticsDB, error) {
 	return newUserStatisticsDB("bolt")
 }
 
-func NewUserStatisticsMongoDB(mdb *mongo.MongoDB) (*UserStatisticsDB, error) {
+func NewUserStatisticsMongoDB() (*UserStatisticsDB, error) {
+	uri := revel.Config.StringDefault("database.uri", "mongodb://localhost:27017")
+	db, err := mongo.CreateStatDB(uri)
+	if err != nil {
+		return nil, fmt.Errorf("Error creating user_stat db: %s\n", err.Error())
+	}
+	return NewUserStatisticsMongoDBGiven(db)
+}
+
+func NewUserStatisticsMongoDBGiven(mdb *mongo.MongoDB) (*UserStatisticsDB, error) {
 	u, err := newUserStatisticsDB("mongo")
 	if err != nil {
 		return nil, err
