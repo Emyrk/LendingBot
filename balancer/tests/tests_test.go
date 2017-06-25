@@ -54,7 +54,7 @@ func Test_balancer_rebalance(t *testing.T) {
 	beelist := make([]*bee.Bee, 4, 4)
 	for i := 0; i < 4; i++ {
 		b := bee.NewBee("localhost:1151")
-		beelist = append(beelist, b)
+		beelist[i] = b
 		b.Run()
 		fmt.Printf("Launched Bee %d\n", i)
 		fmt.Println("STATUS: ", b.Status)
@@ -72,7 +72,6 @@ func Test_balancer_rebalance(t *testing.T) {
 			t.Errorf("Add user one: %s", err.Error())
 		}
 	}
-	fmt.Println(BalUsersPOL)
 
 	time.Sleep(500 * time.Millisecond)
 
