@@ -60,8 +60,6 @@ func Test_balancer_rebalance(t *testing.T) {
 		fmt.Println("STATUS: ", b.Status)
 	}
 
-	time.Sleep(500 * time.Millisecond)
-
 	for _, u := range BalUsersPOL {
 		err = bal.AddUser(u)
 		if err != nil {
@@ -79,18 +77,35 @@ func Test_balancer_rebalance(t *testing.T) {
 
 	for i, b := range bal.ConnetionPool.Slaves.GetAllBees() {
 		b.UserLock.RLock()
-		if len(b.Users) != 25 {
+		if len(b.Users) != 50 {
 			t.Errorf("Local bee should have quarter of all users: %d", len(b.Users))
 		}
-		fmt.Println(len(b.Users))
 		b.UserLock.RUnlock()
 
-		fmt.Println(i)
-		fmt.Println(beelist[i])
-		fmt.Println(beelist[i].Users)
-		if len(beelist[i].Users) != 25 {
+		if len(beelist[i].Users) != 50 {
 			t.Errorf("Remote bee should have quarter of all users: %d", len(beelist[i].Users))
 		}
+	}
 
+	time.Sleep(500 * time.Millisecond)
+
+	//close off bees half of bees
+	beelist[0].Shutdown()
+	beelist[1].Shutdown()
+
+	//check for rebalance
+	localb1 := bal.ConnetionPool.Slaves.GetBee(beelist[0].ID)
+	localb2 := bal.ConnetionPool.Slaves.GetBee(beelist[1].ID)
+	if len(localb1.Users) != 100 {
+		t.Errorf("Local bee should have half of all users: %d", len(b.Users))
+	}
+	if len(b.Users) != 100 {
+		t.Errorf("Local bee should have half of all users: %d", len(b.Users))
+	}
+	if len(b.Users) != 100 {
+		t.Errorf("Local bee should have half of all users: %d", len(b.Users))
+	}
+	if len(b.Users) != 100 {
+		t.Errorf("Local bee should have half of all users: %d", len(b.Users))
 	}
 }
