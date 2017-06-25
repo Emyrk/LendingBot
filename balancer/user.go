@@ -40,11 +40,6 @@ func CompareUserList(a []*User, b []*User) bool {
 	return true
 }
 
-const (
-	PoloniexExchange int = iota
-	BitfinexExchange
-)
-
 type User struct {
 	SlaveID   string
 	LastTouch time.Time

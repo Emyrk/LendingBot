@@ -248,6 +248,7 @@ func (b *Bee) ProcessParcels() {
 						break
 					}
 					// Add them
+					m.U.Notes += fmt.Sprintf("%s [INFO] User added to lending server %s. Active: %t, Exchange: %s\n", time.Now().String(), b.ID, m.U.Active, balancer.GetExchangeString(m.U.Exchange)) + m.U.Notes
 					b.Users = append(b.Users, &m.U)
 				} else {
 					// Removing the user
