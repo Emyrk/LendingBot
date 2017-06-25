@@ -49,6 +49,9 @@ type UserLogs struct {
 func (a *Auditor) PerformAudit() *AuditReport {
 	var correct []*AuditUser
 	all := GetAllUsers()
+	if len(all) == 0 {
+		return nil
+	}
 	logs := make(map[string]*UserLogs)
 	for _, u := range all {
 		logs[u.Username] = new(UserLogs)

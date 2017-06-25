@@ -23,6 +23,7 @@ type Balancer struct {
 	ConnetionPool  *Hive
 	RateCalculator *QueenBee
 	Listener       net.Listener
+	IRS            *Auditor
 
 	quit bool
 	salt []byte
@@ -53,6 +54,7 @@ func NewBalancer() *Balancer {
 	b.RateCalculator = NewRateCalculator(b.ConnetionPool)
 	b.salt = make([]byte, 10)
 	rand.Read(b.salt)
+	b.IRS = NewAuditor(b.ConnetionPool)
 	return b
 }
 func (b *Balancer) Run(port int) {

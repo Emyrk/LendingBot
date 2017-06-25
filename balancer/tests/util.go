@@ -3,6 +3,7 @@ package tests
 import (
 	"fmt"
 	"github.com/Emyrk/LendingBot/balancer"
+	"time"
 	// "github.com/Emyrk/LendingBot/src/core/database/mongo"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	// "gopkg.in/mgo.v2"
@@ -13,6 +14,20 @@ import (
 // var users []userdb.User
 var BalUsersPOL []*balancer.User
 var BalUsersBIT []*balancer.User
+
+func WaitFor(condition func() bool, timeout time.Duration) error {
+	start := time.Now()
+	for {
+		if condition() {
+			return nil
+		} else {
+			time.Sleep(15 * time.Millisecond)
+		}
+		if time.Since(start) > timeout {
+			return fmt.Errorf("Timeout from waiting too long")
+		}
+	}
+}
 
 func PopulateUserTestDB() error {
 	// db, err := mongo.CreateTestUserDB("mongodb://localhost:27017")

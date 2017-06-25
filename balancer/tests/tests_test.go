@@ -15,6 +15,17 @@ var _, _ = balancer.Shutdown, bee.Online
 var bal *balancer.Balancer
 var err error
 
+func TestWaitFor(t *testing.T) {
+	return
+	s := time.Now()
+	WaitFor(func() bool {
+		return false
+	}, time.Millisecond*45)
+	if time.Since(s) < time.Millisecond*45 {
+		t.Error("Should be at least 45ms")
+	}
+}
+
 func Test_balancer_and_bee_disconnect(t *testing.T) {
 	bal = balancer.NewBalancer()
 	bal.Run(1151)
@@ -51,14 +62,24 @@ func Test_balancer_rebalance(t *testing.T) {
 	bal = balancer.NewBalancer()
 	bal.Run(1151)
 
-	beelist := make([]*bee.Bee, 4, 4)
+	beelist := make(map[string]*bee.Bee)
+	var keys []string
 	for i := 0; i < 4; i++ {
 		b := bee.NewBee("localhost:1151")
-		beelist[i] = b
+		beelist[b.ID] = b
+		keys = append(keys, b.ID)
 		b.Run()
 		fmt.Printf("Launched Bee %d\n", i)
 		fmt.Println("STATUS: ", b.Status)
 	}
+
+	WaitFor(func() bool {
+		if beelist[keys[3]].Status == balancer.Online {
+			return true
+		}
+		return false
+	}, time.Second*3)
+	time.Sleep(100 * time.Millisecond)
 
 	for _, u := range BalUsersPOL {
 		err = bal.AddUser(u)
@@ -73,39 +94,68 @@ func Test_balancer_rebalance(t *testing.T) {
 		}
 	}
 
-	time.Sleep(500 * time.Millisecond)
+	// time.Sleep(500 * time.Millisecond)
 
-	for i, b := range bal.ConnetionPool.Slaves.GetAllBees() {
+	for _, b := range bal.ConnetionPool.Slaves.GetAllBees() {
 		b.UserLock.RLock()
+		WaitFor(func() bool {
+			if len(b.Users) == 50 {
+				return true
+			}
+			return false
+		}, time.Second*1)
+
 		if len(b.Users) != 50 {
 			t.Errorf("Local bee should have quarter of all users: %d", len(b.Users))
 		}
+		b.RebalanceDuration = time.Second
 		b.UserLock.RUnlock()
 
-		if len(beelist[i].Users) != 50 {
-			t.Errorf("Remote bee should have quarter of all users: %d", len(beelist[i].Users))
+		WaitFor(func() bool {
+			if len(beelist[b.ID].Users) == 50 {
+				return true
+			}
+			return false
+		}, time.Second*1)
+
+		if len(beelist[b.ID].Users) != 50 {
+			t.Errorf("Remote bee should have quarter of all users: %d", len(beelist[b.ID].Users))
 		}
 	}
-
 	time.Sleep(500 * time.Millisecond)
 
-	//close off bees half of bees
-	beelist[0].Shutdown()
-	beelist[1].Shutdown()
+	beelist[keys[0]].Shutdown()
+	beelist[keys[1]].Shutdown()
 
 	//check for rebalance
-	localb1 := bal.ConnetionPool.Slaves.GetBee(beelist[0].ID)
-	localb2 := bal.ConnetionPool.Slaves.GetBee(beelist[1].ID)
+	localb1, _ := bal.ConnetionPool.Slaves.GetBee(beelist[keys[2]].ID)
+	localb2, _ := bal.ConnetionPool.Slaves.GetBee(beelist[keys[3]].ID)
+	WaitFor(func() bool {
+		fmt.Println(len(localb1.Users))
+		if len(localb1.Users) == 100 {
+			return true
+		}
+		return false
+	}, time.Second*3)
+
 	if len(localb1.Users) != 100 {
-		t.Errorf("Local bee should have half of all users: %d", len(b.Users))
+		t.Errorf("Local bee should have half of all users: %d", len(localb1.Users))
 	}
-	if len(b.Users) != 100 {
-		t.Errorf("Local bee should have half of all users: %d", len(b.Users))
+
+	WaitFor(func() bool {
+		fmt.Println(len(localb1.Users))
+		if len(localb2.Users) == 100 {
+			return true
+		}
+		return false
+	}, time.Second*3)
+	if len(localb2.Users) != 100 {
+		t.Errorf("Local bee should have half of all users: %d", len(localb2.Users))
 	}
-	if len(b.Users) != 100 {
-		t.Errorf("Local bee should have half of all users: %d", len(b.Users))
-	}
-	if len(b.Users) != 100 {
-		t.Errorf("Local bee should have half of all users: %d", len(b.Users))
-	}
+	// if len(b.Users) != 100 {
+	// 	t.Errorf("Local bee should have half of all users: %d", len(b.Users))
+	// }
+	// if len(b.Users) != 100 {
+	// 	t.Errorf("Local bee should have half of all users: %d", len(b.Users))
+	// }
 }

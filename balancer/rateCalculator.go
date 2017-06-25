@@ -54,6 +54,8 @@ func NewRateCalculator(h *Hive) *QueenBee {
 	q.PoloniexAPI = NewPoloniexAPIWithRateLimit()
 	q.MasterHive = h
 	q.GetTickerInterval = time.Minute
+	q.exchangeStats = make(map[int]map[string]*userdb.PoloniexStats)
+	q.ticker = make(map[string]poloniex.PoloniexTicker)
 
 	return q
 }
@@ -139,11 +141,17 @@ func (q *QueenBee) CalculateLoanRate(exchange int, currency string) error {
 
 	lr.Simple = lowest
 	q.loanrateLock.Lock()
+	if q.currentLoanRate[exchange] == nil {
+		q.currentLoanRate[exchange] = make(map[string]LoanRates)
+	}
 	q.currentLoanRate[exchange][currency] = lr
 	if q.currentLoanRate[exchange][currency].Simple < 2 {
 		SetSimple(currency, lowest)
 		if time.Since(q.lastCalculateLoanRate[exchange][currency]).Seconds() > 5 {
 			q.RecordExchangeStatistics(exchange, currency, lowest)
+			if q.lastCalculateLoanRate[exchange] == nil {
+				q.lastCalculateLoanRate[exchange] = make(map[string]time.Time)
+			}
 			q.lastCalculateLoanRate[exchange][currency] = time.Now()
 		}
 	}
@@ -157,6 +165,9 @@ func (q *QueenBee) CalculateLoanRate(exchange int, currency string) error {
 
 func (l *QueenBee) calculateAvgBasedLoanRate(exchange int, currency string) {
 	l.loanrateLock.Lock()
+	if l.currentLoanRate[exchange] == nil {
+		l.currentLoanRate[exchange] = make(map[string]LoanRates)
+	}
 	rates, ok := l.currentLoanRate[exchange][currency]
 	if !ok {
 		l.currentLoanRate[exchange][currency] = LoanRates{Simple: 2, AvgBased: 2}
@@ -255,6 +266,9 @@ func (l *QueenBee) rising(exchange int, currency string) int {
 
 func (l *QueenBee) UpdateExchangeStats(exchange int) {
 	l.exchangeStatsLock.Lock()
+	if l.exchangeStats[exchange] == nil {
+		l.exchangeStats[exchange] = make(map[string]*userdb.PoloniexStats)
+	}
 	l.exchangeStats[exchange]["BTC"] = l.GetExchangeStatisitics(exchange, "BTC")
 	// Prometheus
 	if l.exchangeStats[exchange]["BTC"] != nil {

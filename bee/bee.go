@@ -225,8 +225,8 @@ func (b *Bee) ProcessParcels() {
 	for {
 		select {
 		case p := <-b.RecieveChannel:
-			if p.ID != b.ID {
-				fmt.Println("Bee ID does not match ID in parcel")
+			if p.ID != b.ID && p.ID != "ALL" {
+				fmt.Println("Bee ID does not match ID in parcel. Found ID %s, exp %s", p.ID, b.ID)
 				// break
 			}
 			switch p.Type {

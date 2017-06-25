@@ -109,12 +109,21 @@ func (l *Lender) CopyBeeList() {
 	l.Bee.userlock.RLock()
 	l.Users = make([]*LendUser, len(l.Bee.Users))
 	for i := range l.Bee.Users {
+		l.Users[i] = &LendUser{}
 		l.Users[i].U = *l.Bee.Users[i]
 	}
 	l.Bee.userlock.RUnlock()
 }
 
 func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
+	if u.U.AccessKey == "" {
+		return fmt.Errorf("No access key for user %s", u.U.Username)
+	}
+
+	if u.U.SecretKey == "" {
+		return fmt.Errorf("No secret key for user %s", u.U.Username)
+	}
+
 	var err error
 	flog := llog.WithFields(log.Fields{"func": "ProcessPoloniexUser()", "user": u.U.Username})
 
