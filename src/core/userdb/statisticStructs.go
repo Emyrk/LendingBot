@@ -36,7 +36,7 @@ type UserStatistic struct {
 
 type AllLendingHistoryEntry struct {
 	Data      map[string]*LendingHistoryEntry `json:"data",msg:"data"`
-	Time      time.Time                       `json:"time",msg:"time"`
+	Time      time.Time                       `bson:"_id" json:"time",msg:"time"`
 	ShortTime string                          `json:"shorttime",msg:"shorttime"`
 	Username  string                          `bson:"email" json:"username",msg:"username"`
 }

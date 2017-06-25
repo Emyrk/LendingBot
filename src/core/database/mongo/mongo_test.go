@@ -129,7 +129,7 @@ func Test_stat_db_create(t *testing.T) {
 	}
 }
 
-func Test_user_stat(t *testing.T) {
+func Test_stat_user(t *testing.T) {
 	usdb, err = userdb.NewUserStatisticsMongoDB(db)
 	if err != nil {
 		t.Errorf("Error creating new stat mongodb: %s\n", err.Error())
@@ -161,7 +161,7 @@ func Test_user_stat(t *testing.T) {
 	}
 
 	stats.Time = stats.Time.Add(-24 * time.Hour).UTC()
-	t.Log(stats.Time)
+
 	err = usdb.RecordData(stats)
 	if err != nil {
 		t.Errorf("Error recording user stat data: %s\n", err.Error())
@@ -194,10 +194,6 @@ func Test_user_stat(t *testing.T) {
 		t.Errorf("Incorrect number of user stats TEST 2: %d, %d", len(ustats[0]), len(ustats[1]))
 	}
 	// end/get stats 3
-}
-
-func Test_stat_close_session(t *testing.T) {
-	session.Close()
 }
 
 func Test_stat_purge(t *testing.T) {
@@ -335,5 +331,52 @@ func Test_stat_purge(t *testing.T) {
 	tempTime2 = timeArr[10]
 	if tempTime != tempTime2 {
 		t.Errorf("Time not matching: [%s], [%s]\n", tempTime.String(), tempTime2.String())
+	}
+}
+
+func Test_lending_history_db_create(t *testing.T) {
+	db, err = CreateTestStatDB("mongodb://localhost:27017")
+	if err != nil {
+		t.Errorf("Error creating test db: %s\n", err.Error())
+		t.FailNow()
+	}
+
+	if db == nil {
+		t.Errorf("Error db is null")
+		t.FailNow()
+	}
+
+	s, err := db.CreateSession()
+	if err != nil {
+		t.Errorf("Error creating session: %s\n", err.Error())
+		t.FailNow()
+	}
+	defer s.Close()
+	err = s.DB(STAT_DB_TEST).C(C_LendHist_POL).DropCollection()
+	if err != nil {
+		t.Errorf("Error dropping collection: %s\n", err.Error())
+		t.FailNow()
+	}
+}
+
+func Test_lending_history_stat(t *testing.T) {
+	usdb, err = userdb.NewUserStatisticsMongoDB(db)
+	if err != nil {
+		t.Errorf("Error creating new stat mongodb: %s\n", err.Error())
+		t.FailNow()
+	}
+
+	lendHist := userdb.NewAllLendingHistoryEntry()
+	lendHist.Time = time.Now().Add(-24 * time.Hour)
+	lendHist.Username = "ted"
+
+	err = usdb.SaveLendingHistory(lendHist)
+	if err != nil {
+		t.Errorf("Error saving lending hist %s\n", err.Error())
+	}
+
+	_, err := usdb.GetLendHistorySummary("ted", lendHist.Time)
+	if err != nil {
+		t.Errorf("Error getting temp lending summary %s\n", err.Error())
 	}
 }

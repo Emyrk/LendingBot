@@ -275,7 +275,7 @@ func (us *UserStatisticsDB) RecordData(stats *AllUserStatistic) error {
 	if us.mdb != nil {
 		s, c, err := us.mdb.GetCollection(mongo.C_UserStat_POL)
 		if err != nil {
-			return fmt.Errorf("Mongo: RecordData: createSession: %s\n", err)
+			return fmt.Errorf("Mongo: RecordData: createSession: %s", err)
 		}
 		defer s.Close()
 
@@ -292,7 +292,7 @@ func (us *UserStatisticsDB) RecordData(stats *AllUserStatistic) error {
 		//CAN OPTIMIZE LATER
 		_, err = c.Find(bson.M{"_id": stats.Username}).Apply(change, nil)
 		if err != nil {
-			return fmt.Errorf("Mongo: RecordData: create: %s\n", err)
+			return fmt.Errorf("Mongo: RecordData: create: %s", err)
 		}
 
 		// db.collection.findAndModify({
@@ -314,7 +314,7 @@ func (us *UserStatisticsDB) RecordData(stats *AllUserStatistic) error {
 		}
 		err = c.UpdateId(stats.Username, updateAction)
 		if err != nil {
-			return fmt.Errorf("Mongo: RecordData: insert: %s\n", err)
+			return fmt.Errorf("Mongo: RecordData: insert: %s", err)
 		}
 		return nil
 	}
@@ -415,7 +415,7 @@ func (us *UserStatisticsDB) GetPoloniexStatistics(currency string) (*PoloniexSta
 	if us.mdb != nil {
 		s, c, err := us.mdb.GetCollection(mongo.C_Exchange_POL)
 		if err != nil {
-			return nil, fmt.Errorf("Mongo: GetPoloniexStatistics: getcol: %s\n", err)
+			return nil, fmt.Errorf("Mongo: GetPoloniexStatistics: getcol: %s", err)
 		}
 		defer s.Close()
 		//time and the rate
@@ -435,7 +435,7 @@ func (us *UserStatisticsDB) GetPoloniexStatistics(currency string) (*PoloniexSta
 		resp := bson.M{}
 		err = pipe.All(&resp)
 		if err != nil {
-			return nil, fmt.Errorf("Mongo: GetPoloniexStatistics: pipe 5min: %s\n", err)
+			return nil, fmt.Errorf("Mongo: GetPoloniexStatistics: pipe 5min: %s", err)
 		}
 		poloStats.FiveMinAvg = resp["avg"].(float64)
 
@@ -454,7 +454,7 @@ func (us *UserStatisticsDB) GetPoloniexStatistics(currency string) (*PoloniexSta
 		resp = bson.M{}
 		err = pipe.All(&resp)
 		if err != nil {
-			return nil, fmt.Errorf("Mongo: GetPoloniexStatistics: pipe hr: %s\n", err)
+			return nil, fmt.Errorf("Mongo: GetPoloniexStatistics: pipe hr: %s", err)
 		}
 		poloStats.HrAvg = resp["avg"].(float64)
 		//dayavg
@@ -472,7 +472,7 @@ func (us *UserStatisticsDB) GetPoloniexStatistics(currency string) (*PoloniexSta
 		resp = bson.M{}
 		err = pipe.All(&resp)
 		if err != nil {
-			return nil, fmt.Errorf("Mongo: GetPoloniexStatistics: pipe day: %s\n", err)
+			return nil, fmt.Errorf("Mongo: GetPoloniexStatistics: pipe day: %s", err)
 		}
 		poloStats.DayAvg = resp["avg"].(float64)
 
@@ -491,7 +491,7 @@ func (us *UserStatisticsDB) GetPoloniexStatistics(currency string) (*PoloniexSta
 		resp = bson.M{}
 		err = pipe.All(&resp)
 		if err != nil {
-			return nil, fmt.Errorf("Mongo: GetPoloniexStatistics: pipe week: %s\n", err)
+			return nil, fmt.Errorf("Mongo: GetPoloniexStatistics: pipe week: %s", err)
 		}
 		poloStats.WeekAvg = resp["avg"].(float64)
 
@@ -510,7 +510,7 @@ func (us *UserStatisticsDB) GetPoloniexStatistics(currency string) (*PoloniexSta
 		resp = bson.M{}
 		err = pipe.All(&resp)
 		if err != nil {
-			return nil, fmt.Errorf("Mongo: GetPoloniexStatistics: pipe month: %s\n", err)
+			return nil, fmt.Errorf("Mongo: GetPoloniexStatistics: pipe month: %s", err)
 		}
 		poloStats.MonthAvg = resp["avg"].(float64)
 
@@ -601,7 +601,7 @@ func (us *UserStatisticsDB) RecordPoloniexStatisticTime(currency string, rate fl
 	if us.mdb != nil {
 		s, c, err := us.mdb.GetCollection(mongo.C_Exchange_POL)
 		if err != nil {
-			return fmt.Errorf("Mongo: RecordPoloniexStatisticTime: getcol: %s\n", err)
+			return fmt.Errorf("Mongo: RecordPoloniexStatisticTime: getcol: %s", err)
 		}
 		defer s.Close()
 
@@ -614,7 +614,7 @@ func (us *UserStatisticsDB) RecordPoloniexStatisticTime(currency string, rate fl
 		upsertAction := bson.M{"$set": p}
 		_, err = c.UpsertId(t, upsertAction)
 		if err != nil {
-			return fmt.Errorf("Mongo: RecordPoloniexStatisticTime: upsert: %s\n", err)
+			return fmt.Errorf("Mongo: RecordPoloniexStatisticTime: upsert: %s", err)
 		}
 		return nil
 	}
@@ -649,7 +649,7 @@ func (us *UserStatisticsDB) GetStatistics(username string, dayRange int) ([][]Al
 	if us.mdb != nil {
 		s, c, err := us.mdb.GetCollection(mongo.C_UserStat_POL)
 		if err != nil {
-			return nil, fmt.Errorf("Mongo: GetStatistics: createSession: %s\n", err)
+			return nil, fmt.Errorf("Mongo: GetStatistics: createSession: %s", err)
 		}
 		defer s.Close()
 
@@ -661,11 +661,12 @@ func (us *UserStatisticsDB) GetStatistics(username string, dayRange int) ([][]Al
 			}{
 				temp,
 			}
-			year, month, day := time.Now().Add(-time.Duration((i-1)*24) * time.Hour).Date()
+			year, month, day := time.Now().UTC().Add(-time.Duration((i-1)*24) * time.Hour).Date()
 			timeDayRangeStart := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
 
-			year, month, day = time.Now().Add(-time.Duration((i)*24) * time.Hour).Date()
+			year, month, day = time.Now().UTC().Add(-time.Duration((i)*24) * time.Hour).Date()
 			timeDayRangeEnd := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
+
 			o1 := bson.D{{"$match", bson.M{"_id": username}}}
 			o2 := bson.D{{"$unwind", "$userstats"}}
 			o3 := bson.D{{"$match", bson.M{"$and": []bson.M{
@@ -865,7 +866,7 @@ func (us *UserStatisticsDB) Purge(username string) error {
 	if us.mdb != nil {
 		s, c, err := us.mdb.GetCollection(mongo.C_UserStat_POL)
 		if err != nil {
-			return fmt.Errorf("Mongo: Purge: createSession: %s\n", err.Error())
+			return fmt.Errorf("Mongo: Purge: createSession: %s", err.Error())
 		}
 		defer s.Close()
 
@@ -909,7 +910,7 @@ func (us *UserStatisticsDB) Purge(username string) error {
 			}
 			_, err := c.UpdateAll(bson.M{"_id": username}, update)
 			if err != nil {
-				return fmt.Errorf("Mongo: Purge: updateall: %s\n", err.Error())
+				return fmt.Errorf("Mongo: Purge: updateall: %s", err.Error())
 			}
 		}
 		return nil
@@ -1051,6 +1052,22 @@ func (a *AllLendingHistoryEntry) Pop() {
 
 // LendingHistory
 func (us *UserStatisticsDB) SaveLendingHistory(lendHist *AllLendingHistoryEntry) error {
+	if us.mdb != nil {
+		s, c, err := us.mdb.GetCollection(mongo.C_LendHist_POL)
+		if err != nil {
+			return fmt.Errorf("Mongo: SaveLendingHistory: createSession: %s", err.Error())
+		}
+		defer s.Close()
+
+		//CAN OPTIMIZE LATER
+		upsertAction := bson.M{"$set": lendHist}
+		_, err = c.UpsertId(lendHist.Time, upsertAction)
+		if err != nil {
+			return fmt.Errorf("Mongo: SaveLendingHistory: upsert: %s", err)
+		}
+		return nil
+	}
+
 	ld := GetDay(lendHist.Time)
 	buc := getLHBucket(lendHist.Username)
 	key := append([]byte("Polo"), primitives.Uint32ToBytes(uint32(ld))...)
@@ -1065,6 +1082,22 @@ func (us *UserStatisticsDB) SaveLendingHistory(lendHist *AllLendingHistoryEntry)
 }
 
 func (us *UserStatisticsDB) GetLendHistorySummary(username string, t time.Time) (*AllLendingHistoryEntry, error) {
+	if us.mdb != nil {
+		s, c, err := us.mdb.GetCollection(mongo.C_LendHist_POL)
+		if err != nil {
+			return nil, fmt.Errorf("Mongo: GetLendHistorySummary: createSession: %s", err.Error())
+		}
+		defer s.Close()
+
+		var result AllLendingHistoryEntry
+		//CAN OPTIMIZE LATER
+		err = c.FindId(t).One(&result)
+		if err != nil {
+			return nil, fmt.Errorf("Mongo: GetLendHistorySummary: find: %s", err)
+		}
+		return &result, nil
+	}
+
 	ld := GetDay(t)
 	buc := getLHBucket(username)
 	key := append([]byte("Polo"), primitives.Uint32ToBytes(uint32(ld))...)
