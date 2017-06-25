@@ -421,94 +421,81 @@ func (us *UserStatisticsDB) GetPoloniexStatistics(currency string) (*PoloniexSta
 		//time and the rate
 
 		//5min
-		pipe := c.Pipe([]bson.M{
-			{
-				"$match": bson.M{
-					"time": bson.M{"$lt": time.Now().Add(5 * time.Minute)},
-				},
-				"$group": bson.M{
-					"_id": nil,
-					"avg": bson.M{"$avg": "$rate"},
-				},
-			},
-		})
-		resp := bson.M{}
-		err = pipe.All(&resp)
+		o1 := bson.D{{"$match", bson.M{
+			"_id": bson.M{"$gt": time.Now().UTC().Add(-5 * time.Minute)},
+		}}}
+		o2 := bson.D{{"$group", bson.M{
+			"_id": nil,
+			"avg": bson.M{"$avg": "$rate"},
+		}}}
+		ops := []bson.D{o1, o2}
+		pipe := c.Pipe(ops)
+		var resp bson.M
+		err = pipe.One(&resp)
 		if err != nil {
 			return nil, fmt.Errorf("Mongo: GetPoloniexStatistics: pipe 5min: %s", err)
 		}
 		poloStats.FiveMinAvg = resp["avg"].(float64)
 
 		//hravg
-		pipe = c.Pipe([]bson.M{
-			{
-				"$match": bson.M{
-					"time": bson.M{"$lt": time.Now().Add(1 * time.Hour)},
-				},
-				"$group": bson.M{
-					"_id": nil,
-					"avg": bson.M{"$avg": "$rate"},
-				},
-			},
-		})
-		resp = bson.M{}
-		err = pipe.All(&resp)
+		o1 = bson.D{{"$match", bson.M{
+			"_id": bson.M{"$gt": time.Now().UTC().Add(-1 * time.Hour)},
+		}}}
+		o2 = bson.D{{"$group", bson.M{
+			"_id": nil,
+			"avg": bson.M{"$avg": "$rate"},
+		}}}
+		ops = []bson.D{o1, o2}
+		pipe = c.Pipe(ops)
+		err = pipe.One(&resp)
 		if err != nil {
 			return nil, fmt.Errorf("Mongo: GetPoloniexStatistics: pipe hr: %s", err)
 		}
 		poloStats.HrAvg = resp["avg"].(float64)
+
 		//dayavg
-		pipe = c.Pipe([]bson.M{
-			{
-				"$match": bson.M{
-					"time": bson.M{"$lt": time.Now().Add(24 * time.Hour)},
-				},
-				"$group": bson.M{
-					"_id": nil,
-					"avg": bson.M{"$avg": "$rate"},
-				},
-			},
-		})
-		resp = bson.M{}
-		err = pipe.All(&resp)
+		o1 = bson.D{{"$match", bson.M{
+			"_id": bson.M{"$gt": time.Now().UTC().Add(-24 * time.Hour)},
+		}}}
+		o2 = bson.D{{"$group", bson.M{
+			"_id": nil,
+			"avg": bson.M{"$avg": "$rate"},
+		}}}
+		ops = []bson.D{o1, o2}
+		pipe = c.Pipe(ops)
+		err = pipe.One(&resp)
 		if err != nil {
 			return nil, fmt.Errorf("Mongo: GetPoloniexStatistics: pipe day: %s", err)
 		}
 		poloStats.DayAvg = resp["avg"].(float64)
 
 		//weekavg
-		pipe = c.Pipe([]bson.M{
-			{
-				"$match": bson.M{
-					"time": bson.M{"$lt": time.Now().Add(7 * 24 * time.Hour)},
-				},
-				"$group": bson.M{
-					"_id": nil,
-					"avg": bson.M{"$avg": "$rate"},
-				},
-			},
-		})
-		resp = bson.M{}
-		err = pipe.All(&resp)
+		o1 = bson.D{{"$match", bson.M{
+			"_id": bson.M{"$gt": time.Now().UTC().Add(-7 * 24 * time.Hour)},
+		}}}
+		o2 = bson.D{{"$group", bson.M{
+			"_id": nil,
+			"avg": bson.M{"$avg": "$rate"},
+		}}}
+		ops = []bson.D{o1, o2}
+		pipe = c.Pipe(ops)
+		err = pipe.One(&resp)
 		if err != nil {
 			return nil, fmt.Errorf("Mongo: GetPoloniexStatistics: pipe week: %s", err)
 		}
 		poloStats.WeekAvg = resp["avg"].(float64)
 
 		//monthavg
-		pipe = c.Pipe([]bson.M{
-			{
-				"$match": bson.M{
-					"time": bson.M{"$lt": time.Now().Add(30 * 7 * 24 * time.Hour)},
-				},
-				"$group": bson.M{
-					"_id": nil,
-					"avg": bson.M{"$avg": "$rate"},
-				},
-			},
-		})
-		resp = bson.M{}
-		err = pipe.All(&resp)
+		o1 = bson.D{{"$match", bson.M{
+			"_id": bson.M{"$gt": time.Now().UTC().Add(-30 * 7 * 24 * time.Hour)},
+		}}}
+		o2 = bson.D{{"$group", bson.M{
+			"_id": nil,
+			"avg": bson.M{"$avg": "$rate"},
+		}}}
+		ops = []bson.D{o1, o2}
+		pipe = c.Pipe(ops)
+		err = pipe.One(&resp)
 		if err != nil {
 			return nil, fmt.Errorf("Mongo: GetPoloniexStatistics: pipe month: %s", err)
 		}
@@ -584,7 +571,7 @@ func GetAvgAndStd(data []PoloniexRateSample) (avg float64, std float64) {
 }
 
 func (us *UserStatisticsDB) RecordPoloniexStatistic(currency string, rate float64) error {
-	return us.RecordPoloniexStatisticTime(currency, rate, time.Now())
+	return us.RecordPoloniexStatisticTime(currency, rate, time.Now().UTC())
 }
 
 func getCurrencyPre(currency string) []byte {

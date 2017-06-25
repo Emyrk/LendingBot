@@ -119,8 +119,8 @@ func CreateStatDB(uri string) (*MongoDB, error) {
 	c = session.DB(STAT_DB).C(C_LendHist_POL)
 	index = mgo.Index{
 		Key:        []string{"email"},
-		Unique:     true,
-		DropDups:   true,
+		Unique:     false,
+		DropDups:   false,
 		Background: true,
 		Sparse:     true,
 	}
@@ -197,8 +197,8 @@ func CreateTestStatDB(uri string) (*MongoDB, error) {
 	c = session.DB(STAT_DB_TEST).C(C_LendHist_POL)
 	index = mgo.Index{
 		Key:        []string{"email"},
-		Unique:     true,
-		DropDups:   true,
+		Unique:     false,
+		DropDups:   false,
 		Background: true,
 		Sparse:     true,
 	}
