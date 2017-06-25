@@ -57,6 +57,7 @@ func NewBee(c net.Conn, h *Hive) *Bee {
 	b.ErrorChannel = make(chan error, 100)
 	b.MasterHive = h
 	b.RebalanceDuration = time.Minute * 7
+	b.Users = make([]*User, 0)
 
 	b.Status = Initializing
 	return b
