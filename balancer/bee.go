@@ -12,6 +12,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var _ = io.EOF
 var _ = log.Panic
 
 type Bee struct {
@@ -215,30 +216,26 @@ func (a *Bee) ReconnectBee(b *Bee) error {
 }
 
 // HandleErrors will clear all the errors and act appropriately
-func (b *Bee) HandleErrors() {
+func (b *Bee) HandleErrors() bool {
 	alreadyKilled := false
 	for {
 		select {
 		case e := <-b.ErrorChannel:
 			// Handle errors
 			fmt.Println("INTERNAL-BEE", e)
-			if e == io.EOF {
-				// Reinit connection
-				if !alreadyKilled {
-					alreadyKilled = true
-					b.Status = Offline
-					b.Close()
-				}
-			}
+			// if e == io.EOF {
+			// 	continue
+			// }
 
 			if !alreadyKilled {
 				b.Status = Offline
 				b.Close()
 			}
 		default:
-			return
+			return alreadyKilled
 		}
 	}
+	return alreadyKilled
 }
 
 // HandleSends will act until shutdown

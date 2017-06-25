@@ -266,10 +266,10 @@ func (h *Hive) FlyIn(c net.Conn) {
 
 	// 6. Go buzzing bee!
 	b.Connection.SetDeadline(time.Time{})
-	b.Status = Online
 	if newbee {
 		go b.Runloop()
 	}
+	b.Status = Online
 }
 
 type WinglessBee struct {

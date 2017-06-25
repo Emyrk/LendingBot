@@ -5,12 +5,15 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 	"sync"
 	"time"
 
 	"github.com/Emyrk/LendingBot/balancer"
 )
+
+var _ = io.EOF
 
 const (
 	Online int = iota
@@ -62,6 +65,9 @@ func NewBee(hiveAddress string) *Bee {
 	b.HiveAddress = hiveAddress
 	b.PublicKey = make([]byte, 32)
 	rand.Read(b.PublicKey)
+	idbytes := make([]byte, 10)
+	rand.Read(idbytes)
+	b.ID = fmt.Sprintf("%x", idbytes)
 	b.HearbeatDuration = time.Minute
 
 	return b
@@ -276,6 +282,7 @@ func (b *Bee) HandleSends() {
 				err := b.Encoder.Encode(&p)
 				if err != nil {
 					b.ErrorChannel <- err
+					b.Status = Offline
 				}
 			}
 		} else {
@@ -295,6 +302,7 @@ func (b *Bee) HandleRecieves() {
 			err := b.Decoder.Decode(&p)
 			if err != nil {
 				b.ErrorChannel <- err
+				b.Status = Offline
 			} else {
 				b.RecieveChannel <- &p
 			}
@@ -313,22 +321,14 @@ func (b *Bee) HandleErrors() {
 	for {
 		select {
 		case e := <-b.ErrorChannel:
-			var _ = e
-			b.goOffline()
-			// Handle errors
 			// if e == io.EOF {
-			// 	// Reinit connection
-			// 	if !alreadyKilled {
-			// 		alreadyKilled = true
-			// 		b.Status = Offline
-			// 		b.Close()
-			// 	}
+			// 	continue
 			// }
 
-			// if !alreadyKilled {
-			// 	b.Status = Offline
-			// 	b.Close()
-			// }
+			if !alreadyKilled {
+				b.Status = Offline
+				b.goOffline()
+			}
 		default:
 			return
 		}
