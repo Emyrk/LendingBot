@@ -341,12 +341,12 @@ func (l *Lender) CalculateLoanRate(currency string) error {
 	s := l.State
 	loans, err := s.PoloniexGetLoanOrders(currency)
 	if err != nil {
-		clog.WithFields(log.Fields{"method": "CalcLoan"}).Errorf("Error when grabbing loans for CalcRate: %s", err.Error())
+		clog.WithFields(log.Fields{"method": "CalcLoan", "currency": currency}).Errorf("Error when grabbing loans for CalcRate: %s", err.Error())
 		return err
 	}
-
 	if len(loans.Offers) == 0 {
-		clog.WithFields(log.Fields{"method": "CalcLoan"}).Errorf("No offers found in loan book.")
+		clog.WithFields(log.Fields{"method": "CalcLoan", "currency": currency}).Errorf("Error when grabbing loans for CalcRate: %s", "No loans in loanbook")
+		return fmt.Errorf("No loans in loan book for %s", currency)
 	}
 
 	breakoff := l.getAmtForBTCValue(5, currency)
