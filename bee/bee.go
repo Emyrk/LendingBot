@@ -267,6 +267,15 @@ func (b *Bee) ProcessParcels() {
 					// Not found? No need to remove
 				}
 				b.userlock.Unlock()
+			case balancer.LendingRatesParcel:
+				m := new(balancer.LendingRatesArray)
+				err := json.Unmarshal(p.Message, m)
+				if err != nil {
+					break
+				}
+
+				lendingRates, ticker := m.ToMaps()
+				var _, _ = lendingRates, ticker
 			}
 		default:
 			return

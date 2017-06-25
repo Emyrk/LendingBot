@@ -50,7 +50,7 @@ func (b *Balancer) RemoveUser(email string, exchange int) error {
 func NewBalancer() *Balancer {
 	b := new(Balancer)
 	b.ConnetionPool = NewHive()
-	b.RateCalculator = NewRateCalculator()
+	b.RateCalculator = NewRateCalculator(b.ConnetionPool)
 	b.salt = make([]byte, 10)
 	rand.Read(b.salt)
 	return b

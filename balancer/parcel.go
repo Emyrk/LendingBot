@@ -3,6 +3,8 @@ package balancer
 import (
 	"encoding/json"
 	"time"
+
+	"github.com/Emyrk/LendingBot/src/core/poloniex"
 )
 
 const (
@@ -23,6 +25,9 @@ const (
 	// RebalanceUserParcel is sent from a bee, telling the balancer to
 	// give another bee the user
 	RebalanceUserParcel
+
+	// LendingRatesParcel has lending rates and tickers
+	LendingRatesParcel
 )
 
 type Parcel struct {
@@ -131,6 +136,55 @@ func NewRebalanceUserParcel(id string, u User) *Parcel {
 
 	ru := RebalanceUser{U: u}
 	msg, _ := json.Marshal(&ru)
+	p.Message = msg
+
+	return p
+}
+
+type LendingRatesArray struct {
+	LendingRates []LoanRates
+	Ticker       []struct {
+		Ticker   poloniex.PoloniexTicker
+		Currency string
+	}
+}
+
+func (lp *LendingRatesArray) ToMaps() (map[int]map[string]LoanRates, map[string]poloniex.PoloniexTicker) {
+	lrm := make(map[int]map[string]LoanRates)
+	for _, l := range lp.LendingRates {
+		if _, ok := lrm[l.Exchange]; !ok {
+			lrm[l.Exchange] = make(map[string]LoanRates)
+		}
+		lrm[l.Exchange][l.Currency] = l
+	}
+
+	tm := make(map[string]poloniex.PoloniexTicker)
+	for _, l := range lp.Ticker {
+		tm[l.Currency] = l.Ticker
+	}
+
+	return lrm, tm
+}
+
+func NewLendingRatesP(id string, lr map[int]map[string]LoanRates, ticker map[string]poloniex.PoloniexTicker) *Parcel {
+	lrarr := new(LendingRatesArray)
+	for e, lre := range lr {
+		for c, v := range lre {
+			v.Exchange = e
+			v.Currency = c
+			lrarr.LendingRates = append(lrarr.LendingRates, v)
+		}
+	}
+
+	for c, t := range ticker {
+		lrarr.Ticker = append(lrarr.Ticker, struct {
+			Ticker   poloniex.PoloniexTicker
+			Currency string
+		}{Ticker: t, Currency: c})
+	}
+
+	p := newParcel(id, LendingRatesParcel)
+	msg, _ := json.Marshal(lrarr)
 	p.Message = msg
 
 	return p

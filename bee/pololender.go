@@ -1,31 +1,95 @@
 package bee
 
 import (
+	"strings"
+	"time"
+
 	"github.com/Emyrk/LendingBot/balancer"
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
+	"github.com/Emyrk/LendingBot/src/core/userdb"
 	log "github.com/sirupsen/logrus"
 )
 
 var llog = log.WithFields(log.Fields{"package": "bee-lender"})
 
-type LendUser struct {
-	U balancer.User
-}
-
 type Lender struct {
-	Polo  *poloniex.Poloniex
+	Polo  *balancer.PoloniexAPIWithRateLimit
 	Users []*LendUser
 }
 
 func NewLender() *Lender {
 	l := new(Lender)
-	l.Polo = poloniex.StartPoloniex()
+	l.Polo = balancer.NewPoloniexAPIWithRateLimit()
 
 	return l
 }
 
+type LendUser struct {
+	U balancer.User
+}
+
 func (l *Lender) ProcessPoloniexUser(u *LendUser) {
-	// flog := llog.WithFields(log.Fields{"func": "ProcessPoloniexUser()", "user": u.U.Username})
+	var err error
+	flog := llog.WithFields(log.Fields{"func": "ProcessPoloniexUser()", "user": u.U.Username})
+
+	part1 := time.Now()
+	var _ = part1
+	//JobPart2
+	bals := make(map[string]map[string]float64)
+	// Try 3 times if timeout
+	for i := 0; i < 3; i++ {
+		bals, err = l.Polo.PoloniexGetAvailableBalances(u.U.AccessKey, u.U.SecretKey)
+		if err != nil && !strings.Contains(err.Error(), "Unable to JSON Unmarshal response. Resp: []") {
+			flog.WithField("retry", i).Errorf("Error getting balances: %s", err.Error())
+			if !strings.Contains(err.Error(), "Connection timed out. Please try again.") {
+				// Let it retry
+				continue
+			}
+		}
+		break
+	}
+	// if err != nil {
+	// 	return fmt.Errorf("[T1-1] %s", err.Error())
+	// }
+
+	var inactiveLoans map[string][]poloniex.PoloniexLoanOffer
+	// 3 types of balances: Not lent, Inactive, Active
+	for i := 0; i < 3; i++ {
+		inactiveLoans, err = l.Polo.PoloniexGetInactiveLoans(u.U.AccessKey, u.U.SecretKey)
+		if err != nil && !strings.Contains(err.Error(), "Unable to JSON Unmarshal response. Resp: []") {
+			flog.WithField("retry", i).Errorf("Error getting inactive loans: %s", err.Error())
+			if !strings.Contains(err.Error(), "Connection timed out. Please try again.") {
+				// Let it retry
+				continue
+			}
+		}
+		break
+	}
+
+	stats := userdb.NewAllUserStatistic()
+	var activeLoans *poloniex.PoloniexActiveLoans
+	for i := 0; i < 3; i++ {
+		activeLoans, err = l.Polo.PoloniexGetActiveLoans(u.U.AccessKey, u.U.SecretKey)
+		if err == nil && activeLoans != nil {
+			stats, err = l.recordStatistics(u.U.Username, bals, inactiveLoans, activeLoans)
+			if err != nil {
+				flog.WithField("retry", i).Errorf("Error in calculating statistic: %s", err.Error())
+			}
+		} else if err != nil && !strings.Contains(err.Error(), "Unable to JSON Unmarshal response. Resp: []") {
+			flog.WithField("retry", i).Errorf("Error getting active loans: %s", err.Error())
+			if !strings.Contains(err.Error(), "Connection timed out. Please try again.") {
+				// Let it retry
+				continue
+			}
+		}
+		break
+	}
+	var _ = stats
+}
+
+func (l *Lender) recordStatistics(username string, bals map[string]map[string]float64,
+	inact map[string][]poloniex.PoloniexLoanOffer, activeLoan *poloniex.PoloniexActiveLoans) (*userdb.AllUserStatistic, error) {
+	return nil, nil
 }
 
 /*
