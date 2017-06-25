@@ -126,7 +126,7 @@ func (q *QueenBee) CalculateLoanRate(exchange int, currency string) error {
 	if q.currentLoanRate[exchange][currency].Simple < 2 {
 		SetSimple(currency, lowest)
 		if time.Since(q.lastCalculateLoanRate[exchange][currency]).Seconds() > 5 {
-			q.RecordPoloniexStatistics(currency, lowest)
+			q.RecordExchangeStatistics(exchange, currency, lowest)
 			q.lastCalculateLoanRate[exchange][currency] = time.Now()
 		}
 	}
@@ -183,7 +183,7 @@ func (l *QueenBee) calculateAvgBasedLoanRate(exchange int, currency string) {
 	}
 }
 
-func (q *QueenBee) RecordPoloniexStatistics(currency string, lowest float64) {
+func (q *QueenBee) RecordExchangeStatistics(exchange int, currency string, lowest float64) {
 
 }
 
