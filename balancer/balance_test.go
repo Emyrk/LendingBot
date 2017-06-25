@@ -33,17 +33,40 @@ func TestAddRemoveUser(t *testing.T) {
 	bee := bee.NewBee("127.0.0.1:9911")
 	bee.Run()
 
-	bal.ConnetionPool.AddUser(&User{Username: "Peter", Exchange: BitfinexExchange})
-
-	start := time.Now()
-	for len(bee.Users) == 0 {
-		if time.Since(start).Seconds() > 2 {
-			t.Error("Timeout adding user")
-			return
+	// Wait for bee to connect
+	for {
+		if bal.ConnetionPool.Slaves.SwarmCount() == 0 {
+			time.Sleep(5 * time.Millisecond)
+		} else {
+			break
 		}
 	}
 
-	err := bal.ConnetionPool.RemoveUser("Peter", BitfinexExchange)
+	internalBee, ok := bal.ConnetionPool.Slaves.GetBee(bee.ID)
+	if !ok {
+		t.Error("No bee found!")
+		t.FailNow()
+	}
+
+	start := time.Now()
+	for internalBee.Status != Online {
+		if time.Since(start).Seconds() > 2 {
+			t.Error("Timeout adding user")
+			t.FailNow()
+		}
+	}
+
+	bal.AddUser(&User{Username: "Peter", Exchange: BitfinexExchange})
+
+	start = time.Now()
+	for len(bee.Users) == 0 {
+		if time.Since(start).Seconds() > 2 {
+			t.Error("Timeout adding user")
+			t.FailNow()
+		}
+	}
+
+	err := bal.RemoveUser("Peter", BitfinexExchange)
 	if err != nil {
 		t.Error(err)
 	}
@@ -51,7 +74,7 @@ func TestAddRemoveUser(t *testing.T) {
 	for len(bee.Users) != 0 {
 		if time.Since(start).Seconds() > 2 {
 			t.Error("Timeout removing user")
-			return
+			t.FailNow()
 		}
 	}
 }

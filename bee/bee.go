@@ -83,6 +83,7 @@ func (b *Bee) FlyIn() error {
 		return err
 	}
 
+	b.Status = Online
 	b.Connection.SetDeadline(time.Time{})
 	return nil
 }
@@ -164,6 +165,7 @@ func (b *Bee) Run() {
 		}
 		break
 	}
+
 	go b.HandleSends()
 	go b.HandleRecieves()
 	go b.Runloop()
@@ -195,7 +197,7 @@ func (b *Bee) SendHearbeat() {
 	h := new(balancer.Heartbeat)
 	b.userlock.RLock()
 	u2 := make([]*balancer.User, len(b.Users))
-	for i := range b.Users {
+	for i := range h.Users {
 		tmp := *h.Users[i]
 		u2[i] = &tmp
 	}
@@ -287,6 +289,7 @@ func (b *Bee) HandleSends() {
 func (b *Bee) HandleRecieves() {
 	for {
 		if b.Status == Online {
+
 			var p balancer.Parcel
 			err := b.Decoder.Decode(&p)
 			if err != nil {

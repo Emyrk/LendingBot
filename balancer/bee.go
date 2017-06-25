@@ -93,7 +93,7 @@ func (b *Bee) Runloop() {
 			b.ProcessParcels()
 		case Offline:
 			// Offline for 7min+
-			if time.Since(b.LastHearbeat).Seconds() > b.RebalanceDuration {
+			if time.Since(b.LastHearbeat) > b.RebalanceDuration {
 				b.Shutdown()
 			} else {
 				time.Sleep(250 * time.Millisecond)
@@ -290,6 +290,9 @@ func (b *Bee) HandleHeartbeat(h Heartbeat) {
 func (b *Bee) CorrectRemoteList(list []*User) {
 	m := make(map[string]map[int]*User)
 	for _, u := range list {
+		if u == nil {
+			continue
+		}
 		if _, ok := m[u.Username]; !ok {
 			m[u.Username] = make(map[int]*User)
 		}
