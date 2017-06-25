@@ -21,6 +21,7 @@ app.controller('indexController', ['$scope', '$http', '$log',
 			.then((res, status, headers, config) => {
 				//success
 				$log.info("login: Success.");
+				$('#passwordLogin').val("");
 				$('#loginForm').submit();
 				window.location = '/dashboard';
 			}, (err, status, headers, config) => {
@@ -61,6 +62,9 @@ app.controller('indexController', ['$scope', '$http', '$log',
 			.then((res) => {
 				//success
 				$log.info("register: Success.");
+				$('#regPassword').val("");
+				$('#regPassword2').val("");
+				$('#registerForm').submit();
 				window.location = '/dashboard';
 			}, (err) => {
 				//error
