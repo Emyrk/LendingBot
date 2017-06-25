@@ -69,6 +69,7 @@ func NewBee(hiveAddress string) *Bee {
 	rand.Read(idbytes)
 	b.ID = fmt.Sprintf("%x", idbytes)
 	b.HearbeatDuration = time.Minute
+	b.Users = make([]*balancer.User, 0)
 
 	return b
 }
