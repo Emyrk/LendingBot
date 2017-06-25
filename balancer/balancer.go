@@ -59,6 +59,7 @@ func (b *Balancer) Run(port int) {
 	b.Listen(port)
 	go b.Accept()
 	go b.ConnetionPool.Run()
+	go b.RateCalculator.Run()
 }
 
 // Listen will listen on a port and add connections
@@ -80,12 +81,6 @@ func (b *Balancer) Accept() {
 			b.NewConnection(conn)
 		}
 
-	}
-}
-
-func (b *Balancer) CalculateRateLoop() {
-	for {
-		// TODO: Calc rate and send to the hive
 	}
 }
 

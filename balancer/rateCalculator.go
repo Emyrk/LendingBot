@@ -63,15 +63,24 @@ func (q *QueenBee) Run() {
 }
 
 func (q *QueenBee) runPolo() {
+
 	for {
+		// Get rates of all currencies
 		for _, c := range Currencies[PoloniexExchange] {
 			err := q.CalculateLoanRate(PoloniexExchange, c)
 			if err != nil {
 				clog.WithFields(log.Fields{"method": "CalcLoop", "currency": c}).Errorf("Error in Lending: %s", err)
 			}
-			time.Sleep(500 * time.Millisecond)
+			time.Sleep(250 * time.Millisecond)
 		}
 
+		// Update Ticker
+		if time.Since(q.LastTickerUpdate) >= q.GetTickerInterval {
+			go q.UpdateTicker()
+			q.UpdateExchangeStats(PoloniexExchange)
+		}
+
+		// Sendout
 		q.loanrateLock.RLock()
 		q.tickerLock.RLock()
 		p := NewLendingRatesP("ALL", q.currentLoanRate, q.ticker)
@@ -79,11 +88,6 @@ func (q *QueenBee) runPolo() {
 		q.tickerLock.RUnlock()
 		q.MasterHive.Slaves.SendParcelTo("ALL", p)
 
-		// Update Ticker
-		if time.Since(q.LastTickerUpdate) >= q.GetTickerInterval {
-			go q.UpdateTicker()
-			q.UpdateExchangeStats(PoloniexExchange)
-		}
 		select {
 		case <-q.quit:
 			q.quit <- struct{}{}
