@@ -116,19 +116,19 @@ func CreateStatDB(uri string) (*MongoDB, error) {
 		return nil, err
 	}
 
-	// c = session.DB(STAT_DB).C(C_LendHist_POL)
-	// index = mgo.Index{
-	// 	Key:        []string{},
-	// 	Unique:     true,
-	// 	DropDups:   true,
-	// 	Background: true,
-	// 	Sparse:     true,
-	// }
+	c = session.DB(STAT_DB).C(C_LendHist_POL)
+	index = mgo.Index{
+		Key:        []string{"email"},
+		Unique:     true,
+		DropDups:   true,
+		Background: true,
+		Sparse:     true,
+	}
 
-	// err = c.EnsureIndex(index)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	err = c.EnsureIndex(index)
+	if err != nil {
+		return nil, err
+	}
 
 	// c = session.DB(STAT_DB).C(C_Exchange_POL)
 	// index = mgo.Index{
@@ -194,19 +194,19 @@ func CreateTestStatDB(uri string) (*MongoDB, error) {
 		return nil, err
 	}
 
-	// c = session.DB(STAT_DB_TEST).C(C_LendHist_POL)
-	// index = mgo.Index{
-	// 	Key:        []string{},
-	// 	Unique:     true,
-	// 	DropDups:   true,
-	// 	Background: true,
-	// 	Sparse:     true,
-	// }
+	c = session.DB(STAT_DB_TEST).C(C_LendHist_POL)
+	index = mgo.Index{
+		Key:        []string{"email"},
+		Unique:     true,
+		DropDups:   true,
+		Background: true,
+		Sparse:     true,
+	}
 
-	// err = c.EnsureIndex(index)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	err = c.EnsureIndex(index)
+	if err != nil {
+		return nil, err
+	}
 
 	// c = session.DB(STAT_DB_TEST).C(C_Exchange_POL)
 	// index = mgo.Index{
