@@ -9,8 +9,8 @@ var _ = fmt.Println
 // AddUser will add a user to a bee and the BasePool
 func (h *Hive) AddUser(u *User) error {
 	// Find the Slave with the least on this exchange
-	bees := h.Slaves.GetAndLockAllBees()
-	defer h.Slaves.RUnlock()
+	bees := h.Slaves.GetAndLockAllBees(false)
+	defer h.Slaves.Unlock()
 	lowest := 0
 	var candidate *Bee
 	for _, b := range bees {
@@ -31,11 +31,17 @@ func (h *Hive) AddUser(u *User) error {
 	// Have a candidate
 	if candidate != nil {
 		candidate.ChangeUser(u, true, true)
-		h.BaseSlave.ChangeUser(u, true, false)
+		if h.BaseSlave != nil {
+			h.BaseSlave.ChangeUser(u, true, false)
+		}
 		// Add to phone book
 		h.Slaves.AddUserUnsafe(u.Username, u.Exchange, candidate.ID)
 	} else {
-		h.BaseSlave.ChangeUser(u, true, true)
+		if h.BaseSlave != nil {
+			h.BaseSlave.ChangeUser(u, true, true)
+		} else {
+			return fmt.Errorf("No slaves that the user can be added too")
+		}
 	}
 
 	return nil
@@ -57,7 +63,26 @@ func (h *Hive) RemoveUser(email string, exchange int) error {
 	}
 	p.ID = beeID
 
+	ok = h.Slaves.RemoveUserUnsafe(email, exchange)
+	if !ok {
+		// User was not found to be deleted
+	}
+
 	ok = h.Slaves.SendParcelToUnsafe(beeID, p)
+	if !ok {
+		return fmt.Errorf("Send failed as the bee was not found")
+	}
+
+	return nil
+}
+
+func (h *Hive) RemoveUserFromBee(id string, email string, exchange int) error {
+	h.Slaves.Lock()
+	defer h.Slaves.Unlock()
+
+	u := User{Username: email, Exchange: exchange}
+	p := NewChangeUserParcel(id, u, false, false)
+	ok := h.Slaves.SendParcelToUnsafe(id, p)
 	if !ok {
 		return fmt.Errorf("Send failed as the bee was not found")
 	}

@@ -6,6 +6,21 @@ import (
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
 )
 
+const (
+	PoloniexExchange int = iota
+	BitfinexExchange
+)
+
+func GetExchangeString(exch int) string {
+	switch exch {
+	case PoloniexExchange:
+		return "Poloniex"
+	case BitfinexExchange:
+		return "Bitfinex"
+	}
+	return fmt.Sprintf("Unknown {%d}", exch)
+}
+
 type OrderDensity struct {
 	Amount float64
 	Rate   float64

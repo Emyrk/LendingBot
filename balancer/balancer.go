@@ -127,7 +127,7 @@ func (h *Hive) Close() {
 	h.quit <- true
 	bees := h.Slaves.GetAllBees()
 	for _, b := range bees {
-		b.Status = Shutdown
+		b.Shutdown()
 		b.Close()
 	}
 }

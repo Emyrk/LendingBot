@@ -141,9 +141,9 @@ func (s *Swarm) AddUserUnsafe(email string, exchange int, bee string) {
 	s.usermap[email][exchange] = bee
 }
 
-func (s *Swarm) AddUser(email string, exchange int, bee string) {
+func (s *Swarm) AddUser(email string, exchange int, beeID string) {
 	s.Lock()
-	s.AddUserUnsafe(email, exchange, bee)
+	s.AddUserUnsafe(email, exchange, beeID)
 	s.Unlock()
 }
 
@@ -181,10 +181,14 @@ func (s *Swarm) SquashBee(id string) {
 	s.Unlock()
 }
 
-func (s *Swarm) GetAndLockAllBees() []*Bee {
+func (s *Swarm) GetAndLockAllBees(readonly bool) []*Bee {
 	var all []*Bee
 
-	s.RLock()
+	if readonly {
+		s.RLock()
+	} else {
+		s.Lock()
+	}
 	for _, b := range s.swarm {
 		all = append(all, b)
 	}
@@ -192,7 +196,7 @@ func (s *Swarm) GetAndLockAllBees() []*Bee {
 }
 
 func (s *Swarm) GetAllBees() []*Bee {
-	all := s.GetAndLockAllBees()
+	all := s.GetAndLockAllBees(true)
 	s.RUnlock()
 	return all
 }
