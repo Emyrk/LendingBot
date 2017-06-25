@@ -11,12 +11,17 @@ var _ = fmt.Sprintf
 
 type Swarm struct {
 	swarm map[string]*Bee
+
+	// Quick lookup to find a user
+	usermap map[string]map[int]string
+
 	sync.RWMutex
 }
 
 func NewSwarm() *Swarm {
 	s := new(Swarm)
 	s.swarm = make(map[string]*Bee)
+	s.usermap = make(map[string]map[int]string)
 	return s
 }
 
@@ -36,6 +41,11 @@ func NewSwarm() *Swarm {
 // 	s.RUnlock()
 // }
 
+func (s *Swarm) GetBeeUnsafe(id string) (*Bee, bool) {
+	v, ok := s.swarm[id]
+	return v, ok
+}
+
 func (s *Swarm) GetBee(id string) (*Bee, bool) {
 	s.RLock()
 	v, ok := s.swarm[id]
@@ -43,9 +53,7 @@ func (s *Swarm) GetBee(id string) (*Bee, bool) {
 	return v, ok
 }
 
-func (s *Swarm) SendParcelTo(id string, p *Parcel) bool {
-	s.Lock()
-	defer s.Unlock()
+func (s *Swarm) SendParcelToUnsafe(id string, p *Parcel) bool {
 	if id == "ALL" {
 		for _, b := range s.swarm {
 			b.SendChannel <- p
@@ -59,6 +67,12 @@ func (s *Swarm) SendParcelTo(id string, p *Parcel) bool {
 	}
 	b.SendChannel <- p
 	return true
+}
+
+func (s *Swarm) SendParcelTo(id string, p *Parcel) bool {
+	s.Lock()
+	defer s.Unlock()
+	return s.SendParcelToUnsafe(id, p)
 }
 
 func (s *Swarm) GetAndLockBee(id string, readonly bool) (*Bee, bool) {
@@ -118,6 +132,47 @@ func (s *Swarm) AddBee(b *Bee) {
 	s.Lock()
 	s.swarm[b.ID] = b
 	s.Unlock()
+}
+
+func (s *Swarm) AddUserUnsafe(email string, exchange int, bee string) {
+	if s.usermap[email] == nil {
+		s.usermap[email] = make(map[int]string)
+	}
+	s.usermap[email][exchange] = bee
+}
+
+func (s *Swarm) AddUser(email string, exchange int, bee string) {
+	s.Lock()
+	s.AddUserUnsafe(email, exchange, bee)
+	s.Unlock()
+}
+
+func (s *Swarm) GetUser(email string, exchange int) (string, bool) {
+	s.RLock()
+	v, ok := s.GetUserUnsafe(email, exchange)
+	s.RUnlock()
+
+	return v, ok
+}
+
+func (s *Swarm) GetUserUnsafe(email string, exchange int) (string, bool) {
+	v, ok := s.usermap[email][exchange]
+	return v, ok
+}
+
+func (s *Swarm) RemoveUserUnsafe(email string, exchange int) bool {
+	_, ok := s.usermap[email][exchange]
+	if ok {
+		delete(s.usermap[email], exchange)
+	}
+	return ok
+}
+
+func (s *Swarm) RemoveUser(email string, exchange int) bool {
+	s.Lock()
+	v := s.RemoveUserUnsafe(email, exchange)
+	s.Unlock()
+	return v
 }
 
 func (s *Swarm) GetAndLockAllBees() []*Bee {
