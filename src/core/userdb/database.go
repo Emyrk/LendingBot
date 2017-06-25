@@ -5,6 +5,8 @@ import (
 
 	"github.com/Emyrk/LendingBot/src/core/database"
 	"github.com/Emyrk/LendingBot/src/core/database/mongo"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 var _ = fmt.Println
@@ -42,27 +44,49 @@ func NewBoltUserDatabase(path string) *UserDatabase {
 	return u
 }
 
-func NewMongoUserDatabase(uri string) *UserDatabase {
+func NewMongoUserDatabase(uri string) (*UserDatabase, error) {
+	mdb, err := mongo.CreateUserDB(uri)
+	if err != nil {
+		return nil, err
+	}
+	u := NewMongoUserDatabaseGiven(mdb)
+
+	return u, nil
+}
+
+func NewMongoUserDatabaseGiven(mdb *mongo.MongoDB) *UserDatabase {
 	u := new(UserDatabase)
 	u.db = database.NewMapDB()
-	u.mdb, _ = mongo.CreateUserDB(uri)
+	u.mdb = mdb
 
 	return u
 }
 
 func (ud *UserDatabase) Close() error {
-	return ud.db.Close()
+	if ud.mdb == nil {
+		return ud.db.Close()
+	}
+	return nil
 }
 
 func (ud *UserDatabase) PutUser(u *User) error {
 	if ud.mdb != nil {
-		session, _ := ud.mdb.CreateSession()
-		defer session.Close()
-	} else {
-		hash := GetUsernameHash(u.Username)
-		return ud.put(UsersBucket, hash[:], u)
+		s, c, err := ud.mdb.GetCollection(mongo.C_USER)
+		if err != nil {
+			return fmt.Errorf("PutUser: getCol: %s", err.Error())
+		}
+		defer s.Close()
+
+		upsertAction := bson.M{"$set": u}
+		_, err = c.UpsertId(u.Username, upsertAction)
+		if err != nil {
+			return fmt.Errorf("PutUser: upsert: %s", err.Error())
+		}
+		return nil
 	}
-	return nil
+
+	hash := GetUsernameHash(u.Username)
+	return ud.put(UsersBucket, hash[:], u)
 }
 
 func (ud *UserDatabase) FetchUserIfFound(username string) (*User, error) {
@@ -78,6 +102,26 @@ func (ud *UserDatabase) FetchUserIfFound(username string) (*User, error) {
 }
 
 func (ud *UserDatabase) FetchUser(username string) (*User, error) {
+	if ud.mdb != nil {
+		s, c, err := ud.mdb.GetCollection(mongo.C_USER)
+		if err != nil {
+			return nil, fmt.Errorf("PutUser: getCol: %s", err.Error())
+		}
+		defer s.Close()
+
+		var result User
+		err = c.FindId(username).One(&result)
+		if err == mgo.ErrNotFound {
+			return nil, nil
+		}
+		if err != nil {
+			return nil, fmt.Errorf("PutUser: find: %s", err.Error())
+		}
+
+		result.PoloniexKeys.SetEmptyIfBlank()
+		return &result, nil
+	}
+
 	u := NewBlankUser()
 	hash := GetUsernameHash(username)
 	f, err := ud.get(UsersBucket, hash[:], u)
@@ -94,6 +138,24 @@ func (ud *UserDatabase) FetchUser(username string) (*User, error) {
 
 func (ud *UserDatabase) FetchAllUsers() ([]User, error) {
 	var all []User
+
+	if ud.mdb != nil {
+		s, c, err := ud.mdb.GetCollection(mongo.C_USER)
+		if err != nil {
+			return nil, fmt.Errorf("FetchAllUsers: getCol: %s", err.Error())
+		}
+		defer s.Close()
+
+		err = c.Find(nil).All(&all)
+		if err != nil {
+			return nil, fmt.Errorf("FetchAllUsers: find: %s", err.Error())
+		}
+		for _, o := range all {
+			o.PoloniexKeys.SetEmptyIfBlank()
+		}
+
+		return all, nil
+	}
 
 	keys, err := ud.db.ListAllKeys(UsersBucket)
 	if err != nil {

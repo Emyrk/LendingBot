@@ -39,8 +39,10 @@ func Test_user_create_session(t *testing.T) {
 		t.FailNow()
 	}
 	session = s
+}
 
-	c := session.DB(USER_DB_TEST).C(USER_DB_C_USER)
+func Test_user_testing_how_to_insert(t *testing.T) {
+	c := session.DB(USER_DB_TEST).C(C_USER)
 	if err != c.DropCollection() {
 		t.Errorf("Error dropping userdb test collection: %s\n", err.Error())
 	}
@@ -95,6 +97,78 @@ func Test_user_create_session(t *testing.T) {
 	}
 	if !u2.IsSameAs(&results[1]) {
 		t.Errorf("Error test2 is not the same")
+	}
+}
+
+func Test_user_userdb(t *testing.T) {
+	s, c, err := db.GetCollection(C_USER)
+	if err != nil {
+		t.Errorf("Error getting collection: %s", err.Error())
+	}
+	err = c.DropCollection()
+	if err != nil {
+		t.Errorf("Error dropping collection: %s", err.Error())
+	}
+	s.Close()
+
+	db, err = CreateTestUserDB("mongodb://localhost:27017")
+	if err != nil {
+		t.Errorf("Error creating userdb: %s\n", err.Error())
+		t.FailNow()
+	}
+	udb := userdb.NewMongoUserDatabaseGiven(db)
+
+	//add user
+	u, err := userdb.NewUser("t1", "t1")
+	if err != nil {
+		t.Errorf("Error creating new user: %s\n", err.Error())
+	}
+
+	err = udb.PutUser(u)
+	if err != nil {
+		t.Errorf("Error putting user: %s\n", err.Error())
+	}
+
+	var tempU *userdb.User
+	if tempU, err = udb.FetchUser("t1"); err != nil {
+		t.Errorf("Error grabbing user t1: %s\n", err.Error())
+	}
+	if !u.IsSameAs(tempU) {
+		t.Errorf("Error comparing users: %s\n", err.Error())
+	}
+
+	//update user
+	err = udb.SetUserLevel("t1", userdb.Moderator)
+	if err != nil {
+		t.Errorf("Error changing user level: %s\n", err.Error())
+	}
+	if tempU, err = udb.FetchUser("t1"); err != nil {
+		t.Errorf("Error grabbing updated t1: %s\n", err.Error())
+	}
+	u.Level = userdb.Moderator
+	if !u.IsSameAs(tempU) {
+		t.Errorf("Error comparing users: %s\n", err.Error())
+	}
+
+	//fetch all users
+	u2, err := userdb.NewUser("t2", "t2")
+	if err != nil {
+		t.Errorf("Error creating new user t2: %s\n", err.Error())
+	}
+	err = udb.PutUser(u2)
+	if err != nil {
+		t.Errorf("Error putting user t2: %s\n", err.Error())
+	}
+	all, err := udb.FetchAllUsers()
+	if err != nil {
+		t.Errorf("Error fetchign all users: %s\n", err.Error())
+	}
+	if len(all) != 2 {
+		t.Errorf("Error wrong length of all users: %d\n", len(all))
+	}
+	//NOT sorted, try both cases
+	if (!u.IsSameAs(&all[0]) && u2.IsSameAs(&all[1])) || (!u2.IsSameAs(&all[1]) && u.IsSameAs(&all[0])) {
+		t.Errorf("Error all users do not match :(\n")
 	}
 }
 
