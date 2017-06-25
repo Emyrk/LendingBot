@@ -5,9 +5,9 @@ import (
 )
 
 const (
-	USER_DB        = "userdb"
-	USER_DB_TEST   = "userdb_test"
-	USER_DB_C_USER = "user_c"
+	USER_DB      = "userdb"
+	USER_DB_TEST = "userdb_test"
+	C_USER       = "user"
 
 	STAT_DB      = "statdb"
 	STAT_DB_TEST = "statdb_test"
@@ -76,7 +76,7 @@ func CreateUserDB(uri string) (*MongoDB, error) {
 		return nil, err
 	}
 
-	c := session.DB(USER_DB).C(USER_DB_C_USER)
+	c := session.DB(USER_DB).C(C_USER)
 
 	index := mgo.Index{
 		Key:        []string{"username"},
@@ -154,7 +154,7 @@ func CreateTestUserDB(uri string) (*MongoDB, error) {
 		return nil, err
 	}
 
-	c := session.DB(USER_DB_TEST).C(USER_DB_C_USER)
+	c := session.DB(USER_DB_TEST).C(C_USER)
 
 	index := mgo.Index{
 		Key:        []string{"username"},
