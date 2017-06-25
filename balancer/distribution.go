@@ -37,7 +37,11 @@ func (h *Hive) AddUser(u *User) error {
 		// Add to phone book
 		h.Slaves.AddUserUnsafe(u.Username, u.Exchange, candidate.ID)
 	} else {
-		h.BaseSlave.ChangeUser(u, true, true)
+		if h.BaseSlave != nil {
+			h.BaseSlave.ChangeUser(u, true, true)
+		} else {
+			return fmt.Errorf("No slaves that the user can be added too")
+		}
 	}
 
 	return nil
