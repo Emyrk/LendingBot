@@ -55,5 +55,6 @@ func populateUserTestDB(t *testing.T) {
 			Username: u.Username,
 			Exchange: balancer.PoloniexExchange,
 		}
+		fmt.Println("one", i, balUsersPOL[i], balUsersBIT[i])
 	}
 }
