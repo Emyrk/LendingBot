@@ -29,7 +29,6 @@ func TestBalancerDisconnects(t *testing.T) {
 func Test_hive_disconnect(t *testing.T) {
 	bal.Close()
 	time.Sleep(5 * time.Second)
-	time.Sleep(500 * time.Nanosecond)
 	bal = balancer.NewBalancer()
 	bal.Run(1151)
 
