@@ -34,7 +34,7 @@
               <div class="col-md-12 col-sm-12 col-xs-12">
                 <div class="x_panel">
                   <div class="x_content">
-                    <form class="form-horizontal form-label-left" name="loginForm" novalidate="">
+                    <form class="form-horizontal form-label-left" name="loginForm" novalidate="" autocomplete="on" id="loginForm">
                       <div class="item form-group" ng-show="loginError.length > 0">
                         <div class="col-md-9 col-sm-9 col-xs-9 col-md-offset-3 col-sm-offset-3 col-xs-offset-3" style="color:red;">
                           <strong>Error!</strong> {{loginError}}
@@ -44,14 +44,14 @@
                         <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-xs-2 col-sm-offset-0" for="email">Email
                         </label>
                         <div class="col-md-3 col-sm-3 col-xs-7">
-                          <input type="email" id="email" ng-model="login.email" name="myemail" required="required" class="form-control col-md-7 col-xs-12" ng-disabled="attemptingLogin" class="login-field">
+                          <input type="email" id="email" ng-model="login.email" name="myemail" required="required" class="form-control col-md-7 col-xs-12" ng-disabled="attemptingLogin" class="login-field" autocomplete="on">
                         </div>
                       </div>
                       <div class="item form-group">
                         <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-sm-offset-0" for="password">Password
                         </label>
                         <div class="col-md-3 col-sm-3 col-xs-7">
-                          <input id="password" type="password" name="password" data-validate-length="6,100" class="form-control col-md-7 col-xs-12" required="required" ng-model="login.pass" ng-disabled="attemptingLogin" class="login-field">
+                          <input id="password" type="password" name="password" data-validate-length="6,100" class="form-control col-md-7 col-xs-12" required="required" ng-model="login.pass" ng-disabled="attemptingLogin" class="login-field" autocomplete="on">
                         </div>
                       </div>
                       <div class="item form-group">

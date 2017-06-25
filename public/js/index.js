@@ -21,6 +21,7 @@ app.controller('indexController', ['$scope', '$http', '$log',
 			.then((res, status, headers, config) => {
 				//success
 				$log.info("login: Success.");
+				$('#loginForm').submit();
 				window.location = '/dashboard';
 			}, (err, status, headers, config) => {
 				//error
