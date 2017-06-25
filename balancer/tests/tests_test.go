@@ -12,6 +12,7 @@ import (
 
 var _, _ = balancer.Shutdown, bee.Online
 var bal *balancer.Balancer
+var err error
 
 func Test_balancer_and_bee_disconnect(t *testing.T) {
 	bal = balancer.NewBalancer()
@@ -52,23 +53,35 @@ func Test_balancer_rebalance(t *testing.T) {
 		beelist = append(beelist, b)
 		b.Run()
 		fmt.Printf("Launched Bee %d\n", i)
+		fmt.Println("STATUS: ", b.Status)
 	}
 
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(5000 * time.Millisecond)
 
 	for i, u := range balUsersPOL {
-		bal.AddUser(&u)
-		bal.AddUser(&balUsersBIT[i])
+		err = bal.AddUser(&u)
+		if err != nil {
+			t.Errorf("Add user one: %s\n", err.Error())
+		}
+		err = bal.AddUser(&balUsersBIT[i])
+		if err != nil {
+			t.Errorf("Add user one: %s", err.Error())
+		}
 	}
 
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(10000 * time.Millisecond)
 
 	for i, b := range bal.ConnetionPool.Slaves.GetAllBees() {
 		b.UserLock.RLock()
 		if len(b.Users) != 25 {
 			t.Errorf("Local bee should have quarter of all users: %d", len(b.Users))
 		}
-		b.UserLock.Unlock()
+		fmt.Println(len(b.Users))
+		b.UserLock.RUnlock()
+
+		fmt.Println(i)
+		fmt.Println(beelist[i])
+		fmt.Println(beelist[i].Users)
 		if len(beelist[i].Users) != 25 {
 			t.Errorf("Remote bee should have quarter of all users: %d", len(beelist[i].Users))
 		}

@@ -177,6 +177,7 @@ func (s *Swarm) RemoveUser(email string, exchange int) bool {
 
 func (s *Swarm) SquashBee(id string) {
 	s.Lock()
+	fmt.Println("SQQQUUUASSSSHHH")
 	delete(s.swarm, id)
 	s.Unlock()
 }
