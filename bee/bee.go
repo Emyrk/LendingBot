@@ -318,9 +318,10 @@ func (b *Bee) HandleRecieves() {
 
 func (b *Bee) HandleErrors() {
 	alreadyKilled := false
+	var e error
 	for {
 		select {
-		case e := <-b.ErrorChannel:
+		case e = <-b.ErrorChannel:
 			// if e == io.EOF {
 			// 	continue
 			// }
@@ -334,6 +335,7 @@ func (b *Bee) HandleErrors() {
 		}
 	}
 	var _ = alreadyKilled
+	var _ = e
 }
 
 func (b *Bee) goOffline() {
