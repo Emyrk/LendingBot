@@ -380,3 +380,93 @@ func Test_lending_history_stat(t *testing.T) {
 		t.Errorf("Error getting temp lending summary %s\n", err.Error())
 	}
 }
+
+func Test_exchange_poloniex_db_create(t *testing.T) {
+	db, err = CreateTestStatDB("mongodb://localhost:27017")
+	if err != nil {
+		t.Errorf("Error creating test db: %s\n", err.Error())
+		t.FailNow()
+	}
+
+	if db == nil {
+		t.Errorf("Error db is null")
+		t.FailNow()
+	}
+
+	s, err := db.CreateSession()
+	if err != nil {
+		t.Errorf("Error creating session: %s\n", err.Error())
+		t.FailNow()
+	}
+	defer s.Close()
+	_, err = s.DB(STAT_DB_TEST).C(C_Exchange_POL).RemoveAll(bson.M{})
+	if err != nil {
+		t.Errorf("Error dropping removeAll: %s\n", err.Error())
+		t.FailNow()
+	}
+}
+
+func Test_exchange_poloniex_stat(t *testing.T) {
+	usdb, err = userdb.NewUserStatisticsMongoDB(db)
+	if err != nil {
+		t.Errorf("Error creating new stat mongodb: %s\n", err.Error())
+		t.FailNow()
+	}
+
+	tempTime := time.Now().UTC() //5min
+	err = usdb.RecordPoloniexStatisticTime("BTC", 0.005, tempTime)
+	if err != nil {
+		t.Errorf("Error adding statistic: %s\n", err.Error())
+		t.FailNow()
+	}
+	tempTime = time.Now().UTC().Add(-6 * time.Minute) //hr
+	err = usdb.RecordPoloniexStatisticTime("BTC", 0.005, tempTime)
+	if err != nil {
+		t.Errorf("Error adding statistic: %s\n", err.Error())
+		t.FailNow()
+	}
+	tempTime = time.Now().UTC().Add(-2 * time.Hour) //day
+	err = usdb.RecordPoloniexStatisticTime("BTC", 0.005, tempTime)
+	if err != nil {
+		t.Errorf("Error adding statistic: %s\n", err.Error())
+		t.FailNow()
+	}
+	tempTime = time.Now().UTC().Add(-30 * time.Hour) //week
+	err = usdb.RecordPoloniexStatisticTime("BTC", 0.005, tempTime)
+	if err != nil {
+		t.Errorf("Error adding statistic: %s\n", err.Error())
+		t.FailNow()
+	}
+	tempTime = time.Now().UTC().Add(-8 * 24 * time.Hour) //month
+	err = usdb.RecordPoloniexStatisticTime("BTC", 0.005, tempTime)
+	if err != nil {
+		t.Errorf("Error adding statistic: %s\n", err.Error())
+		t.FailNow()
+	}
+
+	pol, err := usdb.GetPoloniexStatistics("BTC")
+	if err != nil {
+		t.Errorf("Error retrieving pol stats: %s\n", err.Error())
+		t.FailNow()
+	}
+
+	if pol.FiveMinAvg != 0.005 {
+		t.Errorf("5 Min average is incorrect: %f\n", pol.FiveMinAvg)
+	}
+
+	if pol.HrAvg != 0.005 {
+		t.Errorf("Hour average is incorrect: %f\n", pol.HrAvg)
+	}
+
+	if pol.DayAvg != 0.005 {
+		t.Errorf("Day average is incorrect: %f\n", pol.DayAvg)
+	}
+
+	if pol.WeekAvg != 0.005 {
+		t.Errorf("Week average is incorrect: %f\n", pol.WeekAvg)
+	}
+
+	if pol.MonthAvg != 0.005 {
+		t.Errorf("Month average is incorrect: %f\n", pol.MonthAvg)
+	}
+}
