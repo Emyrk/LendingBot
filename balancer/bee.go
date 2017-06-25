@@ -86,6 +86,7 @@ func (b *Bee) Runloop() {
 	go b.HandleReceieves()
 	for {
 		time.Sleep(100 * time.Millisecond)
+		b.Recount()
 		// Handle Errors
 		b.HandleErrors()
 
