@@ -1,15 +1,16 @@
+services:
+  - mongodb
 language: go
 go:
         - 1.7.4
 before_install:
-        - go get github.com/mattn/goveralls
 install:
         - go get -v github.com/Masterminds/glide
         - cd $GOPATH/src/github.com/Masterminds/glide && git checkout tags/v0.12.3 && go install && cd -
         - glide install
 before_script:
+  - sleep 15
 script:
         - go build -v
         - go test -v $(glide nv)
-        - $GOPATH/bin/goveralls -service=travis-ci
 os: linux
