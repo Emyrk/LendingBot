@@ -8,31 +8,31 @@ import (
 	"syscall"
 	"time" // or "runtime"
 
-	"github.com/Emyrk/LendingBot/balancer"
+	"github.com/Emyrk/LendingBot/bee"
 )
 
 func main() {
 	var (
-		port = flag.Int("p", "7000", "Port to listen on for balancer")
+		address = flag.String("a", "localhost:7000", "Address to connect to the balancer")
 	)
 
 	flag.Parse()
 
-	bal := balancer.NewBalancer()
-	bal.Run(*port)
+	be := bee.NewBee(*address)
+	be.Run()
 
 	c := make(chan os.Signal, 2)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-c
 		log.Printf("Recievived ctrl+c. Closing balancer")
-		bal.Close()
+		be.Shutdown()
 		os.Exit(1)
 	}()
 
-	log.Printf("Now running Balancer")
+	log.Printf("Now running Bee")
 	for {
-		log.Printf("Using %d bees", bal.ConnetionPool.Slaves.SwarmCount())
+		log.Printf("Using %d users", len(be.Users))
 		time.Sleep(10 * time.Minute)
 	}
 }
