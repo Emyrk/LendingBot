@@ -55,6 +55,7 @@ func PopulateUserTestDB() error {
 			Username: u.Username,
 			Exchange: balancer.PoloniexExchange,
 		}
+		fmt.Println("one", i, balUsersPOL[i], balUsersBIT[i])
 	}
 	return nil
 }

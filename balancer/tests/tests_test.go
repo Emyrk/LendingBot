@@ -67,6 +67,7 @@ func Test_balancer_rebalance(t *testing.T) {
 		if err != nil {
 			t.Errorf("Add user one: %s\n", err.Error())
 		}
+		fmt.Println(i)
 		err = bal.AddUser(&BalUsersBIT[i])
 		if err != nil {
 			t.Errorf("Add user one: %s", err.Error())
