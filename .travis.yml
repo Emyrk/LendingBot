@@ -18,6 +18,4 @@ os: linux
 notifications:
     slack: hodlzone:MSBrdxuC1oydHUTL0eMBuHj4
       on_success: always
-    email:
-      on_success: never # default: change
-      on_failure: never # default: always
+    email: false
