@@ -20,15 +20,21 @@ const (
 
 // Balancer is the Queen Bee
 type Balancer struct {
-	ConnetionPool *Hive
-	Listener      net.Listener
+	ConnetionPool  *Hive
+	RateCalculator *QueenBee
+	Listener       net.Listener
 
 	quit bool
+	salt []byte
 }
 
 func (b *Balancer) Close() {
 	b.quit = true
-	b.Listener.Close()
+	fmt.Printf("Close Balancer %x\n", b.salt)
+	err := b.Listener.Close()
+	if err != nil {
+		fmt.Println(err)
+	}
 	b.ConnetionPool.Close()
 }
 
@@ -43,6 +49,9 @@ func (b *Balancer) RemoveUser(email string, exchange int) error {
 func NewBalancer() *Balancer {
 	b := new(Balancer)
 	b.ConnetionPool = NewHive()
+	b.RateCalculator = NewRateCalculator()
+	b.salt = make([]byte, 10)
+	rand.Read(b.salt)
 	return b
 }
 func (b *Balancer) Run(port int) {
@@ -62,13 +71,14 @@ func (b *Balancer) Listen(port int) {
 
 func (b *Balancer) Accept() {
 	for {
+		if b.quit {
+			return
+		}
 		conn, err := b.Listener.Accept()
 		if err == nil {
 			b.NewConnection(conn)
 		}
-		if b.quit {
-			return
-		}
+
 	}
 }
 
@@ -162,6 +172,7 @@ func (h *Hive) HandleReceives() {
 			var _ = c
 		case <-h.quit:
 			h.quit <- true
+			return
 		}
 	}
 }
@@ -176,6 +187,7 @@ func (h *Hive) HandleSends() {
 			}
 		case <-h.quit:
 			h.quit <- true
+			return
 		}
 	}
 }

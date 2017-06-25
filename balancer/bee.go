@@ -221,7 +221,7 @@ func (b *Bee) HandleErrors() {
 		select {
 		case e := <-b.ErrorChannel:
 			// Handle errors
-			fmt.Println(e)
+			fmt.Println("INTERNAL-BEE", e)
 			if e == io.EOF {
 				// Reinit connection
 				if !alreadyKilled {
@@ -249,7 +249,8 @@ func (b *Bee) HandleSends() {
 			case p := <-b.SendChannel:
 				err := b.Encoder.Encode(p)
 				if err != nil {
-					b.ErrorChannel <- err
+					b.ErrorChannel <- fmt.Errorf("[HandleSends] %s", err)
+					b.Status = Offline
 				}
 			}
 		} else {
@@ -267,7 +268,8 @@ func (b *Bee) HandleReceieves() {
 			var p Parcel
 			err := b.Decoder.Decode(&p)
 			if err != nil {
-				b.ErrorChannel <- err
+				b.ErrorChannel <- fmt.Errorf("[HandleReceieves] %s", err)
+				b.Status = Offline
 			}
 			b.RecieveChannel <- &p
 		} else {

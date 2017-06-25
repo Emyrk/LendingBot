@@ -314,6 +314,7 @@ func (b *Bee) HandleErrors() {
 		select {
 		case e := <-b.ErrorChannel:
 			var _ = e
+			b.goOffline()
 			// Handle errors
 			// if e == io.EOF {
 			// 	// Reinit connection
@@ -333,6 +334,11 @@ func (b *Bee) HandleErrors() {
 		}
 	}
 	var _ = alreadyKilled
+}
+
+func (b *Bee) goOffline() {
+	b.Status = Offline
+	b.Connection.Close()
 }
 
 func (b *Bee) Shutdown() {
