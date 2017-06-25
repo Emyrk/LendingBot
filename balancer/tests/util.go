@@ -11,8 +11,8 @@ import (
 )
 
 // var users []userdb.User
-var BalUsersPOL []balancer.User
-var BalUsersBIT []balancer.User
+var BalUsersPOL []*balancer.User
+var BalUsersBIT []*balancer.User
 
 func PopulateUserTestDB() error {
 	// db, err := mongo.CreateTestUserDB("mongodb://localhost:27017")
@@ -32,8 +32,8 @@ func PopulateUserTestDB() error {
 	// }
 
 	// users := make([]userdb.User, 100, 100)
-	BalUsersPOL = make([]balancer.User, 100, 100)
-	BalUsersBIT = make([]balancer.User, 100, 100)
+	BalUsersPOL = make([]*balancer.User, 100)
+	BalUsersBIT = make([]*balancer.User, 100)
 	for i := 0; i < 100; i++ {
 		n := fmt.Sprintf("jimbo_%d", i)
 		u, err := userdb.NewUser(n, n)
@@ -47,15 +47,15 @@ func PopulateUserTestDB() error {
 		// 	t.Errorf("upsert failed to add user: %s", err.Error())
 		// }
 		// users[i] = *u
-		BalUsersPOL[i] = balancer.User{
+		BalUsersPOL[i] = &balancer.User{
 			Username: u.Username,
 			Exchange: balancer.PoloniexExchange,
 		}
-		BalUsersBIT[i] = balancer.User{
+		BalUsersBIT[i] = &balancer.User{
 			Username: u.Username,
-			Exchange: balancer.PoloniexExchange,
+			Exchange: balancer.BitfinexExchange,
 		}
-		fmt.Println("one", i, balUsersPOL[i], balUsersBIT[i])
+
 	}
 	return nil
 }
