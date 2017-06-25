@@ -8,12 +8,13 @@ import (
 
 	"github.com/Emyrk/LendingBot/balancer"
 	"github.com/Emyrk/LendingBot/bee"
+	"github.com/Emyrk/LendingBot/src/core/database/mongo"
 )
 
 var _, _ = balancer.Shutdown, bee.Online
 var bal *balancer.Balancer
 
-func TestBalancerDisconnects(t *testing.T) {
+func Test_balancer_and_bee_disconnect(t *testing.T) {
 	bal = balancer.NewBalancer()
 	bal.Run(1151)
 
@@ -24,16 +25,18 @@ func TestBalancerDisconnects(t *testing.T) {
 		b.Run()
 		fmt.Printf("Launched Bee %d\n", i)
 	}
-}
 
-func Test_hive_disconnect(t *testing.T) {
 	bal.Close()
 	time.Sleep(1 * time.Second)
-	bal = balancer.NewBalancer()
-	bal.Run(1151)
 
-	time.Sleep(3 * time.Second)
-	if bal.ConnetionPool.Slaves.SwarmCount() != 10 {
-		t.Errorf("Bees connected after disconnect is only: %d\n", bal.ConnetionPool.Slaves.SwarmCount())
+	for _, o := range beelist {
+		o.Shutdown()
+	}
+	time.Sleep(1 * time.Second)
+
+	for _, b := range beelist {
+		if b.Status != bee.Shutdown {
+			t.Errorf("Bee not shutdown: %s", b.ID)
+		}
 	}
 }
