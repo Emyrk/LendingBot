@@ -84,13 +84,18 @@ func (b *Bee) Runloop() {
 		// Handle Errors
 		b.HandleErrors()
 
-		// Process Received Parcels
-		b.ProcessParcels()
 		// React on state changes
 		switch b.Status {
 		case Online:
-
+			// Process Received Parcels
+			b.ProcessParcels()
 		case Offline:
+			// Offline for 7min+
+			if time.Since(b.LastHearbeat).Seconds() > 60*7 {
+				b.Shutdown()
+			} else {
+				time.Sleep(250 * time.Millisecond)
+			}
 
 		case Shutdown:
 			// Shutdown means we close up shop and call it a day
@@ -98,6 +103,19 @@ func (b *Bee) Runloop() {
 			return
 		}
 	}
+}
+
+// Shutdown will send a rebalance command to balancer
+func (b *Bee) Shutdown() {
+	b.Status = Shutdown
+	b.UserLock.RLock()
+	for _, u := range b.Users {
+		p := NewRebalanceUserParcel(b.ID, *u)
+		b.MasterHive.RecieveChannel <- p
+	}
+	b.UserLock.RUnlock()
+
+	b.MasterHive.CommandChannel <- &Command{ID: b.ID, Action: ShutdownBeeCommand}
 }
 
 func (b *Bee) Recount() {

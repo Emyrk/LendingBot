@@ -175,6 +175,12 @@ func (s *Swarm) RemoveUser(email string, exchange int) bool {
 	return v
 }
 
+func (s *Swarm) SquashBee(id string) {
+	s.Lock()
+	delete(s.swarm, id)
+	s.Unlock()
+}
+
 func (s *Swarm) GetAndLockAllBees() []*Bee {
 	var all []*Bee
 

@@ -32,6 +32,14 @@ func (b *Balancer) Close() {
 	b.ConnetionPool.Close()
 }
 
+func (b *Balancer) AddUser(u *User) error {
+	return b.ConnetionPool.AddUser(u)
+}
+
+func (b *Balancer) RemoveUser(email string, exchange int) error {
+	return b.ConnetionPool.RemoveUser(email, exchange)
+}
+
 func NewBalancer() *Balancer {
 	b := new(Balancer)
 	b.ConnetionPool = NewHive()
@@ -133,8 +141,24 @@ func (h *Hive) HandleReceives() {
 	for {
 		select {
 		case p := <-h.RecieveChannel:
+			switch p.Type {
+			case RebalanceUserParcel:
+				ru := new(RebalanceUser)
+				err := json.Unmarshal(p.Message, ru)
+				if err != nil {
+					// Log
+					break
+				}
+
+				// Add the user to another Bee
+				h.AddUser(&ru.U)
+			}
 			var _ = p
 		case c := <-h.CommandChannel:
+			switch c.Action {
+			case ShutdownBeeCommand:
+				h.Slaves.SquashBee(c.ID)
+			}
 			var _ = c
 		case <-h.quit:
 			h.quit <- true
@@ -228,7 +252,7 @@ func (h *Hive) FlyIn(c net.Conn) {
 	}
 
 	// 6. Go buzzing bee!
-	b.Connection.SetDeadline(time.Now().Add(60 * time.Second))
+	b.Connection.SetDeadline(time.Time{})
 	b.Status = Online
 	if newbee {
 		go b.Runloop()

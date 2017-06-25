@@ -13,8 +13,9 @@ import (
 )
 
 const (
-	Online  int = iota
-	Offline int = iota
+	Online int = iota
+	Offline
+	Shutdown
 )
 
 type Hive struct {
@@ -83,7 +84,6 @@ func (b *Bee) FlyIn() error {
 	}
 
 	b.Connection.SetDeadline(time.Time{})
-
 	return nil
 }
 
@@ -174,12 +174,20 @@ func (b *Bee) Runloop() {
 		time.Sleep(100 * time.Millisecond)
 
 		b.HandleErrors()
-		b.ProcessParcels()
 
-		if time.Since(b.LastHearbeat) > b.HearbeatDuration {
-			// Send Hearbeat
+		switch b.Status {
+		case Offline:
+			err := b.FlyIn()
+			if err != nil {
+				time.Sleep(2 * time.Second)
+			}
+		case Online:
+			b.ProcessParcels()
+
+			if time.Since(b.LastHearbeat) > b.HearbeatDuration {
+				b.SendHearbeat()
+			}
 		}
-
 	}
 }
 
@@ -232,6 +240,8 @@ func (b *Bee) ProcessParcels() {
 					// Found the user, set the active flag
 					if newU > -1 {
 						b.Users[newU].Active = m.Active
+						b.Users[newU].AccessKey = m.U.AccessKey
+						b.Users[newU].SecretKey = m.U.SecretKey
 						b.userlock.Unlock()
 						break
 					}
@@ -319,6 +329,11 @@ func (b *Bee) HandleErrors() {
 		}
 	}
 	var _ = alreadyKilled
+}
+
+func (b *Bee) Shutdown() {
+	b.Status = Shutdown
+	b.Connection.Close()
 }
 
 func (b *Bee) NewParcel() *balancer.Parcel {

@@ -11,11 +11,18 @@ const (
 
 	AssignmentParcel
 
+	// HeartbeatParcel just keeps the bee in sync with balancer
 	HeartbeatParcel
 
+	// ChangeUserParcel is used to add/remove, active/deactivate a user
 	ChangeUserParcel
 
+	// AuditMessageParcel tells a slave to conduct an audit
 	AuditMessageParcel
+
+	// RebalanceUserParcel is sent from a bee, telling the balancer to
+	// give another bee the user
+	RebalanceUserParcel
 )
 
 type Parcel struct {
@@ -110,6 +117,20 @@ type AuditParcel struct {
 func NewAuditParcel(id string, a AuditParcel) *Parcel {
 	p := newParcel(id, AuditMessageParcel)
 	msg, _ := json.Marshal(&a)
+	p.Message = msg
+
+	return p
+}
+
+type RebalanceUser struct {
+	U User
+}
+
+func NewRebalanceUserParcel(id string, u User) *Parcel {
+	p := newParcel(id, RebalanceUserParcel)
+
+	ru := RebalanceUser{U: u}
+	msg, _ := json.Marshal(&ru)
 	p.Message = msg
 
 	return p

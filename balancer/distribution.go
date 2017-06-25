@@ -14,6 +14,9 @@ func (h *Hive) AddUser(u *User) error {
 	lowest := 0
 	var candidate *Bee
 	for _, b := range bees {
+		if b.Status != Online {
+			continue
+		}
 		exCount, _ := b.GetUnsafeExchangeCount(u.Exchange)
 		if candidate == nil {
 			candidate = b
