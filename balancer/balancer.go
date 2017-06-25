@@ -35,6 +35,7 @@ func (b *Balancer) Close() {
 	if err != nil {
 		fmt.Println(err)
 	}
+	b.Listener = nil
 	b.ConnetionPool.Close()
 }
 
