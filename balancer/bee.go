@@ -76,6 +76,7 @@ func NewBeeFromWingleess(wb *WinglessBee) *Bee {
 	b.Status = Initializing
 	b.MasterHive = wb.ControllingHive
 	b.exchangeCount = make(map[int]int)
+	b.Users = make([]*User, 0)
 	return b
 }
 
