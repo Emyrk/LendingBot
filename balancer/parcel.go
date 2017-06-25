@@ -14,6 +14,8 @@ const (
 	HeartbeatParcel
 
 	ChangeUserParcel
+
+	AuditMessageParcel
 )
 
 type Parcel struct {
@@ -69,17 +71,21 @@ type NewChangeUser struct {
 	Active bool
 }
 
-func NewChangeUserParcel(id string, u User, add, active bool) *Parcel {
+func NewChangeUserParcelFromStruct(id string, cus NewChangeUser) *Parcel {
 	p := newParcel(id, ChangeUserParcel)
+	msg, _ := json.Marshal(cus)
+	p.Message = msg
+
+	return p
+}
+
+func NewChangeUserParcel(id string, u User, add, active bool) *Parcel {
 	m := new(NewChangeUser)
 	m.U = u
 	m.Active = active
 	m.Add = add
 
-	msg, _ := json.Marshal(m)
-	p.Message = msg
-
-	return p
+	return NewChangeUserParcelFromStruct(id, *m)
 }
 
 type Heartbeat struct {
@@ -92,6 +98,18 @@ type Heartbeat struct {
 func NewHeartbeat(id string, h Heartbeat) *Parcel {
 	p := newParcel(id, HeartbeatParcel)
 	msg, _ := json.Marshal(&h)
+	p.Message = msg
+
+	return p
+}
+
+type AuditParcel struct {
+	Users []*User
+}
+
+func NewAuditParcel(id string, a AuditParcel) *Parcel {
+	p := newParcel(id, AuditMessageParcel)
+	msg, _ := json.Marshal(&a)
 	p.Message = msg
 
 	return p

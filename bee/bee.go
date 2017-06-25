@@ -156,6 +156,14 @@ func (b *Bee) PhoneHome() error {
 }
 
 func (b *Bee) Run() {
+	for {
+		err := b.FlyIn()
+		if err != nil {
+			time.Sleep(10 * time.Second)
+			continue
+		}
+		break
+	}
 	go b.HandleSends()
 	go b.HandleRecieves()
 	go b.Runloop()
@@ -199,7 +207,7 @@ func (b *Bee) ProcessParcels() {
 		case p := <-b.RecieveChannel:
 			if p.ID != b.ID {
 				fmt.Println("Bee ID does not match ID in parcel")
-				break
+				// break
 			}
 			switch p.Type {
 			case balancer.ChangeUserParcel:
