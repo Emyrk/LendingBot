@@ -128,7 +128,7 @@ func (b *Bee) Recount() {
 	b.UserLock.Lock()
 	b.exchangeCount = make(map[int]int)
 	for _, u := range b.Users {
-		b.exchangeCount[u.Exchange] += 1
+		b.exchangeCount[u.Exchange] = b.exchangeCount[u.Exchange] + 1
 	}
 	b.UserLock.Unlock()
 }
@@ -192,10 +192,12 @@ func (b *Bee) ChangeUser(us *User, add, active bool) {
 		if index >= 0 {
 			b.Users[index] = b.Users[len(b.Users)-1]
 			b.Users = b.Users[:len(b.Users)-1]
+			b.exchangeCount[us.Exchange] = b.exchangeCount[us.Exchange] - 1
 		}
 	} else {
 		// Add
 		if index == -1 {
+			b.exchangeCount[us.Exchange] = b.exchangeCount[us.Exchange] + 1
 			b.Users = append(b.Users, us)
 		} else {
 			b.Users[index].Active = active
