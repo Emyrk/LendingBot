@@ -13,3 +13,5 @@ script:
         - go test -v $(glide nv)
         - $GOPATH/bin/goveralls -service=travis-ci
 os: linux
+notifications:
+    slack: hodlzone:MSBrdxuC1oydHUTL0eMBuHj4
