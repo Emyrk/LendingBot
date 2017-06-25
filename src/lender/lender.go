@@ -648,7 +648,7 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 			if ok && v.GetBestReturnRate() > 0 {
 				poloRate := v.GetBestReturnRate()
 				if rate < poloRate {
-					rate = (rate + poloRate) / 2
+					rate = poloRate // (rate + poloRate) / 2
 				}
 			}
 		}
