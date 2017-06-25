@@ -1,4 +1,4 @@
-package tests_test
+package tests
 
 import (
 	"fmt"
@@ -7,14 +7,14 @@ import (
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	// "gopkg.in/mgo.v2"
 	// "gopkg.in/mgo.v2/bson"
-	"testing"
+	// "testing"
 )
 
 // var users []userdb.User
-var balUsersPOL []balancer.User
-var balUsersBIT []balancer.User
+var BalUsersPOL []balancer.User
+var BalUsersBIT []balancer.User
 
-func populateUserTestDB(t *testing.T) {
+func PopulateUserTestDB() error {
 	// db, err := mongo.CreateTestUserDB("mongodb://localhost:27017")
 	// if err != nil {
 	// 	t.Errorf("Could not create dbs: %s", err.Error())
@@ -38,7 +38,7 @@ func populateUserTestDB(t *testing.T) {
 		n := fmt.Sprintf("jimbo_%d", i)
 		u, err := userdb.NewUser(n, n)
 		if err != nil {
-			t.Errorf("Error creating new user: %s", err.Error())
+			return fmt.Errorf("Error creating new user: %s", err.Error())
 		}
 
 		// upsertAction := bson.M{"$set": u}
@@ -57,4 +57,5 @@ func populateUserTestDB(t *testing.T) {
 		}
 		fmt.Println("one", i, balUsersPOL[i], balUsersBIT[i])
 	}
+	return nil
 }

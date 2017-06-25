@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Emyrk/LendingBot/balancer"
+	. "github.com/Emyrk/LendingBot/balancer/tests"
 	"github.com/Emyrk/LendingBot/bee"
 )
 
@@ -42,7 +43,10 @@ func Test_balancer_and_bee_disconnect(t *testing.T) {
 }
 
 func Test_balancer_rebalance(t *testing.T) {
-	populateUserTestDB(t)
+	err := PopulateUserTestDB()
+	if err != nil {
+		t.Error(err)
+	}
 
 	bal = balancer.NewBalancer()
 	bal.Run(1151)
@@ -56,21 +60,22 @@ func Test_balancer_rebalance(t *testing.T) {
 		fmt.Println("STATUS: ", b.Status)
 	}
 
-	time.Sleep(5000 * time.Millisecond)
+	time.Sleep(500 * time.Millisecond)
 
-	for i, u := range balUsersPOL {
+	for i, u := range BalUsersPOL {
 		err = bal.AddUser(&u)
 		if err != nil {
 			t.Errorf("Add user one: %s\n", err.Error())
 		}
 		fmt.Println(i)
-		err = bal.AddUser(&balUsersBIT[i])
+		err = bal.AddUser(&BalUsersBIT[i])
 		if err != nil {
 			t.Errorf("Add user one: %s", err.Error())
 		}
 	}
+	fmt.Println(BalUsersPOL)
 
-	time.Sleep(10000 * time.Millisecond)
+	time.Sleep(500 * time.Millisecond)
 
 	for i, b := range bal.ConnetionPool.Slaves.GetAllBees() {
 		b.UserLock.RLock()
