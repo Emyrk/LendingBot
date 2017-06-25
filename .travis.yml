@@ -18,4 +18,5 @@ os: linux
 notifications:
     slack: hodlzone:MSBrdxuC1oydHUTL0eMBuHj4
       on_success: always
+notifications:
     email: false
