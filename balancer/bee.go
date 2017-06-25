@@ -15,11 +15,12 @@ import (
 var _ = log.Panic
 
 type Bee struct {
-	ID           string
-	LastHearbeat time.Time
-	ApiRate      float64
-	LoanJobRate  float64
-	PublicKey    []byte
+	ID                string
+	LastHearbeat      time.Time
+	RebalanceDuration time.Duration
+	ApiRate           float64
+	LoanJobRate       float64
+	PublicKey         []byte
 
 	UserLock      sync.RWMutex
 	Users         []*User
@@ -54,6 +55,7 @@ func NewBee(c net.Conn, h *Hive) *Bee {
 	b.RecieveChannel = make(chan *Parcel, 1000)
 	b.ErrorChannel = make(chan error, 100)
 	b.MasterHive = h
+	b.RebalanceDuration = time.Minute * 7
 
 	b.Status = Initializing
 	return b
@@ -91,7 +93,7 @@ func (b *Bee) Runloop() {
 			b.ProcessParcels()
 		case Offline:
 			// Offline for 7min+
-			if time.Since(b.LastHearbeat).Seconds() > 60*7 {
+			if time.Since(b.LastHearbeat).Seconds() > b.RebalanceDuration {
 				b.Shutdown()
 			} else {
 				time.Sleep(250 * time.Millisecond)
