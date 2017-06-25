@@ -41,15 +41,19 @@ func CompareUserList(a []*User, b []*User) bool {
 }
 
 type User struct {
+	// Set
+	Username    string
+	Exchange    int
+	AccessKey   string
+	SecretKey   string
+	MinimumLend []float64
+	Currency    []string
+
+	// Don't set
 	SlaveID   string
 	LastTouch time.Time
-	Username  string
 	Active    bool
-	Exchange  int
-	AccessKey string
-	SecretKey string
-
-	Notes string
+	Notes     string
 }
 
 func (a *User) IsSimilar(b *User) bool {

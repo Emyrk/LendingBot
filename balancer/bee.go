@@ -196,11 +196,16 @@ func (b *Bee) ChangeUser(us *User, add, active bool) {
 		}
 	} else {
 		// Add
+		us.SlaveID = b.ID
 		if index == -1 {
 			b.exchangeCount[us.Exchange] = b.exchangeCount[us.Exchange] + 1
 			b.Users = append(b.Users, us)
 		} else {
 			b.Users[index].Active = active
+			b.Users[index].MinimumLend = us.MinimumLend
+			b.Users[index].Currency = us.Currency
+			b.Users[index].AccessKey = us.AccessKey
+			b.Users[index].SecretKey = us.SecretKey
 		}
 	}
 }

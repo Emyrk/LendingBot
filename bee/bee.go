@@ -49,11 +49,13 @@ type Bee struct {
 	Decoder    *gob.Decoder
 
 	Status int
-	// We need reference to the master hive to send it messages
-	// MasterHive *Hive
 
+	// LendingBot
+	LendingBot *Lender
+
+	// We need reference to the master hive to send it messages
 	HiveAddress string
-	Home        *Hive
+	HivePublic  []byte
 }
 
 func NewBee(hiveAddress string) *Bee {
@@ -61,7 +63,6 @@ func NewBee(hiveAddress string) *Bee {
 	b.SendChannel = make(chan *balancer.Parcel, 1000)
 	b.RecieveChannel = make(chan *balancer.Parcel, 1000)
 	b.ErrorChannel = make(chan error, 1000)
-	b.Home = new(Hive)
 	b.HiveAddress = hiveAddress
 	b.PublicKey = make([]byte, 32)
 	rand.Read(b.PublicKey)
@@ -70,6 +71,7 @@ func NewBee(hiveAddress string) *Bee {
 	b.ID = fmt.Sprintf("%x", idbytes)
 	b.HearbeatDuration = time.Minute
 	b.Users = make([]*balancer.User, 0)
+	b.LendingBot = NewLender(b)
 
 	return b
 }
@@ -108,7 +110,7 @@ func (b *Bee) Initialize() error {
 	}
 
 	public := p.Message
-	b.Home.PublicKey = public
+	b.HivePublic = public
 
 	// Send ID Resp
 	resp := balancer.NewResponseIDParcel(b.ID, b.Users, b.PublicKey)
@@ -176,6 +178,7 @@ func (b *Bee) Run() {
 	go b.HandleSends()
 	go b.HandleRecieves()
 	go b.Runloop()
+	go b.LendingBot.Runloop()
 }
 
 func (b *Bee) Runloop() {
@@ -276,7 +279,8 @@ func (b *Bee) ProcessParcels() {
 				}
 
 				lendingRates, ticker := m.ToMaps()
-				var _, _ = lendingRates, ticker
+				b.LendingBot.LendingRatesChannel <- lendingRates
+				b.LendingBot.TickerChannel <- ticker
 			}
 		default:
 			return
