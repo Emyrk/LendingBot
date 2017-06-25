@@ -19,5 +19,5 @@ notifications:
     slack: hodlzone:MSBrdxuC1oydHUTL0eMBuHj4
       on_success: always
     email:
-      on_success: always # default: change
-      on_failure: always # default: always
+      on_success: never # default: change
+      on_failure: never # default: always
