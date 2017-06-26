@@ -147,7 +147,7 @@ func (q *QueenBee) CalculateLoanRate(exchange int, currency string) error {
 	q.currentLoanRate[exchange][currency] = lr
 	if q.currentLoanRate[exchange][currency].Simple < 2 {
 		SetSimple(currency, lowest)
-		if time.Since(q.lastCalculateLoanRate[exchange][currency]).Seconds() > 5 {
+		if time.Since(q.lastCalculateLoanRate[exchange][currency]).Seconds() > 30 {
 			q.RecordExchangeStatistics(exchange, currency, lowest)
 			if q.lastCalculateLoanRate[exchange] == nil {
 				q.lastCalculateLoanRate[exchange] = make(map[string]time.Time)
@@ -211,7 +211,11 @@ func (l *QueenBee) calculateAvgBasedLoanRate(exchange int, currency string) {
 	}
 }
 
+// RecordExchangeStatistics saves the rate for the exchangeinto mongodb.
+//		Save the timestamp, currency, and rate
 func (q *QueenBee) RecordExchangeStatistics(exchange int, currency string, lowest float64) {
+	// TODO: Jesse, save these into Exchange DB
+	//	Must be able to l.GetExchangeStatisitics(exch, currency)
 
 }
 
