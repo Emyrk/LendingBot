@@ -346,7 +346,10 @@ func (l *QueenBee) UpdateTicker() {
 	LenderUpdateTicker.Inc()
 }
 
+// TODO: Jesse Implement this Get function from DB
 func (q *QueenBee) GetExchangeStatisitics(exchange int, currency string) *userdb.PoloniexStats {
+	var exchstats *userdb.PoloniexStats
+	var _ = exchstats
 	// u, err := s.userStatistic.GetPoloniexStatistics(currency)
 	// if err != nil {
 	// 	fmt.Printf("ERROR: GetPoloniexstatistics: %s\n", err.Error())
