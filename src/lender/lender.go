@@ -132,6 +132,7 @@ func NewLender(s *core.State) *Lender {
 }
 
 func (l *Lender) SaveMonth(username string) {
+	return
 	l.LHKeeper.SaveMonth(username)
 }
 
