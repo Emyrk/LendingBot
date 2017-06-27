@@ -39,8 +39,11 @@ type QueenBee struct {
 	exchangeStatsLock sync.RWMutex
 	exchangeStats     map[int]map[string]*userdb.PoloniexStats
 
-	tickerLock sync.RWMutex
-	ticker     map[string]poloniex.PoloniexTicker
+	poloTickerLock sync.RWMutex
+	poloTicker     map[string]poloniex.PoloniexTicker
+
+	// bitpoloTickerLock sync.RWMutex
+	// bitpoloTicker     map[string]poloniex.PoloniexTicker
 
 	MasterHive *Hive
 
@@ -55,7 +58,7 @@ func NewRateCalculator(h *Hive) *QueenBee {
 	q.MasterHive = h
 	q.GetTickerInterval = time.Minute
 	q.exchangeStats = make(map[int]map[string]*userdb.PoloniexStats)
-	q.ticker = make(map[string]poloniex.PoloniexTicker)
+	q.poloTicker = make(map[string]poloniex.PoloniexTicker)
 
 	return q
 }
@@ -84,10 +87,10 @@ func (q *QueenBee) runPolo() {
 
 		// Sendout
 		q.loanrateLock.RLock()
-		q.tickerLock.RLock()
-		p := NewLendingRatesP("ALL", q.currentLoanRate, q.ticker)
+		q.poloTickerLock.RLock()
+		p := NewLendingRatesP("ALL", q.currentLoanRate, q.poloTicker)
 		q.loanrateLock.RUnlock()
-		q.tickerLock.RUnlock()
+		q.poloTickerLock.RUnlock()
 		q.MasterHive.Slaves.SendParcelTo("ALL", p)
 
 		select {
@@ -224,9 +227,9 @@ func (q *QueenBee) getAmtForBTCValue(amount float64, currency string) float64 {
 		return amount
 	}
 
-	q.tickerLock.RLock()
-	t, ok := q.ticker[fmt.Sprintf("BTC_%s", currency)]
-	q.tickerLock.RUnlock()
+	q.poloTickerLock.RLock()
+	t, ok := q.poloTicker[fmt.Sprintf("BTC_%s", currency)]
+	q.poloTickerLock.RUnlock()
 	if !ok {
 		return amount
 	}
@@ -238,9 +241,9 @@ func (q *QueenBee) getBTCAmount(amount float64, currency string) float64 {
 	if currency == "BTC" {
 		return amount
 	}
-	q.tickerLock.RLock()
-	t, ok := q.ticker[fmt.Sprintf("BTC_%s", currency)]
-	q.tickerLock.RUnlock()
+	q.poloTickerLock.RLock()
+	t, ok := q.poloTicker[fmt.Sprintf("BTC_%s", currency)]
+	q.poloTickerLock.RUnlock()
 
 	if !ok {
 		return 0
@@ -300,48 +303,52 @@ func (l *QueenBee) UpdateExchangeStats(exchange int) {
 	l.exchangeStats[exchange]["ETH"] = l.GetExchangeStatisitics(exchange, "ETH")
 	l.exchangeStatsLock.Unlock()
 
-	l.tickerLock.RLock()
-	if v, ok := l.ticker["BTC_FCT"]; ok {
+	l.poloTickerLock.RLock()
+	if v, ok := l.poloTicker["BTC_FCT"]; ok {
 		TickerFCTValue.Set(v.Last)
 	}
-	if v, ok := l.ticker["BTC_BTS"]; ok {
+	if v, ok := l.poloTicker["BTC_BTS"]; ok {
 		TickerBTSValue.Set(v.Last)
 	}
-	if v, ok := l.ticker["BTC_CLAM"]; ok {
+	if v, ok := l.poloTicker["BTC_CLAM"]; ok {
 		TickerCLAMValue.Set(v.Last)
 	}
-	if v, ok := l.ticker["BTC_DOGE"]; ok {
+	if v, ok := l.poloTicker["BTC_DOGE"]; ok {
 		TickerDOGEValue.Set(v.Last)
 	}
-	if v, ok := l.ticker["BTC_LTC"]; ok {
+	if v, ok := l.poloTicker["BTC_LTC"]; ok {
 		TickerLTCValue.Set(v.Last)
 	}
-	if v, ok := l.ticker["BTC_MAID"]; ok {
+	if v, ok := l.poloTicker["BTC_MAID"]; ok {
 		TickerMAIDValue.Set(v.Last)
 	}
-	if v, ok := l.ticker["BTC_STR"]; ok {
+	if v, ok := l.poloTicker["BTC_STR"]; ok {
 		TickerSTRValue.Set(v.Last)
 	}
-	if v, ok := l.ticker["BTC_XMR"]; ok {
+	if v, ok := l.poloTicker["BTC_XMR"]; ok {
 		TickerXMRValue.Set(v.Last)
 	}
-	if v, ok := l.ticker["BTC_XRP"]; ok {
+	if v, ok := l.poloTicker["BTC_XRP"]; ok {
 		TickerXRPValue.Set(v.Last)
 	}
-	if v, ok := l.ticker["BTC_ETH"]; ok {
+	if v, ok := l.poloTicker["BTC_ETH"]; ok {
 		TickerETHValue.Set(v.Last)
 	}
-	l.tickerLock.RUnlock()
+	l.poloTickerLock.RUnlock()
 
+}
+
+func (l *QueenBee) ONLY_USE_FOR_TESTING_GET_TICKER() map[string]poloniex.PoloniexTicker {
+	return l.poloTicker
 }
 
 func (l *QueenBee) UpdateTicker() {
 	l.LastTickerUpdate = time.Now()
-	ticker, err := l.PoloniexAPI.GetTicker()
+	poloTicker, err := l.PoloniexAPI.GetTicker()
 	if err == nil {
-		l.tickerLock.Lock()
-		l.ticker = ticker
-		l.tickerLock.Unlock()
+		l.poloTickerLock.Lock()
+		l.poloTicker = poloTicker
+		l.poloTickerLock.Unlock()
 	}
 	LenderUpdateTicker.Inc()
 }

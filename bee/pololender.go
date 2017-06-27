@@ -17,10 +17,12 @@ import (
 var plog = log.WithFields(log.Fields{"package": "bee-lender"})
 
 type Lender struct {
-	Polo      *balancer.PoloniexAPIWithRateLimit
-	Users     []*LendUser
-	Bee       *Bee
-	RecordMap map[string]time.Time
+	Polo  *balancer.PoloniexAPIWithRateLimit
+	Users []*LendUser
+	Bee   *Bee
+
+	recordMapLock sync.RWMutex
+	recordMap     map[int]map[string]time.Time
 
 	LendingRatesChannel chan map[int]map[string]balancer.LoanRates
 	TickerChannel       chan map[string]poloniex.PoloniexTicker
@@ -34,6 +36,12 @@ type Lender struct {
 	LastTickerUpdate time.Time
 
 	quit chan bool
+
+	BitfinLender *BitfinexLender
+}
+
+func (l *Lender) SetTicker(t map[string]poloniex.PoloniexTicker) {
+	l.ticker = t
 }
 
 func NewLender(b *Bee) *Lender {
@@ -43,6 +51,12 @@ func NewLender(b *Bee) *Lender {
 
 	l.LendingRatesChannel = make(chan map[int]map[string]balancer.LoanRates, 100)
 	l.TickerChannel = make(chan map[string]poloniex.PoloniexTicker, 100)
+	l.recordMap = make(map[int]map[string]time.Time)
+	l.recordMap[balancer.PoloniexExchange] = make(map[string]time.Time)
+	l.recordMap[balancer.BitfinexExchange] = make(map[string]time.Time)
+	l.ticker = make(map[string]poloniex.PoloniexTicker)
+	l.currentLoanRate = make(map[int]map[string]balancer.LoanRates)
+	l.BitfinLender = NewBitfinexLender()
 
 	return l
 }
@@ -392,7 +406,9 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 	}
 
 	// Check if to save
-	v, ok := l.RecordMap[username]
+	l.recordMapLock.RLock()
+	v, ok := l.recordMap[balancer.PoloniexExchange][username]
+	l.recordMapLock.RUnlock()
 	if ok {
 		if time.Since(v) < time.Minute*10 {
 			return stats, nil
@@ -403,7 +419,9 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 	// db.RecordData(stats)
 	l.Bee.SaveUserStastics(stats, balancer.PoloniexExchange)
 
-	l.RecordMap[username] = time.Now()
+	l.recordMapLock.Lock()
+	l.recordMap[balancer.PoloniexExchange][username] = time.Now()
+	l.recordMapLock.Unlock()
 	return stats, nil
 }
 
