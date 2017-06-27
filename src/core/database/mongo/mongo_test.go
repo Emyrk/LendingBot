@@ -16,7 +16,7 @@ var session *mgo.Session
 var err error
 
 func Test_user_db_create(t *testing.T) {
-	db, err = CreateTestUserDB("mongodb://localhost:27017")
+	db, err = CreateTestUserDB("mongodb://localhost:27017", "", "")
 	if err != nil {
 		t.Errorf("Error creating test db: %s\n", err.Error())
 		t.FailNow()
@@ -111,7 +111,7 @@ func Test_user_userdb(t *testing.T) {
 	}
 	s.Close()
 
-	db, err = CreateTestUserDB("mongodb://localhost:27017")
+	db, err = CreateTestUserDB("mongodb://localhost:27017", "", "")
 	if err != nil {
 		t.Errorf("Error creating userdb: %s\n", err.Error())
 		t.FailNow()
@@ -179,7 +179,7 @@ func Test_user_close_session(t *testing.T) {
 var usdb *userdb.UserStatisticsDB
 
 func Test_stat_db_create(t *testing.T) {
-	db, err = CreateTestStatDB("mongodb://localhost:27017")
+	db, err = CreateTestStatDB("mongodb://localhost:27017", "", "")
 	if err != nil {
 		t.Errorf("Error creating test db: %s\n", err.Error())
 		t.FailNow()
@@ -271,7 +271,7 @@ func Test_stat_user(t *testing.T) {
 }
 
 func Test_stat_purge(t *testing.T) {
-	db, err = CreateTestStatDB("mongodb://localhost:27017")
+	db, err = CreateTestStatDB("mongodb://localhost:27017", "", "")
 	if err != nil {
 		t.Errorf("Error creating test db: %s\n", err.Error())
 		t.FailNow()
@@ -328,80 +328,86 @@ func Test_stat_purge(t *testing.T) {
 		}
 	}
 
-	err = usdb.Purge("tot")
+	err = usdb.PurgeMin("tot", 0)
 	if err != nil {
 		t.Errorf("Error purge: %s\n", err.Error())
 	}
 
-	o1 := bson.D{{"$match", bson.M{"_id": "tot"}}}
-	o2 := bson.D{{"$unwind", "$userstats"}}
-	o4 := bson.D{{"$project", bson.M{"_id": 0, "userstats.time": 1}}}
-	o5 := bson.D{{"$sort", bson.M{"userstats.time": -1}}}
-	ops := []bson.D{o1, o2, o4, o5}
+	// o1 := bson.D{{"$match", bson.M{"_id": "tot"}}}
+	// o2 := bson.D{{"$unwind", "$userstats"}}
+	// o4 := bson.D{{"$project", bson.M{"_id": 0, "userstats.time": 1}}}
+	// o5 := bson.D{{"$sort", bson.M{"userstats.time": -1}}}
+	// ops := []bson.D{o1, o2, o4, o5}
+	// var results []bson.M
+	// err = c.Pipe(ops).All(&results)
+	// if err != nil {
+	// 	t.Errorf("Error recording user stat data: %s\n", err.Error())
+	// }
+
 	var results []bson.M
-	err = c.Pipe(ops).All(&results)
+	err = c.Find(nil).Sort("-time").All(&results)
 	if err != nil {
 		t.Errorf("Error recording user stat data: %s\n", err.Error())
 	}
 
 	//1
-	tempTime := results[0]["userstats"].(bson.M)["time"].(time.Time).UTC()
+	tempTime := results[0]["time"].(time.Time).UTC()
 	tempTime2 := timeArr[0]
 	if tempTime != tempTime2 {
 		t.Errorf("Time not matching: [%s], [%s]\n", tempTime.String(), tempTime2.String())
 	}
 
 	//2
-	tempTime = results[1]["userstats"].(bson.M)["time"].(time.Time).UTC()
+	tempTime = results[1]["time"].(time.Time).UTC()
 	tempTime2 = timeArr[1]
 	if tempTime != tempTime2 {
 		t.Errorf("Time not matching: [%s], [%s]\n", tempTime.String(), tempTime2.String())
 	}
 
 	//3
-	tempTime = results[2]["userstats"].(bson.M)["time"].(time.Time).UTC()
+	tempTime = results[2]["time"].(time.Time).UTC()
 	tempTime2 = timeArr[2]
 	if tempTime != tempTime2 {
 		t.Errorf("Time not matching: [%s], [%s]\n", tempTime.String(), tempTime2.String())
 	}
 
 	//1
-	tempTime = results[3]["userstats"].(bson.M)["time"].(time.Time).UTC()
+	tempTime = results[3]["time"].(time.Time).UTC()
 	tempTime2 = timeArr[4]
 	if tempTime != tempTime2 {
 		t.Errorf("Time not matching: [%s], [%s]\n", tempTime.String(), tempTime2.String())
 	}
 
 	//2
-	tempTime = results[4]["userstats"].(bson.M)["time"].(time.Time).UTC()
+	tempTime = results[4]["time"].(time.Time).UTC()
 	tempTime2 = timeArr[5]
 	if tempTime != tempTime2 {
 		t.Errorf("Time not matching: [%s], [%s]\n", tempTime.String(), tempTime2.String())
 	}
 
 	//3
-	tempTime = results[5]["userstats"].(bson.M)["time"].(time.Time).UTC()
+	tempTime = results[5]["time"].(time.Time).UTC()
 	tempTime2 = timeArr[6]
 	if tempTime != tempTime2 {
 		t.Errorf("Time not matching: [%s], [%s]\n", tempTime.String(), tempTime2.String())
 	}
 
 	//4
-	tempTime = results[6]["userstats"].(bson.M)["time"].(time.Time).UTC()
+	tempTime = results[6]["time"].(time.Time).UTC()
 	tempTime2 = timeArr[8]
 	if tempTime != tempTime2 {
 		t.Errorf("Time not matching: [%s], [%s]\n", tempTime.String(), tempTime2.String())
 	}
 
 	//5
-	tempTime = results[7]["userstats"].(bson.M)["time"].(time.Time).UTC()
+	tempTime = results[7]["time"].(time.Time).UTC()
 	tempTime2 = timeArr[9]
 	if tempTime != tempTime2 {
 		t.Errorf("Time not matching: [%s], [%s]\n", tempTime.String(), tempTime2.String())
 	}
 
 	//6
-	tempTime = results[8]["userstats"].(bson.M)["time"].(time.Time).UTC()
+	tempTime = results[8]["time"].(time.Time).UTC()
 	tempTime2 = timeArr[10]
 	if tempTime != tempTime2 {
 		t.Errorf("Time not matching: [%s], [%s]\n", tempTime.String(), tempTime2.String())
@@ -409,7 +415,7 @@ func Test_stat_purge(t *testing.T) {
 }
 
 func Test_lending_history_db_create(t *testing.T) {
-	db, err = CreateTestStatDB("mongodb://localhost:27017")
+	db, err = CreateTestStatDB("mongodb://localhost:27017", "", "")
 	if err != nil {
 		t.Errorf("Error creating test db: %s\n", err.Error())
 		t.FailNow()
@@ -456,7 +462,7 @@ func Test_lending_history_stat(t *testing.T) {
 }
 
 func Test_exchange_poloniex_db_create(t *testing.T) {
-	db, err = CreateTestStatDB("mongodb://localhost:27017")
+	db, err = CreateTestStatDB("mongodb://localhost:27017", "", "")
 	if err != nil {
 		t.Errorf("Error creating test db: %s\n", err.Error())
 		t.FailNow()

@@ -12,9 +12,9 @@ import (
 	"github.com/Emyrk/LendingBot/src/core/common/primitives"
 	"github.com/Emyrk/LendingBot/src/core/database"
 	"github.com/Emyrk/LendingBot/src/core/database/mongo"
-	"github.com/revel/revel"
+	// "github.com/revel/revel"
 	"github.com/tinylib/msgp/msgp"
-	"gopkg.in/mgo.v2"
+	// "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -61,9 +61,8 @@ func NewUserStatisticsDB() (*UserStatisticsDB, error) {
 	return newUserStatisticsDB("bolt")
 }
 
-func NewUserStatisticsMongoDB() (*UserStatisticsDB, error) {
-	uri := revel.Config.StringDefault("database.uri", "mongodb://localhost:27017")
-	db, err := mongo.CreateStatDB(uri)
+func NewUserStatisticsMongoDB(uri string, dbu string, dbp string) (*UserStatisticsDB, error) {
+	db, err := mongo.CreateStatDB(uri, dbu, dbp)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating user_stat db: %s\n", err.Error())
 	}
@@ -289,42 +288,61 @@ func (us *UserStatisticsDB) RecordData(stats *AllUserStatistic) error {
 		}
 		defer s.Close()
 
-		var eA []AllUserStatistic
-		mus := MongoAllUserStatistics{
-			stats.Username,
-			eA,
-		}
-		change := mgo.Change{
-			Update:    bson.M{"$setOnInsert": mus},
-			ReturnNew: false,
-			Upsert:    true,
-		}
-		//CAN OPTIMIZE LATER
-		_, err = c.Find(bson.M{"_id": stats.Username}).Apply(change, nil)
-		if err != nil {
-			return fmt.Errorf("Mongo: RecordData: create: %s", err)
-		}
+		// var eA []AllUserStatistic
+		// mus := MongoAllUserStatistics{
+		// 	stats.Username,
+		// 	eA,
+		// }
+		// change := mgo.Change{
+		// 	Update:    bson.M{"$setOnInsert": mus},
+		// 	ReturnNew: false,
+		// 	Upsert:    true,
+		// }
+		// //CAN OPTIMIZE LATER
+		// _, err = c.Find(bson.M{"_id": stats.Username}).Apply(change, nil)
+		// if err != nil {
+		// 	return fmt.Errorf("Mongo: RecordData: create: %s", err)
+		// }
 
-		// db.collection.findAndModify({
-		//   query: { _id: "some potentially existing id" },
-		//   update: {
-		//     $setOnInsert: { foo: "bar" }
-		//   },
-		//   new: true,   // return new doc if one is upserted
-		//   upsert: true // insert the document if it does not exist
-		// })
+		// // db.collection.findAndModify({
+		// //   query: { _id: "some potentially existing id" },
+		// //   update: {
+		// //     $setOnInsert: { foo: "bar" }
+		// //   },
+		// //   new: true,   // return new doc if one is upserted
+		// //   upsert: true // insert the document if it does not exist
+		// // })
 
-		eA = append(eA, *stats)
-		updateAction := bson.M{
-			"$push": bson.M{
-				"userstats": bson.M{
-					"$each": eA,
-				},
+		// eA = append(eA, *stats)
+		// updateAction := bson.M{
+		// 	"$push": bson.M{
+		// 		"userstats": bson.M{
+		// 			"$each": eA,
+		// 		},
+		// 	},
+		// }
+		// err = c.UpdateId(stats.Username, updateAction)
+		// if err != nil {
+		// 	return fmt.Errorf("Mongo: RecordData: insert: %s", err)
+		// }
+		// return nil
+
+		// key := fmt.Sprintf("%s.ISO(%s)", stats.Username, stats.Time.Format(time.RFC3339))
+		// keyString := fmt.Sprintf("ISO(%s)", stats.Time.Format(time.RFC3339))
+
+		upsertKey := bson.M{
+			"$and": []bson.M{
+				bson.M{"email": stats.Username},
+				bson.M{"time": stats.Time},
 			},
 		}
-		err = c.UpdateId(stats.Username, updateAction)
+		upsertAction := bson.M{"$set": stats}
+
+		// fmt.Printf("KEY: %s\n", keyString)
+
+		_, err = c.Upsert(upsertKey, upsertAction)
 		if err != nil {
-			return fmt.Errorf("Mongo: RecordData: insert: %s", err)
+			return fmt.Errorf("Mongo: RecordData: upsert: %s", err)
 		}
 		return nil
 	}
@@ -652,33 +670,42 @@ func (us *UserStatisticsDB) GetStatistics(username string, dayRange int) ([][]Al
 
 		//CAN OPTIMIZE LATER
 		for i := 0; i < dayRange; i++ {
-			var temp AllUserStatistic
-			mongoRetStruct := struct {
-				UserStats AllUserStatistic
-			}{
-				temp,
-			}
+			// var temp AllUserStatistic
+			// mongoRetStruct := struct {
+			// 	UserStats AllUserStatistic
+			// }{
+			// 	temp,
+			// }
 			year, month, day := time.Now().UTC().Add(-time.Duration((i-1)*24) * time.Hour).Date()
 			timeDayRangeStart := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
 
 			year, month, day = time.Now().UTC().Add(-time.Duration((i)*24) * time.Hour).Date()
 			timeDayRangeEnd := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
 
-			o1 := bson.D{{"$match", bson.M{"_id": username}}}
-			o2 := bson.D{{"$unwind", "$userstats"}}
-			o3 := bson.D{{"$match", bson.M{"$and": []bson.M{
-				bson.M{"userstats.time": bson.M{"$lt": timeDayRangeStart}},
-				bson.M{"userstats.time": bson.M{"$gt": timeDayRangeEnd}},
-			}}}}
-			o4 := bson.D{{"$project", bson.M{"_id": 0}}}
-			o5 := bson.D{{"$sort", bson.M{"userstats.time": -1}}}
-			ops := []bson.D{o1, o2, o3, o4, o5}
-			iter := c.Pipe(ops).Iter()
+			// o1 := bson.D{{"$match", bson.M{"_id": username}}}
+			// o2 := bson.D{{"$unwind", "$userstats"}}
+			// o3 := bson.D{{"$match", bson.M{"$and": []bson.M{
+			// 	bson.M{"userstats.time": bson.M{"$lt": timeDayRangeStart}},
+			// 	bson.M{"userstats.time": bson.M{"$gt": timeDayRangeEnd}},
+			// }}}}
+			// o4 := bson.D{{"$project", bson.M{"_id": 0}}}
+			// o5 := bson.D{{"$sort", bson.M{"userstats.time": -1}}}
+			// ops := []bson.D{o1, o2, o3, o4, o5}
+			// iter := c.Pipe(ops).Iter()
+			// tempS := make([]AllUserStatistic, 0)
+
 			tempS := make([]AllUserStatistic, 0)
-			count := 0
-			for iter.Next(&mongoRetStruct) {
-				tempS = append(tempS, mongoRetStruct.UserStats)
-				count++
+			var retStructAllStat AllUserStatistic
+			find := bson.M{
+				"$and": []bson.M{
+					bson.M{"time": bson.M{"$lt": timeDayRangeStart}},
+					bson.M{"time": bson.M{"$gt": timeDayRangeEnd}},
+					bson.M{"email": username},
+				},
+			}
+			iter := c.Find(find).Sort("-time").Iter()
+			for iter.Next(&retStructAllStat) {
+				tempS = append(tempS, retStructAllStat)
 			}
 			stats[i] = tempS
 		}
@@ -859,6 +886,10 @@ func (us *UserStatisticsDB) putStats(username string, seconds int, data []byte) 
 }
 
 func (us *UserStatisticsDB) Purge(username string) error {
+	return us.PurgeMin(username, 0)
+}
+
+func (us *UserStatisticsDB) PurgeMin(username string, minAmount int) error {
 
 	if us.mdb != nil {
 		s, c, err := us.mdb.GetCollection(mongo.C_UserStat_POL)
@@ -875,39 +906,78 @@ func (us *UserStatisticsDB) Purge(username string) error {
 			year, month, day = time.Now().Add(-time.Duration((i+1)*24) * time.Hour).Date()
 			timeDayRangeEnd := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
 
-			o1 := bson.D{{"$match", bson.M{"_id": username}}}
-			o2 := bson.D{{"$unwind", "$userstats"}}
-			o3 := bson.D{{"$match", bson.M{"$and": []bson.M{
-				bson.M{"userstats.time": bson.M{"$lt": timeDayRangeStart}},
-				bson.M{"userstats.time": bson.M{"$gt": timeDayRangeEnd}},
-			}}}}
-			o4 := bson.D{{"$project", bson.M{"_id": 0, "userstats.time": 1}}}
-			o5 := bson.D{{"$sort", bson.M{"userstats.time": -1}}}
-			ops := []bson.D{o1, o2, o3, o4, o5}
-			iter := c.Pipe(ops).Iter()
+			// o1 := bson.D{{"$match", bson.M{"_id": username}}}
+			// o2 := bson.D{{"$unwind", "$userstats"}}
+			// o3 := bson.D{{"$match", bson.M{"$and": []bson.M{
+			// 	bson.M{"userstats.time": bson.M{"$lt": timeDayRangeStart}},
+			// 	bson.M{"userstats.time": bson.M{"$gt": timeDayRangeEnd}},
+			// }}}}
+			// o4 := bson.D{{"$project", bson.M{"_id": 0, "userstats.time": 1}}}
+			// o5 := bson.D{{"$sort", bson.M{"userstats.time": -1}}}
+			// ops := []bson.D{o1, o2, o3, o4, o5}
+			// iter := c.Pipe(ops).Iter()
 
-			removeArr := make([]time.Time, 1)
-			var temp bson.M
-			count := 1
-			for iter.Next(&temp) {
-				tempTime := temp["userstats"].(bson.M)["time"].(time.Time).UTC()
-				if count%4 == 0 {
-					removeArr = append(removeArr, tempTime)
-				}
-				count++
-			}
-			update := bson.M{
-				"$pull": bson.M{
-					"userstats": bson.M{
-						"time": bson.M{
-							"$in": removeArr,
-						},
-					},
+			q := bson.M{
+				"$and": []bson.M{
+					bson.M{"time": bson.M{"$lt": timeDayRangeStart}},
+					bson.M{"time": bson.M{"$gt": timeDayRangeEnd}},
+					bson.M{"email": username},
 				},
 			}
-			_, err := c.UpdateAll(bson.M{"_id": username}, update)
+			sel := bson.M{
+				"_id":  0,
+				"time": 1,
+			}
+			//get all record count
+			counter, err := c.Find(q).Count()
 			if err != nil {
-				return fmt.Errorf("Mongo: Purge: updateall: %s", err.Error())
+				return fmt.Errorf("Mongo: Purge: count: %s", err.Error())
+			}
+
+			//remove only if counter > min amount
+			if counter > minAmount {
+				iter := c.Find(q).Select(sel).Sort("-time").Iter()
+
+				removeArr := make([]time.Time, 0)
+				var temp bson.M
+				count := 1
+				for iter.Next(&temp) {
+					tempTime := temp["time"].(time.Time).UTC()
+					if count%4 == 0 {
+						removeArr = append(removeArr, tempTime)
+					}
+					count++
+					if counter-count < minAmount {
+						break
+					}
+				}
+				// update := bson.M{
+				// 	"$pull": bson.M{
+				// 		"userstats": bson.M{
+				// 			"time": bson.M{
+				// 				"$in": removeArr,
+				// 			},
+				// 		},
+				// 	},
+				// }
+				// _, err := c.UpdateAll(bson.M{"_id": username}, update)
+				// if err != nil {
+				// 	return fmt.Errorf("Mongo: Purge: updateall: %s", err.Error())
+				// }
+
+				//CAN OPTIMIZE LATER
+				for _, o := range removeArr {
+					sel = bson.M{
+						"$and": []bson.M{
+							bson.M{"email": username},
+							bson.M{"time": o},
+						},
+					}
+					err := c.Remove(sel)
+					if err != nil {
+						return fmt.Errorf("Mongo: Purge: remove: %s", err.Error())
+					}
+				}
 			}
 		}
 		return nil

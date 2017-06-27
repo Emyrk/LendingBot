@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/Emyrk/LendingBot/balancer"
+	"github.com/Emyrk/LendingBot/slack"
+	"github.com/Emyrk/LendingBot/src/core/database/mongo"
 )
 
 var _ = io.EOF
@@ -56,9 +58,14 @@ type Bee struct {
 	// We need reference to the master hive to send it messages
 	HiveAddress string
 	HivePublic  []byte
+
+	//db
+	db *mongo.MongoDB
 }
 
-func NewBee(hiveAddress string) *Bee {
+func NewBee(hiveAddress string, dba string, dbu string, dbp string) *Bee {
+	var err error
+
 	b := new(Bee)
 	b.SendChannel = make(chan *balancer.Parcel, 1000)
 	b.RecieveChannel = make(chan *balancer.Parcel, 1000)
@@ -72,7 +79,11 @@ func NewBee(hiveAddress string) *Bee {
 	b.HearbeatDuration = time.Minute
 	b.Users = make([]*balancer.User, 0)
 	b.LendingBot = NewLender(b)
-
+	b.db, err = mongo.CreateStatDB(dba, dbu, dbp)
+	if err != nil {
+		slack.SendMessage(":rage:", b.ID, "alerts", "@channel Oy!.. I failed to connect to the mongodb!")
+		panic(fmt.Sprintf("Failed to connect to db: %s", err.Error()))
+	}
 	return b
 }
 

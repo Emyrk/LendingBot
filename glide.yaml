@@ -46,3 +46,5 @@ import:
   - static/app/controllers
   - testrunner/app
   - testrunner/app/controllers
+- package: github.com/ashwanthkumar/slack-go-webhook
+  version: 6ad6dc897cd56985263af58f0343b98b3d5c2678

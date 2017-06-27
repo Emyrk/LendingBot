@@ -14,7 +14,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var llog = log.WithFields(log.Fields{"package": "bee-lender"})
+var plog = log.WithFields(log.Fields{"package": "bee-lender"})
 
 type Lender struct {
 	Polo      *balancer.PoloniexAPIWithRateLimit
@@ -125,7 +125,7 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 	}
 
 	var err error
-	flog := llog.WithFields(log.Fields{"func": "ProcessPoloniexUser()", "user": u.U.Username})
+	flog := plog.WithFields(log.Fields{"func": "ProcessPoloniexUser()", "user": u.U.Username})
 
 	part1 := time.Now()
 	var _ = part1
@@ -401,6 +401,7 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 	// Save here
 	// TODO: Jesse Save the stats here. This is the userstatistics, we will retrieve these by time
 	// db.RecordData(stats)
+	l.Bee.SaveUserStastics(stats, balancer.PoloniexExchange)
 
 	l.RecordMap[username] = time.Now()
 	return stats, nil

@@ -78,7 +78,7 @@ func newState(dbType int, fakePolo bool) *State {
 		s.userDB = userdb.NewBoltUserDatabase(v)
 	case DB_MONGO:
 		uri := revel.Config.StringDefault("database.uri", "mongodb://localhost:27017")
-		s.userDB, err = userdb.NewMongoUserDatabase(uri)
+		s.userDB, err = userdb.NewMongoUserDatabase(uri, "", "")
 		if err != nil {
 			panic(fmt.Sprintf("Error connecting to user mongodb: %s\n", err.Error()))
 		}
@@ -118,7 +118,8 @@ func newState(dbType int, fakePolo bool) *State {
 	case DB_BOLT:
 		s.userStatistic, err = userdb.NewUserStatisticsDB()
 	case DB_MONGO:
-		s.userStatistic, err = userdb.NewUserStatisticsMongoDB()
+		uri := revel.Config.StringDefault("database.uri", "mongodb://localhost:27017")
+		s.userStatistic, err = userdb.NewUserStatisticsMongoDB(uri, "", "")
 	}
 	if err != nil {
 		panic(fmt.Sprintf("Could not create user statistic database %s", err.Error()))

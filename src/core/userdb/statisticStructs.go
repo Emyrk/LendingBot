@@ -14,7 +14,7 @@ type MongoAllUserStatistics struct {
 type AllUserStatistic struct {
 	Currencies map[string]*UserStatistic `json:"currencies",msg:"currencies"`
 
-	Username         string             `bson:"-" json:"username",msg:"username"`
+	Username         string             `bson:"email" json:"username",msg:"username"`
 	TotalCurrencyMap map[string]float64 `bson:"currencymap" json:"currencymap",msg:"currencymap"`
 	Time             time.Time          `json:"time",msg:"time"`
 	day              int                `json:"day",msg:"day"`
