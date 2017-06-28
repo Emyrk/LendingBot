@@ -71,7 +71,7 @@ func (q *Queuer) Close() error {
 }
 
 func (q *Queuer) Start() {
-	ticker := time.NewTicker(time.Second * 10)
+	ticker := time.NewTicker(time.Second * 30)
 	interval := 0
 	q.LoadUsers()
 
