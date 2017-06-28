@@ -269,7 +269,7 @@ func (l *Lender) JobQueueLength() int {
 }
 
 func (l *Lender) UpdateTicker() {
-	ticker, err := l.State.PoloniexAPI.GetTicker()
+	ticker, err := l.State.PoloniexGetTicker()
 	if err == nil {
 		l.Ticker = ticker
 	}
