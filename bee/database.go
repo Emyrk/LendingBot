@@ -21,21 +21,6 @@ func (b *Bee) SaveUserStastics(stats *userdb.AllUserStatistic, exchange int) err
 		if err != nil {
 			return err
 		}
-		upsertKey := bson.M{
-			"$and": []bson.M{
-				bson.M{"email": stats.Username},
-				bson.M{"time": stats.Time},
-			},
-		}
-		upsertAction := bson.M{"$set": stats}
-
-		// fmt.Printf("KEY: %s\n", keyString)
-
-		_, err = c.Upsert(upsertKey, upsertAction)
-		if err != nil {
-			return fmt.Errorf("Mongo: RecordData: upsert: %s", err)
-		}
-		return nil
 	case balancer.BitfinexExchange:
 		//TODO
 
@@ -49,8 +34,15 @@ func (b *Bee) SaveUserStastics(stats *userdb.AllUserStatistic, exchange int) err
 	}
 	defer s.Close()
 
+	upsertKey := bson.M{
+		"$and": []bson.M{
+			bson.M{"email": stats.Username},
+			bson.M{"time": stats.Time},
+		},
+	}
 	upsertAction := bson.M{"$set": stats}
-	_, err = c.UpsertId(t, upsertAction)
+
+	_, err = c.Upsert(upsertKey, upsertAction)
 	if err != nil {
 		return fmt.Errorf("Failed to upsert: %s", err)
 	}

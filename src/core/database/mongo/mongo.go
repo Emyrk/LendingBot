@@ -77,6 +77,19 @@ func (c *MongoDB) GetCollection(collectionName string) (*mgo.Session, *mgo.Colle
 	return session, session.DB(c.DbName).C(collectionName), nil
 }
 
+func CreateAuditDB(uri string, dbu string, dbp string) (*MongoDB, error) {
+	db := createMongoDB(uri, USER_DB, dbu, dbp)
+
+	session, err := db.CreateSession()
+	if err != nil {
+		return nil, err
+	}
+
+	c := session.DB(AUDIT_DB).C(C_Audit)
+
+	return db, nil
+}
+
 func CreateUserDB(uri string, dbu string, dbp string) (*MongoDB, error) {
 	db := createMongoDB(uri, USER_DB, dbu, dbp)
 

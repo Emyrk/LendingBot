@@ -3,6 +3,10 @@ package balancer
 import (
 	"fmt"
 	"time"
+
+	"github.com/Emyrk/LendingBot/src/core/database/mongo"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 // Auditor performs an audit
@@ -16,6 +20,8 @@ type Auditor struct {
 	ConnectionPool *Hive
 
 	Report string
+
+	db *mongo.MongoDB
 }
 
 type AuditUser struct {
@@ -26,10 +32,16 @@ type AuditUser struct {
 	hits int
 }
 
-func NewAuditor(h *Hive) *Auditor {
+func NewAuditor(h *Hive, uri string, dbu string, dbp string) *Auditor {
 	a := new(Auditor)
 	a.ConnectionPool = h
 
+	var err error
+	a.db, err = mongo.CreateAuditDB(uri, dbu, dbp)
+	if err != nil {
+		slack.SendMessage(":rage:", "hive", "alerts", fmt.Sprintf("@channel Auditor for hive: Oy!.. failed to connect to the mongodb, I am panicing!"))
+		panic(fmt.Sprintf("Failed to connect to db: %s", err.Error()))
+	}
 	return a
 }
 
@@ -37,6 +49,7 @@ type AuditReport struct {
 	UserLogsReport map[string]*UserLogs
 	CorrectionList []*AuditUser
 	NoExtensive    bool
+	Time           time.Time `bson:"_id"`
 }
 
 type UserLogs struct {
@@ -106,6 +119,7 @@ func (a *Auditor) PerformAudit() *AuditReport {
 	ar.UserLogsReport = logs
 	ar.CorrectionList = correct
 	ar.NoExtensive = nochanges
+	ar.Time = time.Now().UTC()
 
 	return ar
 }
@@ -174,4 +188,20 @@ func (a *Auditor) ExtensiveSearchAndCorrect(correct []*AuditUser, userlogs map[s
 	}
 
 	return false
+}
+
+func (a *Auditor) SaveAudit(auditReport *AuditReport) error {
+	s, c, err := a.db.GetCollection(mongo.AUDIT_DB)
+	if err != nil {
+		return fmt.Errorf("Mongo cannot save audit: %s", err.Error())
+	}
+	defer s.Close()
+
+	upsertKey := bson.M{"_id": auditReport.Time}
+	upsertAction := bson.M{"$set": auditReport}
+	_, err = c.Upsert(upsertKey, upsertAction)
+	if err != nil {
+		return fmt.Errorf("Mongo failed to upsert: %s", err)
+	}
+	return nil
 }
