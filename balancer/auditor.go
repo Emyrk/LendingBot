@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Emyrk/LendingBot/slack"
 	"github.com/Emyrk/LendingBot/src/core/database/mongo"
+	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -21,7 +23,8 @@ type Auditor struct {
 
 	Report string
 
-	db *mongo.MongoDB
+	auditDB *mongo.MongoDB
+	userDB  *mongo.MongoDB
 }
 
 type AuditUser struct {
@@ -37,9 +40,14 @@ func NewAuditor(h *Hive, uri string, dbu string, dbp string) *Auditor {
 	a.ConnectionPool = h
 
 	var err error
-	a.db, err = mongo.CreateAuditDB(uri, dbu, dbp)
+	a.auditDB, err = mongo.CreateAuditDB(uri, dbu, dbp)
 	if err != nil {
-		slack.SendMessage(":rage:", "hive", "alerts", fmt.Sprintf("@channel Auditor for hive: Oy!.. failed to connect to the mongodb, I am panicing!"))
+		slack.SendMessage(":rage:", "hive", "alerts", fmt.Sprintf("@channel Auditor for hive: Oy!.. failed to connect to the mongodb, I am panicing! Error: %s", err.Error()))
+		panic(fmt.Sprintf("Failed to connect to db: %s", err.Error()))
+	}
+	a.userDB, err = mongo.CreateUserDB(uri, dbu, dbp)
+	if err != nil {
+		slack.SendMessage(":rage:", "hive", "alerts", fmt.Sprintf("@channel Auditor for hive: Oy!.. failed to connect to the mongodb, I am panicing! Error: %s", err.Error()))
 		panic(fmt.Sprintf("Failed to connect to db: %s", err.Error()))
 	}
 	return a
@@ -61,12 +69,17 @@ type UserLogs struct {
 
 func (a *Auditor) PerformAudit() *AuditReport {
 	var correct []*AuditUser
-	all := GetAllUsers()
-	if len(all) == 0 {
+	all, err := a.GetAllFullUsers()
+	if err != nil {
+		//TODO
+		fmt.Println("Error retrieving full uesrs: %s\n", err.Error())
+		return nil
+	}
+	if all == nil {
 		return nil
 	}
 	logs := make(map[string]*UserLogs)
-	for _, u := range all {
+	for _, u := range *all {
 		logs[u.Username] = new(UserLogs)
 		logs[u.Username].SlaveID = "Unknown"
 		id, ok := a.ConnectionPool.Slaves.GetUser(u.Username, u.Exchange)
@@ -124,12 +137,48 @@ func (a *Auditor) PerformAudit() *AuditReport {
 	return ar
 }
 
-func GetFullUser(username string, exchange int) *User {
-	return nil
-}
+// func (a *Auditor) GetFullUser(username string, exchange int) *User {
+// 	s, c, err := a.auditDB.GetCollection(mongo.C_USER)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("GetAllUsers: getCol: %s", err.Error())
+// 	}
+// 	defer s.Close()
 
-func GetAllUsers() []*AuditUser {
-	return nil
+// 	var result User
+// 	err = c.FindId(username).One(&result)
+// 	if err == mgo.ErrNotFound {
+// 		return nil, nil
+// 	}
+// 	if err != nil {
+// 		return nil, fmt.Errorf("GetAllUsers: find: %s", err.Error())
+// 	}
+
+// 	result.PoloniexKeys.SetEmptyIfBlank()
+// 	return &result, nil
+// }
+
+func (a *Auditor) GetAllFullUsers() (*[]userdb.User, error) {
+	s, c, err := a.auditDB.GetCollection(mongo.C_USER)
+	if err != nil {
+		return nil, fmt.Errorf("GetAllUsers: getCol: %s", err.Error())
+	}
+	defer s.Close()
+
+	var results []userdb.User
+	err = c.Find(nil).All(&results)
+	if err == mgo.ErrNotFound {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("GetAllUsers: find: %s", err.Error())
+	}
+
+	//need to blank out the poloniex stuff to appease embedded database
+	users := make([]userdb.User, len(results), len(results))
+	for i, u := range results {
+		users[i] = u.PoloniexKeys.SetEmptyIfBlank()
+	}
+	return &users, nil
 }
 
 // ExtensiveSearchAndCorrect will go through every bee and correct any users given
@@ -191,7 +240,7 @@ func (a *Auditor) ExtensiveSearchAndCorrect(correct []*AuditUser, userlogs map[s
 }
 
 func (a *Auditor) SaveAudit(auditReport *AuditReport) error {
-	s, c, err := a.db.GetCollection(mongo.AUDIT_DB)
+	s, c, err := a.auditDB.GetCollection(mongo.AUDIT_DB)
 	if err != nil {
 		return fmt.Errorf("Mongo cannot save audit: %s", err.Error())
 	}

@@ -84,8 +84,9 @@ func CreateAuditDB(uri string, dbu string, dbp string) (*MongoDB, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer session.Close()
 
-	c := session.DB(AUDIT_DB).C(C_Audit)
+	// c := session.DB(AUDIT_DB).C(C_Audit)
 
 	return db, nil
 }
@@ -97,6 +98,7 @@ func CreateUserDB(uri string, dbu string, dbp string) (*MongoDB, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer session.Close()
 
 	c := session.DB(USER_DB).C(C_USER)
 
@@ -122,6 +124,7 @@ func CreateStatDB(uri string, dbu string, dbp string) (*MongoDB, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer session.Close()
 
 	c := session.DB(STAT_DB).C(C_UserStat_POL)
 
@@ -176,6 +179,7 @@ func CreateTestUserDB(uri string, dbu string, dbp string) (*MongoDB, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer session.Close()
 
 	c := session.DB(USER_DB_TEST).C(C_USER)
 
@@ -201,6 +205,7 @@ func CreateTestStatDB(uri string, dbu string, dbp string) (*MongoDB, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer session.Close()
 
 	c := session.DB(STAT_DB_TEST).C(C_UserStat_POL)
 
