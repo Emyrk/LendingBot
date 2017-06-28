@@ -1,12 +1,16 @@
-hash: 0c1fba76b98dda3807464cfa07d7aa64791eddc02a5f52ccae80a901f93efd4f
-updated: 2017-06-18T17:21:03.511214645-05:00
+hash: f2e36773b0515674d0ba13fb517c5fef3b27749f592939bd35cdfc731876b98c
+updated: 2017-06-26T22:46:46.95536484-05:00
 imports:
 - name: github.com/agtorre/gocolorize
   version: 99fea4bc9517f07eea8194702cb7076f4845b7de
+- name: github.com/ashwanthkumar/slack-go-webhook
+  version: 6ad6dc897cd56985263af58f0343b98b3d5c2678
 - name: github.com/badoux/checkmail
   version: d0a759655d62bcdc95c50a0676f3e9702ed59453
 - name: github.com/beatgammit/turnpike
   version: aaa21ce8fe51ce110e43204dc642e765e34e7611
+- name: github.com/beefsack/go-rate
+  version: de575b104f4218f4aebdc95ba56f61f38d0dad86
 - name: github.com/beorn7/perks
   version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
   subpackages:
@@ -26,6 +30,8 @@ imports:
   - common/primitives/random
 - name: github.com/DistributedSolutions/twofactor
   version: 70189459dfeb9c4b243763440e51a29ad0452147
+- name: github.com/eAndrius/bitfinex-go
+  version: db231f4ccaf5cbde2cffca10740bff5e01eba35b
 - name: github.com/garyburd/redigo
   version: 57f1cd7de6175c96b423e7ac2534ff2b39e2ef79
   subpackages:
@@ -38,7 +44,7 @@ imports:
   - protoc-gen-go/descriptor
   - ptypes/any
 - name: github.com/gorilla/websocket
-  version: a91eba7f97777409bc2c443f5534d41dd20c5720
+  version: ea4d1f681babbce9545c9c5f3d5194a789c89f5b
 - name: github.com/graarh/golang-socketio
   version: 2c44953b9b5fcd4da83ec8816f002ce68a12ef2d
   subpackages:
@@ -56,24 +62,32 @@ imports:
   version: c12348ce28de40eed0136aa2b644d0ee0650e56c
   subpackages:
   - pbutil
+- name: github.com/moul/http2curl
+  version: 4e24498b31dba4683efb9d35c1c8a91e2eda28c8
+- name: github.com/parnurzeal/gorequest
+  version: 5bf13be198787abbed057fb7c4007f372083a0f5
 - name: github.com/philhofer/fwd
   version: 1612a298117663d7bc9a760ae20d383413859798
+- name: github.com/pkg/errors
+  version: c605e284fe17294bda444b34710735b29d1a9d90
 - name: github.com/prometheus/client_golang
-  version: c5b7fccd204277076155f10851dad72b76a49317
+  version: de4d4ffe63b9eff7f27484fdef6e421597e6abb4
   subpackages:
   - prometheus
 - name: github.com/prometheus/client_model
-  version: fa8ad6fec33561be4280a8f0514318c79d7f6cb6
+  version: 6f3806018612930941127f2a7c6c453ba2c527d2
   subpackages:
   - go
 - name: github.com/prometheus/common
-  version: 616e90af75cc300730196d04f3676f838d70414f
+  version: 0866df4b85a18d652b6965be022d007cdf076822
   subpackages:
   - expfmt
   - internal/bitbucket.org/ww/goautoneg
   - model
 - name: github.com/prometheus/procfs
-  version: abf152e5f3e97f2fafac028d2cc06c1feb87ffa5
+  version: 822d4a1f8edcbcbc71e8d1fd6527b12331a6d0ad
+  subpackages:
+  - xfs
 - name: github.com/revel/config
   version: 662332b741dd464a886ab0901379c02b9bc5dc30
 - name: github.com/revel/modules
@@ -111,7 +125,7 @@ imports:
   - jws
   - jwt
 - name: github.com/sirupsen/logrus
-  version: 85b1699d505667d13f8ac4478c1debbf85d6c5de
+  version: 3d4380f53a34dcdc95f0c1db702615992b38d9a4
 - name: github.com/streamrail/concurrent-map
   version: 8bf1e9bacbf65b10c81d0f4314cf2b1ebef728b5
 - name: github.com/tinylib/msgp
@@ -119,7 +133,7 @@ imports:
   subpackages:
   - msgp
 - name: github.com/ugorji/go
-  version: 708a42d246822952f38190a8d8c4e6b16a0e600c
+  version: 5efa3251c7f7d05e5d9704a69a984ec9f1386a40
   subpackages:
   - codec
 - name: go.uber.org/ratelimit
@@ -144,6 +158,7 @@ imports:
   - idna
   - internal/timeseries
   - lex/httplex
+  - publicsuffix
   - trace
   - websocket
 - name: golang.org/x/sys
@@ -151,7 +166,7 @@ imports:
   subpackages:
   - unix
 - name: golang.org/x/text
-  version: 9e2f80a6ba7ed4ba13e0cd4b1f094bf916875735
+  version: 4e9ab9ee170f2a39bd66c92b3e0a47ff47a4bc77
   subpackages:
   - secure/bidirule
   - transform

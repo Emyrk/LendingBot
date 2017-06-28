@@ -10,6 +10,7 @@ import (
 	"github.com/Emyrk/LendingBot/balancer"
 	"github.com/Emyrk/LendingBot/src/core/bitfinex"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
+	"github.com/beefsack/go-rate"
 )
 
 type BitfinexLender struct {
@@ -17,7 +18,15 @@ type BitfinexLender struct {
 	Ticker        map[string]bitfinex.V2Ticker
 	FundingTicker map[string]bitfinex.V2FundingTicker
 
-	API *bitfinex.API
+	usersDoneLock sync.RWMutex
+	usersDone     map[string]time.Time
+
+	API         *bitfinex.API
+	rateLimiter *rate.RateLimiter
+
+	nextStart time.Time
+
+	quit chan bool
 }
 
 func NewBitfinexLender() *BitfinexLender {
@@ -25,20 +34,55 @@ func NewBitfinexLender() *BitfinexLender {
 	b.API = bitfinex.New("Public", "Calls")
 	b.Ticker = make(map[string]bitfinex.V2Ticker)
 	b.FundingTicker = make(map[string]bitfinex.V2FundingTicker)
+	b.GetTickers()
+	b.rateLimiter = rate.New(90, time.Minute)
+
+	b.usersDone = make(map[string]time.Time)
+	b.quit = make(chan bool)
 	return b
 }
 
+func (bl *BitfinexLender) Close() {
+	bl.quit <- true
+}
+
+func (bl *BitfinexLender) take() error {
+	ok, remain := bl.rateLimiter.Try()
+	if ok {
+		return nil
+	}
+	if remain < time.Second*2 {
+		time.Sleep(remain)
+		return nil
+	}
+	bl.nextStart = time.Now().Add(remain)
+	return fmt.Errorf("Don't spam Bitfinex. Have to sleep %s before calling again", remain.Seconds())
+}
+
 func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
+	bl := l.BitfinLender
+	// Have to wait before making another call
+	if time.Now().Before(bl.nextStart) {
+		return nil
+	}
+
 	api := bitfinex.New(u.U.AccessKey, u.U.SecretKey)
 
 	// api.Ticker(symbol)
-
+	err := bl.take()
+	if err != nil {
+		return err
+	}
 	bals, err := api.WalletBalances()
 	if err != nil {
 		return err
 	}
 
 	// Inactive
+	err = bl.take()
+	if err != nil {
+		return err
+	}
 	inactMap := make(map[string]bitfinex.Offers)
 	inactiveOffers, err := api.ActiveOffers()
 	if err != nil {
@@ -52,6 +96,10 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 	}
 
 	// Active
+	err = bl.take()
+	if err != nil {
+		return err
+	}
 	activeMap := make(map[string]bitfinex.Credits)
 	activeOffers, err := api.ActiveCredits()
 	if err != nil {
@@ -78,6 +126,10 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 
 		avail := bals[bitfinex.WalletKey{"deposit", lower}].Available
 
+		err = bl.take()
+		if err != nil {
+			return err
+		}
 		o, err := api.NewOffer(lower, avail, 0, 2, "lend")
 		if err != nil {
 			return err
@@ -224,7 +276,26 @@ func getTradeSymbol(sym string, pair string) string {
 	return fmt.Sprintf("t%s%s", sym, pair)
 }
 
+func (l *BitfinexLender) TickerLoop() {
+	ti := time.NewTicker(time.Minute)
+	for _ = range ti.C {
+		select {
+		case <-l.quit:
+			l.quit <- true
+			return
+		}
+		err := l.GetTickers()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+}
+
 func (l *BitfinexLender) GetTickers() error {
+	err := l.take()
+	if err != nil {
+		return err
+	}
 	tt, ft, err := l.API.AllLendingTickers()
 	if err != nil {
 		return err
