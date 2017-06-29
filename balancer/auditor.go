@@ -68,7 +68,7 @@ type UserLogs struct {
 }
 
 func (a *Auditor) PerformAudit() *AuditReport {
-	var correct []*AuditUser
+	var correct []userdb.User
 	all, err := a.GetAllFullUsers()
 	if err != nil {
 		//TODO
@@ -80,57 +80,66 @@ func (a *Auditor) PerformAudit() *AuditReport {
 	}
 	logs := make(map[string]*UserLogs)
 	for _, u := range *all {
-		logs[u.Username] = new(UserLogs)
-		logs[u.Username].SlaveID = "Unknown"
-		id, ok := a.ConnectionPool.Slaves.GetUser(u.Username, u.Exchange)
-		if !ok {
-			// User was not found in a slave. Allocate this user
-			err := a.ConnectionPool.AddUser(GetFullUser(u.Username, u.Exchange))
-			if err != nil {
-				logs[u.Username].Logs += fmt.Sprintf("%s [ERROR] %s on %s was not found to be working. Was unable to allocate to bee: %s\n",
-					time.Now(), u.Username, GetExchangeString(u.Exchange), err)
-				correct = append(correct, u)
-			} else {
-				logs[u.Username].Logs += fmt.Sprintf("%s [Warning] %s on %s was not found to be working. Was allocated to a bee\n",
-					time.Now(), u.Username, GetExchangeString(u.Exchange), err)
-			}
-		} else {
-			// User was found
-			bee, ok := a.ConnectionPool.Slaves.GetAndLockBee(id, true)
+		var exchs []int
+		if len(u.PoloniexEnabled.Keys()) > 0 {
+			exchs = append(exchs, PoloniexExchange)
+		}
+		// if len(u.BinfinexEnabled.Keys()) > 0 {
+		// 	exchs = append(exchs, PoloniexExchange)
+		// }
+		for _, e := range exchs {
+			logs[u.Username] = new(UserLogs)
+			logs[u.Username].SlaveID = "Unknown"
+			id, ok := a.ConnectionPool.Slaves.GetUser(u.Username, e)
 			if !ok {
-				// User was found, but the bee it was allocated to is not.
-				logs[u.Username].Logs += fmt.Sprintf("%s [ERROR] %s on %s was found, but the bee it was allocated too was not.\n",
-					time.Now(), u.Username, GetExchangeString(u.Exchange))
-				correct = append(correct, u)
-			} else {
-				logs[u.Username].SlaveID = bee.ID
-				found := false
-				for _, bu := range bee.Users {
-					// Everything looks good
-					if u.Username == bu.Username && u.Exchange == bu.Exchange {
-						logs[u.Username].Logs += fmt.Sprintf("%s [INFO] %s on %s  was last touched %s\n",
-							time.Now(), u.Username, GetExchangeString(u.Exchange), bu.LastTouch)
-						logs[u.Username].Healthy = true
-						logs[u.Username].LastTouch = bu.LastTouch
-						found = true
-					}
-					break
-				}
-				if !found {
-					logs[u.Username].Logs += fmt.Sprintf("%s [ERROR] %s on %s was found, but the bee [%s] it was allocated does not seem to have it.\n",
-						time.Now(), u.Username, GetExchangeString(u.Exchange), bee.ID)
+				// User was not found in a slave. Allocate this user
+				err := a.ConnectionPool.AddUser(nil) //GetFullUser(u.Username, e)) TODO
+				if err != nil {
+					logs[u.Username].Logs += fmt.Sprintf("%s [ERROR] %s on %s was not found to be working. Was unable to allocate to bee: %s\n",
+						time.Now(), u.Username, GetExchangeString(e), err)
 					correct = append(correct, u)
+				} else {
+					logs[u.Username].Logs += fmt.Sprintf("%s [Warning] %s on %s was not found to be working. Was allocated to a bee\n",
+						time.Now(), u.Username, GetExchangeString(e), err)
+				}
+			} else {
+				// User was found
+				bee, ok := a.ConnectionPool.Slaves.GetAndLockBee(id, true)
+				if !ok {
+					// User was found, but the bee it was allocated to is not.
+					logs[u.Username].Logs += fmt.Sprintf("%s [ERROR] %s on %s was found, but the bee it was allocated too was not.\n",
+						time.Now(), u.Username, GetExchangeString(e))
+					correct = append(correct, u)
+				} else {
+					logs[u.Username].SlaveID = bee.ID
+					found := false
+					for _, bu := range bee.Users {
+						// Everything looks good
+						if u.Username == bu.Username && e == bu.Exchange {
+							logs[u.Username].Logs += fmt.Sprintf("%s [INFO] %s on %s  was last touched %s\n",
+								time.Now(), u.Username, GetExchangeString(e), bu.LastTouch)
+							logs[u.Username].Healthy = true
+							logs[u.Username].LastTouch = bu.LastTouch
+							found = true
+						}
+						break
+					}
+					if !found {
+						logs[u.Username].Logs += fmt.Sprintf("%s [ERROR] %s on %s was found, but the bee [%s] it was allocated does not seem to have it.\n",
+							time.Now(), u.Username, GetExchangeString(e), bee.ID)
+						correct = append(correct, u)
+					}
 				}
 			}
 		}
 	}
 
 	// ExtensiveCorrect
-	nochanges := a.ExtensiveSearchAndCorrect(correct, logs)
+	nochanges := a.ExtensiveSearchAndCorrect(nil, logs) //correct, logs) TODO
 
 	ar := new(AuditReport)
 	ar.UserLogsReport = logs
-	ar.CorrectionList = correct
+	ar.CorrectionList = nil //correct TODO
 	ar.NoExtensive = nochanges
 	ar.Time = time.Now().UTC()
 
@@ -176,7 +185,8 @@ func (a *Auditor) GetAllFullUsers() (*[]userdb.User, error) {
 	//need to blank out the poloniex stuff to appease embedded database
 	users := make([]userdb.User, len(results), len(results))
 	for i, u := range results {
-		users[i] = u.PoloniexKeys.SetEmptyIfBlank()
+		u.PoloniexKeys.SetEmptyIfBlank()
+		users[i] = u
 	}
 	return &users, nil
 }
