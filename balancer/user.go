@@ -42,10 +42,12 @@ func CompareUserList(a []*User, b []*User) bool {
 
 type User struct {
 	// Set
-	Username    string
-	Exchange    int
-	AccessKey   string
-	SecretKey   string
+	Username  string
+	Exchange  int
+	AccessKey string
+	SecretKey string
+
+	// Grab from DB each process
 	MinimumLend []float64
 	Currency    []string
 

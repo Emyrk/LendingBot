@@ -43,6 +43,14 @@ func TestUserMarshal(t *testing.T) {
 	if !u.IsSameAs(u2) {
 		t.Error("Should be same")
 	}
+
+	u3 := new(UserV2)
+	err = u3.SafeUnmarshal(data)
+	if err != nil {
+		t.Error(err)
+	}
+
+	t.Log(u3)
 }
 
 func Test2FA(t *testing.T) {
@@ -112,7 +120,7 @@ func TestUserWithKeys(t *testing.T) {
 	u.LendingStrategy = 10
 
 	var key [32]byte
-	u.PoloniexKeys, err = NewPoloniexKeys(accessKey, secret, key)
+	u.PoloniexKeys, err = NewExchangeKeys(accessKey, secret, key)
 	if err != nil {
 		t.Error(err)
 	}
@@ -190,7 +198,7 @@ func TestPE(t *testing.T) {
 }
 
 func TestMinLend(t *testing.T) {
-	m := new(MiniumumLendStruct)
+	m := new(PoloniexMiniumumLendStruct)
 	m.BTC = 0.1
 
 	d, err := m.MarshalBinary()
@@ -198,7 +206,7 @@ func TestMinLend(t *testing.T) {
 		t.Error(err)
 	}
 
-	m2 := new(MiniumumLendStruct)
+	m2 := new(PoloniexMiniumumLendStruct)
 	nd, err := m2.UnmarshalBinaryData(d)
 	if err != nil {
 		t.Error(err)

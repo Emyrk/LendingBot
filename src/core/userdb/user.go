@@ -6,94 +6,11 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/DistributedSolutions/twofactor"
 	"github.com/Emyrk/LendingBot/src/core/common/primitives"
 )
-
-type UserLevel uint32
-
-const (
-	// UserLevel
-	SysAdmin   UserLevel = 1000
-	Admin      UserLevel = 999
-	Moderator  UserLevel = 998
-	CommonUser UserLevel = 997
-	Unassigned UserLevel = 0
-)
-
-var AvaiableCoins = []string{
-	"BTC",
-	"BTS",
-	"CLAM",
-	"DOGE",
-	"DASH",
-	"LTC",
-	"MAID",
-	"STR",
-	"XMR",
-	"XRP",
-	"ETH",
-	"FCT",
-}
-
-func CoinExists(coin string) bool {
-	for _, e := range AvaiableCoins {
-		if e == coin {
-			return true
-		}
-	}
-	return false
-}
-
-//please add to all levels
-var AllLevels = []UserLevel{
-	SysAdmin,
-	Admin,
-	Moderator,
-	CommonUser,
-	Unassigned,
-}
-
-func LevelToString(l UserLevel) string {
-	switch l {
-	case Unassigned:
-		return "Unassigned"
-	case SysAdmin:
-		return "SysAdmin"
-	case Admin:
-		return "Admin"
-	case Moderator:
-		return "Moderator"
-	case CommonUser:
-		return "CommonUser"
-	default:
-		return "???"
-	}
-}
-
-func StringToLevel(levelString string) UserLevel {
-	switch levelString {
-	case "Unassigned":
-		return Unassigned
-	case "SysAdmin":
-		return SysAdmin
-	case "Admin":
-		return Admin
-	case "Moderator":
-		return Moderator
-	case "CommonUser":
-		return CommonUser
-	default:
-		return CommonUser
-	}
-}
-
-const VerifyLength int = 64
-const UsernameMaxLength int = 100
-const SaltLength int = 5
 
 type User struct {
 	Username     string // Not case sensitive
@@ -103,7 +20,7 @@ type User struct {
 	StartTime       time.Time
 	JWTTime         time.Time
 	Level           UserLevel
-	MiniumLend      MiniumumLendStruct
+	MiniumLend      PoloniexMiniumumLendStruct
 	LendingStrategy uint32
 
 	// 2FA
@@ -120,24 +37,12 @@ type User struct {
 	VerifyString string
 
 	PoloniexEnabled PoloniexEnabledStruct
-	PoloniexKeys    *PoloniexKeys
-}
-
-// filterUsername returns false if illegal characters
-func filterUsername(username string) error {
-	if len(username) > 100 {
-		return fmt.Errorf("Username length is too long. Must be under %d, inputed length is %d", UsernameMaxLength, len(username))
-	}
-	return nil
-}
-
-func GetUsernameHash(username string) [32]byte {
-	return sha256.Sum256([]byte(strings.ToLower(username)))
+	PoloniexKeys    *ExchangeKeys
 }
 
 func NewBlankUser() *User {
 	u := new(User)
-	u.PoloniexKeys = NewBlankPoloniexKeys()
+	u.PoloniexKeys = NewBlankExchangeKeys()
 	return u
 }
 
@@ -159,7 +64,7 @@ func NewUser(username string, password string) (*User, error) {
 
 	u.PasswordHash = u.MakePasswordHash(password)
 
-	u.PoloniexKeys = NewBlankPoloniexKeys()
+	u.PoloniexKeys = NewBlankExchangeKeys()
 
 	u.StartTime = time.Now()
 	u.JWTTime = time.Now()
@@ -531,7 +436,7 @@ func (u *User) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 	return newData, nil
 }
 
-type MiniumumLendStruct struct {
+type PoloniexMiniumumLendStruct struct {
 	BTC  float64 `json:"BTC"`
 	BTS  float64 `json:"BTS"`
 	CLAM float64 `json:"CLAM"`
@@ -546,7 +451,7 @@ type MiniumumLendStruct struct {
 	FCT  float64 `json:"FCT"`
 }
 
-func (m *MiniumumLendStruct) GetAll() []float64 {
+func (m *PoloniexMiniumumLendStruct) GetAll() []float64 {
 	var mins []float64
 
 	mins = append(mins, m.BTC)
@@ -565,7 +470,7 @@ func (m *MiniumumLendStruct) GetAll() []float64 {
 	return mins
 }
 
-func (m *MiniumumLendStruct) Set(currency string, min float64) bool {
+func (m *PoloniexMiniumumLendStruct) Set(currency string, min float64) bool {
 	switch currency {
 	case "BTC":
 		m.BTC = min
@@ -597,7 +502,7 @@ func (m *MiniumumLendStruct) Set(currency string, min float64) bool {
 	return true
 }
 
-func (m *MiniumumLendStruct) Get(currency string) float64 {
+func (m *PoloniexMiniumumLendStruct) Get(currency string) float64 {
 	switch currency {
 	case "BTC":
 		return m.BTC
@@ -627,7 +532,7 @@ func (m *MiniumumLendStruct) Get(currency string) float64 {
 	return 0
 }
 
-func (m *MiniumumLendStruct) SetAll(coins MiniumumLendStruct) {
+func (m *PoloniexMiniumumLendStruct) SetAll(coins PoloniexMiniumumLendStruct) {
 	m.BTC = coins.BTC
 	m.BTS = coins.BTS
 	m.CLAM = coins.CLAM
@@ -642,12 +547,12 @@ func (m *MiniumumLendStruct) SetAll(coins MiniumumLendStruct) {
 	m.FCT = coins.FCT
 }
 
-func (m *MiniumumLendStruct) UnmarshalBinary(data []byte) (err error) {
+func (m *PoloniexMiniumumLendStruct) UnmarshalBinary(data []byte) (err error) {
 	_, err = m.UnmarshalBinaryData(data)
 	return
 }
 
-func (m *MiniumumLendStruct) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
+func (m *PoloniexMiniumumLendStruct) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("[PoloniexEnabledStruct] A panic has occurred while unmarshaling: %s", r)
@@ -723,7 +628,7 @@ func (m *MiniumumLendStruct) UnmarshalBinaryData(data []byte) (newData []byte, e
 	return
 }
 
-func (m *MiniumumLendStruct) MarshalBinary() ([]byte, error) {
+func (m *PoloniexMiniumumLendStruct) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
 
 	data, err := primitives.Float64ToBytes(m.BTC)
@@ -935,4 +840,87 @@ func (pe *PoloniexEnabledStruct) UnmarshalBinaryData(data []byte) (newData []byt
 	pe.FCT = primitives.ByteToBool(newData[11])
 	newData = newData[12:]
 	return
+}
+
+type BitfinexMiniumumLendStruct struct {
+	USD  float64 `json:"USD"`
+	BTC  float64 `json:"BTC"`
+	ETH  float64 `json:"ETH"`
+	ETC  float64 `json:"ETC"`
+	DASH float64 `json:"DASH"`
+	ZEC  float64 `json:"ZEC"`
+	XMR  float64 `json:"XMR"`
+	LTC  float64 `json:"LTC"`
+}
+
+func (m *BitfinexMiniumumLendStruct) GetAll() []float64 {
+	var mins []float64
+
+	mins = append(mins, m.USD)
+	mins = append(mins, m.BTC)
+	mins = append(mins, m.ETH)
+	mins = append(mins, m.ETC)
+	mins = append(mins, m.DASH)
+	mins = append(mins, m.ZEC)
+	mins = append(mins, m.XMR)
+	mins = append(mins, m.LTC)
+
+	return mins
+}
+
+func (m *BitfinexMiniumumLendStruct) Set(currency string, min float64) bool {
+	switch currency {
+	case "USD":
+		m.USD = min
+	case "BTC ":
+		m.BTC = min
+	case "ETH":
+		m.ETH = min
+	case "ETC":
+		m.ETC = min
+	case "DASH":
+		m.DASH = min
+	case "ZEC ":
+		m.ZEC = min
+	case "XMR":
+		m.XMR = min
+	case "LTC ":
+		m.LTC = min
+	default:
+		return false
+	}
+	return true
+}
+
+func (m *BitfinexMiniumumLendStruct) Get(currency string) float64 {
+	switch currency {
+	case "USD":
+		return m.USD
+	case "BTC":
+		return m.BTC
+	case "ETH":
+		return m.ETH
+	case "ETC":
+		return m.ETC
+	case "DASH":
+		return m.DASH
+	case "ZEC":
+		return m.ZEC
+	case "XMR":
+		return m.XMR
+	case "LTC":
+		return m.LTC
+	}
+	return 0
+}
+
+func (m *BitfinexMiniumumLendStruct) SetAll(coins BitfinexMiniumumLendStruct) {
+	m.USD = coins.USD
+	m.BTC = coins.BTC
+	m.ETH = coins.ETH
+	m.ETC = coins.ETC
+	m.DASH = coins.DASH
+	m.ZEC = coins.ZEC
+	m.XMR = coins.XMR
+	m.LTC = coins.LTC
 }
