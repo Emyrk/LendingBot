@@ -924,3 +924,68 @@ func (m *BitfinexMiniumumLendStruct) SetAll(coins BitfinexMiniumumLendStruct) {
 	m.XMR = coins.XMR
 	m.LTC = coins.LTC
 }
+
+type BitfinexEnabledStruct struct {
+	USD  bool `json:"USD"`
+	BTC  bool `json:"BTC"`
+	ETH  bool `json:"ETH"`
+	ETC  bool `json:"ETC"`
+	DASH bool `json:"DASH"`
+	ZEC  bool `json:"ZEC"`
+	XMR  bool `json:"XMR"`
+	LTC  bool `json:"LTC"`
+}
+
+func (pe *BitfinexEnabledStruct) GetAll() []EnabledStruct {
+	var arr []EnabledStruct
+	arr = append(arr, EnabledStruct{"USD", pe.USD})
+	arr = append(arr, EnabledStruct{"BTC", pe.BTC})
+	arr = append(arr, EnabledStruct{"ETH", pe.ETH})
+	arr = append(arr, EnabledStruct{"ETC", pe.ETC})
+	arr = append(arr, EnabledStruct{"DASH", pe.DASH})
+	arr = append(arr, EnabledStruct{"ZEC", pe.ZEC})
+	arr = append(arr, EnabledStruct{"XMR", pe.XMR})
+	arr = append(arr, EnabledStruct{"LTC", pe.LTC})
+	return arr
+}
+
+func (pe *BitfinexEnabledStruct) Keys() []string {
+	var arr []string
+	if pe.USD {
+		arr = append(arr, "USD")
+	}
+	if pe.BTC {
+		arr = append(arr, "BTC")
+	}
+	if pe.ETH {
+		arr = append(arr, "ETH")
+	}
+	if pe.ETC {
+		arr = append(arr, "ETC")
+	}
+	if pe.DASH {
+		arr = append(arr, "DASH")
+	}
+	if pe.ZEC {
+		arr = append(arr, "ZEC")
+	}
+	if pe.XMR {
+		arr = append(arr, "XMR")
+	}
+	if pe.LTC {
+		arr = append(arr, "LTC")
+	}
+	return arr
+}
+
+//added in coin for future to enable specific coin
+func (pe *BitfinexEnabledStruct) Enable(coins BitfinexEnabledStruct) {
+	pe.USD = coins.USD
+	pe.BTC = coins.BTC
+	pe.ETH = coins.ETH
+	pe.ETC = coins.ETC
+	pe.DASH = coins.DASH
+	pe.ZEC = coins.ZEC
+	pe.XMR = coins.XMR
+	pe.LTC = coins.LTC
+}

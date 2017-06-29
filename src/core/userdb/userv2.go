@@ -122,7 +122,8 @@ type UserV2 struct {
 	PoloniexEnabled    PoloniexEnabledStruct      `json:"poloenabled"`
 	PoloniexKeys       *ExchangeKeys              `json:"polokeys"`
 
-	BitinfexMiniumumLend BitfinexMiniumumLendStruct
+	BitfinexMiniumumLend BitfinexMiniumumLendStruct
+	BitfinexEnabled      BitfinexEnabledStruct
 	BitfinexKeys         *ExchangeKeys
 }
 
