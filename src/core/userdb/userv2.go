@@ -121,6 +121,9 @@ type UserV2 struct {
 	PoloniexMiniumLend PoloniexMiniumumLendStruct `json:"polominlend"`
 	PoloniexEnabled    PoloniexEnabledStruct      `json:"poloenabled"`
 	PoloniexKeys       *ExchangeKeys              `json:"polokeys"`
+
+	BitinfexMiniumumLend BitfinexMiniumumLendStruct
+	BitfinexKeys         *ExchangeKeys
 }
 
 func (u *UserV2) SafeUnmarshal(data []byte) error {
