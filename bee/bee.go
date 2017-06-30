@@ -60,10 +60,11 @@ type Bee struct {
 	HivePublic  []byte
 
 	//db
-	db *mongo.MongoDB
+	userStatDB *mongo.MongoDB
+	userDB     *mongo.MongoDB
 }
 
-func NewBee(hiveAddress string, dba string, dbu string, dbp string) *Bee {
+func NewBee(hiveAddress string, dba string, dbu string, dbp string, test bool) *Bee {
 	var err error
 
 	b := new(Bee)
@@ -79,11 +80,25 @@ func NewBee(hiveAddress string, dba string, dbu string, dbp string) *Bee {
 	b.HearbeatDuration = time.Minute
 	b.Users = make([]*balancer.User, 0)
 	b.LendingBot = NewLender(b)
-	b.db, err = mongo.CreateStatDB(dba, dbu, dbp)
+	b.userStatDB, err = mongo.CreateStatDB(dba, dbu, dbp)
 	if err != nil {
-		slack.SendMessage(":rage:", b.ID, "alerts", fmt.Sprintf("@channel Bee %s: Oy!.. failed to connect to the mongodb, I am panicing! Error: %s", b.ID, err.Error()))
-		panic(fmt.Sprintf("Failed to connect to db: %s", err.Error()))
+		if test {
+			slack.SendMessage(":rage:", b.ID, "test", fmt.Sprintf("@channel Bee %s: Oy!.. failed to connect to the userstat mongodb, I am panicing! Error: %s", b.ID, err.Error()))
+		} else {
+			slack.SendMessage(":rage:", b.ID, "alerts", fmt.Sprintf("@channel Bee %s: Oy!.. failed to connect to the userstat mongodb, I am panicing! Error: %s", b.ID, err.Error()))
+		}
+		panic(fmt.Sprintf("Failed to connect to userstat db: %s", err.Error()))
 	}
+	b.userDB, err = mongo.CreateUserDB(dba, dbu, dbp)
+	if err != nil {
+		if test {
+			slack.SendMessage(":rage:", b.ID, "test", fmt.Sprintf("@channel Bee %s: Oy!.. failed to connect to the user mongodb, I am panicing! Error: %s", b.ID, err.Error()))
+		} else {
+			slack.SendMessage(":rage:", b.ID, "alerts", fmt.Sprintf("@channel Bee %s: Oy!.. failed to connect to the user mongodb, I am panicing! Error: %s", b.ID, err.Error()))
+		}
+		panic(fmt.Sprintf("Failed to connect to user db: %s", err.Error()))
+	}
+
 	return b
 }
 

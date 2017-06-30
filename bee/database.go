@@ -50,3 +50,23 @@ func (b *Bee) SaveUserStastics(stats *userdb.AllUserStatistic, exchange int) err
 	}
 	return nil
 }
+
+func (b *Bee) FetchUser(username string) (*userdb.User, error) {
+	s, c, err := ud.mdb.GetCollection(mongo.C_USER)
+	if err != nil {
+		return nil, fmt.Errorf("PutUser: getCol: %s", err.Error())
+	}
+	defer s.Close()
+
+	var result User
+	err = c.FindId(username).One(&result)
+	if err == mgo.ErrNotFound {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("PutUser: find: %s", err.Error())
+	}
+
+	result.PoloniexKeys.SetEmptyIfBlank()
+	return &result, nil
+}
