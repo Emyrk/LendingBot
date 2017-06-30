@@ -238,7 +238,7 @@ func (h *Hive) FlyIn(c net.Conn) {
 			}
 		}
 		// TODO: Ensure the users have their api keys
-		correctList = append(u, correctList)
+		correctList = append(correctList, u)
 	}
 	h.Slaves.RUnlock()
 

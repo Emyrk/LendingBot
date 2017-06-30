@@ -176,13 +176,13 @@ func (s *State) Close() error {
 	return nil
 }
 
-func (s *State) SetAllUserMinimumLoan(username string, coins userdb.MiniumumLendStruct) error {
+func (s *State) SetAllUserMinimumLoan(username string, coins userdb.PoloniexMiniumumLendStruct) error {
 	u, err := s.userDB.FetchUserIfFound(username)
 	if err != nil {
 		return err
 	}
 
-	u.MiniumLend.SetAll(coins)
+	u.PoloniexMiniumLend.SetAll(coins)
 	return s.userDB.PutUser(u)
 }
 
@@ -192,7 +192,7 @@ func (s *State) SetUserMinimumLoan(username string, minimumAmt float64, currency
 		return err
 	}
 
-	u.MiniumLend.Set(currency, minimumAmt)
+	u.PoloniexMiniumLend.Set(currency, minimumAmt)
 	return s.userDB.PutUser(u)
 }
 
@@ -279,7 +279,7 @@ func (s *State) SetUserKeys(username string, acessKey string, secretKey string) 
 		return fmt.Errorf("There was an internal problem. Please log out and try again. If problems continue, contact Support@hodl.zone")
 	}
 
-	pk, err := userdb.NewPoloniexKeys(acessKey, secretKey, u.GetCipherKey(s.CipherKey))
+	pk, err := userdb.NewExchangeKeys(acessKey, secretKey, u.GetCipherKey(s.CipherKey))
 	if err != nil {
 		return fmt.Errorf("There was a problem setting your keys. Please double check the keys and try again. Contact Support@hodl.zone if the problem persists")
 	}
