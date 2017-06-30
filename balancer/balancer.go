@@ -227,7 +227,23 @@ func (h *Hive) FlyIn(c net.Conn) {
 	b.PublicKey = resp.PublicKey
 
 	// 4. TODO: Fix this assignment, currently just responds with the same as given
-	assignment := Assignment{Users: resp.Users}
+	var correctList []*User
+	h.Slaves.RLock()
+	for _, u := range b.Users {
+		gb, ok := h.Slaves.GetUserUnsafe(u.Username, u.Exchange)
+		if ok {
+			// Another bee has this user
+			if b.ID != gb {
+				continue
+			}
+		}
+		// TODO: Ensure the users have their api keys
+		correctList = append(u, correctList)
+	}
+	h.Slaves.RUnlock()
+
+	assignment := Assignment{Users: correctList}
+
 	b.Connection.SetDeadline(time.Now().Add(60 * time.Second))
 	a := NewAssignment(b.ID, assignment)
 	err = b.Encoder.Encode(a)

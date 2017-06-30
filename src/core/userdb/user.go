@@ -12,7 +12,7 @@ import (
 	"github.com/Emyrk/LendingBot/src/core/common/primitives"
 )
 
-type User struct {
+type UserV1 struct {
 	Username     string // Not case sensitive
 	PasswordHash [32]byte
 	Salt         []byte
@@ -40,14 +40,14 @@ type User struct {
 	PoloniexKeys    *ExchangeKeys
 }
 
-func NewBlankUser() *User {
-	u := new(User)
+func NewV1BlankUser() *UserV1 {
+	u := new(UserV1)
 	u.PoloniexKeys = NewBlankExchangeKeys()
 	return u
 }
 
-func NewUser(username string, password string) (*User, error) {
-	u := new(User)
+func NewV1User(username string, password string) (*UserV1, error) {
+	u := new(UserV1)
 
 	if err := filterUsername(username); err != nil {
 		return nil, err
@@ -83,18 +83,18 @@ func NewUser(username string, password string) (*User, error) {
 	return u, nil
 }
 
-func (u *User) MakePasswordHash(password string) [32]byte {
+func (u *UserV1) MakePasswordHash(password string) [32]byte {
 	passAndSalt := append([]byte(password), u.Salt...)
 	hash := sha256.Sum256(passAndSalt)
 	return hash
 }
 
-func (u *User) ClearJWTOTP() {
+func (u *UserV1) ClearJWTOTP() {
 	var tmp [43]byte
 	u.JWTOTP = tmp
 }
 
-func (u *User) SetJWTOTP(jwtOTP [43]byte) error {
+func (u *UserV1) SetJWTOTP(jwtOTP [43]byte) error {
 	if _, found := u.GetJWTOTP(); found {
 		return fmt.Errorf("User already has a JWTOTP")
 	}
@@ -102,14 +102,14 @@ func (u *User) SetJWTOTP(jwtOTP [43]byte) error {
 	return nil
 }
 
-func (u *User) GetJWTOTP() (jwtOTP [43]byte, found bool) {
+func (u *UserV1) GetJWTOTP() (jwtOTP [43]byte, found bool) {
 	if bytes.Compare(u.JWTOTP[:], make([]byte, 43)) == 0 {
 		return jwtOTP, false
 	}
 	return u.JWTOTP, true
 }
 
-func (u *User) AuthenticatePassword(password string) bool {
+func (u *UserV1) AuthenticatePassword(password string) bool {
 	hash := u.getPasswordHashFromPassword(password)
 	if bytes.Compare(u.PasswordHash[:], hash[:]) == 0 {
 		return true
@@ -117,26 +117,26 @@ func (u *User) AuthenticatePassword(password string) bool {
 	return false
 }
 
-func (u *User) GetCipherKey(cipherKey [32]byte) [32]byte {
+func (u *UserV1) GetCipherKey(cipherKey [32]byte) [32]byte {
 	uhash := GetUsernameHash(u.Username)
 	return sha256.Sum256(append(cipherKey[:], uhash[:]...))
 }
 
-func (u *User) getPasswordHashFromPassword(password string) [32]byte {
+func (u *UserV1) getPasswordHashFromPassword(password string) [32]byte {
 	passAndSalt := append([]byte(password), u.Salt...)
 	hash := sha256.Sum256(passAndSalt)
 	return hash
 }
 
-func (u *User) GetLevelString() string {
+func (u *UserV1) GetLevelString() string {
 	return LevelToString(u.Level)
 }
 
-func (u *User) String() string {
+func (u *UserV1) String() string {
 	return fmt.Sprintf("UserName: %s, Level: %s", u.Username, LevelToString(u.Level))
 }
 
-func (a *User) IsSameAs(b *User) bool {
+func (a *UserV1) IsSameAs(b *UserV1) bool {
 	if a.Username != b.Username {
 		return false
 	}
@@ -202,7 +202,7 @@ func (a *User) IsSameAs(b *User) bool {
 	return true
 }
 
-func (u *User) MarshalBinary() ([]byte, error) {
+func (u *UserV1) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
 
 	// username
@@ -304,12 +304,12 @@ func (u *User) MarshalBinary() ([]byte, error) {
 	return buf.Next(buf.Len()), nil
 }
 
-func (u *User) UnmarshalBinary(data []byte) (err error) {
+func (u *UserV1) UnmarshalBinary(data []byte) (err error) {
 	_, err = u.UnmarshalBinaryData(data)
 	return
 }
 
-func (u *User) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
+func (u *UserV1) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("[User] A panic has occurred while unmarshaling: %s", r)

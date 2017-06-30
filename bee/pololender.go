@@ -56,6 +56,7 @@ func NewLender(b *Bee) *Lender {
 	l.recordMap[balancer.BitfinexExchange] = make(map[string]time.Time)
 	l.ticker = make(map[string]poloniex.PoloniexTicker)
 	l.currentLoanRate = make(map[int]map[string]balancer.LoanRates)
+	fmt.Println("NEWLENDER")
 	l.BitfinLender = NewBitfinexLender()
 
 	return l

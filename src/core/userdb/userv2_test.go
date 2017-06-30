@@ -15,7 +15,7 @@ func TestJsonMarshal(t *testing.T) {
 	var fixed [32]byte
 	copy(fixed[:32], sec[:32])
 
-	u, err := NewV2User("u@u.com", "u")
+	u, err := NewUser("u@u.com", "u")
 	if err != nil {
 		t.Error(err)
 	}
@@ -30,7 +30,7 @@ func TestJsonMarshal(t *testing.T) {
 		t.Error(err)
 	}
 
-	u2 := new(UserV2)
+	u2 := new(User)
 	err = json.Unmarshal(data, u2)
 	if err != nil {
 		t.Error(err)

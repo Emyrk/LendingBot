@@ -10,7 +10,7 @@ import (
 )
 
 func TestUserMarshal(t *testing.T) {
-	u, err := NewUser("1", "2")
+	u, err := NewV1User("1", "2")
 	if err != nil {
 		t.Error(err)
 	}
@@ -30,7 +30,7 @@ func TestUserMarshal(t *testing.T) {
 		t.Error("Should be empty")
 	}
 
-	u2 := NewBlankUser()
+	u2 := NewV1BlankUser()
 	nd, err := u2.UnmarshalBinaryData(data)
 	if err != nil {
 		t.Error(err)
@@ -44,7 +44,7 @@ func TestUserMarshal(t *testing.T) {
 		t.Error("Should be same")
 	}
 
-	u3 := new(UserV2)
+	u3 := new(User)
 	err = u3.SafeUnmarshal(data)
 	if err != nil {
 		t.Error(err)

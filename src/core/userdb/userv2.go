@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/DistributedSolutions/twofactor"
+	"github.com/Emyrk/LendingBot/src/core/common/primitives"
 )
 
 type UserLevel uint32
@@ -95,7 +96,7 @@ const VerifyLength int = 64
 const UsernameMaxLength int = 100
 const SaltLength int = 5
 
-type UserV2 struct {
+type User struct {
 	Username     string   `json:"username"` // Not case sensitive
 	PasswordHash [32]byte `json:"passhash"`
 	Salt         []byte   `json:"salt"`
@@ -127,8 +128,8 @@ type UserV2 struct {
 	BitfinexKeys         *ExchangeKeys
 }
 
-func (u *UserV2) SafeUnmarshal(data []byte) error {
-	u1 := NewBlankUser()
+func (u *User) SafeUnmarshal(data []byte) error {
+	u1 := NewV1BlankUser()
 	n, err := u1.UnmarshalBinaryData(data)
 	if err == nil && len(n) == 0 {
 		u = UserToV2User(u1)
@@ -138,8 +139,8 @@ func (u *UserV2) SafeUnmarshal(data []byte) error {
 	return json.Unmarshal(data, u)
 }
 
-func UserToV2User(u *User) *UserV2 {
-	u2 := new(UserV2)
+func UserToV2User(u *UserV1) *User {
+	u2 := new(User)
 	u2.Username = u.Username
 	u2.PasswordHash = u.PasswordHash
 	u2.Salt = u.Salt
@@ -172,14 +173,15 @@ func GetUsernameHash(username string) [32]byte {
 	return sha256.Sum256([]byte(strings.ToLower(username)))
 }
 
-func NewV2BlankUser() *UserV2 {
-	u := new(UserV2)
+func NewBlankUser() *User {
+	u := new(User)
 	u.PoloniexKeys = NewBlankExchangeKeys()
+	u.BitfinexKeys = NewBlankExchangeKeys()
 	return u
 }
 
-func NewV2User(username string, password string) (*UserV2, error) {
-	u := new(UserV2)
+func NewUser(username string, password string) (*User, error) {
+	u := new(User)
 
 	if err := filterUsername(username); err != nil {
 		return nil, err
@@ -215,18 +217,18 @@ func NewV2User(username string, password string) (*UserV2, error) {
 	return u, nil
 }
 
-func (u *UserV2) MakePasswordHash(password string) [32]byte {
+func (u *User) MakePasswordHash(password string) [32]byte {
 	passAndSalt := append([]byte(password), u.Salt...)
 	hash := sha256.Sum256(passAndSalt)
 	return hash
 }
 
-func (u *UserV2) ClearJWTOTP() {
+func (u *User) ClearJWTOTP() {
 	var tmp [43]byte
 	u.JWTOTP = tmp
 }
 
-func (u *UserV2) SetJWTOTP(jwtOTP [43]byte) error {
+func (u *User) SetJWTOTP(jwtOTP [43]byte) error {
 	if _, found := u.GetJWTOTP(); found {
 		return fmt.Errorf("User already has a JWTOTP")
 	}
@@ -234,14 +236,14 @@ func (u *UserV2) SetJWTOTP(jwtOTP [43]byte) error {
 	return nil
 }
 
-func (u *UserV2) GetJWTOTP() (jwtOTP [43]byte, found bool) {
+func (u *User) GetJWTOTP() (jwtOTP [43]byte, found bool) {
 	if bytes.Compare(u.JWTOTP[:], make([]byte, 43)) == 0 {
 		return jwtOTP, false
 	}
 	return u.JWTOTP, true
 }
 
-func (u *UserV2) AuthenticatePassword(password string) bool {
+func (u *User) AuthenticatePassword(password string) bool {
 	hash := u.getPasswordHashFromPassword(password)
 	if bytes.Compare(u.PasswordHash[:], hash[:]) == 0 {
 		return true
@@ -249,26 +251,26 @@ func (u *UserV2) AuthenticatePassword(password string) bool {
 	return false
 }
 
-func (u *UserV2) GetCipherKey(cipherKey [32]byte) [32]byte {
+func (u *User) GetCipherKey(cipherKey [32]byte) [32]byte {
 	uhash := GetUsernameHash(u.Username)
 	return sha256.Sum256(append(cipherKey[:], uhash[:]...))
 }
 
-func (u *UserV2) getPasswordHashFromPassword(password string) [32]byte {
+func (u *User) getPasswordHashFromPassword(password string) [32]byte {
 	passAndSalt := append([]byte(password), u.Salt...)
 	hash := sha256.Sum256(passAndSalt)
 	return hash
 }
 
-func (u *UserV2) GetLevelString() string {
+func (u *User) GetLevelString() string {
 	return LevelToString(u.Level)
 }
 
-func (u *UserV2) String() string {
+func (u *User) String() string {
 	return fmt.Sprintf("UserName: %s, Level: %s", u.Username, LevelToString(u.Level))
 }
 
-func (a *UserV2) IsSameAs(b *UserV2) bool {
+func (a *User) IsSameAs(b *User) bool {
 	if a.Username != b.Username {
 		return false
 	}
@@ -332,4 +334,42 @@ func (a *UserV2) IsSameAs(b *UserV2) bool {
 	}
 
 	return true
+}
+
+func (u *User) UnmarshalBinaryData(data []byte) (newdata []byte, err error) {
+	l, err := primitives.BytesToUint32(data[:4])
+	if err != nil {
+		return nil, err
+	}
+
+	// Not a v2 marshal
+	if int(l) > len(data) {
+		err = u.SafeUnmarshal(data)
+		if err != nil {
+			return nil, err
+		} else {
+			return []byte{}, nil
+		}
+	}
+
+	err = u.SafeUnmarshal(data[4 : l+4])
+	if err != nil {
+		return nil, err
+	}
+	return data[4+l:], nil
+}
+
+func (u *User) UnmarshalBinary(data []byte) error {
+	_, e := u.UnmarshalBinaryData(data)
+	return e
+}
+
+func (u *User) MarshalBinary() ([]byte, error) {
+	data, err := json.Marshal(u)
+	if err != nil {
+		return nil, err
+	}
+
+	l := len(data)
+	return append(primitives.Uint32ToBytes(uint32(l)), data...), nil
 }

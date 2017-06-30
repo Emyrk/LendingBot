@@ -34,11 +34,11 @@ func NewBitfinexLender() *BitfinexLender {
 	b.API = bitfinex.New("Public", "Calls")
 	b.Ticker = make(map[string]bitfinex.V2Ticker)
 	b.FundingTicker = make(map[string]bitfinex.V2FundingTicker)
-	b.GetTickers()
 	b.rateLimiter = rate.New(90, time.Minute)
-
 	b.usersDone = make(map[string]time.Time)
 	b.quit = make(chan bool)
+
+	b.GetTickers()
 	return b
 }
 

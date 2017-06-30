@@ -32,7 +32,7 @@ func Test_balancer_and_bee_disconnect(t *testing.T) {
 
 	beelist := make([]*bee.Bee, 0)
 	for i := 0; i < 10; i++ {
-		b := bee.NewBee("localhost:1151")
+		b := bee.NewBee("localhost:1151", "localhost:27017", "", "")
 		beelist = append(beelist, b)
 		b.Run()
 		fmt.Printf("Launched Bee %d\n", i)
@@ -65,7 +65,7 @@ func Test_balancer_rebalance(t *testing.T) {
 	beelist := make(map[string]*bee.Bee)
 	var keys []string
 	for i := 0; i < 4; i++ {
-		b := bee.NewBee("localhost:1151")
+		b := bee.NewBee("localhost:1151", "", "", "")
 		beelist[b.ID] = b
 		keys = append(keys, b.ID)
 		b.Run()
