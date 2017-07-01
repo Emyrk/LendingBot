@@ -23,12 +23,14 @@ type Auditor struct {
 
 	Report string
 
+	CipherKey [32]byte
+
 	auditDB *mongo.MongoDB
 	userDB  *mongo.MongoDB
 }
 
 type AuditUser struct {
-	Username string
+	User     userdb.User
 	Exchange int
 
 	// Used in one routine
@@ -55,7 +57,7 @@ func NewAuditor(h *Hive, uri string, dbu string, dbp string) *Auditor {
 
 type AuditReport struct {
 	UserLogsReport map[string]*UserLogs
-	CorrectionList []*AuditUser
+	CorrectionList []AuditUser
 	NoExtensive    bool
 	Time           time.Time `bson:"_id"`
 }
@@ -68,7 +70,7 @@ type UserLogs struct {
 }
 
 func (a *Auditor) PerformAudit() *AuditReport {
-	var correct []userdb.User
+	var correct []AuditUser
 	all, err := a.GetAllFullUsers()
 	if err != nil {
 		//TODO
@@ -79,7 +81,7 @@ func (a *Auditor) PerformAudit() *AuditReport {
 		return nil
 	}
 	logs := make(map[string]*UserLogs)
-	for _, u := range *all {
+	for _, u := range all {
 		var exchs []int
 		if len(u.PoloniexEnabled.Keys()) > 0 {
 			exchs = append(exchs, PoloniexExchange)
@@ -92,12 +94,18 @@ func (a *Auditor) PerformAudit() *AuditReport {
 			logs[u.Username].SlaveID = "Unknown"
 			id, ok := a.ConnectionPool.Slaves.GetUser(u.Username, e)
 			if !ok {
+				balus, err := a.UserDBUserToBalancerUser(&u, e)
+				if err != nil {
+					logs[u.Username].Logs += fmt.Sprintf("%s [ERROR] %s on %s was not found to be working. Was unable to get api keys: %s\n",
+						time.Now(), u.Username, GetExchangeString(e), err)
+					continue
+				}
 				// User was not found in a slave. Allocate this user
-				err := a.ConnectionPool.AddUser(nil) //GetFullUser(u.Username, e)) TODO
+				err = a.ConnectionPool.AddUser(balus)
 				if err != nil {
 					logs[u.Username].Logs += fmt.Sprintf("%s [ERROR] %s on %s was not found to be working. Was unable to allocate to bee: %s\n",
 						time.Now(), u.Username, GetExchangeString(e), err)
-					correct = append(correct, u)
+					correct = append(correct, AuditUser{User: u, Exchange: e})
 				} else {
 					logs[u.Username].Logs += fmt.Sprintf("%s [Warning] %s on %s was not found to be working. Was allocated to a bee\n",
 						time.Now(), u.Username, GetExchangeString(e), err)
@@ -109,7 +117,7 @@ func (a *Auditor) PerformAudit() *AuditReport {
 					// User was found, but the bee it was allocated to is not.
 					logs[u.Username].Logs += fmt.Sprintf("%s [ERROR] %s on %s was found, but the bee it was allocated too was not.\n",
 						time.Now(), u.Username, GetExchangeString(e))
-					correct = append(correct, u)
+					correct = append(correct, AuditUser{User: u, Exchange: e})
 				} else {
 					logs[u.Username].SlaveID = bee.ID
 					found := false
@@ -127,7 +135,7 @@ func (a *Auditor) PerformAudit() *AuditReport {
 					if !found {
 						logs[u.Username].Logs += fmt.Sprintf("%s [ERROR] %s on %s was found, but the bee [%s] it was allocated does not seem to have it.\n",
 							time.Now(), u.Username, GetExchangeString(e), bee.ID)
-						correct = append(correct, u)
+						correct = append(correct, AuditUser{User: u, Exchange: e})
 					}
 				}
 			}
@@ -135,38 +143,75 @@ func (a *Auditor) PerformAudit() *AuditReport {
 	}
 
 	// ExtensiveCorrect
-	nochanges := a.ExtensiveSearchAndCorrect(nil, logs) //correct, logs) TODO
+	nochanges := a.ExtensiveSearchAndCorrect(correct, logs)
 
 	ar := new(AuditReport)
 	ar.UserLogsReport = logs
-	ar.CorrectionList = nil //correct TODO
+	ar.CorrectionList = correct
 	ar.NoExtensive = nochanges
 	ar.Time = time.Now().UTC()
 
 	return ar
 }
 
-// func (a *Auditor) GetFullUser(username string, exchange int) *User {
-// 	s, c, err := a.auditDB.GetCollection(mongo.C_USER)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("GetAllUsers: getCol: %s", err.Error())
-// 	}
-// 	defer s.Close()
+func (a *Auditor) UserDBUserToBalancerUser(u *userdb.User, exch int) (*User, error) {
+	balUser := new(User)
+	balUser.Username = u.Username
+	var err error
+	switch exch {
+	case PoloniexExchange:
+		if u.PoloniexKeys.APIKeyEmpty() {
+			return nil, fmt.Errorf("no API key for this exchange")
+		}
+		balUser.AccessKey, err = u.PoloniexKeys.DecryptAPIKeyString(a.CipherKey)
+		if err != nil {
+			return nil, err
+		}
 
-// 	var result User
-// 	err = c.FindId(username).One(&result)
-// 	if err == mgo.ErrNotFound {
-// 		return nil, nil
-// 	}
-// 	if err != nil {
-// 		return nil, fmt.Errorf("GetAllUsers: find: %s", err.Error())
-// 	}
+		balUser.SecretKey, err = u.PoloniexKeys.DecryptAPISecretString(a.CipherKey)
+		if err != nil {
+			return nil, err
+		}
+	case BitfinexExchange:
+		if u.BitfinexKeys.APIKeyEmpty() {
+			return nil, fmt.Errorf("no API key for this exchange")
+		}
+		balUser.AccessKey, err = u.BitfinexKeys.DecryptAPIKeyString(a.CipherKey)
+		if err != nil {
+			return nil, err
+		}
 
-// 	result.PoloniexKeys.SetEmptyIfBlank()
-// 	return &result, nil
-// }
+		balUser.SecretKey, err = u.BitfinexKeys.DecryptAPISecretString(a.CipherKey)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return balUser, nil
+}
 
-func (a *Auditor) GetAllFullUsers() (*[]userdb.User, error) {
+func (a *Auditor) GetFullUser(username string, exchange int) (*User, error) {
+	s, c, err := a.auditDB.GetCollection(mongo.C_USER)
+	if err != nil {
+		return nil, fmt.Errorf("GetUsers: getCol: %s", err.Error())
+	}
+	defer s.Close()
+
+	var result userdb.User
+	err = c.FindId(username).One(&result)
+	if err == mgo.ErrNotFound {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("GetUsers: find: %s", err.Error())
+	}
+
+	result.PoloniexKeys.SetEmptyIfBlank()
+	result.BitfinexKeys.SetEmptyIfBlank()
+
+	return a.UserDBUserToBalancerUser(&result, exchange)
+}
+
+func (a *Auditor) GetAllFullUsers() ([]userdb.User, error) {
 	s, c, err := a.auditDB.GetCollection(mongo.C_USER)
 	if err != nil {
 		return nil, fmt.Errorf("GetAllUsers: getCol: %s", err.Error())
@@ -186,13 +231,14 @@ func (a *Auditor) GetAllFullUsers() (*[]userdb.User, error) {
 	users := make([]userdb.User, len(results), len(results))
 	for i, u := range results {
 		u.PoloniexKeys.SetEmptyIfBlank()
+		u.BitfinexKeys.SetEmptyIfBlank()
 		users[i] = u
 	}
-	return &users, nil
+	return users, nil
 }
 
 // ExtensiveSearchAndCorrect will go through every bee and correct any users given
-func (a *Auditor) ExtensiveSearchAndCorrect(correct []*AuditUser, userlogs map[string]*UserLogs) bool {
+func (a *Auditor) ExtensiveSearchAndCorrect(correct []AuditUser, userlogs map[string]*UserLogs) bool {
 	// These users have an issue and will be corrected
 	if len(correct) == 0 {
 		return true
@@ -200,7 +246,7 @@ func (a *Auditor) ExtensiveSearchAndCorrect(correct []*AuditUser, userlogs map[s
 
 	fix := make(map[string]*AuditUser)
 	for _, u := range correct {
-		fix[u.Username] = u
+		fix[u.User.Username] = &u
 	}
 
 	// Look for 2 bees having the same user
