@@ -38,6 +38,9 @@ type Lender struct {
 	quit chan bool
 
 	BitfinLender *BitfinexLender
+
+	usersDoneLock sync.RWMutex
+	usersDone     map[string]time.Time
 }
 
 func (l *Lender) SetTicker(t map[string]poloniex.PoloniexTicker) {
@@ -57,6 +60,7 @@ func NewLender(b *Bee) *Lender {
 	l.ticker = make(map[string]poloniex.PoloniexTicker)
 	l.currentLoanRate = make(map[int]map[string]balancer.LoanRates)
 	l.BitfinLender = NewBitfinexLender()
+	l.usersDone = make(map[string]time.Time)
 
 	return l
 }
@@ -148,6 +152,15 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 	dbu, err := l.Bee.FetchUser(u.U.Username)
 	if err != nil {
 		return err
+	}
+
+	l.usersDoneLock.RLock()
+	v, _ := l.usersDone[u.U.Username]
+	l.usersDoneLock.RUnlock()
+
+	// Only process once per 15s max
+	if time.Since(v) < time.Second*15 {
+		return nil
 	}
 
 	if u.U.AccessKey == "" {
@@ -352,6 +365,11 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 		JobPart2.Observe(float64(time.Since(part2).Nanoseconds()))
 		LoansCreated.Inc()
 	}
+
+	l.usersDoneLock.Lock()
+	l.usersDone[u.U.Username] = time.Now()
+	l.usersDoneLock.Unlock()
+
 	return nil
 }
 
