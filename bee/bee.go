@@ -66,7 +66,7 @@ type Bee struct {
 
 	//db
 	userStatDB *userdb.UserStatisticsDB
-	userDB     *mongo.MongoDB
+	userDB     *userdb.UserDatabase
 }
 
 func NewBee(hiveAddress string, dba string, dbu string, dbp string, test bool) *Bee {
@@ -100,7 +100,7 @@ func NewBee(hiveAddress string, dba string, dbu string, dbp string, test bool) *
 		panic(fmt.Sprintf("Failed to wrap userstatsdb: %s", err.Error()))
 	}
 
-	b.userDB, err = mongo.CreateUserDB(dba, dbu, dbp)
+	b.userDB, err = userdb.NewMongoUserDatabase(dba, dbu, dbp)
 	if err != nil {
 		if test {
 			slack.SendMessage(":rage:", b.ID, "test", fmt.Sprintf("@channel Bee %s: Oy!.. failed to connect to the user mongodb, I am panicing! Error: %s", b.ID, err.Error()))
