@@ -88,6 +88,7 @@ func (q *QueenBee) Run() {
 }
 
 func (q *QueenBee) runPolo() {
+	q.UpdateExchangeStats(PoloniexExchange)
 	for {
 		// Get rates of all currencies
 		for _, c := range Currencies[PoloniexExchange] {

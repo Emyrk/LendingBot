@@ -1,4 +1,4 @@
-package balancer
+package bee
 
 // import (
 // 	"fmt"
@@ -33,11 +33,14 @@ package balancer
 // 	WorkingOn  map[string]time.Time
 // 	WorkOnLock sync.RWMutex
 // 	LocalCall  bool
+
+// 	MyBee *Bee
 // }
 
-// func NewLendingHistoryKeeper(s *core.State) *LendingHistoryKeeper {
+// func NewLendingHistoryKeeper(b *Bee) *LendingHistoryKeeper {
 // 	l := new(LendingHistoryKeeper)
 // 	l.WorkingOn = make(map[string]time.Time)
+// 	l.MyBee = b
 
 // 	return l
 // }
@@ -77,7 +80,7 @@ package balancer
 // 	top = top.Add(-24 * time.Hour)
 // 	curr := top.Add(time.Hour * -72).Add(1 * time.Second)
 // 	for i := 0; i < 28; i++ {
-// 		v, err := l.St.LoadLendingSummary(username, curr)
+// 		v, err := l.MyBee.userStatDB l.St.LoadLendingSummary(username, curr)
 // 		if v == nil || err != nil {
 // 			resp, err := l.getLendhist(username, fmt.Sprintf("%d", curr.Unix()-1), fmt.Sprintf("%d", top.Unix()), "")
 // 			if err != nil {

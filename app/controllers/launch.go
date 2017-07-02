@@ -79,6 +79,8 @@ func Launch() {
 	case DEV_MONGO:
 		//mongo
 		state = core.NewStateWithMongo()
+		state.NewUser("admin@admin.com", "admin")
+		state.UpdateUserPrivilege("admin@admin.com", "SysAdmin")
 	default:
 		state = core.NewState()
 	}
@@ -88,7 +90,7 @@ func Launch() {
 		panic(err)
 	}
 
-	Balancer := balancer.NewBalancer(state.CipherKey, "mongodb://localhost:27017", "", "")
+	Balancer = balancer.NewBalancer(state.CipherKey, "mongodb://localhost:27017", "", "")
 
 	//lenderBot := lender.NewLender(state)
 	//queuerBot := queuer.NewQueuer(state, lenderBot)

@@ -181,7 +181,7 @@ func NewBlankUser() *User {
 }
 
 func NewUser(username string, password string) (*User, error) {
-	u := new(User)
+	u := NewBlankUser()
 
 	if err := filterUsername(username); err != nil {
 		return nil, err
@@ -197,8 +197,6 @@ func NewUser(username string, password string) (*User, error) {
 	u.Level = CommonUser
 
 	u.PasswordHash = u.MakePasswordHash(password)
-
-	u.PoloniexKeys = NewBlankExchangeKeys()
 
 	u.StartTime = time.Now()
 	u.JWTTime = time.Now()

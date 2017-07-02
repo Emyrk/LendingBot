@@ -13,6 +13,7 @@ import (
 	"github.com/Emyrk/LendingBot/balancer"
 	"github.com/Emyrk/LendingBot/slack"
 	"github.com/Emyrk/LendingBot/src/core/database/mongo"
+	"github.com/Emyrk/LendingBot/src/core/userdb"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -64,7 +65,7 @@ type Bee struct {
 	HivePublic  []byte
 
 	//db
-	userStatDB *mongo.MongoDB
+	userStatDB *userdb.UserStatisticsDB
 	userDB     *mongo.MongoDB
 }
 
@@ -84,7 +85,7 @@ func NewBee(hiveAddress string, dba string, dbu string, dbp string, test bool) *
 	b.HearbeatDuration = time.Minute
 	b.Users = make([]*balancer.User, 0)
 	b.LendingBot = NewLender(b)
-	b.userStatDB, err = mongo.CreateStatDB(dba, dbu, dbp)
+	userStatDBRaw, err := mongo.CreateStatDB(dba, dbu, dbp)
 	if err != nil {
 		if test {
 			slack.SendMessage(":rage:", b.ID, "test", fmt.Sprintf("@channel Bee %s: Oy!.. failed to connect to the userstat mongodb, I am panicing! Error: %s", b.ID, err.Error()))
@@ -93,6 +94,12 @@ func NewBee(hiveAddress string, dba string, dbu string, dbp string, test bool) *
 		}
 		panic(fmt.Sprintf("Failed to connect to userstat db: %s", err.Error()))
 	}
+
+	b.userStatDB, err = userdb.NewUserStatisticsMongoDBGiven(userStatDBRaw)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to wrap userstatsdb: %s", err.Error()))
+	}
+
 	b.userDB, err = mongo.CreateUserDB(dba, dbu, dbp)
 	if err != nil {
 		if test {
@@ -224,6 +231,8 @@ func (b *Bee) Runloop() {
 			if err != nil {
 				beeLogger.WithField("func", "Runloop").Errorf("Error in reconnect FlyIn: %s", err.Error())
 				time.Sleep(2 * time.Second)
+			} else {
+				beeLogger.WithField("func", "Runloop").Infof("Successfully recconnected to Balancer by FlyIn")
 			}
 		case Online:
 			b.ProcessParcels()
