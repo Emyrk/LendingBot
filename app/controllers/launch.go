@@ -90,7 +90,7 @@ func Launch() {
 		panic(err)
 	}
 
-	Balancer := balancer.NewBalancer(state.CipherKey, "mongodb://localhost:27017", "", "")
+	Balancer = balancer.NewBalancer(state.CipherKey, "mongodb://localhost:27017", "", "")
 
 	//lenderBot := lender.NewLender(state)
 	//queuerBot := queuer.NewQueuer(state, lenderBot)
