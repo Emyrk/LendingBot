@@ -78,3 +78,5 @@ func TestAddRemoveUser(t *testing.T) {
 		}
 	}
 }
+
+func TestAddRemoveUser(t *testing.T) {

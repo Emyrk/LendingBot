@@ -49,23 +49,19 @@ func createMongoDB(uri string, dbname string, dbu string, dbp string) *MongoDB {
 	return mongoDB
 }
 
-//DONT USE THIS ONE
-func (c *MongoDB) CreateSession() (session *mgo.Session, err error) {
-
+func (c *MongoDB) CreateSession() (*mgo.Session, error) {
 	if c.baseSession == nil {
-		session, err = mgo.Dial(c.uri)
+		session, err := mgo.Dial(c.uri)
 		if err != nil {
 			return nil, err
 		}
 		c.baseSession = session
-	} else {
-		session = c.baseSession.Clone()
+
+		// See https://godoc.org/labix.org/v2/mgo#Session.SetMode
+		c.baseSession.SetMode(mgo.Monotonic, true)
 	}
 
-	// See https://godoc.org/labix.org/v2/mgo#Session.SetMode
-	session.SetMode(mgo.Monotonic, true)
-
-	return
+	return c.baseSession.Clone(), nil
 }
 
 func (c *MongoDB) GetCollection(collectionName string) (*mgo.Session, *mgo.Collection, error) {
