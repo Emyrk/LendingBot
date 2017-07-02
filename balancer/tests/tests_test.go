@@ -83,6 +83,7 @@ func Test_balancer_rebalance(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	for _, u := range BalUsersPOL {
+		fmt.Println(u)
 		err = bal.AddUser(u)
 		if err != nil {
 			t.Errorf("Add user one: %s\n", err.Error())

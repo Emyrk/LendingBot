@@ -20,7 +20,7 @@ func (s AppAdmin) DashboardUsers() revel.Result {
 }
 
 func (s AppAdmin) DashboardQueuerStatus() revel.Result {
-	s.ViewArgs["QueuerStatus"] = Queuer.Status
+	s.ViewArgs["QueuerStatus"] = Balancer.GetLastReportString()
 	return s.RenderTemplate("AppAdmin/DashboardQueuerStatus.html")
 }
 

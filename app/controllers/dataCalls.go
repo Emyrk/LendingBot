@@ -249,7 +249,7 @@ func init() {
 }
 
 func getRates() map[string]float64 {
-	if Lender.Ticker == nil {
+	if Balancer.RateCalculator.GetTicker() == nil {
 		return Rates
 	}
 
@@ -260,13 +260,15 @@ func getRates() map[string]float64 {
 
 	m := make(map[string]float64)
 
-	Lender.TickerLock.RLock()
-	btcusd, _ := Lender.Ticker["USDT_BTC"]
+	//Lender.TickerLock.RLock()
+	tickerPtr := Balancer.RateCalculator.GetTicker()
+	ticker := *tickerPtr
+	btcusd, _ := ticker["USDT_BTC"]
 	for _, c := range curarr {
 		if c == "BTC" {
 			m["USD_BTC"] = btcusd.Last
 		} else {
-			btccur, ok := Lender.Ticker[fmt.Sprintf("BTC_%s", c)]
+			btccur, ok := ticker[fmt.Sprintf("BTC_%s", c)]
 			if !ok {
 				m[fmt.Sprintf("USD_%s", c)] = 0
 				continue
@@ -274,7 +276,7 @@ func getRates() map[string]float64 {
 			m[fmt.Sprintf("USD_%s", c)] = btccur.Last * btcusd.Last
 		}
 	}
-	Lender.TickerLock.RUnlock()
+	//Lender.TickerLock.RUnlock()
 
 	rateLock.Lock()
 	Rates = m

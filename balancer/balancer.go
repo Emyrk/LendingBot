@@ -63,7 +63,7 @@ func NewBalancer(cipherKey [32]byte) *Balancer {
 	b.RateCalculator = NewRateCalculator(b.ConnetionPool)
 	b.salt = make([]byte, 10)
 	rand.Read(b.salt)
-	b.IRS = NewAuditor(b.ConnetionPool, "", "", "", b.cipherKey)
+	b.IRS = NewAuditor(b.ConnetionPool, "localhost:27017", "", "", b.cipherKey)
 	return b
 }
 func (b *Balancer) Run(port int) {

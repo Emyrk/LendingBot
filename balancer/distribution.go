@@ -16,6 +16,9 @@ func (h *Hive) AddUser(u *User) error {
 		if err != nil {
 			return err
 		}
+		if u == nil {
+			return fmt.Errorf("User not found in db")
+		}
 	}
 
 	// Find the Slave with the least on this exchange

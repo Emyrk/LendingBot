@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/Emyrk/LendingBot/balancer"
 	"github.com/Emyrk/LendingBot/src/core"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"github.com/Emyrk/LendingBot/src/lender"
@@ -28,13 +29,16 @@ const (
 
 var _ = revel.Equal
 
-var Queuer *queuer.Queuer
-var Lender *lender.Lender
+var _, _ = queuer.RegisterPrometheus, lender.RegisterPrometheus
+
+//var Queuer *queuer.Queuer
+//var Lender *lender.Lender
+var Balancer *balancer.Balancer
 
 func Launch() {
 	// Prometheus
-	lender.RegisterPrometheus()
-	queuer.RegisterPrometheus()
+	//lender.RegisterPrometheus()
+	//queuer.RegisterPrometheus()
 
 	fmt.Println("MODE IS: ", revel.RunMode)
 	switch revel.RunMode {
@@ -84,22 +88,26 @@ func Launch() {
 		panic(err)
 	}
 
-	lenderBot := lender.NewLender(state)
-	queuerBot := queuer.NewQueuer(state, lenderBot)
+	Balancer := balancer.NewBalancer(state.CipherKey)
 
-	Queuer = queuerBot
-	Lender = lenderBot
+	//lenderBot := lender.NewLender(state)
+	//queuerBot := queuer.NewQueuer(state, lenderBot)
+
+	//Queuer = queuerBot
+	//Lender = lenderBot
 
 	// Start go lending
-	go lenderBot.Start()
-	go queuerBot.Start()
+	//go lenderBot.Start()
+	//go queuerBot.Start()
 	go launchPrometheus(9911)
+	go Balancer.Run(9100)
 }
 
 func Shutdown() {
 	state.Close()
-	Lender.Close()
-	Queuer.Close()
+	//Lender.Close()
+	//Queuer.Close()
+	Balancer.Close()
 }
 
 func launchPrometheus(port int) {

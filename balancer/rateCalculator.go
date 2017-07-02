@@ -11,7 +11,7 @@ import (
 )
 
 var clog = log.WithFields(log.Fields{
-	"package": "Lender",
+	"package": "RateCalculator",
 })
 
 var _ = log.Panic
@@ -42,6 +42,9 @@ type QueenBee struct {
 	poloTickerLock sync.RWMutex
 	poloTicker     map[string]poloniex.PoloniexTicker
 
+	cachedTicker *map[string]poloniex.PoloniexTicker
+	lastCache    time.Time
+
 	// bitpoloTickerLock sync.RWMutex
 	// bitpoloTicker     map[string]poloniex.PoloniexTicker
 
@@ -59,6 +62,8 @@ func NewRateCalculator(h *Hive) *QueenBee {
 	q.GetTickerInterval = time.Minute
 	q.exchangeStats = make(map[int]map[string]*userdb.PoloniexStats)
 	q.poloTicker = make(map[string]poloniex.PoloniexTicker)
+	tmp := make(map[string]poloniex.PoloniexTicker)
+	q.cachedTicker = &tmp
 
 	return q
 }
@@ -335,6 +340,22 @@ func (l *QueenBee) UpdateExchangeStats(exchange int) {
 	}
 	l.poloTickerLock.RUnlock()
 
+}
+
+func (l *QueenBee) GetTicker() *map[string]poloniex.PoloniexTicker {
+	if time.Since(l.lastCache) < time.Minute*10 {
+		return l.cachedTicker
+	}
+	newTicker := make(map[string]poloniex.PoloniexTicker)
+	l.poloTickerLock.RLock()
+	for k, v := range l.poloTicker {
+		newTicker[k] = v
+	}
+	l.poloTickerLock.RUnlock()
+
+	l.cachedTicker = &newTicker
+	l.lastCache = time.Now()
+	return l.cachedTicker
 }
 
 func (l *QueenBee) ONLY_USE_FOR_TESTING_GET_TICKER() map[string]poloniex.PoloniexTicker {

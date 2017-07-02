@@ -290,11 +290,11 @@ func (r AppAuthRequired) GetEnableUserLending() revel.Result {
 
 	// fmt.Printf("CURRENCY: %s\n", string(bytes))
 	data[JSON_DATA] = struct {
-		Enable userdb.PoloniexEnabledStruct `json:"enable"`
-		Min    userdb.MiniumumLendStruct    `json:"min"`
+		Enable userdb.PoloniexEnabledStruct      `json:"enable"`
+		Min    userdb.PoloniexMiniumumLendStruct `json:"min"`
 	}{
 		u.PoloniexEnabled,
-		u.MiniumLend,
+		u.PoloniexMiniumLend,
 	}
 
 	AppPageHitEnableUserLending.Inc()
@@ -312,7 +312,7 @@ func (r AppAuthRequired) SetEnableUserLending() revel.Result {
 		r.Response.Status = 500
 		return r.RenderJSON(data)
 	}
-	var coinsMin userdb.MiniumumLendStruct
+	var coinsMin userdb.PoloniexMiniumumLendStruct
 	err = json.Unmarshal([]byte(r.Params.Form.Get("min")), &coinsMin)
 	if err != nil {
 		fmt.Printf("WARNING: User failed to unmarshal min user lending request: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())

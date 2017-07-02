@@ -439,10 +439,10 @@ func (s *State) setUserPass(username string, password string, u *userdb.User) er
 }
 
 type SafeUser struct {
-	Username  string                 `json:"email"`
-	Privilege string                 `json:"priv"`
-	Enabled   []userdb.EnabledStruct `json:"enabled"`
-	Miniumums []float64              `json:"minimum"`
+	Username          string                 `json:"email"`
+	Privilege         string                 `json:"priv"`
+	PoloniexEnabled   []userdb.EnabledStruct `json:"enabled"`
+	PoloniexMiniumums []float64              `json:"minimum"`
 }
 
 func (s *State) GetAllUsers() (*[]SafeUser, error) {
@@ -456,7 +456,7 @@ func (s *State) GetAllUsers() (*[]SafeUser, error) {
 			u.Username,
 			u.GetLevelString(),
 			u.PoloniexEnabled.GetAll(),
-			u.MiniumLend.GetAll(),
+			u.PoloniexMiniumLend.GetAll(),
 		}
 	}
 	return &safeUsers, nil
