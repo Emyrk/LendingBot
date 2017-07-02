@@ -14,7 +14,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var plog = log.WithFields(log.Fields{"package": "bee-lender"})
+var poloLogger = log.WithFields(log.Fields{"package": "PoloLender"})
 
 type Lender struct {
 	Polo  *balancer.PoloniexAPIWithRateLimit
@@ -106,9 +106,17 @@ func (l *Lender) Runloop() {
 
 			switch u.U.Exchange {
 			case balancer.PoloniexExchange:
-				l.ProcessPoloniexUser(u)
+				err := l.ProcessPoloniexUser(u)
+				if err != nil {
+					poloLogger.WithFields(log.Fields{"func": "ProcessPoloniexUser", "user": u.U.Username,
+						"exchange": balancer.GetExchangeString(u.U.Exchange)}).Errorf("[PoloLending] Error: %s", err.Error())
+				}
 			case balancer.BitfinexExchange:
-				l.ProcessBitfinexUser(u)
+				err := l.ProcessBitfinexUser(u)
+				if err != nil {
+					poloLogger.WithFields(log.Fields{"func": "ProcessBitfinexUser", "user": u.U.Username,
+						"exchange": balancer.GetExchangeString(u.U.Exchange)}).Errorf("[BitfinexLending] Error: %s", err.Error())
+				}
 			}
 			JobProcessDuration.Observe(float64(time.Since(duration).Nanoseconds()))
 		}
@@ -150,7 +158,7 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 		return fmt.Errorf("No secret key for user %s", u.U.Username)
 	}
 
-	flog := plog.WithFields(log.Fields{"func": "ProcessPoloniexUser()", "user": u.U.Username})
+	flog := poloLogger.WithFields(log.Fields{"func": "ProcessPoloniexUser()", "user": u.U.Username})
 
 	part1 := time.Now()
 	var _ = part1
@@ -212,7 +220,7 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 
 	for _, curr := range dbu.PoloniexEnabled.Keys() { //u.U.MinimumLend {
 		min := dbu.PoloniexMiniumLend.Get(curr)
-		clog := flog.WithFields(log.Fields{"currency": curr, "user": u.U.Username, "exchange": balancer.GetExchangeString(u.U.Exchange)})
+		clog := flog.WithFields(log.Fields{"currency": curr, "exchange": balancer.GetExchangeString(u.U.Exchange)})
 
 		// Move min from a % to it's value
 		min = min / 100
@@ -333,9 +341,10 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 			if err != nil {
 				clog.Errorf("Error creating loan: %s", err.Error())
 			}
+		} else {
+			clog.WithFields(log.Fields{"rate": rate, "amount": amt}).Infof("Created Loan")
 		}
 
-		clog.WithFields(log.Fields{"rate": rate, "amount": amt}).Infof("Created Loan: %f loaned at %f", amt, rate)
 		if err != nil {
 			clog.Errorf("[Offer] Error in Lending: %s", err.Error())
 			continue
@@ -428,12 +437,12 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 	// Save here
 	// TODO: Jesse Save the stats here. This is the userstatistics, we will retrieve these by time
 	// db.RecordData(stats)
-	l.Bee.SaveUserStastics(stats, balancer.PoloniexExchange)
+	err := l.Bee.SaveUserStastics(stats, balancer.PoloniexExchange)
 
 	l.recordMapLock.Lock()
 	l.recordMap[balancer.PoloniexExchange][username] = time.Now()
 	l.recordMapLock.Unlock()
-	return stats, nil
+	return stats, err
 }
 
 func (l *Lender) getAmtForBTCValue(amount float64, currency string) float64 {

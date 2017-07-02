@@ -13,9 +13,13 @@ import (
 	"github.com/Emyrk/LendingBot/balancer"
 	"github.com/Emyrk/LendingBot/slack"
 	"github.com/Emyrk/LendingBot/src/core/database/mongo"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var _ = io.EOF
+var generalBeeLogger = log.WithField("instancetype", "Bee")
+var beeLogger = generalBeeLogger.WithField("Package", "Bee")
 
 const (
 	Online int = iota
@@ -195,6 +199,7 @@ func (b *Bee) Run() {
 	for {
 		err := b.FlyIn()
 		if err != nil {
+			beeLogger.WithField("func", "FlyIn").Errorf("Error in initial FlyIn: %s", err.Error())
 			time.Sleep(10 * time.Second)
 			continue
 		}
@@ -217,6 +222,7 @@ func (b *Bee) Runloop() {
 		case Offline:
 			err := b.FlyIn()
 			if err != nil {
+				beeLogger.WithField("func", "Runloop").Errorf("Error in reconnect FlyIn: %s", err.Error())
 				time.Sleep(2 * time.Second)
 			}
 		case Online:
@@ -252,7 +258,7 @@ func (b *Bee) ProcessParcels() {
 		select {
 		case p := <-b.RecieveChannel:
 			if p.ID != b.ID && p.ID != "ALL" {
-				fmt.Println("Bee ID does not match ID in parcel. Found ID %s, exp %s", p.ID, b.ID)
+				beeLogger.Warningf("Bee ID does not match ID in parcel. Found ID %s, exp %s", p.ID, b.ID)
 				// break
 			}
 			switch p.Type {
@@ -260,6 +266,7 @@ func (b *Bee) ProcessParcels() {
 				m := new(balancer.NewChangeUser)
 				err := json.Unmarshal(p.Message, m)
 				if err != nil {
+					beeLogger.WithFields(log.Fields{"message": "ChangeUserParcel", "func": "ProcessParcels"}).Errorf("ChangeUserParcel failed to unmarshal: %s", err.Error())
 					break
 				}
 				// A new user
@@ -301,6 +308,7 @@ func (b *Bee) ProcessParcels() {
 				m := new(balancer.LendingRatesArray)
 				err := json.Unmarshal(p.Message, m)
 				if err != nil {
+					beeLogger.WithFields(log.Fields{"message": "LendingRatesParcel", "func": "ProcessParcels"}).Errorf("LendingRatesParcel failed to unmarshal: %s", err.Error())
 					break
 				}
 
@@ -321,15 +329,15 @@ func (b *Bee) HandleSends() {
 			case p := <-b.SendChannel:
 				err := b.Encoder.Encode(&p)
 				if err != nil {
-					b.ErrorChannel <- err
+					b.ErrorChannel <- fmt.Errorf("[HandleSends] Error: %s", err.Error())
 					b.Status = Offline
 				}
 			}
 		} else {
 			time.Sleep(1 * time.Second)
 		}
-		if b.Status == Offline {
-			// return
+		if b.Status == Shutdown {
+			return
 		}
 	}
 }
@@ -341,7 +349,7 @@ func (b *Bee) HandleRecieves() {
 			var p balancer.Parcel
 			err := b.Decoder.Decode(&p)
 			if err != nil {
-				b.ErrorChannel <- err
+				b.ErrorChannel <- fmt.Errorf("[HandleRecieves] Error: %s", err.Error())
 				b.Status = Offline
 			} else {
 				b.RecieveChannel <- &p
@@ -350,8 +358,8 @@ func (b *Bee) HandleRecieves() {
 			time.Sleep(1 * time.Second)
 		}
 
-		if b.Status == Offline {
-			// return
+		if b.Status == Shutdown {
+			return
 		}
 	}
 }
@@ -365,7 +373,7 @@ func (b *Bee) HandleErrors() {
 			// if e == io.EOF {
 			// 	continue
 			// }
-
+			beeLogger.WithField("func", "HandleErrors").Errorf("Going offline due to error: %s", e.Error())
 			if !alreadyKilled {
 				b.Status = Offline
 				b.goOffline()

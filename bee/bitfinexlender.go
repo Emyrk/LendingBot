@@ -11,6 +11,7 @@ import (
 	"github.com/Emyrk/LendingBot/src/core/bitfinex"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"github.com/beefsack/go-rate"
+	log "github.com/sirupsen/logrus"
 )
 
 type BitfinexLender struct {
@@ -84,6 +85,8 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 		return err
 	}
 
+	flog := poloLogger.WithFields(log.Fields{"func": "ProcessBitfinexUser()", "user": u.U.Username, "exchange": balancer.GetExchangeString(u.U.Exchange)})
+
 	api := bitfinex.New(u.U.AccessKey, u.U.SecretKey)
 
 	// api.Ticker(symbol)
@@ -129,9 +132,11 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 
 	_, err = l.recordBitfinexStatistics(u.U.Username, bals, inactMap, activeMap)
 	if err != nil {
-		fmt.Println(err)
+		flog.Warningf("Failed to record Bitfinex Statistics: %s", err.Error())
 	}
 	for _, c := range dbu.BitfinexEnabled.Keys() {
+		clog := flog.WithFields(log.Fields{"currency": c})
+
 		lower := strings.ToLower(c)
 		if lower == "dash" {
 			lower = "dsh"
@@ -152,7 +157,17 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 		if err != nil {
 			return err
 		}
-		fmt.Println("Created loan: ", o)
+		var _ = o
+
+		var frr float64 = 0
+		bl.tickerlock.RLock()
+		t, ok := bl.FundingTicker[fmt.Sprintf("f%s", lower)]
+		if ok {
+			frr = t.FRR
+		}
+		bl.tickerlock.RUnlock()
+
+		clog.WithFields(log.Fields{"rate": frr, "amount": avail}).Infof("Created Loan")
 		var _ = avail
 	}
 
@@ -285,9 +300,12 @@ func (l *Lender) recordBitfinexStatistics(username string,
 	// Save here
 	// TODO: Jesse Save the stats here. This is the userstatistics, we will retrieve these by time
 	// db.RecordData(stats)
+	err := l.Bee.SaveUserStastics(stats, balancer.BitfinexExchange)
 
+	l.recordMapLock.Lock()
 	l.recordMap[balancer.BitfinexExchange][username] = time.Now()
-	return stats, nil
+	l.recordMapLock.Unlock()
+	return stats, err
 }
 
 func getLendingSymbol(sym string) string {
