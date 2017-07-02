@@ -1,6 +1,25 @@
 app.controller('adminControllerQuererStatus', ['$scope', '$http', '$log',
 	function($scope, $http, $log) {
-		var adminQuererStatus = $scope;
+		var adminAuditScope = $scope;
+
+		adminAuditScope.conductAudit = function(e) {
+			$http(
+			{
+				method: 'POST',
+				url: '/dashboard/admin/conductAudit',
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				withCredentials: true
+			})
+			.then((res) => {
+				//success
+				adminAuditScope.auditData = res.data.data
+			}, (err) => {
+				//error
+				$log.error("getUsers: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+			});
+		}
+
+
 	}]);
 
 app.controller('adminControllerLogs', ['$scope', '$http', '$log',

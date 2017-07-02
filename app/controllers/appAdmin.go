@@ -49,6 +49,19 @@ func (s AppAdmin) GetLogs() revel.Result {
 	return s.RenderJSON(data)
 }
 
+func (s AppAdmin) ConductAudit() revel.Result {
+	data := make(map[string]interface{})
+
+	str, err := Balancer.PerformAudit(false)
+	if err != nil {
+		data["data"] = err.Error()
+		return s.RenderJSON(data)
+	}
+
+	data["data"] = str
+	return s.RenderJSON(data)
+}
+
 //called before any auth required function
 func (s AppAdmin) AuthUserAdmin() revel.Result {
 	if !ValidCacheEmail(s.Session.ID(), s.Session[SESSION_EMAIL]) {

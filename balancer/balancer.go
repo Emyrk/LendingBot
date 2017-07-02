@@ -101,19 +101,35 @@ func (b *Balancer) Runloop() {
 	}()
 
 	for _ = range ticker.C {
-		ar := b.IRS.PerformAudit()
-		if ar == nil {
-			balLogger.WithFields(log.Fields{"func": "Runloop", "task": "Auditing"}).Errorf("Audit perform came back <nil>")
-			continue
+		_, err := b.PerformAudit(true)
+		if err != nil {
+			// We log it in the PerformAudit
 		}
-		b.auditReportLock.Lock()
-		b.lastReport = ar
-		b.auditReportLock.Unlock()
+	}
+}
+
+func (b *Balancer) PerformAudit(save bool) (string, error) {
+	str := ""
+
+	ar := b.IRS.PerformAudit()
+	if ar == nil {
+		balLogger.WithFields(log.Fields{"func": "Runloop", "task": "Auditing"}).Errorf("Audit perform came back <nil>")
+		return str, fmt.Errorf("Audit report came back <nil>")
+	}
+
+	str = ar.String()
+
+	b.auditReportLock.Lock()
+	b.lastReport = ar
+	b.auditReportLock.Unlock()
+	if save {
 		err := b.IRS.SaveAudit(ar)
 		if err != nil {
 			balLogger.WithFields(log.Fields{"func": "Runloop", "task": "Auditing"}).Errorf("Audit was not saved: %s", err.Error())
+			return str, err
 		}
 	}
+	return str, nil
 }
 
 // Listen will listen on a port and add connections

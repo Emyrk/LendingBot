@@ -31,6 +31,8 @@ type Auditor struct {
 
 	auditDB *mongo.MongoDB
 	userDB  *mongo.MongoDB
+
+	performing bool
 }
 
 type AuditUser struct {
@@ -61,6 +63,8 @@ func NewAuditor(h *Hive, uri string, dbu string, dbp string, cipherkey [32]byte)
 }
 
 type AuditReport struct {
+	UsersInDB      []string
+	Bees           []string
 	UserLogsReport map[string]*UserLogs
 	CorrectionList []AuditUser
 	NoExtensive    bool
@@ -68,13 +72,30 @@ type AuditReport struct {
 }
 
 func (a *AuditReport) String() string {
-	str := fmt.Sprintf("======= Audit Report =======")
-	str += fmt.Sprintf("  Summary \n   Corrections: %d\n   Time: %s\n", len(a.CorrectionList), a.Time)
-	str += "  ===== User Logs =====  "
+	str := fmt.Sprintf("======= Audit Report =======\n")
+	str += fmt.Sprintf("   %-20s\n   %-20s : %d\n   %-20s : %d\n   %-20s : %s\n   %-20s : %d\n   %-20s : %d\n",
+		"Summary",
+		"Bees", len(a.Bees),
+		"Corrections", len(a.CorrectionList),
+		"Time", a.Time,
+		"Users In DB", len(a.UsersInDB),
+		"Users+Exch Active", len(a.UserLogsReport))
+
+	str += "  ===== Bees =====  \n"
+	for _, b := range a.Bees {
+		str += fmt.Sprintf(" - %s\n", b)
+	}
+
+	str += "  ===== Users From DB =====  \n"
+	for _, u := range a.UsersInDB {
+		str += fmt.Sprintf(" - %s\n", u)
+	}
+
+	str += "  ===== User Logs ===== \n"
 	t := len(a.UserLogsReport)
-	c := 0
+	c := 1
 	for k, l := range a.UserLogsReport {
-		str += fmt.Sprintf("---------- User: %s, %d/%d ----------", k, c, t)
+		str += fmt.Sprintf("---------- User: %s, %d/%d ----------\n", k, c, t)
 		str += l.String()
 		c++
 	}
@@ -99,7 +120,32 @@ func (l *UserLogs) String() string {
 
 func (a *Auditor) PerformAudit() *AuditReport {
 	start := time.Now()
+	if a.performing {
+		return nil
+	}
+	a.performing = true
+	defer func() {
+		a.performing = false
+	}()
+
+	flog := auditLogger.WithField("func", "PerformAudit")
+	flog.Infof("Starting audit")
+
+	ar := new(AuditReport)
 	var correct []AuditUser
+
+	flog.Error("1")
+	bees := a.ConnectionPool.Slaves.GetAndLockAllBees(true)
+	for _, b := range bees {
+		ustr := ""
+		for _, u := range b.Users {
+			ustr += fmt.Sprintf("%s | %d,", u.Username, u.Exchange)
+		}
+		ar.Bees = append(ar.Bees, fmt.Sprintf("[%s] Users: %d (%s)", b.ID, len(b.Users), ustr))
+	}
+	a.ConnectionPool.Slaves.RUnlock()
+
+	flog.Error("2")
 	all, err := a.GetAllFullUsers()
 	if err != nil {
 		auditLogger.WithFields(log.Fields{"func": "PerformAudit"}).Errorf("Error retreiving full users: %s", err.Error())
@@ -108,9 +154,12 @@ func (a *Auditor) PerformAudit() *AuditReport {
 	if all == nil {
 		return nil
 	}
+
+	flog.Error("3")
 	logs := make(map[string]*UserLogs)
 	// Cycle through all users in the database
-	for _, u := range all {
+	for i, u := range all {
+		flog.Errorf("3.1.%d", i)
 		var exchs []int
 		// Currency pairs are enabled
 		if len(u.PoloniexEnabled.Keys()) > 0 {
@@ -119,7 +168,19 @@ func (a *Auditor) PerformAudit() *AuditReport {
 		if len(u.BitfinexEnabled.Keys()) > 0 {
 			exchs = append(exchs, BitfinexExchange)
 		}
+
+		pkeyStr := ""
+		for _, k := range u.PoloniexEnabled.Keys() {
+			pkeyStr += k + ", "
+		}
+		bkeyStr := ""
+		for _, k := range u.BitfinexEnabled.Keys() {
+			bkeyStr += k + ", "
+		}
+		ar.UsersInDB = append(ar.UsersInDB, fmt.Sprintf("%s [Poloniex: %s] [Bitfinex: %s]", u.Username, pkeyStr, bkeyStr))
+		flog.Errorf("3.2.%d", i)
 		for _, e := range exchs {
+			flog.Errorf("3.3.%d.%d", i, e)
 			// We keep logs on every user, even if successful
 			logs[u.Username] = new(UserLogs)
 			logs[u.Username].SlaveID = "Unknown"
@@ -141,8 +202,8 @@ func (a *Auditor) PerformAudit() *AuditReport {
 						time.Now(), u.Username, GetExchangeString(e), err)
 					correct = append(correct, AuditUser{User: u, Exchange: e})
 				} else {
-					logs[u.Username].Logs += fmt.Sprintf("%s [Warning] %s on %s was not found to be working. Was allocated to a bee\n",
-						time.Now(), u.Username, GetExchangeString(e), err)
+					logs[u.Username].Logs += fmt.Sprintf("%s [Warning] %s on %s was not found to be working. Was allocated to a bee, and maybe resolved\n",
+						time.Now(), u.Username, GetExchangeString(e))
 				}
 			} else {
 				// User was found
@@ -181,13 +242,12 @@ func (a *Auditor) PerformAudit() *AuditReport {
 	// ExtensiveCorrect
 	nochanges := a.ExtensiveSearchAndCorrect(correct, logs)
 
-	ar := new(AuditReport)
 	ar.UserLogsReport = logs
 	ar.CorrectionList = correct
 	ar.NoExtensive = nochanges
 	ar.Time = time.Now().UTC()
 
-	auditLogger.WithFields(log.Fields{"func": "PerformAudit", "corrections": len(correct)}).Infof("Audit performed in %fs.", time.Since(start).Seconds())
+	flog.WithFields(log.Fields{"corrections": len(correct)}).Infof("Audit performed in %fs.", time.Since(start).Seconds())
 	return ar
 }
 
@@ -200,12 +260,12 @@ func (a *Auditor) UserDBUserToBalancerUser(u *userdb.User, exch int) (*User, err
 		if u.PoloniexKeys.APIKeyEmpty() {
 			return nil, fmt.Errorf("no API key for this exchange")
 		}
-		balUser.AccessKey, err = u.PoloniexKeys.DecryptAPIKeyString(a.CipherKey)
+		balUser.AccessKey, err = u.PoloniexKeys.DecryptAPIKeyString(u.GetCipherKey(a.CipherKey))
 		if err != nil {
 			return nil, err
 		}
 
-		balUser.SecretKey, err = u.PoloniexKeys.DecryptAPISecretString(a.CipherKey)
+		balUser.SecretKey, err = u.PoloniexKeys.DecryptAPISecretString(u.GetCipherKey(a.CipherKey))
 		if err != nil {
 			return nil, err
 		}
@@ -213,12 +273,12 @@ func (a *Auditor) UserDBUserToBalancerUser(u *userdb.User, exch int) (*User, err
 		if u.BitfinexKeys.APIKeyEmpty() {
 			return nil, fmt.Errorf("no API key for this exchange")
 		}
-		balUser.AccessKey, err = u.BitfinexKeys.DecryptAPIKeyString(a.CipherKey)
+		balUser.AccessKey, err = u.BitfinexKeys.DecryptAPIKeyString(u.GetCipherKey(a.CipherKey))
 		if err != nil {
 			return nil, err
 		}
 
-		balUser.SecretKey, err = u.BitfinexKeys.DecryptAPISecretString(a.CipherKey)
+		balUser.SecretKey, err = u.BitfinexKeys.DecryptAPISecretString(u.GetCipherKey(a.CipherKey))
 		if err != nil {
 			return nil, err
 		}
@@ -289,7 +349,8 @@ func (a *Auditor) ExtensiveSearchAndCorrect(correct []AuditUser, userlogs map[st
 	// Look for 2 bees having the same user
 	allusers := make(map[string]string)
 
-	for _, b := range a.ConnectionPool.Slaves.GetAndLockAllBees(true) {
+	bees := a.ConnectionPool.Slaves.GetAndLockAllBees(true)
+	for _, b := range bees {
 		for _, bu := range b.Users {
 			if e, ok := fix[bu.Username]; ok {
 				if e.Exchange == bu.Exchange {
@@ -328,6 +389,7 @@ func (a *Auditor) ExtensiveSearchAndCorrect(correct []AuditUser, userlogs map[st
 			}
 		}
 	}
+	a.ConnectionPool.Slaves.RUnlock()
 
 	return false
 }

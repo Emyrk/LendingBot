@@ -54,6 +54,7 @@ GET		/dashboard/admin/queuerstatus			AppAdmin.DashboardQueuerStatus
 GET		/dashboard/admin						AppAdmin.DashboardUsers
 GET		/dashboard/admin/getusers				AppAdmin.GetUsers
 POST	/dashboard/admin/getuserstats			AppAdmin.GetUserStats
+POST 	/dashboard/admin/conductAudit			AppAdmin.ConductAudit
 
 GET 	/dashboard/data/currentuserstats		AppAuthRequired.CurrentUserStats
 GET 	/dashboard/data/lendinghistory			AppAuthRequired.LendingHistory

@@ -92,6 +92,8 @@ func Launch() {
 
 	Balancer = balancer.NewBalancer(state.CipherKey, "mongodb://localhost:27017", "", "")
 
+	fmt.Printf("State Cipher Key: %x\n", state.CipherKey[:])
+
 	//lenderBot := lender.NewLender(state)
 	//queuerBot := queuer.NewQueuer(state, lenderBot)
 
