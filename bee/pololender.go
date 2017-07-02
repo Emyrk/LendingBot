@@ -56,7 +56,6 @@ func NewLender(b *Bee) *Lender {
 	l.recordMap[balancer.BitfinexExchange] = make(map[string]time.Time)
 	l.ticker = make(map[string]poloniex.PoloniexTicker)
 	l.currentLoanRate = make(map[int]map[string]balancer.LoanRates)
-	fmt.Println("NEWLENDER")
 	l.BitfinLender = NewBitfinexLender()
 
 	return l
@@ -67,6 +66,7 @@ type LendUser struct {
 }
 
 func (l *Lender) Runloop() {
+	go l.BitfinLender.Run()
 	for {
 		// Process all users
 		for _, u := range l.Users {
@@ -103,7 +103,13 @@ func (l *Lender) Runloop() {
 
 			// Process User
 			duration := time.Now()
-			l.ProcessPoloniexUser(u)
+
+			switch u.U.Exchange {
+			case balancer.PoloniexExchange:
+				l.ProcessPoloniexUser(u)
+			case balancer.BitfinexExchange:
+				l.ProcessBitfinexUser(u)
+			}
 			JobProcessDuration.Observe(float64(time.Since(duration).Nanoseconds()))
 		}
 
@@ -131,6 +137,11 @@ func (l *Lender) CopyBeeList() {
 }
 
 func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
+	dbu, err := l.Bee.FetchUser(u.U.Username)
+	if err != nil {
+		return err
+	}
+
 	if u.U.AccessKey == "" {
 		return fmt.Errorf("No access key for user %s", u.U.Username)
 	}
@@ -139,7 +150,6 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 		return fmt.Errorf("No secret key for user %s", u.U.Username)
 	}
 
-	var err error
 	flog := plog.WithFields(log.Fields{"func": "ProcessPoloniexUser()", "user": u.U.Username})
 
 	part1 := time.Now()
@@ -200,8 +210,8 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 	JobPart1.Observe(float64(time.Since(part1).Nanoseconds()))
 	part2 := time.Now()
 
-	for i, min := range u.U.MinimumLend {
-		curr := u.U.Currency[i]
+	for _, curr := range dbu.PoloniexEnabled.Keys() { //u.U.MinimumLend {
+		min := dbu.PoloniexMiniumLend.Get(curr)
 		clog := flog.WithFields(log.Fields{"currency": curr, "user": u.U.Username, "exchange": balancer.GetExchangeString(u.U.Exchange)})
 
 		// Move min from a % to it's value

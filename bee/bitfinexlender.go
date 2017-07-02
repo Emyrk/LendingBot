@@ -42,6 +42,10 @@ func NewBitfinexLender() *BitfinexLender {
 	return b
 }
 
+func (bl *BitfinexLender) Run() {
+	go bl.TickerLoop()
+}
+
 func (bl *BitfinexLender) Close() {
 	bl.quit <- true
 }
@@ -61,15 +65,29 @@ func (bl *BitfinexLender) take() error {
 
 func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 	bl := l.BitfinLender
+	bl.usersDoneLock.RLock()
+	v, _ := bl.usersDone[u.U.Username]
+	bl.usersDoneLock.RUnlock()
+
+	// Only process once per minute max
+	if time.Since(v) < time.Minute {
+		return nil
+	}
+
 	// Have to wait before making another call
 	if time.Now().Before(bl.nextStart) {
 		return nil
 	}
 
+	dbu, err := l.Bee.FetchUser(u.U.Username)
+	if err != nil {
+		return err
+	}
+
 	api := bitfinex.New(u.U.AccessKey, u.U.SecretKey)
 
 	// api.Ticker(symbol)
-	err := bl.take()
+	err = bl.take()
 	if err != nil {
 		return err
 	}
@@ -113,7 +131,7 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 	if err != nil {
 		fmt.Println(err)
 	}
-	for _, c := range u.U.Currency {
+	for _, c := range dbu.BitfinexEnabled.Keys() {
 		lower := strings.ToLower(c)
 		if lower == "dash" {
 			lower = "dsh"
@@ -137,6 +155,10 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 		fmt.Println("Created loan: ", o)
 		var _ = avail
 	}
+
+	bl.usersDoneLock.Lock()
+	bl.usersDone[u.U.Username] = time.Now()
+	bl.usersDoneLock.Unlock()
 
 	return nil
 }

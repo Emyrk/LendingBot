@@ -6,10 +6,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"sync"
 	"time"
 
 	log "github.com/sirupsen/logrus"
 )
+
+var instanceLogger = log.WithField("instancetype", "Balancer")
+var balLogger = instanceLogger.WithField("package", "balancer")
 
 const (
 	Online int = iota
@@ -25,8 +29,12 @@ type Balancer struct {
 	Listener       net.Listener
 	IRS            *Auditor
 
-	quit bool
-	salt []byte
+	quit      bool
+	salt      []byte
+	cipherKey [32]byte
+
+	auditReportLock sync.Mutex
+	lastReport      *AuditReport
 }
 
 func (b *Balancer) Close() {
@@ -48,13 +56,14 @@ func (b *Balancer) RemoveUser(email string, exchange int) error {
 	return b.ConnetionPool.RemoveUser(email, exchange)
 }
 
-func NewBalancer() *Balancer {
+func NewBalancer(cipherKey [32]byte) *Balancer {
 	b := new(Balancer)
-	b.ConnetionPool = NewHive()
+	b.cipherKey = cipherKey
+	b.ConnetionPool = NewHive(b)
 	b.RateCalculator = NewRateCalculator(b.ConnetionPool)
 	b.salt = make([]byte, 10)
 	rand.Read(b.salt)
-	b.IRS = NewAuditor(b.ConnetionPool, "", "", "")
+	b.IRS = NewAuditor(b.ConnetionPool, "", "", "", b.cipherKey)
 	return b
 }
 func (b *Balancer) Run(port int) {
@@ -62,6 +71,47 @@ func (b *Balancer) Run(port int) {
 	go b.Accept()
 	go b.ConnetionPool.Run()
 	go b.RateCalculator.Run()
+	go b.Runloop()
+}
+
+func (b *Balancer) GetLastReportString() string {
+	str := ""
+	b.auditReportLock.Lock()
+	if b.lastReport == nil {
+		str = "No audit report."
+	} else {
+		str = b.lastReport.String()
+	}
+	b.auditReportLock.Unlock()
+	return str
+}
+
+func (b *Balancer) Runloop() {
+	ticker := time.NewTicker(time.Hour)
+
+	// Run an audit in a minute
+	go func() {
+		time.Sleep(1 * time.Minute)
+		ar := b.IRS.PerformAudit()
+		b.auditReportLock.Lock()
+		b.lastReport = ar
+		b.auditReportLock.Unlock()
+	}()
+
+	for _ = range ticker.C {
+		ar := b.IRS.PerformAudit()
+		if ar == nil {
+			balLogger.WithFields(log.Fields{"func": "Runloop", "task": "Auditing"}).Errorf("Audit perform came back <nil>")
+			continue
+		}
+		b.auditReportLock.Lock()
+		b.lastReport = ar
+		b.auditReportLock.Unlock()
+		err := b.IRS.SaveAudit(ar)
+		if err != nil {
+			balLogger.WithFields(log.Fields{"func": "Runloop", "task": "Auditing"}).Errorf("Audit was not saved: %s", err.Error())
+		}
+	}
 }
 
 // Listen will listen on a port and add connections
@@ -115,9 +165,11 @@ type Hive struct {
 	CommandChannel chan *Command
 
 	quit chan bool
+
+	parent *Balancer
 }
 
-func NewHive() *Hive {
+func NewHive(parent *Balancer) *Hive {
 	h := new(Hive)
 	h.CurrentRate = make(map[string]LoanRate)
 	h.SendChannel = make(chan *Parcel, 1000)
@@ -127,6 +179,7 @@ func NewHive() *Hive {
 	rand.Read(h.PublicKey)
 	h.quit = make(chan bool, 10)
 	h.Slaves = NewSwarm()
+	h.parent = parent
 
 	return h
 }
@@ -226,7 +279,7 @@ func (h *Hive) FlyIn(c net.Conn) {
 	}
 	b.PublicKey = resp.PublicKey
 
-	// 4. TODO: Fix this assignment, currently just responds with the same as given
+	// 4. TODO: Fix this assignment
 	var correctList []*User
 	h.Slaves.RLock()
 	for _, u := range b.Users {
@@ -237,10 +290,22 @@ func (h *Hive) FlyIn(c net.Conn) {
 				continue
 			}
 		}
-		// TODO: Ensure the users have their api keys
 		correctList = append(correctList, u)
 	}
 	h.Slaves.RUnlock()
+
+	// Ensure the users have their api keys
+	for i, cu := range correctList {
+		if cu.AccessKey == "" {
+			gu, err := h.parent.IRS.GetFullUser(cu.Username, cu.Exchange)
+			if err == nil {
+				correctList[i] = gu
+			} else {
+				correctList[i] = correctList[len(correctList)-1] // Replace it with the last one.
+				correctList = correctList[:len(correctList)-1]   // Chop off the last one.
+			}
+		}
+	}
 
 	assignment := Assignment{Users: correctList}
 

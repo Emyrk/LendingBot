@@ -52,13 +52,14 @@ func (b *Bee) SaveUserStastics(stats *userdb.AllUserStatistic, exchange int) err
 }
 
 func (b *Bee) FetchUser(username string) (*userdb.User, error) {
-	s, c, err := ud.mdb.GetCollection(mongo.C_USER)
+	//ud.mdb.GetCollection(mongo.C_USER)
+	s, c, err := b.userDB.GetCollection(mongo.C_USER)
 	if err != nil {
 		return nil, fmt.Errorf("PutUser: getCol: %s", err.Error())
 	}
 	defer s.Close()
 
-	var result User
+	var result userdb.User
 	err = c.FindId(username).One(&result)
 	if err == mgo.ErrNotFound {
 		return nil, nil

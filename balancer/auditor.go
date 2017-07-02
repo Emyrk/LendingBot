@@ -9,7 +9,11 @@ import (
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+
+	log "github.com/sirupsen/logrus"
 )
+
+var auditLogger = instanceLogger.WithFields(log.Fields{"package": "auditor"})
 
 // Auditor performs an audit
 //		An Audit:
@@ -37,8 +41,9 @@ type AuditUser struct {
 	hits int
 }
 
-func NewAuditor(h *Hive, uri string, dbu string, dbp string) *Auditor {
+func NewAuditor(h *Hive, uri string, dbu string, dbp string, cipherkey [32]byte) *Auditor {
 	a := new(Auditor)
+	a.CipherKey = cipherkey
 	a.ConnectionPool = h
 
 	var err error
@@ -62,6 +67,21 @@ type AuditReport struct {
 	Time           time.Time `bson:"_id"`
 }
 
+func (a *AuditReport) String() string {
+	str := fmt.Sprintf("======= Audit Report =======")
+	str += fmt.Sprintf("  Summary \n   Corrections: %d\n   Time: %s\n", len(a.CorrectionList), a.Time)
+	str += "  ===== User Logs =====  "
+	t := len(a.UserLogsReport)
+	c := 0
+	for k, l := range a.UserLogsReport {
+		str += fmt.Sprintf("---------- User: %s, %d/%d ----------", k, c, t)
+		str += l.String()
+		c++
+	}
+
+	return str
+}
+
 type UserLogs struct {
 	Healthy   bool
 	LastTouch time.Time
@@ -69,31 +89,45 @@ type UserLogs struct {
 	Logs      string
 }
 
+func (l *UserLogs) String() string {
+	str := fmt.Sprintf("%-15s : %t\n", "Healthy", l.Healthy)
+	str += fmt.Sprintf("%-15s : %s\n", "LastTouch", l.LastTouch)
+	str += fmt.Sprintf("%-15s : %s\n", "SlaveID", l.SlaveID)
+	str += fmt.Sprintf("%-15s \n%s\n", "Logs", l.Logs)
+	return str
+}
+
 func (a *Auditor) PerformAudit() *AuditReport {
+	start := time.Now()
 	var correct []AuditUser
 	all, err := a.GetAllFullUsers()
 	if err != nil {
-		//TODO
-		fmt.Println("Error retrieving full uesrs: %s\n", err.Error())
+		auditLogger.WithFields(log.Fields{"func": "PerformAudit"}).Errorf("Error retreiving full users: %s", err.Error())
 		return nil
 	}
 	if all == nil {
 		return nil
 	}
 	logs := make(map[string]*UserLogs)
+	// Cycle through all users in the database
 	for _, u := range all {
 		var exchs []int
+		// Currency pairs are enabled
 		if len(u.PoloniexEnabled.Keys()) > 0 {
 			exchs = append(exchs, PoloniexExchange)
 		}
-		// if len(u.BinfinexEnabled.Keys()) > 0 {
-		// 	exchs = append(exchs, PoloniexExchange)
-		// }
+		if len(u.BitfinexEnabled.Keys()) > 0 {
+			exchs = append(exchs, BitfinexExchange)
+		}
 		for _, e := range exchs {
+			// We keep logs on every user, even if successful
 			logs[u.Username] = new(UserLogs)
 			logs[u.Username].SlaveID = "Unknown"
 			id, ok := a.ConnectionPool.Slaves.GetUser(u.Username, e)
 			if !ok {
+				// User was not found in the slavepool
+
+				// Get the user with keys
 				balus, err := a.UserDBUserToBalancerUser(&u, e)
 				if err != nil {
 					logs[u.Username].Logs += fmt.Sprintf("%s [ERROR] %s on %s was not found to be working. Was unable to get api keys: %s\n",
@@ -119,8 +153,10 @@ func (a *Auditor) PerformAudit() *AuditReport {
 						time.Now(), u.Username, GetExchangeString(e))
 					correct = append(correct, AuditUser{User: u, Exchange: e})
 				} else {
+					// Bee and user found
 					logs[u.Username].SlaveID = bee.ID
 					found := false
+					// Verify user
 					for _, bu := range bee.Users {
 						// Everything looks good
 						if u.Username == bu.Username && e == bu.Exchange {
@@ -129,8 +165,8 @@ func (a *Auditor) PerformAudit() *AuditReport {
 							logs[u.Username].Healthy = true
 							logs[u.Username].LastTouch = bu.LastTouch
 							found = true
+							break
 						}
-						break
 					}
 					if !found {
 						logs[u.Username].Logs += fmt.Sprintf("%s [ERROR] %s on %s was found, but the bee [%s] it was allocated does not seem to have it.\n",
@@ -151,6 +187,7 @@ func (a *Auditor) PerformAudit() *AuditReport {
 	ar.NoExtensive = nochanges
 	ar.Time = time.Now().UTC()
 
+	auditLogger.WithFields(log.Fields{"func": "PerformAudit", "corrections": len(correct)}).Infof("Audit performed in %fs.", time.Since(start).Seconds())
 	return ar
 }
 

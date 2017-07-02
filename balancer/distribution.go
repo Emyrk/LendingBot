@@ -8,6 +8,16 @@ var _ = fmt.Println
 
 // AddUser will add a user to a bee and the BasePool
 func (h *Hive) AddUser(u *User) error {
+	var err error
+
+	// Ensure API key exists
+	if u.AccessKey == "" {
+		u, err = h.parent.IRS.GetFullUser(u.Username, u.Exchange)
+		if err != nil {
+			return err
+		}
+	}
+
 	// Find the Slave with the least on this exchange
 	bees := h.Slaves.GetAndLockAllBees(false)
 	defer h.Slaves.Unlock()
@@ -90,27 +100,27 @@ func (h *Hive) RemoveUserFromBee(id string, email string, exchange int) error {
 	return nil
 }
 
-func (h *Hive) MoveToBasePool(email string, exchange int) error {
-	h.Slaves.Lock()
-	defer h.Slaves.Unlock()
+// func (h *Hive) MoveToBasePool(email string, exchange int) error {
+// 	h.Slaves.Lock()
+// 	defer h.Slaves.Unlock()
 
-	u := User{Username: email, Exchange: exchange}
-	pb := NewChangeUserParcel(h.BaseSlave.ID, u, true, true)
+// 	u := User{Username: email, Exchange: exchange}
+// 	pb := NewChangeUserParcel(h.BaseSlave.ID, u, true, true)
 
-	beeID, ok := h.Slaves.GetUserUnsafe(email, exchange)
-	if !ok {
-		return fmt.Errorf("No bee found that has this user.")
-	}
-	p := NewChangeUserParcel(beeID, u, true, false)
+// 	beeID, ok := h.Slaves.GetUserUnsafe(email, exchange)
+// 	if !ok {
+// 		return fmt.Errorf("No bee found that has this user.")
+// 	}
+// 	p := NewChangeUserParcel(beeID, u, true, false)
 
-	// Deactivate from bee
-	h.Slaves.SendParcelToUnsafe(beeID, p)
+// 	// Deactivate from bee
+// 	h.Slaves.SendParcelToUnsafe(beeID, p)
 
-	// Activate on BasePool
-	baseSent := h.Slaves.SendParcelToUnsafe(h.BaseSlave.ID, pb)
-	if !baseSent {
-		return fmt.Errorf("Basepool slave could not be sent the message")
-	}
+// 	// Activate on BasePool
+// 	baseSent := h.Slaves.SendParcelToUnsafe(h.BaseSlave.ID, pb)
+// 	if !baseSent {
+// 		return fmt.Errorf("Basepool slave could not be sent the message")
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
