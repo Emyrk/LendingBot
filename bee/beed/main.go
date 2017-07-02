@@ -17,11 +17,12 @@ func main() {
 		dba     = flag.String("dba", "mongodb://localhost:27017", "Address for db to connect")
 		dbu     = flag.String("dbu", "", "Username for db to connect")
 		dbp     = flag.String("dbp", "", "Password for db to connect")
+		test    = flag.Bool("test", false, "Testmode")
 	)
 
 	flag.Parse()
 
-	be := bee.NewBee(*address, dba, dbu, dbp)
+	be := bee.NewBee(*address, *dba, *dbu, *dbp, *test)
 	be.Run()
 
 	c := make(chan os.Signal, 2)
