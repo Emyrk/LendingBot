@@ -143,7 +143,7 @@ func (q *Queuer) LoadUsers() error {
 			keys := u.PoloniexEnabled.Keys()
 			var mins []float64
 			for _, k := range keys {
-				r := u.MiniumLend.Get(k)
+				r := u.PoloniexMiniumLend.Get(k)
 				mins = append(mins, r)
 			}
 			newAll = append(newAll, &SingleUser{Username: u.Username, MiniumumLoanAmts: mins, EnablesCurrencies: keys})

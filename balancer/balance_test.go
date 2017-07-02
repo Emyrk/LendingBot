@@ -24,6 +24,7 @@ func init() {
 var CK [32]byte
 
 func TestAddRemoveUser(t *testing.T) {
+	Test = true
 
 	bal := NewBalancer(CK, "mongodb://localhost:27017", "", "")
 	bal.Run(9911)

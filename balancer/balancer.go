@@ -12,6 +12,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var Test = false
+
 var instanceLogger = log.WithField("instancetype", "Balancer")
 var balLogger = instanceLogger.WithField("package", "balancer")
 
