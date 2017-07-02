@@ -79,6 +79,8 @@ func Launch() {
 	case DEV_MONGO:
 		//mongo
 		state = core.NewStateWithMongo()
+		state.NewUser("admin@admin.com", "admin")
+		state.UpdateUserPrivilege("admin@admin.com", "SysAdmin")
 	default:
 		state = core.NewState()
 	}
