@@ -82,11 +82,6 @@ func newState(dbType int, fakePolo bool) *State {
 		if err != nil {
 			panic(fmt.Sprintf("Error connecting to user mongodb: %s\n", err.Error()))
 		}
-		if revel.DevMode {
-			u, _ := userdb.NewUser("admin@admin.com", "admin")
-			u.Level = userdb.SysAdmin
-			s.userDB.PutUser(u)
-		}
 	default:
 		v := os.Getenv("USER_DB")
 		if len(v) == 0 {
