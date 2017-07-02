@@ -21,28 +21,31 @@ func init() {
 	log.SetLevel(log.DebugLevel)
 }
 
+var CK [32]byte
+
 func TestAddRemoveUser(t *testing.T) {
-	bal := NewBalancer()
+
+	bal := NewBalancer(CK, "mongodb://localhost:27017", "", "")
 	bal.Run(9911)
 
 	s, r := net.Pipe()
-	fb := NewBee(s, bal.ConnetionPool)
+	fb := NewBee(s, bal.ConnectionPool)
 	var _ = r
-	bal.ConnetionPool.BaseSlave = fb
+	bal.ConnectionPool.BaseSlave = fb
 
-	bee := bee.NewBee("127.0.0.1:9911")
+	bee := bee.NewBee("127.0.0.1:9911", "mongodb://localhost:27017", "", "", true)
 	bee.Run()
 
 	// Wait for bee to connect
 	for {
-		if bal.ConnetionPool.Slaves.SwarmCount() == 0 {
+		if bal.ConnectionPool.Slaves.SwarmCount() == 0 {
 			time.Sleep(5 * time.Millisecond)
 		} else {
 			break
 		}
 	}
 
-	internalBee, ok := bal.ConnetionPool.Slaves.GetBee(bee.ID)
+	internalBee, ok := bal.ConnectionPool.Slaves.GetBee(bee.ID)
 	if !ok {
 		t.Error("No bee found!")
 		t.FailNow()
@@ -78,5 +81,3 @@ func TestAddRemoveUser(t *testing.T) {
 		}
 	}
 }
-
-func TestAddRemoveUser(t *testing.T) {

@@ -19,10 +19,10 @@ func (b *Bee) SaveUserStastics(stats *userdb.AllUserStatistic, exchange int) err
 	)
 	switch exchange {
 	case balancer.PoloniexExchange:
-		// s, c, err = us.mdb.GetCollection(mongo.C_UserStat_POL)
-		// if err != nil {
-		// 	return err
-		// }
+		s, c, err = b.userStatDB.GetCollection(mongo.C_UserStat_POL)
+		if err != nil {
+			return err
+		}
 	case balancer.BitfinexExchange:
 		//TODO
 

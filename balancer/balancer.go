@@ -24,7 +24,7 @@ const (
 
 // Balancer is the Queen Bee
 type Balancer struct {
-	ConnetionPool  *Hive
+	ConnectionPool *Hive
 	RateCalculator *QueenBee
 	Listener       net.Listener
 	IRS            *Auditor
@@ -45,31 +45,31 @@ func (b *Balancer) Close() {
 		fmt.Println(err)
 	}
 	b.Listener = nil
-	b.ConnetionPool.Close()
+	b.ConnectionPool.Close()
 }
 
 func (b *Balancer) AddUser(u *User) error {
-	return b.ConnetionPool.AddUser(u)
+	return b.ConnectionPool.AddUser(u)
 }
 
 func (b *Balancer) RemoveUser(email string, exchange int) error {
-	return b.ConnetionPool.RemoveUser(email, exchange)
+	return b.ConnectionPool.RemoveUser(email, exchange)
 }
 
-func NewBalancer(cipherKey [32]byte) *Balancer {
+func NewBalancer(cipherKey [32]byte, dba, dbu, dbp string) *Balancer {
 	b := new(Balancer)
 	b.cipherKey = cipherKey
-	b.ConnetionPool = NewHive(b)
-	b.RateCalculator = NewRateCalculator(b.ConnetionPool)
+	b.ConnectionPool = NewHive(b)
+	b.RateCalculator = NewRateCalculator(b.ConnectionPool, dba, dbu, dbp)
 	b.salt = make([]byte, 10)
 	rand.Read(b.salt)
-	b.IRS = NewAuditor(b.ConnetionPool, "", "", "", b.cipherKey)
+	b.IRS = NewAuditor(b.ConnectionPool, dba, dbu, dbp, b.cipherKey)
 	return b
 }
 func (b *Balancer) Run(port int) {
 	b.Listen(port)
 	go b.Accept()
-	go b.ConnetionPool.Run()
+	go b.ConnectionPool.Run()
 	go b.RateCalculator.Run()
 	go b.Runloop()
 }
@@ -137,7 +137,7 @@ func (b *Balancer) Accept() {
 }
 
 func (m *Balancer) NewConnection(c net.Conn) {
-	go m.ConnetionPool.FlyIn(c)
+	go m.ConnectionPool.FlyIn(c)
 }
 
 const (

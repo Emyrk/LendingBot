@@ -28,7 +28,7 @@ func TestWaitFor(t *testing.T) {
 }
 
 func Test_balancer_and_bee_disconnect(t *testing.T) {
-	bal = balancer.NewBalancer(CK)
+	bal = balancer.NewBalancer(CK, "mongodb://localhost:27017", "", "")
 	bal.Run(1151)
 
 	beelist := make([]*bee.Bee, 0)
@@ -60,7 +60,7 @@ func Test_balancer_rebalance(t *testing.T) {
 		t.Error(err)
 	}
 
-	bal = balancer.NewBalancer(CK)
+	bal = balancer.NewBalancer(CK, "mongodb://localhost:27017", "", "")
 	bal.Run(1151)
 
 	beelist := make(map[string]*bee.Bee)
@@ -97,7 +97,7 @@ func Test_balancer_rebalance(t *testing.T) {
 
 	// time.Sleep(500 * time.Millisecond)
 
-	for _, b := range bal.ConnetionPool.Slaves.GetAllBees() {
+	for _, b := range bal.ConnectionPool.Slaves.GetAllBees() {
 		b.UserLock.RLock()
 		WaitFor(func() bool {
 			if len(b.Users) == 50 {
@@ -129,8 +129,8 @@ func Test_balancer_rebalance(t *testing.T) {
 	beelist[keys[1]].Shutdown()
 
 	//check for rebalance
-	localb1, _ := bal.ConnetionPool.Slaves.GetBee(beelist[keys[2]].ID)
-	localb2, _ := bal.ConnetionPool.Slaves.GetBee(beelist[keys[3]].ID)
+	localb1, _ := bal.ConnectionPool.Slaves.GetBee(beelist[keys[2]].ID)
+	localb2, _ := bal.ConnectionPool.Slaves.GetBee(beelist[keys[3]].ID)
 	WaitFor(func() bool {
 		fmt.Println(len(localb1.Users))
 		if len(localb1.Users) == 100 {

@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Emyrk/LendingBot/slack"
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	log "github.com/sirupsen/logrus"
@@ -48,9 +49,13 @@ type QueenBee struct {
 	MasterHive *Hive
 
 	quit chan struct{}
+
+	usdb *userdb.UserStatisticsDB
 }
 
-func NewRateCalculator(h *Hive) *QueenBee {
+func NewRateCalculator(h *Hive, uri, dbu, dbp string) *QueenBee {
+	var err error
+
 	q := new(QueenBee)
 	q.currentLoanRate = make(map[int]map[string]LoanRates)
 	q.lastCalculateLoanRate = make(map[int]map[string]time.Time)
@@ -59,6 +64,11 @@ func NewRateCalculator(h *Hive) *QueenBee {
 	q.GetTickerInterval = time.Minute
 	q.exchangeStats = make(map[int]map[string]*userdb.PoloniexStats)
 	q.poloTicker = make(map[string]poloniex.PoloniexTicker)
+	q.usdb, err = userdb.NewUserStatisticsMongoDB(uri, dbu, dbp)
+	if err != nil {
+		slack.SendMessage(":rage:", "hive", "alerts", fmt.Sprintf("@channel ratecalculator %s: Oy!.. failed to connect to the userstat mongodb, I am panicing! Error: %s", err.Error()))
+		panic(fmt.Sprintf("Failed to connect to userstat db: %s", err.Error()))
+	}
 
 	return q
 }
@@ -215,10 +225,14 @@ func (l *QueenBee) calculateAvgBasedLoanRate(exchange int, currency string) {
 
 // RecordExchangeStatistics saves the rate for the exchangeinto mongodb.
 //		Save the timestamp, currency, and rate
-func (q *QueenBee) RecordExchangeStatistics(exchange int, currency string, lowest float64) {
-	// TODO: Jesse, save these into Exchange DB
-	//	Must be able to l.GetExchangeStatisitics(exch, currency)
-
+func (q *QueenBee) RecordExchangeStatistics(exchange int, currency string, lowest float64) error {
+	switch exchange {
+	case PoloniexExchange:
+		return q.usdb.RecordPoloniexStatistic(currency, lowest)
+	case BitfinexExchange:
+		return nil
+	}
+	return nil
 }
 
 func (q *QueenBee) getAmtForBTCValue(amount float64, currency string) float64 {
@@ -352,15 +366,20 @@ func (l *QueenBee) UpdateTicker() {
 	LenderUpdateTicker.Inc()
 }
 
-// TODO: Jesse Implement this Get function from DB
 func (q *QueenBee) GetExchangeStatisitics(exchange int, currency string) *userdb.PoloniexStats {
-	var exchstats *userdb.PoloniexStats
-	var _ = exchstats
-	// u, err := s.userStatistic.GetPoloniexStatistics(currency)
-	// if err != nil {
-	// 	fmt.Printf("ERROR: GetPoloniexstatistics: %s\n", err.Error())
-	// 	return nil
-	// }
-	// return u
+
+	var llog = log.WithFields(log.Fields{
+		"method": "GetExchangeStatisitics",
+	})
+	switch exchange {
+	case PoloniexExchange:
+		u, err := q.usdb.GetPoloniexStatistics(currency)
+		if err != nil {
+			llog.Error(err.Error())
+		}
+		return u
+	case BitfinexExchange:
+		return nil
+	}
 	return nil
 }

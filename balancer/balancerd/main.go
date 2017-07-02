@@ -32,7 +32,7 @@ func main() {
 
 	log.Printf("Now running Balancer")
 	for {
-		log.Printf("Using %d bees", bal.ConnetionPool.Slaves.SwarmCount())
+		log.Printf("Using %d bees", bal.ConnectionPool.Slaves.SwarmCount())
 		time.Sleep(10 * time.Minute)
 	}
 }
