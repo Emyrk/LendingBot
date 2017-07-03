@@ -129,7 +129,7 @@ func (r AppAuthRequired) SetExchangeKeys() revel.Result {
 	data := make(map[string]interface{})
 
 	email := r.Session[SESSION_EMAIL]
-	err := state.SetUserKeys(email, r.Params.Form.Get("poloniexkey"), r.Params.Form.Get("poloniexsecret"))
+	err := state.SetUserKeys(email, r.Params.Form.Get("exchangekey"), r.Params.Form.Get("exchangesecret"))
 	if err != nil {
 		fmt.Printf("Error authenticating setting Poloniex Keys err: %s\n", err.Error())
 		data[JSON_ERROR] = fmt.Sprintf("Error: %s", err.Error())
@@ -138,8 +138,8 @@ func (r AppAuthRequired) SetExchangeKeys() revel.Result {
 	}
 
 	poloniexKeys := &ExchangeKeys{
-		r.Params.Form.Get("poloniexkey"),
-		r.Params.Form.Get("poloniexsecret"),
+		r.Params.Form.Get("exchangekey"),
+		r.Params.Form.Get("exchangesecret"),
 	}
 
 	poloniexKeys.ExchangeSecret = ""
