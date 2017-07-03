@@ -86,7 +86,7 @@ func NewBee(hiveAddress string, dba string, dbu string, dbp string, test bool) *
 	b.Users = make([]*balancer.User, 0)
 	b.LendingBot = NewLender(b)
 	//TODO JESSE
-	userStatDBRaw, err := mongo.CreateStatDB(dba, dbu, dbp, "")
+	userStatDBRaw, err := mongo.CreateStatDB(dba, dbu, dbp)
 	if err != nil {
 		if test {
 			slack.SendMessage(":rage:", b.ID, "test", fmt.Sprintf("@channel Bee %s: Oy!.. failed to connect to the userstat mongodb, I am panicing! Error: %s", b.ID, err.Error()))

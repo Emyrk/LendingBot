@@ -50,13 +50,13 @@ func NewAuditor(h *Hive, uri string, dbu string, dbp string, cipherkey [32]byte)
 
 	var err error
 	//TODO JESSE
-	a.auditDB, err = mongo.CreateAuditDB(uri, dbu, dbp, "")
+	a.auditDB, err = mongo.CreateAuditDB(uri, dbu, dbp)
 	if err != nil {
 		slack.SendMessage(":rage:", "hive", "alerts", fmt.Sprintf("@channel Auditor for hive: Oy!.. failed to connect to the mongodb, I am panicing! Error: %s", err.Error()))
 		panic(fmt.Sprintf("Failed to connect to db: %s", err.Error()))
 	}
 	//TODO JESSE
-	a.userDB, err = mongo.CreateUserDB(uri, dbu, dbp, "")
+	a.userDB, err = mongo.CreateUserDB(uri, dbu, dbp)
 	if err != nil {
 		slack.SendMessage(":rage:", "hive", "alerts", fmt.Sprintf("@channel Auditor for hive: Oy!.. failed to connect to the mongodb, I am panicing! Error: %s", err.Error()))
 		panic(fmt.Sprintf("Failed to connect to db: %s", err.Error()))

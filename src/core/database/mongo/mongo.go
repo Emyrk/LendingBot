@@ -1,10 +1,7 @@
 package mongo
 
 import (
-	"golang.org/x/crypto/ssh"
 	"gopkg.in/mgo.v2"
-	"io/ioutil"
-	"os"
 )
 
 const (
@@ -35,45 +32,21 @@ type MongoDB struct {
 	dbusername  string
 	dbpass      string
 	baseSession *mgo.Session
-	ssh         string
 }
 
 func (c *MongoDB) GetURI() string {
 	return c.uri
 }
 
-func createMongoDB(uri string, dbname, dbu, dbp string, ssh string) *MongoDB {
+func createMongoDB(uri string, dbname, dbu, dbp string) *MongoDB {
 	mongoDB := &MongoDB{
 		uri,
 		dbname,
 		dbu,
 		dbp,
 		nil,
-		ssh,
 	}
 	return mongoDB
-}
-
-func (c *MongoDB) SSHDial(sshAddress string) error {
-	pk, _ := ioutil.ReadFile(os.Getenv("HOME") + "/.ssh/mongo_server")
-	signer, err := ssh.ParsePrivateKey(pk)
-	if err != nil {
-		return err
-	}
-
-	config := &ssh.ClientConfig{
-		User: "bee",
-		Auth: []ssh.AuthMethod{
-			ssh.PublicKeys(signer),
-		},
-	}
-
-	client, err := ssh.Dial("tcp", sshAddress, config)
-	if err != nil {
-		return err
-	}
-	var _ = client
-	return nil
 }
 
 func (c *MongoDB) CreateSession() (*mgo.Session, error) {
@@ -100,8 +73,8 @@ func (c *MongoDB) GetCollection(collectionName string) (*mgo.Session, *mgo.Colle
 	return session, session.DB(c.DbName).C(collectionName), nil
 }
 
-func CreateAuditDB(uri, dbu, dbp, ssh string) (*MongoDB, error) {
-	db := createMongoDB(uri, USER_DB, dbu, dbp, ssh)
+func CreateAuditDB(uri, dbu, dbp string) (*MongoDB, error) {
+	db := createMongoDB(uri, USER_DB, dbu, dbp)
 
 	session, err := db.CreateSession()
 	if err != nil {
@@ -114,8 +87,8 @@ func CreateAuditDB(uri, dbu, dbp, ssh string) (*MongoDB, error) {
 	return db, nil
 }
 
-func CreateUserDB(uri, dbu, dbp, ssh string) (*MongoDB, error) {
-	db := createMongoDB(uri, USER_DB, dbu, dbp, ssh)
+func CreateUserDB(uri, dbu, dbp string) (*MongoDB, error) {
+	db := createMongoDB(uri, USER_DB, dbu, dbp)
 
 	session, err := db.CreateSession()
 	if err != nil {
@@ -140,8 +113,8 @@ func CreateUserDB(uri, dbu, dbp, ssh string) (*MongoDB, error) {
 	return db, nil
 }
 
-func CreateStatDB(uri, dbu, dbp, ssh string) (*MongoDB, error) {
-	db := createMongoDB(uri, STAT_DB, dbu, dbp, ssh)
+func CreateStatDB(uri, dbu, dbp string) (*MongoDB, error) {
+	db := createMongoDB(uri, STAT_DB, dbu, dbp)
 
 	session, err := db.CreateSession()
 	if err != nil {
@@ -196,7 +169,7 @@ func CreateStatDB(uri, dbu, dbp, ssh string) (*MongoDB, error) {
 }
 
 func CreateTestUserDB(uri, dbu, dbp string) (*MongoDB, error) {
-	db := createMongoDB(uri, USER_DB_TEST, dbu, dbp, "")
+	db := createMongoDB(uri, USER_DB_TEST, dbu, dbp)
 
 	session, err := db.CreateSession()
 	if err != nil {
@@ -222,7 +195,7 @@ func CreateTestUserDB(uri, dbu, dbp string) (*MongoDB, error) {
 }
 
 func CreateTestStatDB(uri, dbu, dbp string) (*MongoDB, error) {
-	db := createMongoDB(uri, STAT_DB_TEST, dbu, dbp, "")
+	db := createMongoDB(uri, STAT_DB_TEST, dbu, dbp)
 
 	session, err := db.CreateSession()
 	if err != nil {
