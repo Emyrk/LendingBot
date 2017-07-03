@@ -85,7 +85,8 @@ func NewBee(hiveAddress string, dba string, dbu string, dbp string, test bool) *
 	b.HearbeatDuration = time.Minute
 	b.Users = make([]*balancer.User, 0)
 	b.LendingBot = NewLender(b)
-	userStatDBRaw, err := mongo.CreateStatDB(dba, dbu, dbp)
+	//TODO JESSE
+	userStatDBRaw, err := mongo.CreateStatDB(dba, dbu, dbp, "")
 	if err != nil {
 		if test {
 			slack.SendMessage(":rage:", b.ID, "test", fmt.Sprintf("@channel Bee %s: Oy!.. failed to connect to the userstat mongodb, I am panicing! Error: %s", b.ID, err.Error()))
@@ -100,7 +101,8 @@ func NewBee(hiveAddress string, dba string, dbu string, dbp string, test bool) *
 		panic(fmt.Sprintf("Failed to wrap userstatsdb: %s", err.Error()))
 	}
 
-	b.userDB, err = userdb.NewMongoUserDatabase(dba, dbu, dbp)
+	//TODO JESSE
+	b.userDB, err = userdb.NewMongoUserDatabase(dba, dbu, dbp, "")
 	if err != nil {
 		if test {
 			slack.SendMessage(":rage:", b.ID, "test", fmt.Sprintf("@channel Bee %s: Oy!.. failed to connect to the user mongodb, I am panicing! Error: %s", b.ID, err.Error()))
