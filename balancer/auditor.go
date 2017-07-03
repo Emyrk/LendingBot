@@ -155,7 +155,7 @@ func (a *Auditor) PerformAudit() *AuditReport {
 
 	logs := make(map[string]*UserLogs)
 	// Cycle through all users in the database
-	for i, u := range all {
+	for _, u := range all {
 		var exchs []int
 		// Currency pairs are enabled
 		if len(u.PoloniexEnabled.Keys()) > 0 {

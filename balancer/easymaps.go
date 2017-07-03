@@ -28,22 +28,18 @@ func NewSwarm() *Swarm {
 
 func (s *Swarm) RLock() {
 	s.locckkerr.RLock()
-	fmt.Printf("GREP RLock: %s\n", string(debug.Stack()))
 }
 
 func (s *Swarm) Lock() {
 	s.locckkerr.Lock()
-	fmt.Printf("GREP Lock: %s\n", string(debug.Stack()))
 }
 
 func (s *Swarm) Unlock() {
 	s.locckkerr.Unlock()
-	fmt.Printf("GREP Unlock: %s\n", string(debug.Stack()))
 }
 
 func (s *Swarm) RUnlock() {
 	s.locckkerr.RUnlock()
-	fmt.Printf("GREP RUnlock: %s\n", string(debug.Stack()))
 }
 
 func (s *Swarm) GetBeeUnsafe(id string) (*Bee, bool) {
