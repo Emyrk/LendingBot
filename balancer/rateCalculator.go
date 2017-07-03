@@ -167,11 +167,13 @@ func (q *QueenBee) CalculateLoanRate(exchange int, currency string) error {
 	if q.currentLoanRate[exchange] == nil {
 		q.currentLoanRate[exchange] = make(map[string]LoanRates)
 	}
+
+	lr.AvgBased = lr.Simple
 	q.currentLoanRate[exchange][currency] = lr
 	if q.currentLoanRate[exchange][currency].Simple < 2 {
-		SetSimple(currency, lowest)
+		SetSimple(currency, lr.Simple)
 		if time.Since(q.lastCalculateLoanRate[exchange][currency]).Seconds() > 30 {
-			q.RecordExchangeStatistics(exchange, currency, lowest)
+			q.RecordExchangeStatistics(exchange, currency, lr.Simple)
 			if q.lastCalculateLoanRate[exchange] == nil {
 				q.lastCalculateLoanRate[exchange] = make(map[string]time.Time)
 			}
@@ -179,7 +181,6 @@ func (q *QueenBee) CalculateLoanRate(exchange int, currency string) error {
 		}
 	}
 	q.loanrateLock.Unlock()
-	// lr.AvgBased = lr.Simple
 
 	q.calculateAvgBasedLoanRate(exchange, currency)
 

@@ -266,7 +266,7 @@ func (s *State) AddInviteCode(code string, capacity int, expires time.Time) erro
 
 func (s *State) SetUserKeys(username string, acessKey string, secretKey string) error {
 	if len(secretKey) != 128 {
-		return fmt.Errorf("Your secret key must be 128 characters long")
+		return fmt.Errorf("Your secret key must be 128 characters long, found %d characters", len(secretKey))
 	}
 
 	u, err := s.userDB.FetchUserIfFound(username)
