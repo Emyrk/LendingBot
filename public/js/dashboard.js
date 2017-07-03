@@ -10,8 +10,8 @@ app.factory('redirectInterceptor', function($q,$location,$window){
         	console.log("RESPONSE: " + response);
         	if (response.status == 403) {
         		window.location = "/";
-        		return $q.reject(response);
         	}
+    		return $q.reject(response);
         }
     }
 });

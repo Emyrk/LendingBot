@@ -117,7 +117,6 @@ func (ud *UserDatabase) FetchUser(username string) (*User, error) {
 		if err != nil {
 			return nil, fmt.Errorf("PutUser: find: %s", err.Error())
 		}
-
 		result.PoloniexKeys.SetEmptyIfBlank()
 		return &result, nil
 	}

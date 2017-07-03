@@ -79,7 +79,10 @@ func Launch() {
 	case DEV_MONGO:
 		//mongo
 		state = core.NewStateWithMongo()
-		state.NewUser("admin@admin.com", "admin")
+		ape := state.NewUser("admin@admin.com", "admin")
+		if ape != nil {
+			fmt.Println(ape)
+		}
 		state.UpdateUserPrivilege("admin@admin.com", "SysAdmin")
 	default:
 		state = core.NewState()
