@@ -136,7 +136,6 @@ func (a *Auditor) PerformAudit() *AuditReport {
 	ar := new(AuditReport)
 	var correct []AuditUser
 
-	flog.Error("1")
 	bees := a.ConnectionPool.Slaves.GetAndLockAllBees(true)
 	for _, b := range bees {
 		ustr := ""
@@ -147,7 +146,6 @@ func (a *Auditor) PerformAudit() *AuditReport {
 	}
 	a.ConnectionPool.Slaves.RUnlock()
 
-	flog.Error("2")
 	all, err := a.GetAllFullUsers()
 	if err != nil {
 		auditLogger.WithFields(log.Fields{"func": "PerformAudit"}).Errorf("Error retreiving full users: %s", err.Error())
@@ -157,11 +155,9 @@ func (a *Auditor) PerformAudit() *AuditReport {
 		return nil
 	}
 
-	flog.Error("3")
 	logs := make(map[string]*UserLogs)
 	// Cycle through all users in the database
-	for i, u := range all {
-		flog.Errorf("3.1.%d", i)
+	for _, u := range all {
 		var exchs []int
 		// Currency pairs are enabled
 		if len(u.PoloniexEnabled.Keys()) > 0 {
@@ -180,9 +176,7 @@ func (a *Auditor) PerformAudit() *AuditReport {
 			bkeyStr += k + ", "
 		}
 		ar.UsersInDB = append(ar.UsersInDB, fmt.Sprintf("%s [Poloniex: %s] [Bitfinex: %s]", u.Username, pkeyStr, bkeyStr))
-		flog.Errorf("3.2.%d", i)
 		for _, e := range exchs {
-			flog.Errorf("3.3.%d.%d", i, e)
 			// We keep logs on every user, even if successful
 			logs[u.Username] = new(UserLogs)
 			logs[u.Username].SlaveID = "Unknown"
@@ -237,6 +231,7 @@ func (a *Auditor) PerformAudit() *AuditReport {
 						correct = append(correct, AuditUser{User: u, Exchange: e})
 					}
 				}
+				a.ConnectionPool.Slaves.RUnlock()
 			}
 		}
 	}
@@ -351,7 +346,7 @@ func (a *Auditor) ExtensiveSearchAndCorrect(correct []AuditUser, userlogs map[st
 	// Look for 2 bees having the same user
 	allusers := make(map[string]string)
 
-	bees := a.ConnectionPool.Slaves.GetAndLockAllBees(true)
+	bees := a.ConnectionPool.Slaves.GetAllBees()
 	for _, b := range bees {
 		for _, bu := range b.Users {
 			if e, ok := fix[bu.Username]; ok {
@@ -391,7 +386,6 @@ func (a *Auditor) ExtensiveSearchAndCorrect(correct []AuditUser, userlogs map[st
 			}
 		}
 	}
-	a.ConnectionPool.Slaves.RUnlock()
 
 	return false
 }

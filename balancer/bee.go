@@ -12,6 +12,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var beeLogger = instanceLogger.WithField("package", "Bee")
+
 var _ = io.EOF
 var _ = log.Panic
 
@@ -51,15 +53,9 @@ func NewBee(c net.Conn, h *Hive) *Bee {
 	b.Connection = c
 	b.Encoder = gob.NewEncoder(c)
 	b.Decoder = gob.NewDecoder(c)
-
-	b.SendChannel = make(chan *Parcel, 1000)
-	b.RecieveChannel = make(chan *Parcel, 1000)
-	b.ErrorChannel = make(chan error, 100)
 	b.MasterHive = h
-	b.RebalanceDuration = time.Minute * 7
-	b.Users = make([]*User, 0)
 
-	b.Status = Initializing
+	b.commonInit()
 	return b
 }
 
@@ -69,19 +65,25 @@ func NewBeeFromWingleess(wb *WinglessBee) *Bee {
 	b.Connection = wb.Connection
 	b.Encoder = wb.Encoder
 	b.Decoder = wb.Decoder
+	b.MasterHive = wb.ControllingHive
+	b.commonInit()
+	return b
+}
 
+func (b *Bee) commonInit() {
+	b.RebalanceDuration = time.Minute * 7
+	b.exchangeCount = make(map[int]int)
+	b.Users = make([]*User, 0)
 	b.SendChannel = make(chan *Parcel, 1000)
 	b.RecieveChannel = make(chan *Parcel, 1000)
 	b.ErrorChannel = make(chan error, 100)
 	b.Status = Initializing
-	b.MasterHive = wb.ControllingHive
-	b.exchangeCount = make(map[int]int)
-	b.Users = make([]*User, 0)
-	return b
 }
 
 func (b *Bee) Runloop() {
+	flog := beeLogger.WithFields(log.Fields{"func": "Runloop", "id": b.ID})
 	b.Recount()
+	b.LastHearbeat = time.Now()
 	go b.HandleSends()
 	go b.HandleReceieves()
 	for {
@@ -98,6 +100,7 @@ func (b *Bee) Runloop() {
 		case Offline:
 			// Offline for 7min+
 			if time.Since(b.LastHearbeat) > b.RebalanceDuration {
+				flog.Warningf("Shutting down, has been: %fs. We only allow %fs", time.Since(b.LastHearbeat).Seconds(), b.RebalanceDuration.Seconds())
 				b.Shutdown()
 			} else {
 				time.Sleep(250 * time.Millisecond)
@@ -177,6 +180,11 @@ func (b *Bee) Close() {
 func (b *Bee) ChangeUser(us *User, add, active bool) {
 	b.UserLock.Lock()
 	defer b.UserLock.Unlock()
+	b.ChangeUserUnsafe(us, add, active)
+
+}
+
+func (b *Bee) ChangeUserUnsafe(us *User, add, active bool) {
 	b.SendChannel <- NewChangeUserParcel(b.ID, *us, add, active)
 
 	index := -1

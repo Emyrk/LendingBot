@@ -15,7 +15,7 @@ type Swarm struct {
 	// Quick lookup to find a user
 	usermap map[string]map[int]string
 
-	sync.RWMutex
+	locckkerr sync.RWMutex
 }
 
 func NewSwarm() *Swarm {
@@ -25,21 +25,21 @@ func NewSwarm() *Swarm {
 	return s
 }
 
-// func (s *Swarm) Rlock() {
-// 	s.RLock()
-// }
+func (s *Swarm) RLock() {
+	s.locckkerr.RLock()
+}
 
-// func (s *Swarm) Lock() {
-// 	s.Lock()
-// }
+func (s *Swarm) Lock() {
+	s.locckkerr.Lock()
+}
 
-// func (s *Swarm) Unlock() {
-// 	s.Unlock()
-// }
+func (s *Swarm) Unlock() {
+	s.locckkerr.Unlock()
+}
 
-// func (s *Swarm) RUnlock() {
-// 	s.RUnlock()
-// }
+func (s *Swarm) RUnlock() {
+	s.locckkerr.RUnlock()
+}
 
 func (s *Swarm) GetBeeUnsafe(id string) (*Bee, bool) {
 	v, ok := s.swarm[id]

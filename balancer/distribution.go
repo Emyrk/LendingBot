@@ -43,15 +43,15 @@ func (h *Hive) AddUser(u *User) error {
 
 	// Have a candidate
 	if candidate != nil {
-		candidate.ChangeUser(u, true, true)
+		candidate.ChangeUserUnsafe(u, true, true)
 		if h.BaseSlave != nil {
-			h.BaseSlave.ChangeUser(u, true, false)
+			h.BaseSlave.ChangeUserUnsafe(u, true, false)
 		}
 		// Add to phone book
 		h.Slaves.AddUserUnsafe(u.Username, u.Exchange, candidate.ID)
 	} else {
 		if h.BaseSlave != nil {
-			h.BaseSlave.ChangeUser(u, true, true)
+			h.BaseSlave.ChangeUserUnsafe(u, true, true)
 		} else {
 			return fmt.Errorf("No slaves that the user can be added too")
 		}

@@ -483,10 +483,10 @@ func (s *State) SaveLendingHistory(lendHist *userdb.AllLendingHistoryEntry) erro
 
 func (s *State) LoadLendingSummary(username string, t time.Time) (*userdb.AllLendingHistoryEntry, error) {
 	data, err := s.userStatistic.GetLendHistorySummary(username, t)
-	data.Pop()
 	if err != nil {
 		return data, err
 	}
+	data.Pop()
 	return data, err
 }
 
