@@ -5,8 +5,8 @@
   		</div>
   		<div class="clearfix"></div>
 
-  		<div class="row" ng-init="poloniexKey = '[[.poloniexKey]]'; poloniexKeyOrig = '[[.poloniexKey]]'; poloniexSecret = '[[.poloniexSecret]]'; poloniexSecretOrig = '[[.poloniexSecret]]';">
-  			<!-- Poloniex Set Key -->
+  		<div class="row" ng-init="exchangeKey = '[[.exchangeKey]]'; exchangeKeyOrig = '[[.exchangeKey]]'; exchangeSecret = '[[.exchangeSecret]]'; exchangeSecretOrig = '[[.exchangeSecret]]';">
+  			<!-- Exchange Set Key -->
   			<div class="col-sm-12 col-xs-12">
   				<div class="x_panel">
   					<div class="x_title">
@@ -14,27 +14,27 @@
   						<div class="clearfix"></div>
   					</div>
   					<div class="x_content">
-              <div class="alert alert-success fade in" role="alert" ng-show="poloniexKeysSetSuccess.length > 0">
-                <strong>{{poloniexKeysSetSuccess}}</strong>
+              <div class="alert alert-success fade in" role="alert" ng-show="exchangeKeysSetSuccess.length > 0">
+                <strong>{{exchangeKeysSetSuccess}}</strong>
               </div>
-              <div class="alert alert-danger fade in" role="alert" ng-show="poloniexKeysSetError.length > 0">
-                <strong>{{poloniexKeysSetError}}</strong>
+              <div class="alert alert-danger fade in" role="alert" ng-show="exchangeKeysSetError.length > 0">
+                <strong>{{exchangeKeysSetError}}</strong>
               </div>
-  						Input your API keys assosicated with your poloniex account. You can create a new set of API keys here: <a href="https://poloniex.com/apiKeys">https://poloniex.com/apiKeys</a>
+  						Input your API keys assosicated with your Poloniex account. You can create a new set of API keys here: <a href="https://poloniex.com/apiKeys">https://poloniex.com/apiKeys</a>
   						<br />
   						<br />
-  						<form class="form-horizontal form-label-left" name="poloniexKeyForm" >
+  						<form class="form-horizontal form-label-left" name="exchangeKeyForm" >
   							<div class="form-group">
   								<label class="control-label col-md-3 col-sm-3 col-xs-12">API Key<span class="required">*</span></label>
   								<div class="col-md-7 col-sm-9 col-xs-9">
-  									<input required="required" ng-model="poloniexKey" type="text" class="form-control" mask="********-********-********-********" ng-disabled="loadingPoloniexKeys">
+  									<input required="required" ng-model="exchangeKey" type="text" class="form-control" mask="********-********-********-********" ng-disabled="loadingExchangeKeys">
   								</div>
   							</div>
   							<div class="form-group">
   								<label class="control-label col-md-3 col-sm-3 col-xs-12" for="first-name">Secret <span class="required">*</span>
   								</label>
   								<div class="col-md-7 col-sm-9 col-xs-12">
-  									<input ng-model="poloniexSecret" placeholder="****************************************************************" type="text" required="required" class="form-control col-md-7 col-xs-12" ng-disabled="loadingPoloniexKeys">
+  									<input ng-model="exchangeSecret" placeholder="****************************************************************" type="text" required="required" class="form-control col-md-7 col-xs-12" ng-disabled="loadingExchangeKeys">
   								</div>
   							</div>
   						</form>
@@ -42,16 +42,16 @@
 
               <div class="form-group">
                 <div class="col-md-9 col-md-offset-3">
-                  <button ng-click="setPoloniexKeys()" type="submit" class="btn btn-success" ng-disabled="loadingPoloniexKeys || poloniexKeyForm.$invalid"><span ng-show="loadingPoloniexKeys"><i class="fa fa-spinner fa-spin"></i></span>Apply</button>
-                  <button class="btn btn-primary" ng-click="resetPoloniexKeys()" type="reset" ng-disabled="loadingPoloniexKeys">Clear</button>
+                  <button ng-click="setExchangeKeys()" type="submit" class="btn btn-success" ng-disabled="loadingExchangeKeys || exchangeKeyForm.$invalid"><span ng-show="loadingExchangeKeys"><i class="fa fa-spinner fa-spin"></i></span>Apply</button>
+                  <button class="btn btn-primary" ng-click="resetExchangeKeys()" type="reset" ng-disabled="loadingExchangeKeys">Clear</button>
                 </div>
               </div>
   					</div>
   				</div>
   			</div>
-  			<!-- /Poloniex Set Key -->
+  			<!-- /Exchange Set Key -->
 
-  			<!-- Poloniex Enable Lending -->
+  			<!-- Exchange Enable Lending -->
   			<div class="col-sm-12 col-xs-12">
   				<div class="x_panel">
   					<div class="x_title">
@@ -59,11 +59,11 @@
   						<div class="clearfix"></div>
   					</div>
   					<div class="x_content">
-              <div class="alert alert-success fade in" role="alert" ng-show="poloniexKeysEnableSuccess.length > 0">
-                <strong>{{poloniexKeysEnableSuccess}}</strong>
+              <div class="alert alert-success fade in" role="alert" ng-show="exchangeKeysEnableSuccess.length > 0">
+                <strong>{{exchangeKeysEnableSuccess}}</strong>
               </div>
-              <div class="alert alert-danger fade in" role="alert" ng-show="poloniexKeysEnabledError.length > 0">
-                <strong>{{poloniexKeysEnabledError}}</strong>
+              <div class="alert alert-danger fade in" role="alert" ng-show="exchangeKeysEnabledError.length > 0">
+                <strong>{{exchangeKeysEnabledError}}</strong>
               </div>
   						Enabling lending will begin lending any crypto in your lending account. You can disable it at any time. The left column is the MINIMUM loan rate the bot will use when lending with that crypto. If the rate goes below your minimum, the bot will stop making loans. Setting this rate is reccomended if you do not wish for loans to fall below a certain daily %.
   						<br />
@@ -84,7 +84,7 @@
                   </div>
   							<div class="form-group">
   								<div class="col-md-9 col-md-offset-3">
-  									<button type="submit" class="btn btn-success" ng-click="setEnablePoloniexLending()" ng-disabled="loadingEnablePoloniexLending" ><span ng-show="loadingEnablePoloniexLending"><i class="fa fa-spinner fa-spin"></i></span>Apply</button>
+  									<button type="submit" class="btn btn-success" ng-click="setEnableExchangeLending()" ng-disabled="loadingEnableExchangeLending" ><span ng-show="loadingEnableExchangeLending"><i class="fa fa-spinner fa-spin"></i></span>Apply</button>
                   </div>
   							</div>
   						</form>
@@ -92,7 +92,7 @@
   					</div>
   				</div>
   			</div>
-  			<!-- /Poloniex Enable Lending -->
+  			<!-- /Exchange Enable Lending -->
 
 
   		</div>

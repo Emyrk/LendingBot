@@ -19,9 +19,9 @@ type AppAuthRequired struct {
 	Email string
 }
 
-type PoloniexKeys struct {
-	PoloniexKey    string `json:"poloniexkey"`
-	PoloniexSecret string `json:"poloniexsecret"`
+type ExchangeKeys struct {
+	ExchangeKey    string `json:"exchangekey"`
+	ExchangeSecret string `json:"exchangesecret"`
 }
 
 type Enable2fa struct {
@@ -34,15 +34,15 @@ type Pass struct {
 	Pass string `json:"pass"`
 }
 
-func (r AppAuthRequired) unmarshalPoloniexKeys(body io.ReadCloser) *PoloniexKeys {
-	var jsonPoloniexKeys PoloniexKeys
-	err := json.NewDecoder(body).Decode(&jsonPoloniexKeys)
+func (r AppAuthRequired) unmarshalExchangeKeys(body io.ReadCloser) *ExchangeKeys {
+	var jsonExchangeKeys ExchangeKeys
+	err := json.NewDecoder(body).Decode(&jsonExchangeKeys)
 	if err != nil {
 		fmt.Printf("Error unmarshaling json poloniex keys: %s\n", err.Error())
 		return nil
 	}
 	defer body.Close()
-	return &jsonPoloniexKeys
+	return &jsonExchangeKeys
 }
 
 func (r AppAuthRequired) unmarshal2fa(body io.ReadCloser) *Enable2fa {
@@ -125,7 +125,7 @@ func (r AppAuthRequired) Enable2FA() revel.Result {
 	return r.RenderJSON(data)
 }
 
-func (r AppAuthRequired) SetPoloniexKeys() revel.Result {
+func (r AppAuthRequired) SetExchangeKeys() revel.Result {
 	data := make(map[string]interface{})
 
 	email := r.Session[SESSION_EMAIL]
@@ -137,12 +137,12 @@ func (r AppAuthRequired) SetPoloniexKeys() revel.Result {
 		return r.RenderJSON(data)
 	}
 
-	poloniexKeys := &PoloniexKeys{
+	poloniexKeys := &ExchangeKeys{
 		r.Params.Form.Get("poloniexkey"),
 		r.Params.Form.Get("poloniexsecret"),
 	}
 
-	poloniexKeys.PoloniexSecret = ""
+	poloniexKeys.ExchangeSecret = ""
 
 	d, err := json.Marshal(poloniexKeys)
 	if err != nil {

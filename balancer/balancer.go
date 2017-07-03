@@ -94,10 +94,7 @@ func (b *Balancer) Runloop() {
 	// Run an audit in a minute
 	go func() {
 		time.Sleep(1 * time.Minute)
-		ar := b.IRS.PerformAudit()
-		b.auditReportLock.Lock()
-		b.lastReport = ar
-		b.auditReportLock.Unlock()
+		_, _ = b.PerformAudit(true)
 	}()
 
 	for _ = range ticker.C {

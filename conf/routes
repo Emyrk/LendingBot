@@ -32,7 +32,7 @@ GET		/dashboard/settings/user				AppAuthRequired.SettingsDashboardUser
 GET		/dashboard/settings/lending				AppAuthRequired.SettingsDashboardLending
 POST	/dashboard/settings/create2fa			AppAuthRequired.Create2FA
 POST	/dashboard/settings/enable2fa			AppAuthRequired.Enable2FA
-POST	/dashboard/settings/setpoloniexkeys		AppAuthRequired.SetPoloniexKeys
+POST	/dashboard/settings/setexchangekeys		AppAuthRequired.SetExchangeKeys
 Get 	/dashboard/settings/enableuserlending	AppAuthRequired.GetEnableUserLending
 POST	/dashboard/settings/enableuserlending	AppAuthRequired.SetEnableUserLending
 POST	/dashboard/settings/changepass			AppAuthRequired.ChangePassword

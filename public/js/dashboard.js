@@ -304,13 +304,13 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log', '$ti
 	function($scope, $http, $log, $timeout) {
 		var dashSettingsLendingScope = $scope;
 
-		dashSettingsLendingScope.resetPoloniexKeys = function() {
-			dashSettingsLendingScope.poloniexKey = dashSettingsLendingScope.poloniexKeyOrig;
-			dashSettingsLendingScope.poloniexSecret = dashSettingsLendingScope.poloniexSecretOrig;
+		dashSettingsLendingScope.resetExchangeKeys = function() {
+			dashSettingsLendingScope.exchangeKey = dashSettingsLendingScope.exchangeKeyOrig;
+			dashSettingsLendingScope.exchangeSecret = dashSettingsLendingScope.exchangeSecretOrig;
 		}
 
-		dashSettingsLendingScope.getEnablePoloniexLending = function() {
-			dashSettingsLendingScope.loadingEnablePoloniexLending = true;
+		dashSettingsLendingScope.getEnableExchangeLending = function() {
+			dashSettingsLendingScope.loadingEnableExchangeLending = true;
 			$http(
 			{
 				method: 'GET',
@@ -332,7 +332,7 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log', '$ti
 			}, (err) => {
 				//error
 				$log.error("getEnablePoloniexLending: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
-				dashSettingsLendingScope.poloniexKeysEnabledError = 'Unable to load poloniex lending information. Error: ' + err.data.error;
+				dashSettingsLendingScope.exchangeKeysEnabledError = 'Unable to load poloniex lending information. Error: ' + err.data.error;
 			})
 			.then(() => {
 				dashSettingsLendingScope.loadingEnablePoloniexLending = false;
@@ -340,10 +340,10 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log', '$ti
 		}
 
 
-		dashSettingsLendingScope.setEnablePoloniexLending = function() {
-			dashSettingsLendingScope.loadingEnablePoloniexLending = true;
-			dashSettingsLendingScope.poloniexKeysEnabledError = '';
-			dashSettingsLendingScope.poloniexKeysEnableSuccess = '';
+		dashSettingsLendingScope.setEnableExchangeLending = function() {
+			dashSettingsLendingScope.loadingEnableExchangeLending = true;
+			dashSettingsLendingScope.exchangeKeysEnabledError = '';
+			dashSettingsLendingScope.exchangeKeysEnableSuccess = '';
 			$http(
 			{
 				method: 'POST',
@@ -358,28 +358,28 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log', '$ti
 			.then((res) => {
 				//success
 				$log.info("setEnablePoloniexLending: Success.");
-				dashSettingsLendingScope.poloniexKeysEnableSuccess = 'Poloniex Lending successfully updated values.'
+				dashSettingsLendingScope.exchangeKeysEnableSuccess = 'Poloniex Lending successfully updated values.'
 			}, (err) => {
 				//error
 				$log.error("setEnablePoloniexLending: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
-				dashSettingsLendingScope.poloniexKeysEnabledError = 'Unable to update poloniex lending information. Error: ' + err.data.error;
+				dashSettingsLendingScope.exchangeKeysEnabledError = 'Unable to update poloniex lending information. Error: ' + err.data.error;
 			})
 			.then(() => {
-				dashSettingsLendingScope.loadingEnablePoloniexLending = false;
+				dashSettingsLendingScope.loadingEnableExchangeLending = false;
 			});
 		}
 
-		dashSettingsLendingScope.setPoloniexKeys = function() {
-			dashSettingsLendingScope.loadingPoloniexKeys = true;
-			dashSettingsLendingScope.poloniexKeysSetError = '';
-			dashSettingsLendingScope.poloniexKeysSetSuccess = '';
+		dashSettingsLendingScope.setExchangeKeys = function() {
+			dashSettingsLendingScope.loadingExchangeKeys = true;
+			dashSettingsLendingScope.exchangeKeysSetError = '';
+			dashSettingsLendingScope.exchangeKeysSetSuccess = '';
 			$http(
 			{
 				method: 'POST',
-				url: '/dashboard/settings/setpoloniexkeys',
+				url: '/dashboard/settings/setexchangekeys',
 				data : $.param({
-					poloniexkey: dashSettingsLendingScope.poloniexKey,
-					poloniexsecret: dashSettingsLendingScope.poloniexSecret,
+					exchangekey: dashSettingsLendingScope.exchangeKey,
+					exchangesecret: dashSettingsLendingScope.exchangeSecret,
 				}),
 				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
 				withCredentials: true
@@ -388,24 +388,23 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log', '$ti
 				//success
 				$log.info("SetPoloniexKeys: Success.");
 				var tempData = JSON.parse(res.data.data);
-				dashSettingsLendingScope.poloniexKeyOrig = tempData.poloniexkey;
-				dashSettingsLendingScope.poloniexSecretOrig = tempData.poloniexsecret;
+				dashSettingsLendingScope.exchangeKeyOrig = tempData.exchangekey;
+				dashSettingsLendingScope.exchangeSecretOrig = tempData.exchangesecret;
 				//resets to new originals
-				dashSettingsLendingScope.resetPoloniexKeys();
-				dashSettingsLendingScope.poloniexKeysSetSuccess = 'Successfully set poloniex keys.';
+				dashSettingsLendingScope.resetExchangeKeys();
+				dashSettingsLendingScope.exchangeKeysSetSuccess = 'Successfully set poloniex keys.';
 			}, (err) => {
 				//error
 				$log.error("SetPoloniexKeys: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
-				dashSettingsLendingScope.poloniexKeysSetError =  err.data.error;
+				dashSettingsLendingScope.exchangeKeysSetError =  err.data.error;
 			})
 			.then(() => {
-				dashSettingsLendingScope.loadingPoloniexKeys = false;
+				dashSettingsLendingScope.loadingExchangeKeys = false;
 			});
 		}
 
 		// Switchery
 		dashSettingsLendingScope.init_switch = function() {
-			console.log("YOOOOOOOOOOOOOOOO")
 			if ($(".js-switch")[0]) {
 				var elems = Array.prototype.slice.call(document.querySelectorAll('.js-switch'));
 				elems.forEach(function (html) {
@@ -427,17 +426,17 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log', '$ti
 		//init
 		// init_InputMask();
 
-		dashSettingsLendingScope.loadingPoloniexKeys = false;
-		dashSettingsLendingScope.loadingEnablePoloniexLending = false;
+		dashSettingsLendingScope.loadingExchangeKeys = false;
+		dashSettingsLendingScope.loadingEnableExchangeLending = false;
 
-		dashSettingsLendingScope.poloniexKeysEnabledError = '';
-		dashSettingsLendingScope.poloniexKeysSetError = '';
+		dashSettingsLendingScope.exchangeKeysEnabledError = '';
+		dashSettingsLendingScope.exchangeKeysSetError = '';
 
-		dashSettingsLendingScope.poloniexKeysEnableSuccess = ''
-		dashSettingsLendingScope.poloniexKeysSetSuccess = '';
+		dashSettingsLendingScope.exchangeKeysEnableSuccess = ''
+		dashSettingsLendingScope.exchangeKeysSetSuccess = '';
 
 		dashSettingsLendingScope.parseInt = parseInt;
-		dashSettingsLendingScope.getEnablePoloniexLending();
+		dashSettingsLendingScope.getEnableExchangeLending();
 		//------
 
 	}]);
