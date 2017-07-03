@@ -236,6 +236,7 @@ func (h *Hive) HandleReceives() {
 		case c := <-h.CommandChannel:
 			switch c.Action {
 			case ShutdownBeeCommand:
+				balLogger.WithField("func", "HandleReceives").Infof("Squashing %s", c.ID)
 				h.Slaves.SquashBee(c.ID)
 			}
 			var _ = c
