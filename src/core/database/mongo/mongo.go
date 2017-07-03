@@ -5,15 +5,16 @@ import (
 )
 
 const (
+	//USER BEGIN
 	USER_DB      = "userdb"
 	USER_DB_TEST = "userdb_test"
-	C_USER       = "user"
 
+	C_USER = "user"
+	//AUDIT END
+
+	//STAT BEGIN
 	STAT_DB      = "statdb"
 	STAT_DB_TEST = "statdb_test"
-
-	AUDIT_DB      = "auditdb"
-	AUDIT_DB_TEST = "auditdb_test"
 
 	C_UserStat_POL = "poloniexUserStat"
 	C_LendHist_POL = "poloniexLendingHist"
@@ -22,8 +23,14 @@ const (
 	C_UserStat_BIT = "bitfinexUserStat"
 	C_LendHist_BIT = "bitfinexLendingHist"
 	C_Exchange_BIT = "bitfinexExchange"
+	//STAT END
 
-	C_Audit = "Audit"
+	//AUDIT BEGIN
+	AUDIT_DB      = "auditdb"
+	AUDIT_DB_TEST = "auditdb_test"
+
+	C_Audit = "audit"
+	//AUDIT END
 )
 
 type MongoDB struct {
