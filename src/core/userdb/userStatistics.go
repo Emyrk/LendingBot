@@ -440,7 +440,7 @@ func (p *PoloniexStats) String() string {
 
 func (us *UserStatisticsDB) GetPoloniexStatistics(currency string) (*PoloniexStats, error) {
 	poloStats := new(PoloniexStats)
-	var poloniexStatsArr []PoloniexStats
+	var poloniexStatsArr []PoloniexStat
 
 	if us.mdb != nil {
 		s, c, err := us.mdb.GetCollection(mongo.C_Exchange_POL)
@@ -470,62 +470,78 @@ func (us *UserStatisticsDB) GetPoloniexStatistics(currency string) (*PoloniexSta
 		find := bson.M{"currency": currency}
 		err = c.Find(find).Sort("-_id").All(&poloniexStatsArr)
 		if err != nil {
-			return fmt.Errorf("Mongo: getPoloniexStats: findAll: %s", err.Error())
+			return nil, fmt.Errorf("Mongo: getPoloniexStats: findAll: %s", err.Error())
 		}
-	}
 
-	poloDatStats := us.GetPoloniexDataLastXDays(30, currency)
-
-	// No data
-	if len(poloDatStats[0]) == 0 {
-		return nil, nil
-	}
-
-	sec := GetSeconds(time.Now())
-	var lastHr []PoloniexRateSample
-	var fivemin []PoloniexRateSample
-
-	in := 0
-	not := 0
-	for _, v := range poloDatStats[0] {
-		if v.SecondsPastMidnight > sec-3600 {
-			in++
-			lastHr = append(lastHr, v)
-			if v.SecondsPastMidnight > sec-300 {
-				fivemin = append(fivemin, v)
-			}
-		} else {
-			not++
+		if len(poloniexStatsArr) == 0 {
+			return nil, nil
 		}
-	}
 
-	var all []PoloniexRateSample
-	dayCutoff := 0
-	weekCutoff := 0
-	count := 0
-	for i, v := range poloDatStats {
-		all = append(all, v...)
-		count += len(v)
-		if i == 1 {
-			dayCutoff = count
-		} else if i == 7 {
-			weekCutoff = count
-		}
-	}
+		poloStats.FiveMinAvg, _ = GetAvgAndStd(poloniexStatsArr, time.Now().Add(-5*time.Minute))
+		poloStats.HrAvg, poloStats.HrStd = GetAvgAndStd(poloniexStatsArr, time.Now().Add(-1*time.Hour))
+		poloStats.DayAvg, poloStats.DayStd = GetAvgAndStd(poloniexStatsArr, time.Now().Add(-24*time.Hour))
+		poloStats.WeekAvg, poloStats.WeekStd = GetAvgAndStd(poloniexStatsArr, time.Now().Add(-24*time.Hour*7))
+		poloStats.MonthAvg, poloStats.MonthStd = GetAvgAndStd(poloniexStatsArr, time.Now().Add(-24*time.Hour*30))
+		return poloStats, nil
 
-	poloStats.FiveMinAvg, _ = GetAvgAndStd(fivemin)
-	poloStats.HrAvg, poloStats.HrStd = GetAvgAndStd(lastHr)
-	poloStats.DayAvg, poloStats.DayStd = GetAvgAndStd(all[:dayCutoff])
-	poloStats.WeekAvg, poloStats.WeekStd = GetAvgAndStd(all[:weekCutoff])
-	poloStats.MonthAvg, poloStats.MonthStd = GetAvgAndStd(all)
-	return poloStats, nil
+	}
+	return nil, nil
+
+	// poloDatStats := us.GetPoloniexDataLastXDays(30, currency)
+
+	// // No data
+	// if len(poloDatStats[0]) == 0 {
+	// 	return nil, nil
+	// }
+
+	// sec := GetSeconds(time.Now())
+	// var lastHr []PoloniexRateSample
+	// var fivemin []PoloniexRateSample
+
+	// in := 0
+	// not := 0
+	// for _, v := range poloDatStats[0] {
+	// 	if v.SecondsPastMidnight > sec-3600 {
+	// 		in++
+	// 		lastHr = append(lastHr, v)
+	// 		if v.SecondsPastMidnight > sec-300 {
+	// 			fivemin = append(fivemin, v)
+	// 		}
+	// 	} else {
+	// 		not++
+	// 	}
+	// }
+
+	// var all []PoloniexRateSample
+	// dayCutoff := 0
+	// weekCutoff := 0
+	// count := 0
+	// for i, v := range poloDatStats {
+	// 	all = append(all, v...)
+	// 	count += len(v)
+	// 	if i == 1 {
+	// 		dayCutoff = count
+	// 	} else if i == 7 {
+	// 		weekCutoff = count
+	// 	}
+	// }
+
+	// poloStats.FiveMinAvg, _ = GetAvgAndStd(fivemin)
+	// poloStats.HrAvg, poloStats.HrStd = GetAvgAndStd(lastHr)
+	// poloStats.DayAvg, poloStats.DayStd = GetAvgAndStd(all[:dayCutoff])
+	// poloStats.WeekAvg, poloStats.WeekStd = GetAvgAndStd(all[:weekCutoff])
+	// poloStats.MonthAvg, poloStats.MonthStd = GetAvgAndStd(all)
+	// return poloStats, nil
 }
 
-func GetAvgAndStd(data []PoloniexRateSample) (avg float64, std float64) {
+func GetAvgAndStd(data []PoloniexStat, cutoff time.Time) (avg float64, std float64) {
 	total := float64(0)
 	count := float64(0)
 
 	for _, v := range data {
+		if v.Time.Before(cutoff) {
+			break
+		}
 		total += v.Rate
 		count++
 	}
