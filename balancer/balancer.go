@@ -331,7 +331,6 @@ func (h *Hive) FlyIn(c net.Conn) {
 	a := NewAssignment(b.ID, assignment)
 	err = b.Encoder.Encode(a)
 	if err != nil {
-		log.Error("2", err.Error())
 		b.Close()
 		return
 	}
@@ -340,7 +339,6 @@ func (h *Hive) FlyIn(c net.Conn) {
 	// 5. Confirm their list
 	err = b.Decoder.Decode(&m)
 	if err != nil {
-		log.Error("3", err.Error())
 		b.Close()
 		return
 	}
@@ -348,14 +346,12 @@ func (h *Hive) FlyIn(c net.Conn) {
 	resp = new(IDResponse)
 	err = json.Unmarshal(m.Message, resp)
 	if err != nil { // The wrong message. Comon man, the process is documented
-		log.Error("4", err.Error())
 		b.Close()
 		return
 	}
 
 	//		See if the lists are the same
 	if !CompareUserList(assignment.Users, resp.Users) {
-		log.Error("5", err.Error())
 		b.Close()
 		return
 	}

@@ -177,6 +177,11 @@ func (b *Bee) Close() {
 func (b *Bee) ChangeUser(us *User, add, active bool) {
 	b.UserLock.Lock()
 	defer b.UserLock.Unlock()
+	b.ChangeUserUnsafe(us, add, active)
+
+}
+
+func (b *Bee) ChangeUserUnsafe(us *User, add, active bool) {
 	b.SendChannel <- NewChangeUserParcel(b.ID, *us, add, active)
 
 	index := -1
