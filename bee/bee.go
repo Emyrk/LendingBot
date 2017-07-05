@@ -2,6 +2,7 @@ package bee
 
 import (
 	"crypto/rand"
+	"crypto/tls"
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
@@ -15,6 +16,7 @@ import (
 	"github.com/Emyrk/LendingBot/src/core/database/mongo"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 
+	"github.com/Emyrk/LendingBot/balancer/security"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -102,7 +104,7 @@ func NewBee(hiveAddress string, dba string, dbu string, dbp string, test bool) *
 	}
 
 	//TODO JESSE
-	b.userDB, err = userdb.NewMongoUserDatabase(dba, dbu, dbp, "")
+	b.userDB, err = userdb.NewMongoUserDatabase(dba, dbu, dbp) //, "")
 	if err != nil {
 		if test {
 			slack.SendMessage(":rage:", b.ID, "test", fmt.Sprintf("@channel Bee %s: Oy!.. failed to connect to the user mongodb, I am panicing! Error: %s", b.ID, err.Error()))
@@ -194,7 +196,12 @@ func (b *Bee) ConfirmAssignment() error {
 }
 
 func (b *Bee) PhoneHome() error {
-	c, err := net.Dial("tcp", b.HiveAddress)
+	tlsConf, err := security.GetClientTLSConfig()
+	if err != nil {
+		return err
+	}
+
+	c, err := tls.Dial("tcp", b.HiveAddress, tlsConf)
 	if err != nil {
 		return err
 	}

@@ -2,6 +2,7 @@ package balancer
 
 import (
 	"crypto/rand"
+	"crypto/tls"
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Emyrk/LendingBot/balancer/security"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -131,7 +133,13 @@ func (b *Balancer) PerformAudit(save bool) (string, error) {
 
 // Listen will listen on a port and add connections
 func (b *Balancer) Listen(port int) {
-	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	tlsConf, err := security.GetServerTLSConfig()
+	if err != nil {
+		panic(err)
+	}
+
+	ln, err := tls.Listen("tcp", fmt.Sprintf(":%d", port), tlsConf)
+	//ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		panic(err)
 	}

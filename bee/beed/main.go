@@ -21,6 +21,8 @@ func main() {
 		mongoRemote = flag.String("mongo_remote", "ec2-34-212-103-238.us-west-2.compute.amazonaws.com:4650", "Remote address of mongo server for ssh")
 	)
 
+	var _ = mongoRemote
+
 	flag.Parse()
 
 	be := bee.NewBee(*address, *dba, *dbu, *dbp, *test)

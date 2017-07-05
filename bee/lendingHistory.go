@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Emyrk/LendingBot/src/core"
+	// "github.com/Emyrk/LendingBot/src/core"
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	log "github.com/sirupsen/logrus"
@@ -80,7 +80,7 @@ func (l *LendingHistoryKeeper) SaveMonth(username, accesskey, secretkey string) 
 	for i := 0; i < 28; i++ {
 		v, err := l.MyBee.userStatDB.GetLendHistorySummary(username, top) //l.St.LoadLendingSummary(username, curr)
 		if v == nil || err != nil {
-			resp, err := l.getLendhist(username, fmt.Sprintf("%d", curr.Unix()-1), fmt.Sprintf("%d", top.Unix()), "")
+			resp, err := l.getLendhist(accesskey, secretkey, fmt.Sprintf("%d", curr.Unix()-1), fmt.Sprintf("%d", top.Unix()), "")
 			if err != nil {
 				flog.WithFields(log.Fields{"time": top.String()}).Errorf("Error getting Lending history: %s", err.Error())
 				break
@@ -104,6 +104,10 @@ func (l *LendingHistoryKeeper) SaveMonth(username, accesskey, secretkey string) 
 		top = top.Add(-24 * time.Hour)
 		curr = curr.Add(-24 * time.Hour)
 	}
+}
+
+func (l *LendingHistoryKeeper) getLendhist(accessKey, secret, start, end, limit string) (resp poloniex.PoloniexAuthentictedLendingHistoryRespone, err error) {
+	return l.MyBee.LendingBot.Polo.PoloniexAuthenticatedLendingHistory(accessKey, secret, start, end, limit)
 }
 
 func compileData(data []poloniex.PoloniexAuthentictedLendingHistory, t time.Time) (*userdb.AllLendingHistoryEntry, error) {
