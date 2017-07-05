@@ -52,10 +52,11 @@ type User struct {
 	Currency    []string
 
 	// Don't set
-	SlaveID   string
-	LastTouch time.Time
-	Active    bool
-	Notes     string
+	SlaveID          string
+	LastTouch        time.Time
+	LastHistorySaved time.Time
+	Active           bool
+	Notes            string
 }
 
 func (a *User) IsSimilar(b *User) bool {

@@ -42,10 +42,25 @@ func NewLendingHistoryKeeper(b *Bee) *LendingHistoryKeeper {
 	l.WorkingOn = make(map[string]time.Time)
 	l.MyBee = b
 
+	// Make sure users don't all save back to back
+	userStrings := []string{}
+	for _, u := range b.Users {
+		userStrings = append(userStrings, u.Username)
+	}
+	l.InitRandomTimes(userStrings)
+
 	return l
 }
 
-func (l *LendingHistoryKeeper) SaveMonth(username, accesskey, secretkey string) {
+func (l *LendingHistoryKeeper) InitRandomTimes(users []string) {
+	n := time.Now()
+	for _, u := range users {
+		n = n.Add(time.Minute * 5)
+		l.WorkingOn[u] = n
+	}
+}
+
+func (l *LendingHistoryKeeper) SaveMonth(username, accesskey, secretkey string) bool {
 	flog := llog.WithField("func", "SaveMonth()")
 	l.WorkOnLock.RLock()
 	v, ok := l.WorkingOn[username]
@@ -55,7 +70,7 @@ func (l *LendingHistoryKeeper) SaveMonth(username, accesskey, secretkey string) 
 	} else {
 		// If done within 5hrs, don't bother
 		if time.Since(v).Seconds() < 60*60*10 {
-			return
+			return false
 		}
 	}
 
@@ -104,6 +119,7 @@ func (l *LendingHistoryKeeper) SaveMonth(username, accesskey, secretkey string) 
 		top = top.Add(-24 * time.Hour)
 		curr = curr.Add(-24 * time.Hour)
 	}
+	return true
 }
 
 func (l *LendingHistoryKeeper) getLendhist(accessKey, secret, start, end, limit string) (resp poloniex.PoloniexAuthentictedLendingHistoryRespone, err error) {

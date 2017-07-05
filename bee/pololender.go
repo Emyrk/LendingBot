@@ -41,6 +41,8 @@ type Lender struct {
 
 	usersDoneLock sync.RWMutex
 	usersDone     map[string]time.Time
+
+	HistoryKeeper *LendingHistoryKeeper
 }
 
 func (l *Lender) SetTicker(t map[string]poloniex.PoloniexTicker) {
@@ -61,6 +63,7 @@ func NewLender(b *Bee) *Lender {
 	l.currentLoanRate = make(map[int]map[string]balancer.LoanRates)
 	l.BitfinLender = NewBitfinexLender()
 	l.usersDone = make(map[string]time.Time)
+	l.HistoryKeeper = NewLendingHistoryKeeper(b)
 
 	return l
 }
@@ -369,6 +372,11 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 	l.usersDoneLock.Lock()
 	l.usersDone[u.U.Username] = time.Now()
 	l.usersDoneLock.Unlock()
+
+	historySaved := l.HistoryKeeper.SaveMonth(u.U.Username, u.U.AccessKey, u.U.SecretKey)
+	if historySaved {
+		u.U.LastHistorySaved = time.Now()
+	}
 
 	return nil
 }
