@@ -585,7 +585,7 @@ func Test_lendhist_call_time(t *testing.T) {
 	//CAN OPTIMIZE LATER
 	qasdf := bson.M{
 		"$and": []bson.M{
-			bson.M{"email": "jesse.saranwrap@gmail.com"},
+			bson.M{"email": "stevenmasley@gmail.com"},
 			bson.M{"_id": top},
 		},
 	}
@@ -596,4 +596,22 @@ func Test_lendhist_call_time(t *testing.T) {
 	} else {
 		t.Logf("Explain: %#v\n", m)
 	}
+
+	start := time.Now()
+	for i := 0; i < 30; i++ {
+		query := bson.M{
+			"$and": []bson.M{
+				bson.M{"email": "stevenmasley@gmail.com"},
+				bson.M{"_id": top},
+			},
+		}
+
+		x := userdb.NewAllLendingHistoryEntry()
+		err = c.Find(query).One(x)
+		if err != nil {
+			t.Errorf("find: %s", err)
+		}
+		top = top.Add(-24 * time.Hour)
+	}
+	t.Logf("Took %fs", time.Since(start).Seconds())
 }
