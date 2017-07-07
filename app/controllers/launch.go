@@ -94,7 +94,7 @@ func Launch() {
 			panic("Running in prod, but no balancer pass given in env var 'MONGO_BAL_PASS'")
 		}
 		Balancer = balancer.NewBalancer(state.CipherKey, "mongo.hodl.zone:27017", "balancer", mongoBalPass)
-		state = core.NewState()
+		state = core.NewStateWithMongo()
 	}
 
 	err := state.VerifyState()
