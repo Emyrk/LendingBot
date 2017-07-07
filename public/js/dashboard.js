@@ -335,7 +335,7 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log', '$ti
 				dashSettingsLendingScope.exchangeKeysEnabledError = 'Unable to load poloniex lending information. Error: ' + err.data.error;
 			})
 			.then(() => {
-				dashSettingsLendingScope.loadingEnablePoloniexLending = false;
+				dashSettingsLendingScope.loadingEnableExchangeLending = false;
 			});
 		}
 
