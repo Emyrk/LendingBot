@@ -86,14 +86,14 @@ func Launch() {
 		}
 		state.UpdateUserPrivilege("admin@admin.com", "SysAdmin")
 
-		Balancer = balancer.NewBalancer(state.CipherKey, "mongodb://localhost:27017", "", "")
+		Balancer = balancer.NewBalancer(state.CipherKey, revel.Config.StringDefault("database.uri", "mongodb://localhost:27017"), "", "")
 	default:
 		// Prod
 		mongoBalPass := os.Getenv("MONGO_BAL_PASS")
 		if mongoBalPass == "" {
 			panic("Running in prod, but no balancer pass given in env var 'MONGO_BAL_PASS'")
 		}
-		Balancer = balancer.NewBalancer(state.CipherKey, "mongo.hodl.zone:27017", "balancer", mongoBalPass)
+		Balancer = balancer.NewBalancer(state.CipherKey, revel.Config.StringDefault("database.uri", "mongodb://localhost:27017"), "balancer", mongoBalPass)
 		state = core.NewStateWithMongo()
 	}
 

@@ -65,6 +65,12 @@ func (s *State) VerifyState() error {
 }
 
 func newState(dbType int, fakePolo bool) *State {
+	uri := revel.Config.StringDefault("database.uri", "mongodb://localhost:27017")
+	mongoRevelPass := os.Getenv("MONGO_REVEL_PASS")
+	if mongoRevelPass == "" {
+		panic("Running in prod, but no revel pass given in env var 'MONGO_REVEL_PASS'")
+	}
+
 	var err error
 	s := new(State)
 	switch dbType {
@@ -77,8 +83,7 @@ func newState(dbType int, fakePolo bool) *State {
 		}
 		s.userDB = userdb.NewBoltUserDatabase(v)
 	case DB_MONGO:
-		uri := revel.Config.StringDefault("database.uri", "mongodb://localhost:27017")
-		s.userDB, err = userdb.NewMongoUserDatabase(uri, "", "")
+		s.userDB, err = userdb.NewMongoUserDatabase(uri, "revel", mongoRevelPass)
 		if err != nil {
 			panic(fmt.Sprintf("Error connecting to user mongodb: %s\n", err.Error()))
 		}
@@ -113,8 +118,7 @@ func newState(dbType int, fakePolo bool) *State {
 	case DB_BOLT:
 		s.userStatistic, err = userdb.NewUserStatisticsDB()
 	case DB_MONGO:
-		uri := revel.Config.StringDefault("database.uri", "mongodb://localhost:27017")
-		s.userStatistic, err = userdb.NewUserStatisticsMongoDB(uri, "", "")
+		s.userStatistic, err = userdb.NewUserStatisticsMongoDB(uri, "revel", mongoRevelPass)
 	}
 	if err != nil {
 		panic(fmt.Sprintf("Could not create user statistic database %s", err.Error()))
@@ -134,8 +138,9 @@ func newState(dbType int, fakePolo bool) *State {
 		s.userInviteCodes = userdb.NewInviteDB()
 	}
 
-	s.Master = NewMaster()
-	s.Master.Run(6667)
+	// SWITCHED TO BEES
+	// s.Master = NewMaster()
+	// s.Master.Run(6667)
 
 	return s
 }
