@@ -149,7 +149,7 @@ func (a *Auditor) PerformAudit() *AuditReport {
 			ustr += fmt.Sprintf("[%s|%s],", u.Username, GetExchangeString(u.Exchange))
 			ar.UserNotes = append(ar.UserNotes, fmt.Sprintf("[%s|%s] LastTouch: %s, LastSave: %s\n    %s", u.Username, GetExchangeString(u.Exchange), u.LastTouch, u.LastHistorySaved, u.Notes))
 		}
-		ar.Bees = append(ar.Bees, fmt.Sprintf("[%s] {%s} Users: %d (%s)", StatusToString(b.Status), b.ID, len(b.Users), ustr))
+		ar.Bees = append(ar.Bees, fmt.Sprintf("[%s] {%s} Users: %d (%s)", b.ID, StatusToString(b.Status), len(b.Users), ustr))
 	}
 	a.ConnectionPool.Slaves.RUnlock()
 
