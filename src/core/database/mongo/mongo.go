@@ -1,6 +1,8 @@
 package mongo
 
 import (
+	"crypto/tls"
+
 	"gopkg.in/mgo.v2"
 )
 
@@ -57,10 +59,26 @@ func createMongoDB(uri string, dbname, dbu, dbp string) *MongoDB {
 }
 
 func (c *MongoDB) CreateSession() (*mgo.Session, error) {
+	var err error
 	if c.baseSession == nil {
-		session, err := mgo.Dial(c.uri)
-		if err != nil {
-			return nil, err
+		var session *mgo.Session
+		if len(c.dbusername) > 0 && len(c.dbpass) > 0 {
+			dialInfo := &mgo.DialInfo{
+				Addrs:    []string{c.uri},
+				Database: c.DbName,
+				Username: c.dbusername,
+				Password: c.dbpass,
+				DialServer: func(addr *mgo.ServerAddr) (net.Conn, error) {
+					return tls.Dial("tcp", addr.String(), &tls.Config{})
+				},
+				Timeout: time.Second * 10,
+			}
+			session, err := mgo.DialWithInfo(dialInfo)
+		} else {
+			session, err := mgo.Dial(c.uri)
+			if err != nil {
+				return nil, err
+			}
 		}
 		c.baseSession = session
 
@@ -132,18 +150,6 @@ func CreateStatDB(uri, dbu, dbp string) (*MongoDB, error) {
 	c := session.DB(STAT_DB).C(C_UserStat_POL)
 
 	var index mgo.Index
-	// index := mgo.Index{
-	// 	Key:        []string{"_id.time"},
-	// 	Unique:     true,
-	// 	DropDups:   true,
-	// 	Background: true,
-	// 	Sparse:     true,
-	// }
-
-	// err = c.EnsureIndex(index)
-	// if err != nil {
-	// 	return nil, err
-	// }
 
 	c = session.DB(STAT_DB).C(C_LendHist_POL)
 	index = mgo.Index{
@@ -159,19 +165,6 @@ func CreateStatDB(uri, dbu, dbp string) (*MongoDB, error) {
 		return nil, err
 	}
 
-	// c = session.DB(STAT_DB).C(C_Exchange_POL)
-	// index = mgo.Index{
-	// 	Key:        []string{},
-	// 	Unique:     true,
-	// 	DropDups:   true,
-	// 	Background: true,
-	// 	Sparse:     true,
-	// }
-
-	// err = c.EnsureIndex(index)
-	// if err != nil {
-	// 	return nil, err
-	// }
 	return db, nil
 }
 
@@ -213,18 +206,6 @@ func CreateTestStatDB(uri, dbu, dbp string) (*MongoDB, error) {
 	c := session.DB(STAT_DB_TEST).C(C_UserStat_POL)
 
 	var index mgo.Index
-	// index := mgo.Index{
-	// 	Key:        []string{"_id.time"},
-	// 	Unique:     true,
-	// 	DropDups:   true,
-	// 	Background: true,
-	// 	Sparse:     true,
-	// }
-
-	// err = c.EnsureIndex(index)
-	// if err != nil {
-	// 	return nil, err
-	// }
 
 	c = session.DB(STAT_DB_TEST).C(C_LendHist_POL)
 	index = mgo.Index{
@@ -240,18 +221,5 @@ func CreateTestStatDB(uri, dbu, dbp string) (*MongoDB, error) {
 		return nil, err
 	}
 
-	// c = session.DB(STAT_DB_TEST).C(C_Exchange_POL)
-	// index = mgo.Index{
-	// 	Key:        []string{},
-	// 	Unique:     true,
-	// 	DropDups:   true,
-	// 	Background: true,
-	// 	Sparse:     true,
-	// }
-
-	// err = c.EnsureIndex(index)
-	// if err != nil {
-	// 	return nil, err
-	// }
 	return db, nil
 }
