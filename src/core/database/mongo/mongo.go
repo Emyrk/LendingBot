@@ -109,7 +109,7 @@ func (c *MongoDB) GetCollection(collectionName string) (*mgo.Session, *mgo.Colle
 }
 
 func CreateAuditDB(uri, dbu, dbp string) (*MongoDB, error) {
-	db := createMongoDB(uri, USER_DB, dbu, dbp)
+	db := createMongoDB(uri, AUDIT_DB, dbu, dbp)
 
 	session, err := db.CreateSession()
 	if err != nil {
