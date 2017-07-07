@@ -70,6 +70,7 @@ func NewBalancer(cipherKey [32]byte, dba, dbu, dbp string) *Balancer {
 	b.IRS = NewAuditor(b.ConnectionPool, dba, dbu, dbp, b.cipherKey)
 	return b
 }
+
 func (b *Balancer) Run(port int) {
 	b.Listen(port)
 	go b.Accept()
@@ -155,7 +156,6 @@ func (b *Balancer) Accept() {
 		if err == nil {
 			b.NewConnection(conn)
 		}
-
 	}
 }
 
@@ -174,7 +174,6 @@ type Command struct {
 
 // Hive controls all slave connections
 type Hive struct {
-	BaseSlave   *Bee
 	Slaves      *Swarm
 	CurrentRate map[string]LoanRate
 	LastAudit   time.Time
@@ -303,7 +302,7 @@ func (h *Hive) FlyIn(c net.Conn) {
 	}
 	b.PublicKey = resp.PublicKey
 
-	// 4. TODO: Fix this assignment
+	// 4. (Eh, Looks ok): Fix this assignment
 	var correctList []*User
 	h.Slaves.RLock()
 	for _, u := range b.Users {

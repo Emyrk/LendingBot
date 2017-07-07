@@ -44,17 +44,10 @@ func (h *Hive) AddUser(u *User) error {
 	// Have a candidate
 	if candidate != nil {
 		candidate.ChangeUserUnsafe(u, true, true)
-		if h.BaseSlave != nil {
-			h.BaseSlave.ChangeUserUnsafe(u, true, false)
-		}
 		// Add to phone book
 		h.Slaves.AddUserUnsafe(u.Username, u.Exchange, candidate.ID)
 	} else {
-		if h.BaseSlave != nil {
-			h.BaseSlave.ChangeUserUnsafe(u, true, true)
-		} else {
-			return fmt.Errorf("No slaves that the user can be added too")
-		}
+		return fmt.Errorf("No slaves that the user can be added too")
 	}
 
 	return nil
@@ -67,8 +60,7 @@ func (h *Hive) RemoveUser(email string, exchange int) error {
 	defer h.Slaves.Unlock()
 
 	u := User{Username: email, Exchange: exchange}
-	p := NewChangeUserParcel(h.BaseSlave.ID, u, false, false)
-	h.BaseSlave.SendChannel <- p
+	p := NewChangeUserParcel("", u, false, false)
 
 	beeID, ok := h.Slaves.GetUserUnsafe(email, exchange)
 	if !ok {

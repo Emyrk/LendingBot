@@ -233,6 +233,7 @@ func (s *State) PoloniexAllAuthenticatedTradeHistory(username, start, end string
 }
 
 func (s *State) PoloniexOffloadAuthenticatedLendingHistory(username, start, end, limit string) (resp poloniex.PoloniexAuthentictedLendingHistoryRespone, err error) {
+	return // Turn off
 	acc, err := s.getAccessAndSecret(username)
 	if err != nil {
 		return resp, err
