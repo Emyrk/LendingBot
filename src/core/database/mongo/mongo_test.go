@@ -9,6 +9,8 @@ import (
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"testing"
+
+	"os"
 )
 
 var db *MongoDB
@@ -548,5 +550,17 @@ func Test_exchange_poloniex_stat(t *testing.T) {
 
 	if pol.MonthAvg != 0.005 {
 		t.Errorf("Month average is incorrect: %f\n", pol.MonthAvg)
+	}
+}
+
+func Test_connect_to_remote_database(t *testing.T) {
+	db, err := CreateUserDB("mongo.hodl.zone:27017", "revel", os.Getenv("MONGO_REVEL_PASS"))
+	if err != nil {
+		t.Error(err.Error())
+		t.FailNow()
+	}
+	_, _, err = db.GetCollection(C_USER)
+	if err != nil {
+		t.Error(err.Error())
 	}
 }

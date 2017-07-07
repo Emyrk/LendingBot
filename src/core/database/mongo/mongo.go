@@ -38,6 +38,8 @@ const (
 
 	C_Audit = "audit"
 	//AUDIT END
+
+	ADMIN_DB = "admin"
 )
 
 type MongoDB struct {
@@ -68,9 +70,10 @@ func (c *MongoDB) CreateSession() (*mgo.Session, error) {
 	if c.baseSession == nil {
 		var session *mgo.Session
 		if len(c.dbusername) > 0 && len(c.dbpass) > 0 {
+			fmt.Println(c.dbusername, c.dbpass)
 			dialInfo := &mgo.DialInfo{
 				Addrs:    []string{c.uri},
-				Database: c.DbName,
+				Database: ADMIN_DB,
 				Username: c.dbusername,
 				Password: c.dbpass,
 				DialServer: func(addr *mgo.ServerAddr) (net.Conn, error) {
