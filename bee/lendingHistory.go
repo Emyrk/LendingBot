@@ -85,6 +85,9 @@ func (l *LendingHistoryKeeper) SaveMonth(username, accesskey, secretkey string) 
 	start := time.Now()
 	flog.WithField("user", username).Infof("Saving Month starting")
 
+	skipped := 0
+	total := float64(0)
+
 	n := time.Now().UTC()
 	top := time.Date(n.Year(), n.Month(), n.Day(), 0, 0, 0, 0, time.UTC)
 	top = top.Add(time.Hour * 24).Add(-1 * time.Second)
@@ -92,6 +95,7 @@ func (l *LendingHistoryKeeper) SaveMonth(username, accesskey, secretkey string) 
 	top = top.Add(-24 * time.Hour)
 	curr := top.Add(time.Hour * -72).Add(1 * time.Second)
 	for i := 0; i < 28; i++ {
+		per := time.Now()
 		v, err := l.MyBee.userStatDB.GetLendHistorySummary(username, top) //l.St.LoadLendingSummary(username, curr)
 		if v == nil || err != nil {
 			resp, err := l.getLendhist(accesskey, secretkey, fmt.Sprintf("%d", curr.Unix()-1), fmt.Sprintf("%d", top.Unix()), "")
@@ -113,13 +117,16 @@ func (l *LendingHistoryKeeper) SaveMonth(username, accesskey, secretkey string) 
 					}
 				}
 			}
+		} else {
+			skipped++
 		}
 
 		top = top.Add(-24 * time.Hour)
 		curr = curr.Add(-24 * time.Hour)
+		total += time.Since(per).Seconds()
 	}
 
-	flog.WithField("user", username).Infof("Saving month completed in %fs", time.Since(start).Seconds())
+	flog.WithField("user", username).Infof("Saving month completed in %fs. %d Skipped, avg %fs", time.Since(start).Seconds(), skipped, total/28)
 	return true
 }
 
