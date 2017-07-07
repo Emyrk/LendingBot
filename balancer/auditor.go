@@ -67,6 +67,7 @@ func NewAuditor(h *Hive, uri string, dbu string, dbp string, cipherkey [32]byte)
 type AuditReport struct {
 	UsersInDB      []string
 	Bees           []string
+	UserNotes      []string
 	UserLogsReport map[string]*UserLogs
 	CorrectionList []AuditUser
 	NoExtensive    bool
@@ -86,6 +87,11 @@ func (a *AuditReport) String() string {
 	str += "  ===== Bees =====  \n"
 	for _, b := range a.Bees {
 		str += fmt.Sprintf(" - %s\n", b)
+	}
+
+	str += "  ===== Notes =====  \n"
+	for _, n := range a.UserNotes {
+		str += fmt.Sprintf(" - %s\n", n)
 	}
 
 	str += "  ===== Users From DB =====  \n"
@@ -141,6 +147,7 @@ func (a *Auditor) PerformAudit() *AuditReport {
 		ustr := ""
 		for _, u := range b.Users {
 			ustr += fmt.Sprintf("%s | %d,", u.Username, u.Exchange)
+			ar.UserNotes = append(ar.UserNotes, fmt.Sprintf("[%s|%s] %s", u.Username, GetExchangeString(u.Exchange), u.Notes))
 		}
 		ar.Bees = append(ar.Bees, fmt.Sprintf("[%s] Users: %d (%s)", b.ID, len(b.Users), ustr))
 	}
@@ -175,7 +182,7 @@ func (a *Auditor) PerformAudit() *AuditReport {
 		for _, k := range u.BitfinexEnabled.Keys() {
 			bkeyStr += k + ", "
 		}
-		ar.UsersInDB = append(ar.UsersInDB, fmt.Sprintf("%s [Poloniex: %s] [Bitfinex: %s]", u.Username, pkeyStr, bkeyStr))
+		ar.UsersInDB = append(ar.UsersInDB, fmt.Sprintf("%s [Poloniex: %s] [Bitfinex: %s]", u.Username, pkeyStr))
 		for _, e := range exchs {
 			// We keep logs on every user, even if successful
 			logs[u.Username] = new(UserLogs)

@@ -333,11 +333,41 @@ func (b *Bee) ProcessParcels() {
 				lendingRates, ticker := m.ToMaps()
 				b.LendingBot.LendingRatesChannel <- lendingRates
 				b.LendingBot.TickerChannel <- ticker
+			case balancer.UpdateUserNotesParcel:
+				m := new(balancer.UpdateUserNotes)
+				err := json.Unmarshal(p.Message, m)
+				if err != nil {
+					beeLogger.WithFields(log.Fields{"message": "LendingRatesParcel", "func": "ProcessParcels"}).Errorf("LendingRatesParcel failed to unmarshal: %s", err.Error())
+					break
+				}
+
+				b.userlock.Lock()
+
+				na := time.Time{}
+				for _, u := range b.Users {
+					if u.Username == m.Username {
+						if m.LastTouch != na {
+							u.LastTouch = m.LastTouch
+						}
+						if m.SaveMonth != na {
+							u.LastHistorySaved = m.SaveMonth
+						}
+						if m.Notes != "" {
+							u.Notes = m.Notes
+						}
+					}
+				}
+				b.userlock.Unlock()
 			}
 		default:
 			return
 		}
 	}
+}
+
+func (b *Bee) updateUser(user, notes string, lasttouch, savemonth time.Time) {
+	parcel := balancer.NewUpdateUserNotesParcel(b.ID, user, notes, lasttouch, savemonth)
+	b.RecieveChannel <- parcel
 }
 
 func (b *Bee) HandleSends() {

@@ -152,6 +152,15 @@ func (l *Lender) CopyBeeList() {
 }
 
 func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
+	historySaved := false
+	notes := ""
+	defer func(monthtoo bool, n string) {
+		if monthtoo {
+			l.Bee.updateUser(u.U.Username, n, time.Now(), time.Now())
+		} else {
+			l.Bee.updateUser(u.U.Username, n, time.Now(), time.Time{})
+		}
+	}(historySaved, notes)
 	dbu, err := l.Bee.FetchUser(u.U.Username)
 	if err != nil {
 		return err
@@ -264,7 +273,9 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 			if rate < 2 {
 				CompromisedBTC.Set(rate)
 			} else {
-				clog.Errorf("Rate is going to high. Trying to %s set at %f", curr, rate)
+				msg := fmt.Sprintf("Rate is going to high. Trying to %s set at %f", curr, rate)
+				clog.Errorf(msg)
+				notes += msg + "\n"
 			}
 		}
 
@@ -307,7 +318,9 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 				}
 				worked, err := l.Polo.PoloniexCancelLoanOffer(curr, loan.ID, u.U.AccessKey, u.U.SecretKey)
 				if err != nil {
-					clog.Errorf("[Cancel] Error in Lending: %s", err.Error())
+					msg := fmt.Sprintf("[Cancel] Error in Lending: %s", err.Error())
+					clog.Errorf(msg)
+					notes += msg + "\n"
 					continue
 				}
 				if worked && err == nil {
@@ -355,14 +368,19 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 			// time.Sleep(5 * time.Second)
 			// _, err = s.PoloniexCreateLoanOffer(j.Currency[i], amt, rate, 2, false, j.Username)
 			if err != nil {
-				clog.Errorf("Error creating loan: %s", err.Error())
+				msg := fmt.Sprintf("Error creating loan: %s", err.Error())
+				clog.Errorf(msg)
+				notes += msg + "\n"
 			}
 		} else {
 			clog.WithFields(log.Fields{"rate": rate, "amount": amt}).Infof("Created Loan")
+			notes += fmt.Sprintf("Created loan for %f %s at %f\n", amt, curr, rate)
 		}
 
 		if err != nil {
-			clog.Errorf("[Offer] Error in Lending: %s", err.Error())
+			msg := fmt.Sprintf("[Offer] Error in Lending: %s", err.Error())
+			clog.Errorf(msg)
+			notes += msg + "\n"
 			continue
 		}
 		JobPart2.Observe(float64(time.Since(part2).Nanoseconds()))
@@ -373,7 +391,7 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 	l.usersDone[u.U.Username] = time.Now()
 	l.usersDoneLock.Unlock()
 
-	historySaved := l.HistoryKeeper.SaveMonth(u.U.Username, u.U.AccessKey, u.U.SecretKey)
+	historySaved = l.HistoryKeeper.SaveMonth(u.U.Username, u.U.AccessKey, u.U.SecretKey)
 	if historySaved {
 		u.U.LastHistorySaved = time.Now()
 	}
