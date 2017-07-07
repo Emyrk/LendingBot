@@ -89,12 +89,12 @@ func Launch() {
 		Balancer = balancer.NewBalancer(state.CipherKey, revel.Config.StringDefault("database.uri", "mongodb://localhost:27017"), "", "")
 	default:
 		// Prod
+		state = core.NewStateWithMongo()
 		mongoBalPass := os.Getenv("MONGO_BAL_PASS")
 		if mongoBalPass == "" {
 			panic("Running in prod, but no balancer pass given in env var 'MONGO_BAL_PASS'")
 		}
 		Balancer = balancer.NewBalancer(state.CipherKey, revel.Config.StringDefault("database.uri", "mongodb://localhost:27017"), "balancer", mongoBalPass)
-		state = core.NewStateWithMongo()
 	}
 
 	err := state.VerifyState()
