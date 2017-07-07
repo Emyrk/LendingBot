@@ -578,7 +578,6 @@ func Test_lendhist_call_time(t *testing.T) {
 		t.Errorf("createSession: %s", err.Error())
 		t.FailNow()
 	}
-	defer s.Close()
 	n := time.Now().UTC()
 	top := time.Date(n.Year(), n.Month(), n.Day(), 0, 0, 0, 0, time.UTC)
 	top = top.Add(time.Hour * 24).Add(-1 * time.Second)
@@ -596,9 +595,16 @@ func Test_lendhist_call_time(t *testing.T) {
 	} else {
 		t.Logf("Explain: %#v\n", m)
 	}
+	s.Close()
 
 	start := time.Now()
 	for i := 0; i < 30; i++ {
+		s, c, err := ua.GetCollection(C_LendHist_POL)
+		if err != nil {
+			t.Errorf("createSession: %s", err.Error())
+			t.FailNow()
+		}
+
 		query := bson.M{
 			"$and": []bson.M{
 				bson.M{"email": "stevenmasley@gmail.com"},
@@ -611,6 +617,7 @@ func Test_lendhist_call_time(t *testing.T) {
 		if err != nil {
 			t.Errorf("find: %s", err)
 		}
+		s.Close()
 		top = top.Add(-24 * time.Hour)
 	}
 	t.Logf("Took %fs", time.Since(start).Seconds())
