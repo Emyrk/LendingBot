@@ -328,6 +328,9 @@ func (b *Bee) CorrectRemoteList(list []*User) {
 			if u.Active != cu.Active {
 				correctionList = append(correctionList, NewChangeUser{U: *u, Add: true, Active: u.Active})
 			}
+			u.Notes = m[u.Username][u.Exchange].Notes
+			u.LastTouch = m[u.Username][u.Exchange].LastTouch
+			u.LastHistorySaved = m[u.Username][u.Exchange].LastHistorySaved
 		}
 
 		// Remove from the map to signal done

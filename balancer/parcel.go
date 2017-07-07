@@ -28,6 +28,9 @@ const (
 
 	// LendingRatesParcel has lending rates and tickers
 	LendingRatesParcel
+
+	// UpdateUserNotesParcel tells a bee to update a user notes and time
+	UpdateUserNotesParcel
 )
 
 type Parcel struct {
@@ -37,6 +40,23 @@ type Parcel struct {
 
 	// Body
 	Message []byte
+}
+
+type UpdateUserNotes struct {
+	Username  string
+	Notes     string
+	LastTouch time.Time
+	SaveMonth time.Time
+}
+
+func NewUpdateUserNotesParcel(id string, user, notes string, lasttouch time.Time, savemonth time.Time) *Parcel {
+	p := newParcel(id, UpdateUserNotesParcel)
+
+	ru := UpdateUserNotes{Username: user, Notes: notes, LastTouch: lasttouch, SaveMonth: savemonth}
+	msg, _ := json.Marshal(&ru)
+	p.Message = msg
+
+	return p
 }
 
 func NewRequestIDParcel(publicKey []byte) *Parcel {
