@@ -76,6 +76,9 @@ func (c *MongoDB) CreateSession() (*mgo.Session, error) {
 				Timeout: time.Second * 10,
 			}
 			session, err = mgo.DialWithInfo(dialInfo)
+			if err != nil {
+				return nil, err
+			}
 		} else {
 			session, err = mgo.Dial(c.uri)
 			if err != nil {
