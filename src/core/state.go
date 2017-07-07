@@ -66,6 +66,7 @@ func (s *State) VerifyState() error {
 
 func newState(dbType int, fakePolo bool) *State {
 	uri := revel.Config.StringDefault("database.uri", "mongodb://localhost:27017")
+	fmt.Printf("Using %s as mongodb server\n", uri)
 	mongoRevelPass := os.Getenv("MONGO_REVEL_PASS")
 	if mongoRevelPass == "" && revel.RunMode == "prod" {
 		panic("Running in prod, but no revel pass given in env var 'MONGO_REVEL_PASS'")
