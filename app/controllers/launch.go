@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"math/rand"
+	"os"
 	"time"
 
 	"github.com/Emyrk/LendingBot/balancer"
@@ -84,7 +85,15 @@ func Launch() {
 			fmt.Println(ape)
 		}
 		state.UpdateUserPrivilege("admin@admin.com", "SysAdmin")
+
+		Balancer = balancer.NewBalancer(state.CipherKey, "mongodb://localhost:27017", "", "")
 	default:
+		// Prod
+		mongoBalPass := os.Getenv("MONGO_BAL_PASS")
+		if mongoBalPass == "" {
+			panic("Running in prod, but no balancer pass given in env var 'MONGO_BAL_PASS'")
+		}
+		Balancer = balancer.NewBalancer(state.CipherKey, "mongo.hodl.zone:27017", "balancer", mongoBalPass)
 		state = core.NewState()
 	}
 
@@ -92,8 +101,6 @@ func Launch() {
 	if err != nil {
 		panic(err)
 	}
-
-	Balancer = balancer.NewBalancer(state.CipherKey, "mongodb://localhost:27017", "", "")
 
 	//lenderBot := lender.NewLender(state)
 	//queuerBot := queuer.NewQueuer(state, lenderBot)
