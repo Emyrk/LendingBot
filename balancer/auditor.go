@@ -291,7 +291,7 @@ func (a *Auditor) UserDBUserToBalancerUser(u *userdb.User, exch int) (*User, err
 }
 
 func (a *Auditor) GetFullUser(username string, exchange int) (*User, error) {
-	s, c, err := a.auditDB.GetCollection(mongo.C_USER)
+	s, c, err := a.userDB.GetCollection(mongo.C_USER)
 	if err != nil {
 		return nil, fmt.Errorf("GetUsers: getCol: %s", err.Error())
 	}
@@ -313,7 +313,7 @@ func (a *Auditor) GetFullUser(username string, exchange int) (*User, error) {
 }
 
 func (a *Auditor) GetAllFullUsers() ([]userdb.User, error) {
-	s, c, err := a.auditDB.GetCollection(mongo.C_USER)
+	s, c, err := a.userDB.GetCollection(mongo.C_USER)
 	if err != nil {
 		return nil, fmt.Errorf("GetAllUsers: getCol: %s", err.Error())
 	}
