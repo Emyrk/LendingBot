@@ -1,6 +1,8 @@
 package mongo
 
 import (
+	"crypto/tls"
+
 	"gopkg.in/mgo.v2"
 )
 
@@ -57,10 +59,26 @@ func createMongoDB(uri string, dbname, dbu, dbp string) *MongoDB {
 }
 
 func (c *MongoDB) CreateSession() (*mgo.Session, error) {
+	var err error
 	if c.baseSession == nil {
-		session, err := mgo.Dial(c.uri)
-		if err != nil {
-			return nil, err
+		var session *mgo.Session
+		if len(c.dbusername) > 0 && len(c.dbpass) > 0 {
+			dialInfo := &mgo.DialInfo{
+				Addrs:    []string{c.uri},
+				Database: c.DbName,
+				Username: c.dbusername,
+				Password: c.dbpass,
+				DialServer: func(addr *mgo.ServerAddr) (net.Conn, error) {
+					return tls.Dial("tcp", addr.String(), &tls.Config{})
+				},
+				Timeout: time.Second * 10,
+			}
+			session, err := mgo.DialWithInfo(dialInfo)
+		} else {
+			session, err := mgo.Dial(c.uri)
+			if err != nil {
+				return nil, err
+			}
 		}
 		c.baseSession = session
 
