@@ -1108,17 +1108,17 @@ func (us *UserStatisticsDB) SaveLendingHistory(lendHist *AllLendingHistoryEntry)
 
 func (us *UserStatisticsDB) GetLendHistorySummary(username string, t time.Time) (*AllLendingHistoryEntry, error) {
 	if us.mdb != nil {
+		result := NewAllLendingHistoryEntry()
 		s, c, err := us.mdb.GetCollection(mongo.C_LendHist_POL)
 		if err != nil {
-			return nil, fmt.Errorf("Mongo: GetLendHistorySummary: createSession: %s", err.Error())
+			return result, fmt.Errorf("Mongo: GetLendHistorySummary: createSession: %s", err.Error())
 		}
 		defer s.Close()
 
-		result := NewAllLendingHistoryEntry()
 		//CAN OPTIMIZE LATER
 		err = c.FindId(t).One(result)
 		if err != nil {
-			return nil, fmt.Errorf("Mongo: GetLendHistorySummary: find: %s", err)
+			return result, fmt.Errorf("Mongo: GetLendHistorySummary: find: %s", err)
 		}
 		return result, nil
 	}
