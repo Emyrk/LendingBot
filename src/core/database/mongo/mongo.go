@@ -2,6 +2,8 @@ package mongo
 
 import (
 	"crypto/tls"
+	"net"
+	"time"
 
 	"gopkg.in/mgo.v2"
 )
@@ -73,9 +75,9 @@ func (c *MongoDB) CreateSession() (*mgo.Session, error) {
 				},
 				Timeout: time.Second * 10,
 			}
-			session, err := mgo.DialWithInfo(dialInfo)
+			session, err = mgo.DialWithInfo(dialInfo)
 		} else {
-			session, err := mgo.Dial(c.uri)
+			session, err = mgo.Dial(c.uri)
 			if err != nil {
 				return nil, err
 			}
@@ -122,7 +124,7 @@ func CreateUserDB(uri, dbu, dbp string) (*MongoDB, error) {
 	defer session.Close()
 
 	c := session.DB(USER_DB).C(C_USER)
-
+	var _ = c
 	return db, nil
 }
 

@@ -146,8 +146,8 @@ func (a *Auditor) PerformAudit() *AuditReport {
 	for _, b := range bees {
 		ustr := ""
 		for _, u := range b.Users {
-			ustr += fmt.Sprintf("%s | %d,", u.Username, u.Exchange)
-			ar.UserNotes = append(ar.UserNotes, fmt.Sprintf("[%s|%s] %s", u.Username, GetExchangeString(u.Exchange), u.Notes))
+			ustr += fmt.Sprintf("[%s|%s],", u.Username, GetExchangeString(u.Exchange))
+			ar.UserNotes = append(ar.UserNotes, fmt.Sprintf("[%s|%s] LastTouch: %s, LastSave: %s\n    %s", u.Username, GetExchangeString(u.Exchange), u.LastTouch, u.LastHistorySaved, u.Notes))
 		}
 		ar.Bees = append(ar.Bees, fmt.Sprintf("[%s] Users: %d (%s)", b.ID, len(b.Users), ustr))
 	}
