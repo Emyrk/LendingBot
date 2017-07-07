@@ -70,7 +70,6 @@ func (c *MongoDB) CreateSession() (*mgo.Session, error) {
 	if c.baseSession == nil {
 		var session *mgo.Session
 		if len(c.dbusername) > 0 && len(c.dbpass) > 0 {
-			fmt.Println(c.dbusername, c.dbpass)
 			dialInfo := &mgo.DialInfo{
 				Addrs:    []string{c.uri},
 				Database: ADMIN_DB,
