@@ -2,11 +2,14 @@ package mongo
 
 import (
 	"crypto/tls"
+	"fmt"
 	"net"
 	"time"
 
 	"gopkg.in/mgo.v2"
 )
+
+var _ = fmt.Println
 
 const (
 	//USER BEGIN
@@ -80,11 +83,13 @@ func (c *MongoDB) CreateSession() (*mgo.Session, error) {
 				return nil, err
 			}
 		} else {
+			fmt.Println("1", c)
 			session, err = mgo.Dial(c.uri)
 			if err != nil {
 				return nil, err
 			}
 		}
+		fmt.Println(c, session)
 		c.baseSession = session
 
 		// See https://godoc.org/labix.org/v2/mgo#Session.SetMode
