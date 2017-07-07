@@ -3,16 +3,17 @@ package mongo_test
 import (
 	. "github.com/Emyrk/LendingBot/src/core/database/mongo"
 
-	"time"
-	// "fmt"
+	"fmt"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"testing"
+	"time"
 
 	"os"
 )
 
+var _ = fmt.Sprintf
 var db *MongoDB
 var session *mgo.Session
 var err error
@@ -562,5 +563,35 @@ func Test_connect_to_remote_database(t *testing.T) {
 	_, _, err = db.GetCollection(C_USER)
 	if err != nil {
 		t.Error(err.Error())
+	}
+}
+
+func Test_lendhist_call_time(t *testing.T) {
+	ua, err := CreateStatDB("mongo.hodl.zone:27017", "revel", os.Getenv("MONGO_REVEL_PASS"))
+	if err != nil {
+		t.Error(err.Error())
+		t.FailNow()
+	}
+
+	s, c, err := ua.GetCollection(C_LendHist_POL)
+	if err != nil {
+		t.Errorf("createSession: %s", err.Error())
+		t.FailNow()
+	}
+	defer s.Close()
+
+	//CAN OPTIMIZE LATER
+	qasdf := bson.M{
+		"$and": []bson.M{
+			{"email": "jesse.saranwrap@gmail.com"},
+			{"_id": t},
+		},
+	}
+	m := bson.M{}
+	err = c.Find(qasdf).Explain(m)
+	if err != nil {
+		t.Errorf("find: %s", err)
+	} else {
+		t.Logf("Explain: %#v\n", m)
 	}
 }
