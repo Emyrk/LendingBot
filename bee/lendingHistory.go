@@ -84,7 +84,6 @@ func (l *LendingHistoryKeeper) SaveMonth(username, accesskey, secretkey string) 
 	}()
 	start := time.Now()
 	flog.WithField("user", username).Infof("Saving Month starting")
-	defer flog.WithField("user", username).Infof("Saving month completed in %fs", time.Since(start).Seconds())
 
 	n := time.Now().UTC()
 	top := time.Date(n.Year(), n.Month(), n.Day(), 0, 0, 0, 0, time.UTC)
@@ -119,6 +118,8 @@ func (l *LendingHistoryKeeper) SaveMonth(username, accesskey, secretkey string) 
 		top = top.Add(-24 * time.Hour)
 		curr = curr.Add(-24 * time.Hour)
 	}
+
+	flog.WithField("user", username).Infof("Saving month completed in %fs", time.Since(start).Seconds())
 	return true
 }
 
