@@ -45,7 +45,7 @@ func NewBoltUserDatabase(path string) *UserDatabase {
 }
 
 func NewMongoUserDatabase(uri string, dbu string, dbp string) (*UserDatabase, error) {
-	//TODO JESSE
+
 	mdb, err := mongo.CreateUserDB(uri, dbu, dbp)
 	if err != nil {
 		return nil, err
