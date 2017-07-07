@@ -26,6 +26,20 @@ const (
 	Shutdown
 )
 
+func StatusToString(status int) string {
+	switch status {
+	case Online:
+		return "Online"
+	case Initializing:
+		return "Initializing"
+	case Offline:
+		return "Offline"
+	case Shutdown:
+		return "Shutdown"
+	}
+	return "Unknown"
+}
+
 // Balancer is the Queen Bee
 type Balancer struct {
 	ConnectionPool *Hive
