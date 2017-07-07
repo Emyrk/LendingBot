@@ -123,18 +123,6 @@ func CreateUserDB(uri, dbu, dbp string) (*MongoDB, error) {
 
 	c := session.DB(USER_DB).C(C_USER)
 
-	index := mgo.Index{
-		Key:        []string{"username"},
-		Unique:     true,
-		DropDups:   true,
-		Background: true,
-		Sparse:     true,
-	}
-
-	err = c.EnsureIndex(index)
-	if err != nil {
-		return nil, err
-	}
 	return db, nil
 }
 
@@ -146,24 +134,6 @@ func CreateStatDB(uri, dbu, dbp string) (*MongoDB, error) {
 		return nil, err
 	}
 	defer session.Close()
-
-	c := session.DB(STAT_DB).C(C_UserStat_POL)
-
-	var index mgo.Index
-
-	c = session.DB(STAT_DB).C(C_LendHist_POL)
-	index = mgo.Index{
-		Key:        []string{"email"},
-		Unique:     false,
-		DropDups:   false,
-		Background: true,
-		Sparse:     true,
-	}
-
-	err = c.EnsureIndex(index)
-	if err != nil {
-		return nil, err
-	}
 
 	return db, nil
 }

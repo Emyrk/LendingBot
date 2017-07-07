@@ -97,7 +97,7 @@ const UsernameMaxLength int = 100
 const SaltLength int = 5
 
 type User struct {
-	Username     string   `json:"username"` // Not case sensitive
+	Username     string   `bson:"_id" json:"username"` // Not case sensitive
 	PasswordHash [32]byte `json:"passhash"`
 	Salt         []byte   `json:"salt"`
 
