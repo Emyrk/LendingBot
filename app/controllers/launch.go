@@ -94,6 +94,9 @@ func Launch() {
 		if mongoBalPass == "" {
 			panic("Running in prod, but no balancer pass given in env var 'MONGO_BAL_PASS'")
 		}
+		if os.Getenv("MONGO_REVEL_PASS") {
+			panic("Running in prod, but no revel pass given in env var 'MONGO_REVEL_PASS'")
+		}
 
 		ape := state.NewUser("admin@admin.com", "admin is a Little more complex")
 		if ape != nil {
