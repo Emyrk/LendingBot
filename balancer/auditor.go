@@ -91,7 +91,7 @@ func (a *AuditReport) String() string {
 
 	str += "  ===== Bee Notes =====  \n"
 	for _, n := range a.UserNotes {
-		str += fmt.Sprintf(" - %s", n)
+		str += fmt.Sprintf(" - %s\n", n)
 	}
 
 	str += "  ===== Users From DB =====  \n"
