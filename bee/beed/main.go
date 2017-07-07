@@ -38,7 +38,7 @@ func main() {
 		os.Exit(1)
 	}()
 
-	log.Printf("Now running Bee")
+	log.Printf("Now running Bee [%s]", be.ID)
 	for {
 		log.Printf("Using %d users", len(be.Users))
 		time.Sleep(10 * time.Minute)
