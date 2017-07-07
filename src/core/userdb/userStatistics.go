@@ -1116,7 +1116,13 @@ func (us *UserStatisticsDB) GetLendHistorySummary(username string, t time.Time) 
 		defer s.Close()
 
 		//CAN OPTIMIZE LATER
-		err = c.FindId(t).One(result)
+		q := bson.M{
+			"$and": []bson.M{
+				bson.M{"email": username},
+				bson.M{"_id": t},
+			},
+		}
+		err = c.Find(q).One(result)
 		if err != nil {
 			return result, fmt.Errorf("Mongo: GetLendHistorySummary: find: %s", err)
 		}
