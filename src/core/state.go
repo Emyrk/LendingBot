@@ -492,6 +492,10 @@ func (s *State) LoadLendingSummary(username string, t time.Time) (*userdb.AllLen
 		return data, err
 	}
 	data.Pop()
+	na := time.Time{}
+	if data.Time == na {
+		data.SetTime(t)
+	}
 	return data, err
 }
 

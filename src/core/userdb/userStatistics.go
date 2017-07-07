@@ -1114,13 +1114,13 @@ func (us *UserStatisticsDB) GetLendHistorySummary(username string, t time.Time) 
 		}
 		defer s.Close()
 
-		var result AllLendingHistoryEntry
+		result := NewAllLendingHistoryEntry()
 		//CAN OPTIMIZE LATER
-		err = c.FindId(t).One(&result)
+		err = c.FindId(t).One(result)
 		if err != nil {
 			return nil, fmt.Errorf("Mongo: GetLendHistorySummary: find: %s", err)
 		}
-		return &result, nil
+		return result, nil
 	}
 
 	ld := GetDay(t)
