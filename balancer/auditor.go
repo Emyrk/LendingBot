@@ -182,7 +182,7 @@ func (a *Auditor) PerformAudit() *AuditReport {
 		for _, k := range u.BitfinexEnabled.Keys() {
 			bkeyStr += k + ", "
 		}
-		ar.UsersInDB = append(ar.UsersInDB, fmt.Sprintf("%s [Poloniex: %s] [Bitfinex: %s]", u.Username, pkeyStr))
+		ar.UsersInDB = append(ar.UsersInDB, fmt.Sprintf("%s [Poloniex: %s] [Bitfinex: %s]", u.Username, pkeyStr, bkeyStr))
 		for _, e := range exchs {
 			// We keep logs on every user, even if successful
 			logs[u.Username] = new(UserLogs)
