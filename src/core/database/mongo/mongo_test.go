@@ -579,12 +579,14 @@ func Test_lendhist_call_time(t *testing.T) {
 		t.FailNow()
 	}
 	defer s.Close()
-
+	n := time.Now().UTC()
+	top := time.Date(n.Year(), n.Month(), n.Day(), 0, 0, 0, 0, time.UTC)
+	top = top.Add(time.Hour * 24).Add(-1 * time.Second)
 	//CAN OPTIMIZE LATER
 	qasdf := bson.M{
 		"$and": []bson.M{
-			{"email": "jesse.saranwrap@gmail.com"},
-			{"_id": t},
+			bson.M{"email": "jesse.saranwrap@gmail.com"},
+			bson.M{"_id": top},
 		},
 	}
 	m := bson.M{}
