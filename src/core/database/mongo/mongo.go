@@ -123,8 +123,8 @@ func CreateUserDB(uri, dbu, dbp string) (*MongoDB, error) {
 	}
 	defer session.Close()
 
-	c := session.DB(USER_DB).C(C_USER)
-	var _ = c
+	// c := session.DB(USER_DB).C(C_USER)
+
 	return db, nil
 }
 
