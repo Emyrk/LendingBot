@@ -159,6 +159,7 @@ func (a *Auditor) PerformAudit() *AuditReport {
 		return nil
 	}
 	if all == nil {
+		auditLogger.WithFields(log.Fields{"func": "PerformAudit"}).Errorf("Audit cancelled as no users were found")
 		return nil
 	}
 
