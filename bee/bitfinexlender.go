@@ -56,7 +56,7 @@ func (bl *BitfinexLender) take() error {
 	if ok {
 		return nil
 	}
-	if remain < time.Second*2 {
+	if remain < time.Second*1 {
 		time.Sleep(remain)
 		return nil
 	}
@@ -163,8 +163,9 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 		bl.tickerlock.RLock()
 		t, ok := bl.FundingTicker[fmt.Sprintf("f%s", lower)]
 		if ok {
-			frr = t.FRR
+			frr = 0 //t.FRR
 		}
+		var _ = t
 		bl.tickerlock.RUnlock()
 
 		clog.WithFields(log.Fields{"rate": frr, "amount": avail}).Infof("Created Loan")

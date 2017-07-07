@@ -20,7 +20,7 @@ func (b *Bee) SaveUserStastics(stats *userdb.AllUserStatistic, exchange int) err
 		// if err != nil {
 		// 	return fmt.Errorf("Mongo: RecordData: createSession: %s", err)
 		// }
-		fallthrough
+		// fallthrough
 	default:
 		return fmt.Errorf("Exchange not recognized: %d", exchange)
 	}
