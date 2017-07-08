@@ -155,12 +155,14 @@ func (a *Auditor) PerformAudit() *AuditReport {
 
 	bees := a.ConnectionPool.Slaves.GetAndLockAllBees(true)
 	for _, b := range bees {
+		shuttingdown = ""
 		if b.Status == Shutdown {
 			a.ConnectionPool.AddCommand(&Command{ID: b.ID, Action: ShutdownBeeCommand})
+			shuttingdown = "(S)"
 		}
 		ustr := ""
 		for _, u := range b.Users {
-			ustr += fmt.Sprintf("[%s|%s],", u.Username, GetExchangeString(u.Exchange))
+			ustr += fmt.Sprintf("%s[%s|%s],", shuttingdown, u.Username, GetExchangeString(u.Exchange))
 			ar.UserNotes = append(ar.UserNotes, fmt.Sprintf("[%s|%s] LastTouch: %s, LastSave: %s\n    %s", u.Username, GetExchangeString(u.Exchange), u.LastTouch, u.LastHistorySaved, u.Notes))
 		}
 		ar.Bees = append(ar.Bees, fmt.Sprintf("[%s] {%s} S:%d/%d, R:%d/%d, E:%d/%d, Users: %d (%s)", b.ID, StatusToString(b.Status),
