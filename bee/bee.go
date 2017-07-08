@@ -415,6 +415,9 @@ func (b *Bee) HandleRecieves() {
 				b.ErrorChannel <- fmt.Errorf("[HandleRecieves] Error: %s", err.Error())
 				b.Status = Offline
 			} else {
+				if len(b.RecieveChannel) >= cap(b.RecieveChannel)-1 {
+					<-b.RecieveChannel
+				}
 				b.RecieveChannel <- &p
 			}
 		} else {

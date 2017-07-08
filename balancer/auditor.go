@@ -220,7 +220,7 @@ func (a *Auditor) PerformAudit() *AuditReport {
 					continue
 				}
 				balus.Active = true
-				userlogs[bu.Username].Active = balus.Active
+				logs[balus.Username].Active = balus.Active
 				// User was not found in a slave. Allocate this user
 				err = a.ConnectionPool.AddUser(balus)
 				if err != nil {
@@ -252,7 +252,7 @@ func (a *Auditor) PerformAudit() *AuditReport {
 							logs[u.Username].Healthy = true
 							logs[u.Username].LastTouch = bu.LastTouch
 							found = true
-							userlogs[bu.Username].Active = bu.Active
+							logs[bu.Username].Active = bu.Active
 							break
 						}
 					}
