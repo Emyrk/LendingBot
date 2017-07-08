@@ -97,7 +97,7 @@ func (a *AuditReport) String() string {
 
 	str += "  ===== Bee Notes =====  \n"
 	for _, n := range a.UserNotes {
-		str += fmt.Sprintf(" - %s\n", n)
+		str += fmt.Sprintf(" - %s", n)
 	}
 
 	str += "  ===== Users From DB =====  \n"
@@ -205,9 +205,10 @@ func (a *Auditor) PerformAudit() *AuditReport {
 		}
 		ar.UsersInDB = append(ar.UsersInDB, fmt.Sprintf("%s [Poloniex: %s] [Bitfinex: %s]", u.Username, pkeyStr, bkeyStr))
 		for _, e := range exchs {
+			logname := fmt.Sprintf("%s%d", u.Username, e)
 			// We keep logs on every user, even if successful
-			logs[u.Username] = new(UserLogs)
-			logs[u.Username].SlaveID = "Unknown"
+			logs[logname] = new(UserLogs)
+			logs[logname].SlaveID = "Unknown"
 			id, ok := a.ConnectionPool.Slaves.GetUser(u.Username, e)
 			if !ok {
 				// User was not found in the slavepool
@@ -215,20 +216,20 @@ func (a *Auditor) PerformAudit() *AuditReport {
 				// Get the user with keys
 				balus, err := a.UserDBUserToBalancerUser(&u, e)
 				if err != nil {
-					logs[u.Username].Logs += fmt.Sprintf("%s [ERROR] %s on %s was not found to be working. Was unable to get api keys: %s\n",
+					logs[logname].Logs += fmt.Sprintf("%s [ERROR] %s on %s was not found to be working. Was unable to get api keys: %s\n",
 						time.Now(), u.Username, GetExchangeString(e), err)
 					continue
 				}
 				balus.Active = true
-				logs[balus.Username].Active = balus.Active
+				logs[logname].Active = balus.Active
 				// User was not found in a slave. Allocate this user
 				err = a.ConnectionPool.AddUser(balus)
 				if err != nil {
-					logs[u.Username].Logs += fmt.Sprintf("%s [ERROR] %s on %s was not found to be working. Was unable to allocate to bee: %s\n",
+					logs[logname].Logs += fmt.Sprintf("%s [ERROR] %s on %s was not found to be working. Was unable to allocate to bee: %s\n",
 						time.Now(), u.Username, GetExchangeString(e), err)
 					correct = append(correct, AuditUser{User: u, Exchange: e})
 				} else {
-					logs[u.Username].Logs += fmt.Sprintf("%s [Warning] %s on %s was not found to be working. Was allocated to a bee, and maybe resolved\n",
+					logs[logname].Logs += fmt.Sprintf("%s [Warning] %s on %s was not found to be working. Was allocated to a bee, and maybe resolved\n",
 						time.Now(), u.Username, GetExchangeString(e))
 				}
 			} else {
@@ -236,23 +237,23 @@ func (a *Auditor) PerformAudit() *AuditReport {
 				bee, ok := a.ConnectionPool.Slaves.GetAndLockBee(id, true)
 				if !ok {
 					// User was found, but the bee it was allocated to is not.
-					logs[u.Username].Logs += fmt.Sprintf("%s [ERROR] %s on %s was found, but the bee it was allocated too was not.\n",
+					logs[logname].Logs += fmt.Sprintf("%s [ERROR] %s on %s was found, but the bee it was allocated too was not.\n",
 						time.Now(), u.Username, GetExchangeString(e))
 					correct = append(correct, AuditUser{User: u, Exchange: e})
 				} else {
 					// Bee and user found
-					logs[u.Username].SlaveID = bee.ID
+					logs[logname].SlaveID = bee.ID
 					found := false
 					// Verify user
 					for _, bu := range bee.Users {
 						// Everything looks good
 						if u.Username == bu.Username && e == bu.Exchange {
-							logs[u.Username].Logs += fmt.Sprintf("%s [INFO] %s on %s  was last touched %s\n",
+							logs[logname].Logs += fmt.Sprintf("%s [INFO] %s on %s  was last touched %s\n",
 								time.Now(), u.Username, GetExchangeString(e), bu.LastTouch)
-							logs[u.Username].Healthy = true
-							logs[u.Username].LastTouch = bu.LastTouch
+							logs[logname].Healthy = true
+							logs[logname].LastTouch = bu.LastTouch
 							found = true
-							logs[bu.Username].Active = bu.Active
+							logs[logname].Active = bu.Active
 							break
 						}
 					}
@@ -380,32 +381,33 @@ func (a *Auditor) ExtensiveSearchAndCorrect(correct []AuditUser, userlogs map[st
 	bees := a.ConnectionPool.Slaves.GetAllBees()
 	for _, b := range bees {
 		for _, bu := range b.Users {
-			if e, ok := fix[bu.Username]; ok {
-				userlogs[bu.Username].Active = bu.Active
+			logname := fmt.Sprintf("%s%d", bu.Username, bu.Exchange)
+			if e, ok := fix[logname]; ok {
+				userlogs[logname].Active = bu.Active
 				if e.Exchange == bu.Exchange {
 					// We found the user and their bee. Fix the usermap and report
-					fix[bu.Username].hits++
-					if fix[bu.Username].hits > 1 {
+					fix[logname].hits++
+					if fix[logname].hits > 1 {
 						// 2 bees have this user! Remove from second bee
-						userlogs[bu.Username].Logs += fmt.Sprintf("%s [REPAIR-ERROR-COR] %s on %s was found on another bee [%s]. Will remove from this bee as it is on another\n",
+						userlogs[logname].Logs += fmt.Sprintf("%s [REPAIR-ERROR-COR] %s on %s was found on another bee [%s]. Will remove from this bee as it is on another\n",
 							time.Now(), bu.Username, GetExchangeString(bu.Exchange), b.ID)
 						err := a.ConnectionPool.RemoveUserFromBee(b.ID, bu.Username, bu.Exchange)
 						if err != nil {
-							userlogs[bu.Username].Logs += fmt.Sprintf("%s [REPAIR-ERROR-COR] %s on %s was had an error being removed from bee [%s]: %s\n",
+							userlogs[logname].Logs += fmt.Sprintf("%s [REPAIR-ERROR-COR] %s on %s was had an error being removed from bee [%s]: %s\n",
 								time.Now(), bu.Username, GetExchangeString(bu.Exchange), b.ID, err.Error())
 						}
 					} else {
 						// Correct usermap
-						userlogs[bu.Username].Logs += fmt.Sprintf("%s [REPAIR-COR] %s on %s was found at bee [%s]. It was not found in the usermap. We will add to the usermap\n",
+						userlogs[logname].Logs += fmt.Sprintf("%s [REPAIR-COR] %s on %s was found at bee [%s]. It was not found in the usermap. We will add to the usermap\n",
 							time.Now(), bu.Username, GetExchangeString(bu.Exchange), b.ID)
 						a.ConnectionPool.Slaves.AddUser(bu.Username, bu.Exchange, b.ID)
 					}
 				}
 			} else {
-				_, ok := allusers[bu.Username]
+				_, ok := allusers[logname]
 				if ok {
 					// Duplicate users. Delete one
-					userlogs[bu.Username].Logs += fmt.Sprintf("%s [REPAIR-ERROR] %s on %s was found on another bee [%s]. It should be only on bee [%s]. Will remove from this bee as it is on another\n",
+					userlogs[logname].Logs += fmt.Sprintf("%s [REPAIR-ERROR] %s on %s was found on another bee [%s]. It should be only on bee [%s]. Will remove from this bee as it is on another\n",
 						time.Now(), bu.Username, GetExchangeString(bu.Exchange), b.ID, allusers[bu.Username])
 					err := a.ConnectionPool.RemoveUserFromBee(b.ID, bu.Username, bu.Exchange)
 					if err != nil {
@@ -413,7 +415,7 @@ func (a *Auditor) ExtensiveSearchAndCorrect(correct []AuditUser, userlogs map[st
 							time.Now(), bu.Username, GetExchangeString(bu.Exchange), b.ID, err)
 					}
 				} else {
-					allusers[bu.Username] = b.ID
+					allusers[logname] = b.ID
 				}
 			}
 		}
