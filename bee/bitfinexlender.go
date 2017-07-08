@@ -324,6 +324,7 @@ func (l *BitfinexLender) TickerLoop() {
 		case <-l.quit:
 			l.quit <- true
 			return
+		default:
 		}
 		err := l.GetTickers()
 		if err != nil {

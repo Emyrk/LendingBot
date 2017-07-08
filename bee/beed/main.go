@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
-	"time" // or "runtime"
+	// "time" // or "runtime"
 
 	"github.com/Emyrk/LendingBot/bee"
 )
@@ -28,6 +30,7 @@ func main() {
 
 	be := bee.NewBee(*address, *dba, *dbu, pass, *test)
 	be.Run()
+	go StartProfiler()
 
 	c := make(chan os.Signal, 2)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
@@ -39,8 +42,16 @@ func main() {
 	}()
 
 	log.Printf("Now running Bee [%s]", be.ID)
+	reader := bufio.NewReader(os.Stdin)
 	for {
-		log.Printf("Using %d users", len(be.Users))
-		time.Sleep(10 * time.Minute)
+		fmt.Print("> ")
+		text, _ := reader.ReadString('\n')
+		text = text[:len(text)-1]
+		switch text {
+		case "u":
+			fmt.Printf("Using %d users\n", len(be.Users))
+		case "s":
+			fmt.Println(be.Report())
+		}
 	}
 }

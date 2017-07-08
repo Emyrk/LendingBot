@@ -1,4 +1,4 @@
-package controllers
+package main
 
 import (
 	"log"
@@ -12,6 +12,6 @@ import (
 // https://golang.org/pkg/net/http/pprof/
 func StartProfiler() {
 	// runtime.MemProfileRate = mpr
-	log.Println(http.ListenAndServe("localhost:6060", nil))
+	log.Println(http.ListenAndServe("localhost:6061", nil))
 	//runtime.SetBlockProfileRate(100000)
 }

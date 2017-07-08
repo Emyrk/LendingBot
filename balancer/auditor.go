@@ -65,6 +65,9 @@ func NewAuditor(h *Hive, uri string, dbu string, dbp string, cipherkey [32]byte)
 }
 
 type AuditReport struct {
+	HiveRecChan    string
+	HiveSendChan   string
+	HiveComChan    string
 	UsersInDB      []string
 	Bees           []string
 	UserNotes      []string
@@ -76,13 +79,16 @@ type AuditReport struct {
 
 func (a *AuditReport) String() string {
 	str := fmt.Sprintf("======= Audit Report =======\n")
-	str += fmt.Sprintf("   %-20s\n   %-20s : %d\n   %-20s : %d\n   %-20s : %s\n   %-20s : %d\n   %-20s : %d\n",
+	str += fmt.Sprintf("   %-20s\n   %-20s : %d\n   %-20s : %d\n   %-20s : %s\n   %-20s : %d\n   %-20s : %d\n   %-20s : %s\n   %-20s : %s\n   %-20s : %s\n",
 		"Summary",
 		"Bees", len(a.Bees),
 		"Corrections", len(a.CorrectionList),
 		"Time", a.Time,
 		"Users In DB", len(a.UsersInDB),
-		"Users+Exch Active", len(a.UserLogsReport))
+		"Users+Exch Active", len(a.UserLogsReport),
+		"HiveRecChannel", a.HiveRecChan,
+		"HiveSendChannel", a.HiveSendChan,
+		"HiveComChannel", a.HiveComChan)
 
 	str += "  ===== Bees =====  \n"
 	for _, b := range a.Bees {
@@ -113,6 +119,7 @@ func (a *AuditReport) String() string {
 
 type UserLogs struct {
 	Healthy   bool
+	Active    bool
 	LastTouch time.Time
 	SlaveID   string
 	Logs      string
@@ -120,6 +127,7 @@ type UserLogs struct {
 
 func (l *UserLogs) String() string {
 	str := fmt.Sprintf("%-15s : %t\n", "Healthy", l.Healthy)
+	str += fmt.Sprintf("%-15s : %t\n", "Active", l.Active)
 	str += fmt.Sprintf("%-15s : %s\n", "LastTouch", l.LastTouch)
 	str += fmt.Sprintf("%-15s : %s\n", "SlaveID", l.SlaveID)
 	str += fmt.Sprintf("%-15s \n%s\n", "Logs", l.Logs)
@@ -136,17 +144,27 @@ func (a *Auditor) PerformAudit() *AuditReport {
 		a.performing = false
 	}()
 
+	ar := new(AuditReport)
+
+	ar.HiveRecChan = fmt.Sprintf("%d/%d", len(a.ConnectionPool.RecieveChannel), cap(a.ConnectionPool.RecieveChannel))
+	ar.HiveSendChan = fmt.Sprintf("%d/%d", len(a.ConnectionPool.SendChannel), cap(a.ConnectionPool.SendChannel))
+	ar.HiveComChan = fmt.Sprintf("%d/%d", len(a.ConnectionPool.CommandChannel), cap(a.ConnectionPool.CommandChannel))
+
 	flog := auditLogger.WithField("func", "PerformAudit")
 	flog.Infof("Starting audit")
 
-	ar := new(AuditReport)
 	var correct []AuditUser
 
 	bees := a.ConnectionPool.Slaves.GetAndLockAllBees(true)
 	for _, b := range bees {
+		shuttingdown := ""
+		if b.Status == Shutdown {
+			a.ConnectionPool.AddCommand(&Command{ID: b.ID, Action: ShutdownBeeCommand})
+			shuttingdown = "(S)"
+		}
 		ustr := ""
 		for _, u := range b.Users {
-			ustr += fmt.Sprintf("[%s|%s],", u.Username, GetExchangeString(u.Exchange))
+			ustr += fmt.Sprintf("%s[%s|%s],", shuttingdown, u.Username, GetExchangeString(u.Exchange))
 			ar.UserNotes = append(ar.UserNotes, fmt.Sprintf("[%s|%s] LastTouch: %s, LastSave: %s\n    %s", u.Username, GetExchangeString(u.Exchange), u.LastTouch, u.LastHistorySaved, u.Notes))
 		}
 		ar.Bees = append(ar.Bees, fmt.Sprintf("[%s] {%s} S:%d/%d, R:%d/%d, E:%d/%d, Users: %d (%s)", b.ID, StatusToString(b.Status),
@@ -201,6 +219,8 @@ func (a *Auditor) PerformAudit() *AuditReport {
 						time.Now(), u.Username, GetExchangeString(e), err)
 					continue
 				}
+				balus.Active = true
+				logs[balus.Username].Active = balus.Active
 				// User was not found in a slave. Allocate this user
 				err = a.ConnectionPool.AddUser(balus)
 				if err != nil {
@@ -232,6 +252,7 @@ func (a *Auditor) PerformAudit() *AuditReport {
 							logs[u.Username].Healthy = true
 							logs[u.Username].LastTouch = bu.LastTouch
 							found = true
+							logs[bu.Username].Active = bu.Active
 							break
 						}
 					}
@@ -360,6 +381,7 @@ func (a *Auditor) ExtensiveSearchAndCorrect(correct []AuditUser, userlogs map[st
 	for _, b := range bees {
 		for _, bu := range b.Users {
 			if e, ok := fix[bu.Username]; ok {
+				userlogs[bu.Username].Active = bu.Active
 				if e.Exchange == bu.Exchange {
 					// We found the user and their bee. Fix the usermap and report
 					fix[bu.Username].hits++

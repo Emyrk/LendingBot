@@ -70,6 +70,13 @@ func NewBeeFromWingleess(wb *WinglessBee) *Bee {
 	return b
 }
 
+func (b *Bee) Send(p *Parcel) {
+	dropped := FrontDrop(b.SendChannel, p)
+	if dropped > 0 {
+		beeLogger.WithField("id", b.ID).Errorf("Dropped %d messages in send", dropped)
+	}
+}
+
 func (b *Bee) commonInit() {
 	b.RebalanceDuration = time.Minute * 7
 	b.exchangeCount = make(map[int]int)
@@ -105,7 +112,6 @@ func (b *Bee) Runloop() {
 			} else {
 				time.Sleep(250 * time.Millisecond)
 			}
-
 		case Shutdown:
 			// Shutdown means we close up shop and call it a day
 			b.Close()
@@ -124,7 +130,8 @@ func (b *Bee) Shutdown() {
 	}
 	b.UserLock.RUnlock()
 
-	b.MasterHive.CommandChannel <- &Command{ID: b.ID, Action: ShutdownBeeCommand}
+	b.MasterHive.AddCommand(&Command{ID: b.ID, Action: ShutdownBeeCommand})
+	// b.MasterHive.CommandChannel <- &Command{ID: b.ID, Action: ShutdownBeeCommand}
 }
 
 func (b *Bee) Recount() {
@@ -185,7 +192,8 @@ func (b *Bee) ChangeUser(us *User, add, active bool) {
 }
 
 func (b *Bee) ChangeUserUnsafe(us *User, add, active bool) {
-	b.SendChannel <- NewChangeUserParcel(b.ID, *us, add, active)
+	//b.SendChannel <- NewChangeUserParcel(b.ID, *us, add, active)
+	b.Send(NewChangeUserParcel(b.ID, *us, add, active))
 
 	index := -1
 	for i, u := range b.Users {
@@ -256,6 +264,13 @@ func (b *Bee) HandleErrors() bool {
 	return alreadyKilled
 }
 
+func (b *Bee) addError(e error) {
+	if len(b.ErrorChannel) >= cap(b.ErrorChannel)-1 {
+		<-b.ErrorChannel
+	}
+	b.ErrorChannel <- e
+}
+
 // HandleSends will act until shutdown
 func (b *Bee) HandleSends() {
 	for {
@@ -264,7 +279,8 @@ func (b *Bee) HandleSends() {
 			case p := <-b.SendChannel:
 				err := b.Encoder.Encode(p)
 				if err != nil {
-					b.ErrorChannel <- fmt.Errorf("[HandleSends] %s", err)
+					b.addError(fmt.Errorf("[HandleSends] %s", err))
+					// b.ErrorChannel <- fmt.Errorf("[HandleSends] %s", err)
 					b.Status = Offline
 				}
 			}
@@ -348,6 +364,7 @@ func (b *Bee) CorrectRemoteList(list []*User) {
 	// Send out Corrections
 	for _, c := range correctionList {
 		p := NewChangeUserParcelFromStruct(b.ID, c)
-		b.SendChannel <- p
+		// b.SendChannel <- p
+		b.Send(p)
 	}
 }

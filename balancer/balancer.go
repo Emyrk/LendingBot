@@ -234,6 +234,14 @@ func (h *Hive) Run() {
 	go h.HandleSends()
 }
 
+func (h *Hive) AddCommand(c *Command) {
+	if len(h.CommandChannel) >= cap(h.CommandChannel)-1 {
+		balLogger.Errorf("Dropping from command channel")
+		<-h.CommandChannel
+	}
+	h.CommandChannel <- c
+}
+
 func (h *Hive) HandleReceives() {
 	for {
 		select {

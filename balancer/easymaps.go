@@ -56,7 +56,8 @@ func (s *Swarm) GetBee(id string) (*Bee, bool) {
 func (s *Swarm) SendParcelToUnsafe(id string, p *Parcel) bool {
 	if id == "ALL" {
 		for _, b := range s.swarm {
-			b.SendChannel <- p
+			// b.SendChannel <- p
+			b.Send(p)
 		}
 		return true
 	}
@@ -65,7 +66,8 @@ func (s *Swarm) SendParcelToUnsafe(id string, p *Parcel) bool {
 	if !ok {
 		return false
 	}
-	b.SendChannel <- p
+	// b.SendChannel <- p
+	b.Send(p)
 	return true
 }
 
