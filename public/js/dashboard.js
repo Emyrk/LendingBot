@@ -1,6 +1,7 @@
 var app=angular.module("lendingApp",["ngRoute","ngMask", "ngCookies"]);
 
-app.factory('redirectInterceptor', function($q,$location,$window){
+app.factory('redirectInterceptor', [ "$q", "$location", "$window", "$interval"
+	function($q,$location,$window, $interval){
     return  {
         response:function(response) {
         	console.log("RESPONSE: " + response);
@@ -10,11 +11,12 @@ app.factory('redirectInterceptor', function($q,$location,$window){
         	console.log("RESPONSE: " + response);
         	if (response.status == 403) {
         		window.location = "/";
+        		$interval(() => { window.location = "/"; } );
         	}
     		return $q.reject(response);
         }
     }
-});
+}]);
 
 app.config(['$routeProvider', '$locationProvider', '$httpProvider',
 	function($routeProvider, $locationProvider, $httpProvider) {
