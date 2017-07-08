@@ -44,12 +44,13 @@ type Parcel struct {
 
 type UpdateUserNotes struct {
 	Username  string
+	Exchange  int
 	Notes     string
 	LastTouch time.Time
 	SaveMonth time.Time
 }
 
-func NewUpdateUserNotesParcel(id string, user, notes string, lasttouch time.Time, savemonth time.Time) *Parcel {
+func NewUpdateUserNotesParcel(id string, user string, exchange int, notes string, lasttouch time.Time, savemonth time.Time) *Parcel {
 	p := newParcel(id, UpdateUserNotesParcel)
 
 	ru := UpdateUserNotes{Username: user, Notes: notes, LastTouch: lasttouch, SaveMonth: savemonth}

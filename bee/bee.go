@@ -358,8 +358,8 @@ func (b *Bee) ProcessParcels() {
 
 				na := time.Time{}
 				for _, u := range b.Users {
-					if u.Username == m.Username {
-						if m.LastTouch != na {
+					if u.Username == m.Username && u.Exchange == m.Exchange {
+						if u.LastTouch.Before(m.LastTouch) {
 							u.LastTouch = m.LastTouch
 						}
 						if m.SaveMonth != na {
@@ -378,8 +378,8 @@ func (b *Bee) ProcessParcels() {
 	}
 }
 
-func (b *Bee) updateUser(user, notes string, lasttouch, savemonth time.Time) {
-	parcel := balancer.NewUpdateUserNotesParcel(b.ID, user, notes, lasttouch, savemonth)
+func (b *Bee) updateUser(user string, exch int, notes string, lasttouch, savemonth time.Time) {
+	parcel := balancer.NewUpdateUserNotesParcel(b.ID, user, exch, notes, lasttouch, savemonth)
 	b.RecieveChannel <- parcel
 }
 

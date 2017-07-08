@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+type UserExchange string
+
 type MongoAllUserStatistics struct {
 	Username       string             `bson:"_id"`
 	UserStatistics []AllUserStatistic `bson:"userstats"`
@@ -18,6 +20,7 @@ type AllUserStatistic struct {
 	TotalCurrencyMap map[string]float64 `bson:"currencymap" json:"currencymap",msg:"currencymap"`
 	Time             time.Time          `json:"time",msg:"time"`
 	day              int                `json:"day",msg:"day"`
+	Exchange         UserExchange       `json:"exchange", msg:"exchange"`
 }
 
 type UserStatistic struct {
