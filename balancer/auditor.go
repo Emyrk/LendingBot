@@ -283,6 +283,7 @@ func (a *Auditor) PerformAudit() *AuditReport {
 func (a *Auditor) UserDBUserToBalancerUser(u *userdb.User, exch int) (*User, error) {
 	balUser := new(User)
 	balUser.Username = u.Username
+	balUser.Exchange = exch
 	var err error
 	switch exch {
 	case PoloniexExchange:
