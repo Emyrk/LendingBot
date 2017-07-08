@@ -155,7 +155,7 @@ func (a *Auditor) PerformAudit() *AuditReport {
 
 	bees := a.ConnectionPool.Slaves.GetAndLockAllBees(true)
 	for _, b := range bees {
-		shuttingdown = ""
+		shuttingdown := ""
 		if b.Status == Shutdown {
 			a.ConnectionPool.AddCommand(&Command{ID: b.ID, Action: ShutdownBeeCommand})
 			shuttingdown = "(S)"
