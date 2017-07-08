@@ -88,7 +88,7 @@ func (a *AuditReport) String() string {
 		"Users+Exch Active", len(a.UserLogsReport),
 		"HiveRecChannel", a.HiveRecChan,
 		"HiveSendChannel", a.HiveSendChan,
-		"HiveSendChannel", a.HiveComChan)
+		"HiveComChannel", a.HiveComChan)
 
 	str += "  ===== Bees =====  \n"
 	for _, b := range a.Bees {
