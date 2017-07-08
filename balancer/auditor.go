@@ -97,7 +97,7 @@ func (a *AuditReport) String() string {
 
 	str += "  ===== Bee Notes =====  \n"
 	for _, n := range a.UserNotes {
-		str += fmt.Sprintf(" - %s", n)
+		str += fmt.Sprintf(" - %s\n", n)
 	}
 
 	str += "  ===== Users From DB =====  \n"
@@ -205,7 +205,7 @@ func (a *Auditor) PerformAudit() *AuditReport {
 		}
 		ar.UsersInDB = append(ar.UsersInDB, fmt.Sprintf("%s [Poloniex: %s] [Bitfinex: %s]", u.Username, pkeyStr, bkeyStr))
 		for _, e := range exchs {
-			logname := fmt.Sprintf("%s%d", u.Username, e)
+			logname := fmt.Sprintf("%s|%s", u.Username, GetExchangeString(e))
 			// We keep logs on every user, even if successful
 			logs[logname] = new(UserLogs)
 			logs[logname].SlaveID = "Unknown"
@@ -372,7 +372,7 @@ func (a *Auditor) ExtensiveSearchAndCorrect(correct []AuditUser, userlogs map[st
 
 	fix := make(map[string]*AuditUser)
 	for _, u := range correct {
-		fix[u.User.Username] = &u
+		fix[fmt.Sprintf("%s|%s", u.User.Username, GetExchangeString(u.Exchange))] = &u
 	}
 
 	// Look for 2 bees having the same user
@@ -381,7 +381,7 @@ func (a *Auditor) ExtensiveSearchAndCorrect(correct []AuditUser, userlogs map[st
 	bees := a.ConnectionPool.Slaves.GetAllBees()
 	for _, b := range bees {
 		for _, bu := range b.Users {
-			logname := fmt.Sprintf("%s%d", bu.Username, bu.Exchange)
+			logname := fmt.Sprintf("%s|%s", bu.Username, GetExchangeString(bu.Exchange))
 			if e, ok := fix[logname]; ok {
 				userlogs[logname].Active = bu.Active
 				if e.Exchange == bu.Exchange {
