@@ -304,7 +304,7 @@ func (l *Lender) recordBitfinexStatistics(username string,
 	// Save here
 	// TODO: Jesse Save the stats here. This is the userstatistics, we will retrieve these by time
 	// db.RecordData(stats)
-	err := l.Bee.SaveUserStastics(stats, balancer.BitfinexExchange)
+	err := l.Bee.SaveUserStastics(stats)
 
 	l.recordMapLock.Lock()
 	l.recordMap[balancer.BitfinexExchange][username] = time.Now()

@@ -481,7 +481,7 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 	// Save here
 	// TODO: Jesse Save the stats here. This is the userstatistics, we will retrieve these by time
 	// db.RecordData(stats)
-	err := l.Bee.SaveUserStastics(stats, balancer.PoloniexExchange)
+	err := l.Bee.SaveUserStastics(stats)
 
 	l.recordMapLock.Lock()
 	l.recordMap[balancer.PoloniexExchange][username] = time.Now()
