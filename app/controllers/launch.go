@@ -123,6 +123,7 @@ func Launch() {
 	//go queuerBot.Start()
 	go launchPrometheus(9911)
 	go Balancer.Run(9100)
+	go StartProfiler()
 }
 
 func Shutdown() {
