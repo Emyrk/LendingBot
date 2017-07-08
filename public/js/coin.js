@@ -192,17 +192,22 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 						if ((cur.activerate*100) > 2 ||  cur.activerate == 0){
 							continue
 						}
-						var avg = [unix, (cur.activerate*100).toFixed(5)]
+						var a = cur.activerate*100
+						var avg = [unix, a.toFixed(5)]
 						var lowest = cur.lowestrate*100
 						if(lowest == 0) {
 							lowest = prevLowest
 						}
 						if(lowest == 0) {
-							lowest = avg
+							lowest = a
 						}
 						prevLowest = lowest
-						var range = [unix, lowest.toFixed(5), (cur.highestrate*100).toFixed(5)]
-						if (c.exchange == "bit") {
+						var highest = cur.highestrate*100
+						if (highest == 0) {
+							highest = a
+						}
+						var range = [unix, lowest.toFixed(5), highest.toFixed(5)]
+						if (cur.exchange == "bit") {
 							bitfinAveragePoints.push(avg)
 							bitfincRangePoints.push(range)
 						} else {
