@@ -6,6 +6,16 @@ import (
 
 var _ = fmt.Println
 
+func (h *Hive) UpdateUserKey(email string, exch int) error {
+	u := &User{Username: email, Exchange: exch}
+	err := h.RemoveUser(email, exch)
+	if err != nil {
+		// No user found, so they new
+	}
+
+	return h.AddUser(u)
+}
+
 // AddUser will add a user to a bee and the BasePool
 func (h *Hive) AddUser(u *User) error {
 	u.Active = true

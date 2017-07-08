@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/url"
 
+	"github.com/Emyrk/LendingBot/balancer"
 	"github.com/Emyrk/LendingBot/src/core/email"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"github.com/revel/revel"
@@ -124,6 +125,12 @@ func (r AppAuthRequired) SetExchangeKeys() revel.Result {
 		data[JSON_ERROR] = fmt.Sprintf("Error: %s", err.Error())
 		r.Response.Status = 500
 		return r.RenderJSON(data)
+	}
+
+	if r.Params.Form.Get("exch") == "bit" {
+		Balancer.UpdateUserKey(email, balancer.BitfinexExchange)
+	} else {
+		Balancer.UpdateUserKey(email, balancer.PoloniexExchange)
 	}
 
 	poloniexKeys := &ExchangeKeys{
