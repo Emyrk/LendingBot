@@ -79,7 +79,7 @@ type AuditReport struct {
 
 func (a *AuditReport) String() string {
 	str := fmt.Sprintf("======= Audit Report =======\n")
-	str += fmt.Sprintf("   %-20s\n   %-20s : %d\n   %-20s : %d\n   %-20s : %s\n   %-20s : %d\n   %-20s : %d\n   %-20s : %s\n  %-20s : %s  %-20s : %s\n",
+	str += fmt.Sprintf("   %-20s\n   %-20s : %d\n   %-20s : %d\n   %-20s : %s\n   %-20s : %d\n   %-20s : %d\n   %-20s : %s\n  %-20s : %s\n  %-20s : %s\n",
 		"Summary",
 		"Bees", len(a.Bees),
 		"Corrections", len(a.CorrectionList),
