@@ -23,11 +23,11 @@ const (
 	STAT_DB      = "statdb"
 	STAT_DB_TEST = "statdb_test"
 
-	C_UserStat_POL = "poloniexUserStat"
+	C_UserStat = "userStat"
+
 	C_LendHist_POL = "poloniexLendingHist"
 	C_Exchange_POL = "poloniexExchange"
 
-	C_UserStat_BIT = "bitfinexUserStat"
 	C_LendHist_BIT = "bitfinexLendingHist"
 	C_Exchange_BIT = "bitfinexExchange"
 	//STAT END
@@ -183,11 +183,9 @@ func CreateTestStatDB(uri, dbu, dbp string) (*MongoDB, error) {
 	}
 	defer session.Close()
 
-	c := session.DB(STAT_DB_TEST).C(C_UserStat_POL)
+	c := session.DB(STAT_DB_TEST).C(C_UserStat)
 
 	var index mgo.Index
-
-	c = session.DB(STAT_DB_TEST).C(C_LendHist_POL)
 	index = mgo.Index{
 		Key:        []string{"email"},
 		Unique:     false,

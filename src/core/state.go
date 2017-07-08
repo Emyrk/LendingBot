@@ -389,12 +389,12 @@ func (s *State) GetPoloniexStatsPastXDays(dayRange int, currency string) [][]use
 }
 
 // RecordStatistics is for recording an individual user's statistics at a given time
-func (s *State) RecordStatistics(stats *userdb.AllUserStatistic, exchange userdb.UserExchange) error {
+func (s *State) RecordStatistics(stats *userdb.AllUserStatistic) error {
 	if !s.poloniexCache.shouldRecordStats(stats.Username) {
 		return nil
 	}
 
-	err := s.userStatistic.RecordData(stats, exchange)
+	err := s.userStatistic.RecordData(stats)
 	if err != nil {
 		return err
 	}

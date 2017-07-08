@@ -275,23 +275,14 @@ func (us *UserStatisticsDB) CalculateCurrentIndex() (err error) {
 	return nil
 }
 
-func (us *UserStatisticsDB) RecordData(stats *AllUserStatistic, exchange UserExchange) error {
+func (us *UserStatisticsDB) RecordData(stats *AllUserStatistic) error {
 	seconds := GetSeconds(stats.Time)
 	stats.day = GetDay(stats.Time)
 
 	stats.Scrub()
 
 	if us.mdb != nil {
-		var dbCol string
-		switch exchange {
-		case PoloniexExchange:
-			dbCol = mongo.C_UserStat_POL
-		case BitfinexExchange:
-			dbCol = mongo.C_UserStat_BIT
-		default:
-			return fmt.Errorf("Exchange not recognized: %s", exchange)
-		}
-		s, c, err := us.mdb.GetCollection(dbCol)
+		s, c, err := us.mdb.GetCollection(mongo.C_UserStat)
 		if err != nil {
 			return fmt.Errorf("Mongo: RecordData: createSession: %s", err)
 		}
@@ -628,7 +619,7 @@ func (us *UserStatisticsDB) GetStatistics(username string, dayRange int) ([][]Al
 	stats := make([][]AllUserStatistic, dayRange)
 
 	if us.mdb != nil {
-		s, c, err := us.mdb.GetCollection(mongo.C_UserStat_POL)
+		s, c, err := us.mdb.GetCollection(mongo.C_UserStat)
 		if err != nil {
 			return nil, fmt.Errorf("Mongo: GetStatistics: createSession: %s", err)
 		}
@@ -858,7 +849,7 @@ func (us *UserStatisticsDB) Purge(username string) error {
 func (us *UserStatisticsDB) PurgeMin(username string, minAmount int) error {
 
 	if us.mdb != nil {
-		s, c, err := us.mdb.GetCollection(mongo.C_UserStat_POL)
+		s, c, err := us.mdb.GetCollection(mongo.C_UserStat)
 		if err != nil {
 			return fmt.Errorf("Mongo: Purge: createSession: %s", err.Error())
 		}
