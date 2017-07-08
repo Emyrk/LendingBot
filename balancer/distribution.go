@@ -22,7 +22,7 @@ func (h *Hive) AddUser(u *User) error {
 	var err error
 
 	// Ensure API key exists
-	if u.AccessKey == "" {
+	if u.AccessKey == "" || u.SecretKey == "" {
 		u, err = h.parent.IRS.GetFullUser(u.Username, u.Exchange)
 		if err != nil {
 			return err

@@ -96,6 +96,7 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 
 	api := bitfinex.New(u.U.AccessKey, u.U.SecretKey)
 
+	fmt.Println(u.U.AccessKey, u.U.SecretKey)
 	// api.Ticker(symbol)
 	err = bl.take()
 	if err != nil {
