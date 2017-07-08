@@ -19,7 +19,7 @@ import (
 	"time"
 )
 
-var LendingCurrencies = []string{"BTC", "ETH", "ETC", "ZEC", "XMR", "LTC", "DSH", "USD"}
+var LendingCurrencies = []string{"BTC", "ETH", "ETC", "ZEC", "XMR", "LTC", "DSH", "IOT", "EOS", "USD"}
 
 const (
 	// APIURL points to Bitfinex API URL, found at https://www.bitfinex.com/pages/API
