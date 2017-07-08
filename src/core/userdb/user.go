@@ -934,6 +934,8 @@ type BitfinexEnabledStruct struct {
 	ZEC  bool `json:"ZEC"`
 	XMR  bool `json:"XMR"`
 	LTC  bool `json:"LTC"`
+	EOS  bool `json:"EOS"`
+	IOT  bool `json:"IOT"`
 }
 
 func (pe *BitfinexEnabledStruct) GetAll() []EnabledStruct {
@@ -946,6 +948,8 @@ func (pe *BitfinexEnabledStruct) GetAll() []EnabledStruct {
 	arr = append(arr, EnabledStruct{"ZEC", pe.ZEC})
 	arr = append(arr, EnabledStruct{"XMR", pe.XMR})
 	arr = append(arr, EnabledStruct{"LTC", pe.LTC})
+	arr = append(arr, EnabledStruct{"EOS", pe.EOS})
+	arr = append(arr, EnabledStruct{"IOT", pe.IOT})
 	return arr
 }
 
@@ -975,6 +979,12 @@ func (pe *BitfinexEnabledStruct) Keys() []string {
 	if pe.LTC {
 		arr = append(arr, "LTC")
 	}
+	if pe.EOS {
+		arr = append(arr, "EOS")
+	}
+	if pe.IOT {
+		arr = append(arr, "IOT")
+	}
 	return arr
 }
 
@@ -988,4 +998,6 @@ func (pe *BitfinexEnabledStruct) Enable(coins BitfinexEnabledStruct) {
 	pe.ZEC = coins.ZEC
 	pe.XMR = coins.XMR
 	pe.LTC = coins.LTC
+	pe.EOS = coins.EOS
+	pe.IOT = coins.IOT
 }
