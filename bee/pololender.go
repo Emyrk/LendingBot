@@ -156,9 +156,9 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 	notes := ""
 	defer func(monthtoo bool, n string) {
 		if monthtoo {
-			l.Bee.updateUser(u.U.Username, n, time.Now(), time.Now())
+			l.Bee.updateUser(u.U.Username, u.U.Exchange, n, time.Now(), time.Now())
 		} else {
-			l.Bee.updateUser(u.U.Username, n, time.Now(), time.Time{})
+			l.Bee.updateUser(u.U.Username, u.U.Exchange, n, time.Now(), time.Time{})
 		}
 	}(historySaved, notes)
 	dbu, err := l.Bee.FetchUser(u.U.Username)

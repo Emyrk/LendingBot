@@ -35,7 +35,8 @@ func NewBitfinexLender() *BitfinexLender {
 	b.API = bitfinex.New("Public", "Calls")
 	b.Ticker = make(map[string]bitfinex.V2Ticker)
 	b.FundingTicker = make(map[string]bitfinex.V2FundingTicker)
-	b.rateLimiter = rate.New(90, time.Minute)
+	// b.rateLimiter = rate.New(90, time.Minute)
+	b.rateLimiter = rate.New(9, time.Second)
 	b.usersDone = make(map[string]time.Time)
 	b.quit = make(chan bool)
 
@@ -69,6 +70,12 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 	bl.usersDoneLock.RLock()
 	v, _ := bl.usersDone[u.U.Username]
 	bl.usersDoneLock.RUnlock()
+
+	defer func() {
+		bl.usersDoneLock.Lock()
+		bl.usersDone[u.U.Username] = time.Now()
+		bl.usersDoneLock.Unlock()
+	}()
 
 	// Only process once per minute max
 	if time.Since(v) < time.Minute {
@@ -171,10 +178,6 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 		clog.WithFields(log.Fields{"rate": frr, "amount": avail}).Infof("Created Loan")
 		var _ = avail
 	}
-
-	bl.usersDoneLock.Lock()
-	bl.usersDone[u.U.Username] = time.Now()
-	bl.usersDoneLock.Unlock()
 
 	return nil
 }
