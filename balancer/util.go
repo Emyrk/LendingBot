@@ -83,6 +83,16 @@ func GetDensityOfLoans(orders *poloniex.PoloniexLoanOrders) []OrderDensity {
 	return all
 }
 
+func FrontDrop(c chan *Parcel, o *Parcel) int {
+	d := 0
+	if len(c) >= cap(c)-1 {
+		<-c
+		d++
+	}
+	c <- o
+	return d
+}
+
 func (od *OrderDensity) AddOrder(order poloniex.PoloniexLoanOrder) {
 	prev := od.Amount
 	od.Amount = od.Amount + order.Amount

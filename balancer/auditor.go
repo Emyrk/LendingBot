@@ -65,6 +65,9 @@ func NewAuditor(h *Hive, uri string, dbu string, dbp string, cipherkey [32]byte)
 }
 
 type AuditReport struct {
+	HiveRecChan    string
+	HiveSendChan   string
+	HiveComChan    string
 	UsersInDB      []string
 	Bees           []string
 	UserNotes      []string
@@ -76,13 +79,16 @@ type AuditReport struct {
 
 func (a *AuditReport) String() string {
 	str := fmt.Sprintf("======= Audit Report =======\n")
-	str += fmt.Sprintf("   %-20s\n   %-20s : %d\n   %-20s : %d\n   %-20s : %s\n   %-20s : %d\n   %-20s : %d\n",
+	str += fmt.Sprintf("   %-20s\n   %-20s : %d\n   %-20s : %d\n   %-20s : %s\n   %-20s : %d\n   %-20s : %d\n   %-20s : %s\n  %-20s : %s  %-20s : %s\n",
 		"Summary",
 		"Bees", len(a.Bees),
 		"Corrections", len(a.CorrectionList),
 		"Time", a.Time,
 		"Users In DB", len(a.UsersInDB),
-		"Users+Exch Active", len(a.UserLogsReport))
+		"Users+Exch Active", len(a.UserLogsReport),
+		"HiveRecChannel", a.HiveRecChan,
+		"HiveSendChannel", a.HiveSendChan,
+		"HiveSendChannel", a.HiveComChan)
 
 	str += "  ===== Bees =====  \n"
 	for _, b := range a.Bees {
@@ -136,10 +142,15 @@ func (a *Auditor) PerformAudit() *AuditReport {
 		a.performing = false
 	}()
 
+	ar := new(AuditReport)
+
+	ar.HiveRecChan = fmt.Sprintf("%d/%d", len(a.ConnectionPool.RecieveChannel), cap(a.ConnectionPool.RecieveChannel))
+	ar.HiveSendChan = fmt.Sprintf("%d/%d", len(a.ConnectionPool.SendChannel), cap(a.ConnectionPool.SendChannel))
+	ar.HiveComChan = fmt.Sprintf("%d/%d", len(a.ConnectionPool.CommandChannel), cap(a.ConnectionPool.CommandChannel))
+
 	flog := auditLogger.WithField("func", "PerformAudit")
 	flog.Infof("Starting audit")
 
-	ar := new(AuditReport)
 	var correct []AuditUser
 
 	bees := a.ConnectionPool.Slaves.GetAndLockAllBees(true)
