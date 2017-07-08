@@ -401,7 +401,7 @@ func (a *Auditor) ExtensiveSearchAndCorrect(correct []AuditUser, userlogs map[st
 }
 
 func (a *Auditor) SaveAudit(auditReport *AuditReport) error {
-	s, c, err := a.auditDB.GetCollection(mongo.AUDIT_DB)
+	s, c, err := a.auditDB.GetCollection(mongo.C_Audit)
 	if err != nil {
 		return fmt.Errorf("Mongo cannot save audit: %s", err.Error())
 	}
