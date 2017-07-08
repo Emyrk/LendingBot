@@ -291,11 +291,6 @@ func (s *State) AddInviteCode(code string, capacity int, expires time.Time) erro
 }
 
 func (s *State) SetUserKeys(username, acessKey, secretKey string, exchange userdb.UserExchange) error {
-
-	if len(secretKey) != 128 {
-		return fmt.Errorf("Your secret key must be 128 characters long, found %d characters", len(secretKey))
-	}
-
 	u, err := s.userDB.FetchUserIfFound(username)
 	if err != nil {
 		return fmt.Errorf("There was an internal problem. Please log out and try again. If problems continue, contact Support@hodl.zone")
@@ -308,11 +303,17 @@ func (s *State) SetUserKeys(username, acessKey, secretKey string, exchange userd
 
 	switch exchange {
 	case userdb.PoloniexExchange:
+		if len(secretKey) != 128 {
+			return fmt.Errorf("Your secret key must be 128 characters long, found %d characters", len(secretKey))
+		}
 		u.PoloniexKeys = pk
-		break
+
+		_, err = s.PoloniexGetBalances(username)
+		if err != nil {
+			return fmt.Errorf("There was an error using your Poloniex keys. There is a chance they are not valid. Try setting them again, and if this continues contact Support@hodl.zone")
+		}
 	case userdb.BitfinexExchange:
 		u.BitfinexKeys = pk
-		break
 	default:
 		return fmt.Errorf("Exchange not recognized: %s", exchange)
 	}
@@ -320,11 +321,6 @@ func (s *State) SetUserKeys(username, acessKey, secretKey string, exchange userd
 	err = s.userDB.PutUser(u)
 	if err != nil {
 		return fmt.Errorf("There was a database error. Please try again in a few minutes, then contact Support@hodl.zon")
-	}
-
-	_, err = s.PoloniexGetBalances(username)
-	if err != nil {
-		return fmt.Errorf("There was an error using your Poloniex keys. There is a chance they are not valid. Try setting them again, and if this continues contact Support@hodl.zone")
 	}
 
 	return nil
