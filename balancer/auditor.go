@@ -119,6 +119,7 @@ func (a *AuditReport) String() string {
 
 type UserLogs struct {
 	Healthy   bool
+	Active    bool
 	LastTouch time.Time
 	SlaveID   string
 	Logs      string
@@ -126,6 +127,7 @@ type UserLogs struct {
 
 func (l *UserLogs) String() string {
 	str := fmt.Sprintf("%-15s : %t\n", "Healthy", l.Healthy)
+	str += fmt.Sprintf("%-15s : %t\n", "Active", l.Active)
 	str += fmt.Sprintf("%-15s : %s\n", "LastTouch", l.LastTouch)
 	str += fmt.Sprintf("%-15s : %s\n", "SlaveID", l.SlaveID)
 	str += fmt.Sprintf("%-15s \n%s\n", "Logs", l.Logs)
@@ -217,6 +219,8 @@ func (a *Auditor) PerformAudit() *AuditReport {
 						time.Now(), u.Username, GetExchangeString(e), err)
 					continue
 				}
+				balus.Active = true
+				userlogs[bu.Username].Active = balus.Active
 				// User was not found in a slave. Allocate this user
 				err = a.ConnectionPool.AddUser(balus)
 				if err != nil {
@@ -248,6 +252,7 @@ func (a *Auditor) PerformAudit() *AuditReport {
 							logs[u.Username].Healthy = true
 							logs[u.Username].LastTouch = bu.LastTouch
 							found = true
+							userlogs[bu.Username].Active = bu.Active
 							break
 						}
 					}
@@ -376,6 +381,7 @@ func (a *Auditor) ExtensiveSearchAndCorrect(correct []AuditUser, userlogs map[st
 	for _, b := range bees {
 		for _, bu := range b.Users {
 			if e, ok := fix[bu.Username]; ok {
+				userlogs[bu.Username].Active = bu.Active
 				if e.Exchange == bu.Exchange {
 					// We found the user and their bee. Fix the usermap and report
 					fix[bu.Username].hits++

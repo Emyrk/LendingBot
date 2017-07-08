@@ -8,6 +8,7 @@ var _ = fmt.Println
 
 // AddUser will add a user to a bee and the BasePool
 func (h *Hive) AddUser(u *User) error {
+	u.Active = true
 	var err error
 
 	// Ensure API key exists

@@ -317,7 +317,7 @@ func (b *Bee) ProcessParcels() {
 				if m.Add {
 					// Found the user, set the active flag
 					if newU > -1 {
-						b.Users[newU].Active = m.Active
+						b.Users[newU].Active = true // m.Active
 						b.Users[newU].AccessKey = m.U.AccessKey
 						b.Users[newU].SecretKey = m.U.SecretKey
 						b.userlock.Unlock()
