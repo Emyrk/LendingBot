@@ -34,17 +34,6 @@ type Pass struct {
 	Pass string `json:"pass"`
 }
 
-func (r AppAuthRequired) unmarshalExchangeKeys(body io.ReadCloser) *ExchangeKeys {
-	var jsonExchangeKeys ExchangeKeys
-	err := json.NewDecoder(body).Decode(&jsonExchangeKeys)
-	if err != nil {
-		fmt.Printf("Error unmarshaling json poloniex keys: %s\n", err.Error())
-		return nil
-	}
-	defer body.Close()
-	return &jsonExchangeKeys
-}
-
 func (r AppAuthRequired) unmarshal2fa(body io.ReadCloser) *Enable2fa {
 	var json2fa Enable2fa
 	err := json.NewDecoder(body).Decode(&json2fa)

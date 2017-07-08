@@ -335,7 +335,7 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log', '$ti
 			}, (err) => {
 				//error
 				$log.error("getEnableExchangeLending: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
-				dashSettingsLendingScope.exchangeKeysEnabledError = 'Unable to load poloniex lending information. Error: ' + err.data.error;
+				dashSettingsLendingScope.exchangeKeysEnabledError = 'Unable to load ' + dashSettingsLendingScope.getExchangeName() + ' lending information. Error: ' + err.data.error;
 			})
 			.then(() => {
 				dashSettingsLendingScope.loadingEnableExchangeLending = false;
@@ -361,11 +361,11 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log', '$ti
 			.then((res) => {
 				//success
 				$log.info("setEnableExchangeLending: Success.");
-				dashSettingsLendingScope.exchangeKeysEnableSuccess = 'Poloniex Lending successfully updated values.'
+				dashSettingsLendingScope.exchangeKeysEnableSuccess = dashSettingsLendingScope.getExchangeName() + ' Lending successfully updated values.'
 			}, (err) => {
 				//error
 				$log.error("setEnableExchangeLending: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
-				dashSettingsLendingScope.exchangeKeysEnabledError = 'Unable to update poloniex lending information. Error: ' + err.data.error;
+				dashSettingsLendingScope.exchangeKeysEnabledError = 'Unable to update ' + dashSettingsLendingScope.getExchangeName() + ' lending information. Error: ' + err.data.error;
 			})
 			.then(() => {
 				dashSettingsLendingScope.loadingEnableExchangeLending = false;
@@ -396,7 +396,7 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log', '$ti
 				dashSettingsLendingScope.exchangeSecretOrig = tempData.exchangesecret;
 				//resets to new originals
 				dashSettingsLendingScope.resetExchangeKeys();
-				dashSettingsLendingScope.exchangeKeysSetSuccess = 'Successfully set poloniex keys.';
+				dashSettingsLendingScope.exchangeKeysSetSuccess = 'Successfully set ' + dashSettingsLendingScope.getExchangeName() + ' keys.';
 			}, (err) => {
 				//error
 				$log.error("setExchangeKeys: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");

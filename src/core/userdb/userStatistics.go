@@ -62,7 +62,6 @@ func NewUserStatisticsDB() (*UserStatisticsDB, error) {
 }
 
 func NewUserStatisticsMongoDB(uri string, dbu string, dbp string) (*UserStatisticsDB, error) {
-	//TODO JESSE
 	db, err := mongo.CreateStatDB(uri, dbu, dbp)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating user_stat db: %s\n", err.Error())
