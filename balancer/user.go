@@ -1,6 +1,7 @@
 package balancer
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 	"time"
@@ -57,6 +58,10 @@ type User struct {
 	LastHistorySaved time.Time
 	Active           bool
 	Notes            string
+}
+
+func (u *User) String() string {
+	return fmt.Sprintf("[%s:%s] LastTouch: %s, LastHistSave: %s. Notes: %s", u.Username, GetExchangeString(u.Exchange), u.LastTouch, u.LastHistorySaved, u.Notes)
 }
 
 func (a *User) IsSimilar(b *User) bool {

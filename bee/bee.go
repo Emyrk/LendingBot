@@ -117,6 +117,21 @@ func NewBee(hiveAddress string, dba string, dbu string, dbp string, test bool) *
 	return b
 }
 
+func (b *Bee) Report() string {
+	str := fmt.Sprintf("==== Bee [%s] ====\n", b.ID)
+	str += fmt.Sprintf("  %-15s : %s\n", "Status", balancer.StatusToString(b.Status))
+	str += fmt.Sprintf("  %-15s : %s\n", "LastHeartbeat", b.LastHearbeat)
+	str += fmt.Sprintf("  %-15s : %d/%d\n", "SendChannel", len(b.SendChannel), cap(b.SendChannel))
+	str += fmt.Sprintf("  %-15s : %d/%d\n", "RecieveChannel", len(b.RecieveChannel), cap(b.RecieveChannel))
+	str += fmt.Sprintf("  %-15s : %d/%d\n", "ErrorChannel", len(b.ErrorChannel), cap(b.ErrorChannel))
+	b.userlock.RLock()
+	for _, u := range b.Users {
+		str += u.String() + "\n"
+	}
+	b.userlock.RUnlock()
+	return str
+}
+
 func (b *Bee) FlyIn() error {
 	err := b.PhoneHome()
 	if err != nil {
