@@ -652,7 +652,7 @@ func (us *UserStatisticsDB) GetStatistics(username string, dayRange int) ([][]Al
 			// tempS := make([]AllUserStatistic, 0)
 
 			tempS := make([]AllUserStatistic, 0)
-			var retStructAllStat AllUserStatistic
+			retStructAllStat := NewAllUserStatistic()
 			find := bson.M{
 				"$and": []bson.M{
 					bson.M{"time": bson.M{"$lt": timeDayRangeStart}},
@@ -661,7 +661,7 @@ func (us *UserStatisticsDB) GetStatistics(username string, dayRange int) ([][]Al
 				},
 			}
 			iter := c.Find(find).Sort("-time").Iter()
-			for iter.Next(&retStructAllStat) {
+			for iter.Next(retStructAllStat) {
 				tempS = append(tempS, retStructAllStat)
 			}
 			stats[i] = tempS
