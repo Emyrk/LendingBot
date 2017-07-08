@@ -6,6 +6,10 @@ import (
 
 var _ = fmt.Println
 
+func (b *Balancer) UpdateUserKey(email string, exch int) error {
+	b.ConnectionPool.UpdateUserKey(email, exch)
+}
+
 func (h *Hive) UpdateUserKey(email string, exch int) error {
 	u := &User{Username: email, Exchange: exch}
 	err := h.RemoveUser(email, exch)
