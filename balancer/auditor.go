@@ -149,8 +149,9 @@ func (a *Auditor) PerformAudit() *AuditReport {
 			ustr += fmt.Sprintf("[%s|%s],", u.Username, GetExchangeString(u.Exchange))
 			ar.UserNotes = append(ar.UserNotes, fmt.Sprintf("[%s|%s] LastTouch: %s, LastSave: %s\n    %s", u.Username, GetExchangeString(u.Exchange), u.LastTouch, u.LastHistorySaved, u.Notes))
 		}
-		ar.Bees = append(ar.Bees, fmt.Sprintf("[%s] {%s} Users: %d (%s) :: S:%d/%d, R:%d/%d, E:%d/%d", b.ID, StatusToString(b.Status), len(b.Users), ustr),
-			len(b.SendChannel), cap(b.SendChannel), len(b.RecieveChannel), cap(b.RecieveChannel), len(b.ErrorChannel), cap(b.ErrorChannel))
+		ar.Bees = append(ar.Bees, fmt.Sprintf("[%s] {%s} S:%d/%d, R:%d/%d, E:%d/%d, Users: %d (%s)", b.ID, StatusToString(b.Status)),
+			len(b.SendChannel), cap(b.SendChannel), len(b.RecieveChannel), cap(b.RecieveChannel), len(b.ErrorChannel), cap(b.ErrorChannel),
+			len(b.Users), ustr)
 	}
 	a.ConnectionPool.Slaves.RUnlock()
 
