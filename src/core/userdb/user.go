@@ -1018,8 +1018,6 @@ type IExchangeEnabled interface {
 	GetAll() []EnabledStruct
 }
 
-type UserExchange string
-
 const (
 	PoloniexExchange UserExchange = "pol"
 	BitfinexExchange UserExchange = "bit"

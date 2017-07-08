@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+type UserExchange string
+
 type MongoAllUserStatistics struct {
 	Username       string             `bson:"_id"`
 	UserStatistics []AllUserStatistic `bson:"userstats"`
