@@ -112,7 +112,6 @@ func (b *Bee) Runloop() {
 			} else {
 				time.Sleep(250 * time.Millisecond)
 			}
-
 		case Shutdown:
 			// Shutdown means we close up shop and call it a day
 			b.Close()
