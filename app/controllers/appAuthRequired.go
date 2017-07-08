@@ -129,7 +129,7 @@ func (r AppAuthRequired) SetExchangeKeys() revel.Result {
 	data := make(map[string]interface{})
 
 	email := r.Session[SESSION_EMAIL]
-	err := state.SetUserKeys(email, r.Params.Form.Get("exchangekey"), r.Params.Form.Get("exchangesecret"))
+	err := state.SetUserKeys(email, r.Params.Form.Get("exchangekey"), r.Params.Form.Get("exchangesecret"), userdb.UserExchange(r.Params.Form.Get("exch")))
 	if err != nil {
 		fmt.Printf("Error authenticating setting Poloniex Keys err: %s\n", err.Error())
 		data[JSON_ERROR] = fmt.Sprintf("Error: %s", err.Error())
@@ -280,21 +280,30 @@ func (r AppAuthRequired) GetEnableUserLending() revel.Result {
 		return r.RenderJSON(data)
 	}
 
-	// bytes, err := json.Marshal()
-	// if err != nil {
-	// 	fmt.Printf("ERROR: GetEnableUserLending: failed to marshal: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
-	// 	data[JSON_ERROR] = "Internal Error. Contact support@hodl.zone"
-	// 	r.Response.Status = 500
-	// 	return r.RenderJSON(data)
-	// }
+	var enableInterface interface{}
+	var minLendInterface interface{}
+	switch userdb.UserExchange(r.Params.Query.Get("exch")) {
+	case userdb.PoloniexExchange:
+		enableInterface = u.PoloniexEnabled
+		minLendInterface = u.PoloniexMiniumLend
+		break
+	case userdb.BitfinexExchange:
+		enableInterface = u.BitfinexEnabled
+		minLendInterface = u.BitfinexMiniumumLend
+		break
+	default:
+		fmt.Printf("WARNING: GetEnableUserLending: failed to set user exchange key: [%s] unknown exchange: %s\n", r.Session[SESSION_EMAIL], r.Params.Form.Get("exch"))
+		data[JSON_ERROR] = "Bad Request. Exchange unknown. Contact support@hodl.zone"
+		r.Response.Status = 400
+		return r.RenderJSON(data)
+	}
 
-	// fmt.Printf("CURRENCY: %s\n", string(bytes))
 	data[JSON_DATA] = struct {
-		Enable userdb.PoloniexEnabledStruct      `json:"enable"`
-		Min    userdb.PoloniexMiniumumLendStruct `json:"min"`
+		Enable interface{} `json:"enable"`
+		Min    interface{} `json:"min"`
 	}{
-		u.PoloniexEnabled,
-		u.PoloniexMiniumLend,
+		enableInterface,
+		minLendInterface,
 	}
 
 	AppPageHitEnableUserLending.Inc()
@@ -304,25 +313,8 @@ func (r AppAuthRequired) GetEnableUserLending() revel.Result {
 func (r AppAuthRequired) SetEnableUserLending() revel.Result {
 	data := make(map[string]interface{})
 
-	var coinsEnabled userdb.PoloniexEnabledStruct
-	err := json.Unmarshal([]byte(r.Params.Form.Get("enable")), &coinsEnabled)
-	if err != nil {
-		fmt.Printf("WARNING: User failed to unmarshal enable user lending request: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
-		data[JSON_ERROR] = "Bad Request. Failed all. Contact support@hodl.zone"
-		r.Response.Status = 500
-		return r.RenderJSON(data)
-	}
-	var coinsMin userdb.PoloniexMiniumumLendStruct
-	err = json.Unmarshal([]byte(r.Params.Form.Get("min")), &coinsMin)
-	if err != nil {
-		fmt.Printf("WARNING: User failed to unmarshal min user lending request: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
-		data[JSON_ERROR] = "Bad Request. Failed all. Contact support@hodl.zone"
-		r.Response.Status = 500
-		return r.RenderJSON(data)
-	}
-
-	// ENABLE USER LENDING
-	err = state.EnableUserLending(r.Session[SESSION_EMAIL], coinsEnabled)
+	// /ENABLE USER LENDING
+	err := state.EnableUserLending(r.Session[SESSION_EMAIL], r.Params.Form.Get("enable"), userdb.UserExchange(r.Params.Form.Get("exch")))
 	if err != nil {
 		fmt.Printf("WARNING: User failed to enable/disable lending: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
 		data[JSON_ERROR] = "Failed to set and failed to enable/disable."
@@ -332,10 +324,10 @@ func (r AppAuthRequired) SetEnableUserLending() revel.Result {
 	// /ENABLE USER LENDING
 
 	// SET USER LENDING AMOUNT
-	err = state.SetAllUserMinimumLoan(r.Session[SESSION_EMAIL], coinsMin)
+	err = state.SetAllUserMinimumLoan(r.Session[SESSION_EMAIL], r.Params.Form.Get("min"), userdb.UserExchange(r.Params.Form.Get("exch")))
 	if err != nil {
 		fmt.Printf("WARNING: User failed set lending: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
-		data[JSON_ERROR] = "Failed to set, but enable/disable went through."
+		data[JSON_ERROR] = "Failed to set values, but enable/disable went through."
 		r.Response.Status = 400
 		return r.RenderJSON(data)
 	}

@@ -1,6 +1,6 @@
 var app=angular.module("lendingApp",["ngRoute","ngMask", "ngCookies"]);
 
-app.factory('redirectInterceptor', [ "$q", "$location", "$window", "$interval"
+app.factory('redirectInterceptor', [ "$q", "$location", "$window", "$interval", 
 	function($q,$location,$window, $interval){
     return  {
         response:function(response) {
@@ -317,14 +317,15 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log', '$ti
 			{
 				method: 'GET',
 				url: '/dashboard/settings/enableuserlending',
-				data : $.param({
-				}),
+				params: {
+					exch: dashSettingsLendingScope.exch,
+				},
 				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
 				withCredentials: true
 			})
 			.then((res) => {
 				//success
-				$log.info("getEnablePoloniexLending: Success.");
+				$log.info("getEnableExchangeLending: Success.");
 				dashSettingsLendingScope.coinsEnabled = res.data.data.enable;
 				dashSettingsLendingScope.coinsMinLend = res.data.data.min;
 				
@@ -333,14 +334,13 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log', '$ti
 				})
 			}, (err) => {
 				//error
-				$log.error("getEnablePoloniexLending: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				$log.error("getEnableExchangeLending: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
 				dashSettingsLendingScope.exchangeKeysEnabledError = 'Unable to load poloniex lending information. Error: ' + err.data.error;
 			})
 			.then(() => {
 				dashSettingsLendingScope.loadingEnableExchangeLending = false;
 			});
 		}
-
 
 		dashSettingsLendingScope.setEnableExchangeLending = function() {
 			dashSettingsLendingScope.loadingEnableExchangeLending = true;
@@ -351,6 +351,7 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log', '$ti
 				method: 'POST',
 				url: '/dashboard/settings/enableuserlending',
 				data : $.param({
+					exch: dashSettingsLendingScope.exch,
 					enable: JSON.stringify(dashSettingsLendingScope.coinsEnabled),
 					min: JSON.stringify(dashSettingsLendingScope.coinsMinLend),
 				}),
@@ -359,11 +360,11 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log', '$ti
 			})
 			.then((res) => {
 				//success
-				$log.info("setEnablePoloniexLending: Success.");
+				$log.info("setEnableExchangeLending: Success.");
 				dashSettingsLendingScope.exchangeKeysEnableSuccess = 'Poloniex Lending successfully updated values.'
 			}, (err) => {
 				//error
-				$log.error("setEnablePoloniexLending: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				$log.error("setEnableExchangeLending: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
 				dashSettingsLendingScope.exchangeKeysEnabledError = 'Unable to update poloniex lending information. Error: ' + err.data.error;
 			})
 			.then(() => {
@@ -380,6 +381,7 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log', '$ti
 				method: 'POST',
 				url: '/dashboard/settings/setexchangekeys',
 				data : $.param({
+					exch: dashSettingsLendingScope.exch,
 					exchangekey: dashSettingsLendingScope.exchangeKey,
 					exchangesecret: dashSettingsLendingScope.exchangeSecret,
 				}),
@@ -388,7 +390,7 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log', '$ti
 			})
 			.then((res) => {
 				//success
-				$log.info("SetPoloniexKeys: Success.");
+				$log.info("setExchangeKeys: Success.");
 				var tempData = JSON.parse(res.data.data);
 				dashSettingsLendingScope.exchangeKeyOrig = tempData.exchangekey;
 				dashSettingsLendingScope.exchangeSecretOrig = tempData.exchangesecret;
@@ -397,13 +399,45 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log', '$ti
 				dashSettingsLendingScope.exchangeKeysSetSuccess = 'Successfully set poloniex keys.';
 			}, (err) => {
 				//error
-				$log.error("SetPoloniexKeys: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				$log.error("setExchangeKeys: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
 				dashSettingsLendingScope.exchangeKeysSetError =  err.data.error;
 			})
 			.then(() => {
 				dashSettingsLendingScope.loadingExchangeKeys = false;
 			});
 		}
+
+		dashSettingsLendingScope.getExchangeName = function() {
+			switch (dashSettingsLendingScope.exch) {
+				case 'pol':
+					return 'Poloniex';
+				case 'bit':
+					return 'Bitfinex';
+				default:
+					return 'UNKNOWN EXCHANGE NAME';
+			}
+		}
+
+		dashSettingsLendingScope.getExchangeUrl = function() {
+			switch (dashSettingsLendingScope.exch) {
+				case 'pol':
+					return 'https://poloniex.com/apiKeys';
+				case 'bit':
+					return 'https://www.bitfinex.com/api';
+				default:
+					return 'UNKNOWN URL';
+			}
+		}
+
+		dashSettingsLendingScope.changeExchange = function(exchange) {
+			if (dashSettingsLendingScope.exch != exchange) {
+				dashSettingsLendingScope.coinsEnabled = null;
+				dashSettingsLendingScope.exch = exchange;
+				dashSettingsLendingScope.initValues();
+				dashSettingsLendingScope.getEnableExchangeLending();
+			}
+		}
+
 
 		// Switchery
 		dashSettingsLendingScope.init_switch = function() {
@@ -427,17 +461,21 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log', '$ti
 
 		//init
 		// init_InputMask();
+		dashSettingsLendingScope.initValues = function() {
+			dashSettingsLendingScope.loadingExchangeKeys = false;
+			dashSettingsLendingScope.loadingEnableExchangeLending = false;
 
-		dashSettingsLendingScope.loadingExchangeKeys = false;
-		dashSettingsLendingScope.loadingEnableExchangeLending = false;
+			dashSettingsLendingScope.exchangeKeysEnabledError = '';
+			dashSettingsLendingScope.exchangeKeysSetError = '';
 
-		dashSettingsLendingScope.exchangeKeysEnabledError = '';
-		dashSettingsLendingScope.exchangeKeysSetError = '';
-
-		dashSettingsLendingScope.exchangeKeysEnableSuccess = ''
-		dashSettingsLendingScope.exchangeKeysSetSuccess = '';
+			dashSettingsLendingScope.exchangeKeysEnableSuccess = ''
+			dashSettingsLendingScope.exchangeKeysSetSuccess = '';
+		}
 
 		dashSettingsLendingScope.parseInt = parseInt;
+
+		dashSettingsLendingScope.coinsEnabled = null;
+		dashSettingsLendingScope.exch = 'pol';
 		dashSettingsLendingScope.getEnableExchangeLending();
 		//------
 
@@ -486,12 +524,9 @@ function init_chart_doughnut(balanceData){
 }
 
 function init_InputMask() {
-
 	if( typeof ($.fn.inputmask) === 'undefined'){ return; }
 	console.log('init_InputMask');
-
 	$(":input").inputmask();
-
 };
 
 var backgroundColor =[

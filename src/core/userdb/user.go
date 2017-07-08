@@ -851,6 +851,8 @@ type BitfinexMiniumumLendStruct struct {
 	ZEC  float64 `json:"ZEC"`
 	XMR  float64 `json:"XMR"`
 	LTC  float64 `json:"LTC"`
+	EOS  float64 `json:"EOS"`
+	IOT  float64 `json:"IOT"`
 }
 
 func (m *BitfinexMiniumumLendStruct) GetAll() []float64 {
@@ -864,6 +866,8 @@ func (m *BitfinexMiniumumLendStruct) GetAll() []float64 {
 	mins = append(mins, m.ZEC)
 	mins = append(mins, m.XMR)
 	mins = append(mins, m.LTC)
+	mins = append(mins, m.EOS)
+	mins = append(mins, m.IOT)
 
 	return mins
 }
@@ -885,6 +889,10 @@ func (m *BitfinexMiniumumLendStruct) Set(currency string, min float64) bool {
 	case "XMR":
 		m.XMR = min
 	case "LTC ":
+		m.LTC = min
+	case "EOS":
+		m.XMR = min
+	case "IOT ":
 		m.LTC = min
 	default:
 		return false
@@ -910,6 +918,10 @@ func (m *BitfinexMiniumumLendStruct) Get(currency string) float64 {
 		return m.XMR
 	case "LTC":
 		return m.LTC
+	case "EOS":
+		return m.XMR
+	case "IOT ":
+		return m.IOT
 	}
 	return 0
 }
@@ -1001,3 +1013,14 @@ func (pe *BitfinexEnabledStruct) Enable(coins BitfinexEnabledStruct) {
 	pe.EOS = coins.EOS
 	pe.IOT = coins.IOT
 }
+
+type IExchangeEnabled interface {
+	GetAll() []EnabledStruct
+}
+
+type UserExchange string
+
+const (
+	PoloniexExchange UserExchange = "pol"
+	BitfinexExchange UserExchange = "bit"
+)

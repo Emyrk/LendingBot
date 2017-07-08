@@ -3,6 +3,7 @@ package core
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"os"
 	"time"
@@ -176,13 +177,33 @@ func (s *State) Close() error {
 	return nil
 }
 
-func (s *State) SetAllUserMinimumLoan(username string, coins userdb.PoloniexMiniumumLendStruct) error {
+func (s *State) SetAllUserMinimumLoan(username, mins string, exchange userdb.UserExchange) error {
 	u, err := s.userDB.FetchUserIfFound(username)
 	if err != nil {
 		return err
 	}
 
-	u.PoloniexMiniumLend.SetAll(coins)
+	switch exchange {
+	case userdb.PoloniexExchange:
+		var coinsMin userdb.PoloniexMiniumumLendStruct
+		err := json.Unmarshal([]byte(mins), &coinsMin)
+		if err != nil {
+			return fmt.Errorf("Poloniex: %s", err.Error())
+		}
+		u.PoloniexMiniumLend.SetAll(coinsMin)
+		break
+	case userdb.BitfinexExchange:
+		var coinsMin userdb.BitfinexMiniumumLendStruct
+		err := json.Unmarshal([]byte(mins), &coinsMin)
+		if err != nil {
+			return fmt.Errorf("Bitfinex: %s", err.Error())
+		}
+		u.BitfinexMiniumumLend.SetAll(coinsMin)
+		break
+	default:
+		return fmt.Errorf("Exchange not recognized: %s", exchange)
+	}
+
 	return s.userDB.PutUser(u)
 }
 
@@ -269,7 +290,8 @@ func (s *State) AddInviteCode(code string, capacity int, expires time.Time) erro
 	return s.userInviteCodes.CreateInviteCode(code, capacity, expires)
 }
 
-func (s *State) SetUserKeys(username string, acessKey string, secretKey string) error {
+func (s *State) SetUserKeys(username, acessKey, secretKey string, exchange userdb.UserExchange) error {
+
 	if len(secretKey) != 128 {
 		return fmt.Errorf("Your secret key must be 128 characters long, found %d characters", len(secretKey))
 	}
@@ -284,7 +306,16 @@ func (s *State) SetUserKeys(username string, acessKey string, secretKey string) 
 		return fmt.Errorf("There was a problem setting your keys. Please double check the keys and try again. Contact Support@hodl.zone if the problem persists")
 	}
 
-	u.PoloniexKeys = pk
+	switch exchange {
+	case userdb.PoloniexExchange:
+		u.PoloniexKeys = pk
+		break
+	case userdb.BitfinexExchange:
+		u.BitfinexKeys = pk
+		break
+	default:
+		return fmt.Errorf("Exchange not recognized: %s", exchange)
+	}
 
 	err = s.userDB.PutUser(u)
 	if err != nil {
@@ -303,13 +334,31 @@ func (s *State) GetUserStatistics(username string, dayRange int) ([][]userdb.All
 	return s.userStatistic.GetStatistics(username, dayRange)
 }
 
-func (s *State) EnableUserLending(username string, coins userdb.PoloniexEnabledStruct) error {
+func (s *State) EnableUserLending(username string, c string, exchange userdb.UserExchange) error {
 	u, err := s.userDB.FetchUserIfFound(username)
 	if err != nil {
 		return err
 	}
-
-	u.PoloniexEnabled.Enable(coins)
+	switch exchange {
+	case userdb.PoloniexExchange:
+		var coins userdb.PoloniexEnabledStruct
+		err := json.Unmarshal([]byte(c), &coins)
+		if err != nil {
+			return err
+		}
+		u.PoloniexEnabled.Enable(coins)
+		break
+	case userdb.BitfinexExchange:
+		var coins userdb.BitfinexEnabledStruct
+		err := json.Unmarshal([]byte(c), &coins)
+		if err != nil {
+			return err
+		}
+		u.BitfinexEnabled.Enable(coins)
+		break
+	default:
+		return fmt.Errorf("Exchange not recognized: %s", exchange)
+	}
 	// if !enabled {
 	// 	s.removeFromPoloniexCache(username)
 	// }
