@@ -161,7 +161,7 @@ func Populate(username string, db *userdb.UserStatisticsDB) {
 			stats.TotalCurrencyMap["DOGE"] = 0.05
 
 			stats.Time = t
-			db.RecordData(stats)
+			db.RecordData(stats, userdb.PoloniexExchange)
 			if c == 0 {
 				db.RecordPoloniexStatisticTime("BTC", stats.Currencies["BTC"].AverageActiveRate, n)
 			}

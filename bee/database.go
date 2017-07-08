@@ -12,15 +12,9 @@ var _ = mongo.AUDIT_DB
 func (b *Bee) SaveUserStastics(stats *userdb.AllUserStatistic, exchange int) error {
 	switch exchange {
 	case balancer.PoloniexExchange:
-		b.userStatDB.RecordData(stats)
+		b.userStatDB.RecordData(stats, userdb.PoloniexExchange)
 	case balancer.BitfinexExchange:
-		//TODO
-
-		// s, c, err = us.mdb.GetCollection(mongo.C_UserStat_POL)
-		// if err != nil {
-		// 	return fmt.Errorf("Mongo: RecordData: createSession: %s", err)
-		// }
-		// fallthrough
+		b.userStatDB.RecordData(stats, userdb.BitfinexExchange)
 	default:
 		return fmt.Errorf("Exchange not recognized: %d", exchange)
 	}

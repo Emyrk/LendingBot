@@ -521,7 +521,7 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 		stats.Currencies[k].AverageOnOrderRate = stats.Currencies[k].AverageOnOrderRate / inactiveLentCount[k]
 	}
 
-	return stats, l.State.RecordStatistics(stats)
+	return stats, l.State.RecordStatistics(stats, userdb.PoloniexExchange)
 }
 
 func (l *Lender) getAmtForBTCValue(amount float64, currency string) float64 {

@@ -275,14 +275,23 @@ func (us *UserStatisticsDB) CalculateCurrentIndex() (err error) {
 	return nil
 }
 
-func (us *UserStatisticsDB) RecordData(stats *AllUserStatistic) error {
+func (us *UserStatisticsDB) RecordData(stats *AllUserStatistic, exchange UserExchange) error {
 	seconds := GetSeconds(stats.Time)
 	stats.day = GetDay(stats.Time)
 
 	stats.Scrub()
 
 	if us.mdb != nil {
-		s, c, err := us.mdb.GetCollection(mongo.C_UserStat_POL)
+		var dbCol string
+		switch exchange {
+		case PoloniexExchange:
+			dbCol = mongo.C_UserStat_POL
+		case BitfinexExchange:
+			dbCol = mongo.C_UserStat_BIT
+		default:
+			return fmt.Errorf("Exchange not recognized: %s", exchange)
+		}
+		s, c, err := us.mdb.GetCollection(dbCol)
 		if err != nil {
 			return fmt.Errorf("Mongo: RecordData: createSession: %s", err)
 		}

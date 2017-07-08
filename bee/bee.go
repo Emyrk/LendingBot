@@ -87,7 +87,6 @@ func NewBee(hiveAddress string, dba string, dbu string, dbp string, test bool) *
 	b.HearbeatDuration = time.Minute
 	b.Users = make([]*balancer.User, 0)
 	b.LendingBot = NewLender(b)
-	//TODO JESSE
 	userStatDBRaw, err := mongo.CreateStatDB(dba, dbu, dbp)
 	if err != nil {
 		if test {
@@ -103,7 +102,6 @@ func NewBee(hiveAddress string, dba string, dbu string, dbp string, test bool) *
 		panic(fmt.Sprintf("Failed to wrap userstatsdb: %s", err.Error()))
 	}
 
-	//TODO JESSE
 	b.userDB, err = userdb.NewMongoUserDatabase(dba, dbu, dbp) //, "")
 	if err != nil {
 		if test {
