@@ -193,7 +193,7 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 							continue
 						}
 						var a = cur.activerate*100
-						var avg = [unix, a]
+						var avg = [unix, numberFix(a)]
 						var lowest = cur.lowestrate*100
 						if(lowest == 0) {
 							lowest = prevLowest
@@ -206,7 +206,7 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 						if (highest == 0) {
 							highest = a
 						}
-						var range = [unix, lowest, highest]
+						var range = [unix, numberFix(lowest), numberFix(highest)]
 						if (cur.exchange == "bit") {
 							bitfinAveragePoints.push(avg)
 							bitfincRangePoints.push(range)
@@ -252,6 +252,10 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 		//------
 
 	}]);
+
+function numberFix(n) {
+	return Number(n.toFixed(5))
+}
 
 function initLineRangeGraph(poloAverages, poloRanges, bitfinexAvgerages, bitfinexRanges) {
 	Highcharts.chart('lending-rate-graph', {
