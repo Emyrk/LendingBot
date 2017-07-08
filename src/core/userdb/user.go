@@ -1017,8 +1017,3 @@ func (pe *BitfinexEnabledStruct) Enable(coins BitfinexEnabledStruct) {
 type IExchangeEnabled interface {
 	GetAll() []EnabledStruct
 }
-
-const (
-	PoloniexExchange UserExchange = "pol"
-	BitfinexExchange UserExchange = "bit"
-)
