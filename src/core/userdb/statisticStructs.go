@@ -8,6 +8,11 @@ import (
 
 type UserExchange string
 
+const (
+	PoloniexExchange UserExchange = "pol"
+	BitfinexExchange UserExchange = "bit"
+)
+
 type MongoAllUserStatistics struct {
 	Username       string             `bson:"_id"`
 	UserStatistics []AllUserStatistic `bson:"userstats"`

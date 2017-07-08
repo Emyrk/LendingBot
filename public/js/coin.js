@@ -170,8 +170,10 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 			})
 			.then((res) => {
 				//success
-				var averagePoints = [];
-				var rangePoints = [];
+				var poloAveragePoints = [];
+				var poloRangePoints = [];
+				var bitfinAveragePoints = [];
+				var bitfincRangePoints = [];
 				// for(i =0; i < 10; i++) {
 				// 	averagePoints.push([i, i])
 				// 	rangePoints.push([i, i,i+5])
@@ -190,18 +192,28 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 						if ((cur.activerate*100) > 2 ||  cur.activerate == 0){
 							continue
 						}
-						var avg = [unix, (cur.activerate*100)]
+						var a = cur.activerate*100
+						var avg = [unix, a.toFixed(5)]
 						var lowest = cur.lowestrate*100
 						if(lowest == 0) {
 							lowest = prevLowest
 						}
 						if(lowest == 0) {
-							lowest = avg
+							lowest = a
 						}
 						prevLowest = lowest
-						var range = [unix, lowest, (cur.highestrate*100)]
-						averagePoints.push(avg)
-						rangePoints.push(range)
+						var highest = cur.highestrate*100
+						if (highest == 0) {
+							highest = a
+						}
+						var range = [unix, lowest.toFixed(5), highest.toFixed(5)]
+						if (cur.exchange == "bit") {
+							bitfinAveragePoints.push(avg)
+							bitfincRangePoints.push(range)
+						} else {
+							poloAveragePoints.push(avg)
+							poloRangePoints.push(range)
+						}
 					}
 				}
 
@@ -241,7 +253,7 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 
 	}]);
 
-function initLineRangeGraph(averages, ranges) {
+function initLineRangeGraph(poloAverages, poloRanges, bitfinexAvgerages, bitfinexRanges) {
 	Highcharts.chart('lending-rate-graph', {
 
 		title: {
@@ -268,8 +280,8 @@ function initLineRangeGraph(averages, ranges) {
 		},
 
 		series: [{
-			name: 'Average Rate',
-			data: averages,
+			name: 'Poloniex Average Rate',
+			data: poloAverages,
 			zIndex: 1,
 			marker: {
 				fillColor: 'white',
@@ -277,8 +289,30 @@ function initLineRangeGraph(averages, ranges) {
 				lineColor: Highcharts.getOptions().colors[0]
 			}
 		}, {
-			name: 'Range',
-			data: ranges,
+			name: 'Poloniex Range',
+			data: poloRanges,
+			type: 'arearange',
+			lineWidth: 0,
+			linkedTo: ':previous',
+			color: Highcharts.getOptions().colors[0],
+			fillOpacity: 0.3,
+			zIndex: 0,
+			marker: {
+				enabled: false
+			}
+		},
+		{
+			name: 'Bitfinex Average Rate',
+			data: bitfinexAvgerages,
+			zIndex: 1,
+			marker: {
+				fillColor: 'white',
+				lineWidth: 2,
+				lineColor: Highcharts.getOptions().colors[0]
+			}
+		}, {
+			name: 'Bitfinex Range',
+			data: bitfinexRanges,
 			type: 'arearange',
 			lineWidth: 0,
 			linkedTo: ':previous',
