@@ -7,7 +7,7 @@ import (
 var _ = fmt.Println
 
 func (b *Balancer) UpdateUserKey(email string, exch int) error {
-	b.ConnectionPool.UpdateUserKey(email, exch)
+	return b.ConnectionPool.UpdateUserKey(email, exch)
 }
 
 func (h *Hive) UpdateUserKey(email string, exch int) error {
