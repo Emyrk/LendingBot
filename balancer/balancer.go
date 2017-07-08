@@ -235,7 +235,7 @@ func (h *Hive) Run() {
 }
 
 func (h *Hive) AddCommand(c *Command) {
-	if len(h.CommandChannel) <= cap(h.CommandChannel)-1 {
+	if len(h.CommandChannel) >= cap(h.CommandChannel)-1 {
 		balLogger.Errorf("Dropping from command channel")
 		<-h.CommandChannel
 	}
