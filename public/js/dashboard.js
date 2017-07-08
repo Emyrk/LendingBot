@@ -421,7 +421,7 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log', '$ti
 		dashSettingsLendingScope.getExchangeUrl = function() {
 			switch (dashSettingsLendingScope.exch) {
 				case 'pol':
-					return 'https://poloniex.com/apiKeys';
+					return 'https://www.poloniex.com/apiKeys';
 				case 'bit':
 					return 'https://www.bitfinex.com/api';
 				default:
