@@ -662,7 +662,7 @@ func (us *UserStatisticsDB) GetStatistics(username string, dayRange int) ([][]Al
 			}
 			iter := c.Find(find).Sort("-time").Iter()
 			for iter.Next(retStructAllStat) {
-				tempS = append(tempS, retStructAllStat)
+				tempS = append(tempS, *retStructAllStat)
 			}
 			stats[i] = tempS
 		}
