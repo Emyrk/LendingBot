@@ -33,7 +33,7 @@
                <div class="form-group">
                 <label class="control-label col-md-3 col-sm-3 col-xs-12">API Key<span class="required">*</span></label>
                 <div class="col-md-7 col-sm-9 col-xs-9">
-                 <input required="required" ng-model="exchangeKey" type="text" class="form-control" mask="********-********-********-********" ng-disabled="loadingExchangeKeys">
+                 <input required="required" ng-model="exchangeKey" type="text" class="form-control" mask="{{exch='pol' ?  '********-********-********-********' : ''}}" ng-disabled="loadingExchangeKeys">
                </div>
              </div>
              <div class="form-group">
