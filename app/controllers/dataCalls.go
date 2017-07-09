@@ -192,6 +192,7 @@ func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
 				today.LendingPercentChange = today.LendingPercent - yesterday.LendingPercent
 			}
 		}
+		fmt.Println(today, balanceDetails)
 		return today, balanceDetails
 	}
 
