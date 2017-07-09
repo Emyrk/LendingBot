@@ -44,11 +44,11 @@ func SetUpUserStatMigrateDB() *UserStatMigrateDB {
 	userStatMigrateDB := new(UserStatMigrateDB)
 
 	uri := "mongo.hodl.zone:27017"
-	mongoRevelPass := os.Getenv("MONGO_REVEL_PASS")
+	mongoRevelPass := os.Getenv("MONGO_BEE_PASS")
 	if mongoRevelPass == "" {
-		panic("Running in prod, but no revel pass given in env var 'MONGO_REVEL_PASS'")
+		panic("Running in prod, but no revel pass given in env var 'MONGO_BEE_PASS'")
 	}
-	userStatMigrateDB.userStatMongoDB, err = userdb.NewUserStatisticsMongoDB(uri, "revel", mongoRevelPass)
+	userStatMigrateDB.userStatMongoDB, err = userdb.NewUserStatisticsMongoDB(uri, "bee", mongoRevelPass)
 	if err != nil {
 		panic(fmt.Sprintf("Error connecting to user mongodb: %s\n", err.Error()))
 	}
