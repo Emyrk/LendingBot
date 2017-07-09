@@ -25,16 +25,14 @@ const (
 )
 
 func DeleteCacheToken(sessionId string) error {
-	llog := utilLog.WithField("method", "CurrentUserStats")
-	llog.Infof("Deleting SessionID[%s]\n", sessionId)
+	fmt.Printf("Deleting SessionID[%s]\n", sessionId)
 	go cache.Set(sessionId, "", 1*time.Second)
 	go cache.Delete(sessionId)
 	return nil
 }
 
 func SetCacheEmail(sessionId string, email string) error {
-	llog := utilLog.WithField("method", "SetCacheEmail")
-	llog.Infof("Set SessionID[%s], email[%s]\n", sessionId, email)
+	fmt.Printf("Set SessionID[%s], email[%s]\n", sessionId, email)
 	go cache.Set(sessionId, email, CACHE_TIME)
 	return nil
 }
@@ -48,8 +46,7 @@ func ValidCacheEmail(sessionId string, email string) bool {
 		}
 	}
 
-	llog := utilLog.WithField("method", "ValidCacheEmail")
-	llog.Infof("Comparing strings [%s]s, [%s]\n", e, email)
+	fmt.Printf("Comparing strings [%s]s, [%s]\n", e, email)
 
 	return e == email && len(e) > 0 && len(email) > 0
 }
@@ -88,18 +85,16 @@ func GetTimeoutCookie() *http.Cookie {
 }
 
 func CacheGetLendingHistory(email string) (*poloniex.PoloniexAuthentictedLendingHistoryRespone, bool) {
-	llog := utilLog.WithField("method", "CacheGetLendingHistory")
 	var poloniexHistory poloniex.PoloniexAuthentictedLendingHistoryRespone
 	if err := cache.Get(email+CACHE_LENDING_ENDING, &poloniexHistory); err != nil {
-		llog.Infof("NOT found cache lending history for user %s", email)
+		fmt.Printf("NOT found cache lending history for user %s", email)
 		return nil, false
 	}
-	llog.Infof("Found cache lending history for user %s\n", email)
+	fmt.Printf("Found cache lending history for user %s\n", email)
 	return &poloniexHistory, true
 }
 
 func CacheSetLendingHistory(email string, p poloniex.PoloniexAuthentictedLendingHistoryRespone) {
-	llog := utilLog.WithField("method", "CacheGetLendingHistory")
-	llog.Infof("Setting lending history for user %s", email)
+	fmt.Printf("Setting lending history for user %s", email)
 	go cache.Set(email+CACHE_LENDING_ENDING, p, CACHE_LEND_HIST_TIME)
 }
