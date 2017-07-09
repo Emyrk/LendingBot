@@ -195,7 +195,7 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 		return nil
 	}
 
-	logentry := fmt.Sprintf("%s : PoloniexBot analyzed your account and found nothing needed to be done", u.Prefix())
+	logentry := fmt.Sprintf("PoloniexBot analyzed your account and found nothing needed to be done")
 	defer l.Bee.AddBotActivityLogEntry(u.U.Username, logentry)
 
 	if u.U.AccessKey == "" {
@@ -220,12 +220,12 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 			if strings.Contains(err.Error(), "Connection timed out. Please try again.") {
 				// Let it retry
 				if i == 2 {
-					logentry = fmt.Sprintf("%s : PoloniexBot encounterd an error getting available balances: %s", u.Prefix(), err.Error())
+					logentry = fmt.Sprintf("PoloniexBot encounterd an error getting available balances: %s", err.Error())
 					return err
 				}
 				continue
 			} else {
-				logentry = fmt.Sprintf("%s : PoloniexBot encounterd an error getting available balances: %s", u.Prefix(), err.Error())
+				logentry = fmt.Sprintf("PoloniexBot encounterd an error getting available balances: %s", err.Error())
 				return err
 			}
 		}
@@ -241,12 +241,12 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 			if strings.Contains(err.Error(), "Connection timed out. Please try again.") {
 				// Let it retry
 				if i == 2 {
-					logentry = fmt.Sprintf("%s : PoloniexBot encounterd an error getting inactive loans: %s", u.Prefix(), err.Error())
+					logentry = fmt.Sprintf("PoloniexBot encounterd an error getting inactive loans: %s", err.Error())
 					return err
 				}
 				continue
 			} else {
-				logentry = fmt.Sprintf("%s : PoloniexBot encounterd an error getting inactive loans: %s", u.Prefix(), err.Error())
+				logentry = fmt.Sprintf("PoloniexBot encounterd an error getting inactive loans: %s", err.Error())
 				return err
 			}
 		}
@@ -268,12 +268,12 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 			if strings.Contains(err.Error(), "Connection timed out. Please try again.") {
 				// Let it retry
 				if i == 2 {
-					logentry = fmt.Sprintf("%s : PoloniexBot encounterd an error getting active loans: %s", u.Prefix(), err.Error())
+					logentry = fmt.Sprintf("PoloniexBot encounterd an error getting active loans: %s", err.Error())
 					return err
 				}
 				continue
 			} else {
-				logentry = fmt.Sprintf("%s : PoloniexBot encounterd an error getting active loans: %s", u.Prefix(), err.Error())
+				logentry = fmt.Sprintf("PoloniexBot encounterd an error getting active loans: %s", err.Error())
 				return err
 			}
 		}
@@ -423,7 +423,7 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 		LoansCreated.Inc()
 	}
 	if len(currLogs) > 0 {
-		logentry = fmt.Sprintf("%s PoloniexBot Lending Actions:\n%s", u.Prefix(), currLogs)
+		logentry = fmt.Sprintf("PoloniexBot Lending Actions:\n%s", currLogs)
 	}
 
 	l.usersDoneLock.Lock()
