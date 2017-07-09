@@ -231,7 +231,7 @@ func (l *Lender) recordBitfinexStatistics(username string,
 				}
 				last = 1 / lastS.Last
 			} else if uppered == "IOT" {
-				if time.Since(l.BitfinLender.iotLastTime) > time.Minute*30 {
+				if time.Since(l.BitfinLender.iotLastTime) > time.Minute*30 || l.BitfinLender.iotLast == 0 {
 					api := bitfinex.New("", "")
 					ti, err := api.Ticker("IOTBTC")
 					if err == nil {
@@ -240,14 +240,15 @@ func (l *Lender) recordBitfinexStatistics(username string,
 					}
 				}
 
-				lastS := l.BitfinLender.iotLast
-				if lastS == 0 {
+				fmt.Println(l.BitfinLender.iotLast)
+
+				last = l.BitfinLender.iotLast
+				if last == 0 {
 					l.tickerlock.RUnlock()
 					return nil, fmt.Errorf("No ticker found for %s", uppered)
 				}
-				last = lastS
 			} else if uppered == "EOS" {
-				if time.Since(l.BitfinLender.eosLastTime) > time.Minute*30 {
+				if time.Since(l.BitfinLender.eosLastTime) > time.Minute*30 || l.BitfinLender.eosLast == 0 {
 					api := bitfinex.New("", "")
 					ti, err := api.Ticker("EOSBTC")
 					if err == nil {
@@ -256,12 +257,11 @@ func (l *Lender) recordBitfinexStatistics(username string,
 					}
 				}
 
-				lastS := l.BitfinLender.eosLast
-				if lastS == 0 {
+				last = l.BitfinLender.eosLast
+				if last == 0 {
 					l.tickerlock.RUnlock()
 					return nil, fmt.Errorf("No ticker found for %s", uppered)
 				}
-				last = lastS
 			} else {
 				lastS, ok := l.ticker[fmt.Sprintf("BTC_%s", uppered)]
 				if !ok {
@@ -342,8 +342,8 @@ func (l *Lender) recordBitfinexStatistics(username string,
 
 	// Check if to save
 	l.recordMapLock.Lock()
-	defer l.recordMapLock.Unlock()
 	v, ok := l.recordMap[balancer.BitfinexExchange][username]
+	l.recordMapLock.Unlock()
 	if ok {
 		if time.Since(v) < time.Minute*10 {
 			return stats, nil
@@ -352,6 +352,7 @@ func (l *Lender) recordBitfinexStatistics(username string,
 	// Save here
 	// TODO: Jesse Save the stats here. This is the userstatistics, we will retrieve these by time
 	// db.RecordData(stats)
+	stats.Exchange = userdb.BitfinexExchange
 	err := l.Bee.SaveUserStastics(stats)
 
 	l.recordMapLock.Lock()

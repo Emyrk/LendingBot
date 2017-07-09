@@ -498,6 +498,7 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 	// Save here
 	// TODO: Jesse Save the stats here. This is the userstatistics, we will retrieve these by time
 	// db.RecordData(stats)
+	stats.Exchange = userdb.PoloniexExchange
 	err := l.Bee.SaveUserStastics(stats)
 
 	l.recordMapLock.Lock()
