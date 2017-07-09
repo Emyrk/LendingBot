@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/Emyrk/LendingBot/src/core/userdb"
-	"github.com/revel/revel"
 )
 
 type UserMigrateDB struct {
@@ -22,9 +21,9 @@ func SetUpUserDB() *UserMigrateDB {
 	var err error
 	userMigrateDB := new(UserMigrateDB)
 
-	uri := revel.Config.StringDefault("database.uri", "mongodb://localhost:27017")
+	uri := "mongo.hodl.zone:27017"
 	mongoRevelPass := os.Getenv("MONGO_REVEL_PASS")
-	if mongoRevelPass == "" && revel.RunMode == "prod" {
+	if mongoRevelPass == "" {
 		panic("Running in prod, but no revel pass given in env var 'MONGO_REVEL_PASS'")
 	}
 	userMigrateDB.userMongoDB, err = userdb.NewMongoUserDatabase(uri, "revel", mongoRevelPass)
@@ -44,9 +43,9 @@ func SetUpUserStatMigrateDB() *UserStatMigrateDB {
 	var err error
 	userStatMigrateDB := new(UserStatMigrateDB)
 
-	uri := revel.Config.StringDefault("database.uri", "mongodb://localhost:27017")
+	uri := "mongo.hodl.zone:27017"
 	mongoRevelPass := os.Getenv("MONGO_REVEL_PASS")
-	if mongoRevelPass == "" && revel.RunMode == "prod" {
+	if mongoRevelPass == "" {
 		panic("Running in prod, but no revel pass given in env var 'MONGO_REVEL_PASS'")
 	}
 	userStatMigrateDB.userStatMongoDB, err = userdb.NewUserStatisticsMongoDB(uri, "revel", mongoRevelPass)
