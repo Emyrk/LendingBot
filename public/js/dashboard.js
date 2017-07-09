@@ -122,7 +122,7 @@ app.controller('dashInfoController', ['$scope', '$http', '$log', '$interval', '$
 			$http(
 			{
 				method: 'GET',
-				url: '/dashboard/sysadmin/getactivitylog',
+				url: '/dashboard/getactivitylog',
 				params: {
 					time: logTime,
 				},

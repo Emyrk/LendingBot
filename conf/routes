@@ -28,6 +28,7 @@ POST	/newpass/response/:jwt	          		App.NewPassResponsePost
 
 GET		/dashboard								AppAuthRequired.Dashboard
 GET		/dashboard/info							AppAuthRequired.InfoDashboard
+GET     /dashboard/getactivitylog				AppAuthRequired.GetActivityLogs
 GET		/dashboard/settings/user				AppAuthRequired.SettingsDashboardUser
 GET		/dashboard/settings/lending				AppAuthRequired.SettingsDashboardLending
 POST	/dashboard/settings/create2fa			AppAuthRequired.Create2FA
@@ -36,7 +37,6 @@ POST	/dashboard/settings/setexchangekeys		AppAuthRequired.SetExchangeKeys
 Get 	/dashboard/settings/enableuserlending	AppAuthRequired.GetEnableUserLending
 POST	/dashboard/settings/enableuserlending	AppAuthRequired.SetEnableUserLending
 POST	/dashboard/settings/changepass			AppAuthRequired.ChangePassword
-GET     /dashboard/sysadmin/getactivitylog		AppAuthRequired.GetActivityLogs
 
 GET		/validauth								App.ValidAuth
 
