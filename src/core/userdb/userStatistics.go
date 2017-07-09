@@ -527,7 +527,7 @@ func (us *UserStatisticsDB) GetPoloniexStatistics(currency string) (*PoloniexSta
 			update = 4
 		}
 		find := bson.M{
-			"$and": bson.M{
+			"$and": bson.M[]{
 				"currency": currency,
 				"_id":      bson.M{"$gt": t},
 			},
