@@ -100,11 +100,11 @@ func Launch() {
 			panic("Running in prod, but no revel pass given in env var 'MONGO_REVEL_PASS'")
 		}
 
-		ape := state.NewUser("admin@admin.com", "admin is a Little more complex")
-		if ape != nil {
-			fmt.Println(ape)
-		}
-		state.UpdateUserPrivilege("admin@admin.com", "SysAdmin")
+		// ape := state.NewUser("admin@admin.com", "admin is a Little more complex")
+		// if ape != nil {
+		// 	fmt.Println(ape)
+		// }
+		// state.UpdateUserPrivilege("admin@admin.com", "SysAdmin")
 
 		Balancer = balancer.NewBalancer(state.CipherKey, revel.Config.StringDefault("database.uri", "mongodb://localhost:27017"), "balancer", mongoBalPass)
 	}
