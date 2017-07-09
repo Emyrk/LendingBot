@@ -464,7 +464,7 @@ func (us *UserStatisticsDB) GetAllPoloniexStatistics(currency string) (*[]Poloni
 	return &poloniexStatsArr, nil
 }
 
-func (us *UserStatisticsDB) GetPoloniexStatistics(currency string) (*PoloniexStats, error) {
+func (us *UserStatisticsDB) GetPoloniexStatistics(currency string, t time.Time) (*PoloniexStats, error) {
 	poloStats := new(PoloniexStats)
 	var poloniexStatsArr []PoloniexStat
 
@@ -493,7 +493,12 @@ func (us *UserStatisticsDB) GetPoloniexStatistics(currency string) (*PoloniexSta
 		// }
 		// poloStats.FiveMinAvg = resp["avg"].(float64)
 
-		find := bson.M{"currency": currency}
+		find := bson.M{
+			"$and": bson.M{
+				"currency": currency,
+				"_id":      bson.M{"$gt": t},
+			},
+		}
 		err = c.Find(find).Sort("-_id").All(&poloniexStatsArr)
 		if err != nil {
 			return nil, fmt.Errorf("Mongo: getPoloniexStats: findAll: %s", err.Error())
