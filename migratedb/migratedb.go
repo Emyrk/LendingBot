@@ -156,16 +156,19 @@ func main() {
 				stats := userStatMigrateDB.userStatEmbeddedDB.GetStatisticsOneDay(u.Username, i)
 				fmt.Printf("userstat info found for [%s] Day [%d]: %d\n", u.Username, i, len(stats))
 				c := 0
+				keep := 0
 				for i, _ := range stats {
 					c++
 					if c%3 != 0 {
 						continue
 					}
+					keep++
 					err = userStatMigrateDB.userStatMongoDB.RecordData(&stats[i])
 					if err != nil {
 						fmt.Printf("Error saving user %s userStat: %s\n", u.Username, err.Error())
 					}
 				}
+				fmt.Printf("     - Kept %d/%d", keep, len(stats))
 			}
 		}
 		fmt.Printf("---------FINISHED MIRGATE USERSTATS---------\n")
