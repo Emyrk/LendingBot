@@ -94,6 +94,11 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 	if time.Now().Before(bl.nextStart) {
 		return nil
 	}
+	notes := ""
+
+	defer func(n string) {
+		l.Bee.updateUser(u.U.Username, u.U.Exchange, n, time.Now(), time.Time{})
+	}(notes)
 
 	dbu, err := l.Bee.FetchUser(u.U.Username)
 	if err != nil {

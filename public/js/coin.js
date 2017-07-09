@@ -174,6 +174,11 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 				var poloRangePoints = [];
 				var bitfinAveragePoints = [];
 				var bitfincRangePoints = [];
+
+				var poloLent = [];
+				var poloNotLent = [];
+				var bitfinLent = [];
+				var bitfinNotLent = [];
 				// for(i =0; i < 10; i++) {
 				// 	averagePoints.push([i, i])
 				// 	rangePoints.push([i, i,i+5])
@@ -196,7 +201,7 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 							continue
 						}
 						var a = cur.activerate*100
-						var avg = [unix, numberFix(a)]
+						var avg = [unix, numberFix(a, 5)]
 						var lowest = cur.lowestrate*100
 						if(lowest == 0) {
 							lowest = prevLowest
@@ -209,19 +214,24 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 						if (highest == 0) {
 							highest = a
 						}
-						var range = [unix, numberFix(lowest), numberFix(highest)]
+						var range = [unix, numberFix(lowest, 5), numberFix(highest, 5)]
 						if (res.data.data[i][c].exchange == "bit") {
 							bitfinAveragePoints.push(avg)
 							bitfincRangePoints.push(range)
+							bitfinLent.push([unix, numberFix(cur.availlent, 3)])
+							bitfinNotLent.push([unix, numberFix(cur.availbal + cur.onorder, 3)])
 						} else {
 							poloAveragePoints.push(avg)
 							poloRangePoints.push(range)
+							poloLent.push([unix, numberFix(cur.availlent, 3)])
+							poloNotLent.push([unix, numberFix(cur.availbal + cur.onorder, 3)])
 						}
 					}
 				}
 
 
 				initLineRangeGraph(poloAveragePoints, poloRangePoints, bitfinAveragePoints, bitfincRangePoints)
+				initPercentLentGraph(bitfinLent, bitfinNotLent, poloLent, poloNotLent, coinScope.coin)
 
 
 			}, (err) => {
@@ -256,8 +266,75 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 
 	}]);
 
-function numberFix(n) {
-	return Number(n.toFixed(5))
+function numberFix(n, l) {
+	return Number(n.toFixed(l))
+}
+
+function initPercentLentGraph(bitfinLent, bitfinNotLent, poloLent, poloNotLent, coin) {
+	Highcharts.chart('lent-totals-graph', {
+		colors: ['#33cc33', '#ff3300', '#248f24', '#b32400'],
+		title: {
+			text: 'Total Currency Being Lent'
+		},
+
+		xAxis: {
+			type: 'datetime'
+		},
+
+		yAxis: {
+			title: {
+				text: null
+			}
+		},
+
+		tooltip: {
+			crosshairs: true,
+			shared: true,
+			valueSuffix: " " + coin,
+			thousandsSep: ','
+		},
+
+		legend: {
+		},
+
+		series: [{
+			name: 'Poloniex Currency Lent',
+			data: poloLent,
+			zIndex: 1,
+			marker: {
+				fillColor: "#0a6970",
+				lineWidth: 2,
+				lineColor: "#0a6970"
+			}
+		}, {
+			name: 'Poloniex Currency NotLent',
+			data: poloNotLent,
+			zIndex: 1,
+			marker: {
+				fillColor: "#0a6970",
+				lineWidth: 2,
+				lineColor: "#0a6970"
+			}
+		}, {
+			name: 'Bitfinex Currency Lent',
+			data: bitfinLent,
+			zIndex: 1,
+			marker: {
+				fillColor: "#004d00",
+				lineWidth: 2,
+				lineColor: "#004d00"
+			}
+		}, {
+			name: 'Bitfinex Currency NotLent',
+			data: bitfinNotLent,
+			zIndex: 1,
+			marker: {
+				fillColor: "#004d00",
+				lineWidth: 2,
+				lineColor: "#004d00"
+			}
+		}]
+	});	
 }
 
 function initLineRangeGraph(poloAverages, poloRanges, bitfinexAvgerages, bitfinexRanges) {
@@ -280,7 +357,8 @@ function initLineRangeGraph(poloAverages, poloRanges, bitfinexAvgerages, bitfine
 		tooltip: {
 			crosshairs: true,
 			shared: true,
-			valueSuffix: '%'
+			valueSuffix: '%',
+			thousandsSep: ','
 		},
 
 		legend: {
