@@ -7,6 +7,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Emyrk/LendingBot/src/core/common/primitives"
@@ -44,6 +45,14 @@ type UserStatisticsDB struct {
 	LastCurrentIndexCalc time.Time
 	CurrentDay           int
 	CurrentIndex         int // 0 to 30
+
+	// Cache
+	cachelock       sync.RWMutex
+	cachesPoloStats map[string]*PoloniexStats
+	lastHourUpdate  map[string]time.Time
+	lastDayUpdate   map[string]time.Time
+	lastWeekUpdate  map[string]time.Time
+	lastMonthUpdate map[string]time.Time
 }
 
 func (u *UserStatisticsDB) Close() error {
@@ -78,8 +87,24 @@ func NewUserStatisticsMongoDBGiven(mdb *mongo.MongoDB) (*UserStatisticsDB, error
 	return u, nil
 }
 
+func makeTimeMap() map[string]time.Time {
+	m := make(map[string]time.Time)
+	for _, c := range AvaiableCoins {
+		m[c] = time.Time{}
+	}
+	return m
+}
+
 func newUserStatisticsDB(dbType string) (*UserStatisticsDB, error) {
 	u := new(UserStatisticsDB)
+	u.cachesPoloStats = make(map[string]*PoloniexStats)
+	u.lastHourUpdate = makeTimeMap()
+	u.lastDayUpdate = makeTimeMap()
+	u.lastWeekUpdate = makeTimeMap()
+	u.lastMonthUpdate = makeTimeMap()
+	for _, c := range AvaiableCoins {
+		u.cachesPoloStats[c] = new(PoloniexStats)
+	}
 
 	userStatsPath := os.Getenv("USER_STATS_DB")
 	if userStatsPath == "" {
@@ -464,8 +489,7 @@ func (us *UserStatisticsDB) GetAllPoloniexStatistics(currency string) (*[]Poloni
 	return &poloniexStatsArr, nil
 }
 
-func (us *UserStatisticsDB) GetPoloniexStatistics(currency string, t time.Time) (*PoloniexStats, error) {
-	poloStats := new(PoloniexStats)
+func (us *UserStatisticsDB) GetPoloniexStatistics(currency string) (*PoloniexStats, error) {
 	var poloniexStatsArr []PoloniexStat
 
 	if us.mdb != nil {
@@ -474,31 +498,33 @@ func (us *UserStatisticsDB) GetPoloniexStatistics(currency string, t time.Time) 
 			return nil, fmt.Errorf("Mongo: GetPoloniexStatistics: getcol: %s", err)
 		}
 		defer s.Close()
-		//time and the rate
 
-		//5min
-		// o1 := bson.D{{"$match", bson.M{
-		// 	"_id": bson.M{"$gt": time.Now().UTC().Add(-5 * time.Minute)},
-		// }}}
-		// o2 := bson.D{{"$group", bson.M{
-		// 	"_id": nil,
-		// 	"avg": bson.M{"$avg": "$rate"},
-		// }}}
-		// ops := []bson.D{o1, o2}
-		// pipe := c.Pipe(ops)
-		// var resp bson.M
-		// err = pipe.One(&resp)
-		// if err != nil {
-		// 	return nil, fmt.Errorf("Mongo: GetPoloniexStatistics: pipe 5min: %s", err)
-		// }
-		// poloStats.FiveMinAvg = resp["avg"].(float64)
-
+		t := time.Now().Add(-5 * time.Minute)
+		update := 5
+		if time.Since(us.lastMonthUpdate[currency]) > time.Hour*48 {
+			// Need to update month -- Grab all
+			t = time.Now().Add(-24 * time.Hour * 30)
+			update = 1
+		} else if time.Since(us.lastWeekUpdate[currency]) > time.Hour*24 {
+			// Need to update week -- Grab week
+			t = time.Now().Add(-24 * time.Hour * 7)
+			update = 2
+		} else if time.Since(us.lastDayUpdate[currency]) > time.Hour {
+			// Need to update week -- Grab Day
+			t = time.Now().Add(-24 * time.Hour)
+			update = 3
+		} else if time.Since(us.lastHourUpdate[currency]) > time.Minute*5 {
+			// Need to update week -- Grab Hour
+			t = time.Now().Add(-1 * time.Hour)
+			update = 4
+		}
 		find := bson.M{
 			"$and": bson.M{
 				"currency": currency,
 				"_id":      bson.M{"$gt": t},
 			},
 		}
+
 		err = c.Find(find).Sort("-_id").All(&poloniexStatsArr)
 		if err != nil {
 			return nil, fmt.Errorf("Mongo: getPoloniexStats: findAll: %s", err.Error())
@@ -508,12 +534,30 @@ func (us *UserStatisticsDB) GetPoloniexStatistics(currency string, t time.Time) 
 			return nil, nil
 		}
 
-		poloStats.FiveMinAvg, _ = GetAvgAndStd(poloniexStatsArr, time.Now().Add(-5*time.Minute))
-		poloStats.HrAvg, poloStats.HrStd = GetAvgAndStd(poloniexStatsArr, time.Now().Add(-1*time.Hour))
-		poloStats.DayAvg, poloStats.DayStd = GetAvgAndStd(poloniexStatsArr, time.Now().Add(-24*time.Hour))
-		poloStats.WeekAvg, poloStats.WeekStd = GetAvgAndStd(poloniexStatsArr, time.Now().Add(-24*time.Hour*7))
-		poloStats.MonthAvg, poloStats.MonthStd = GetAvgAndStd(poloniexStatsArr, time.Now().Add(-24*time.Hour*30))
-		return poloStats, nil
+		us.cachelock.Lock()
+		switch update {
+		case 1:
+			us.lastMonthUpdate[currency] = time.Now()
+			us.cachesPoloStats[currency].MonthAvg, us.cachesPoloStats[currency].MonthStd = GetAvgAndStd(poloniexStatsArr, time.Now().Add(-24*time.Hour*30))
+			fallthrough
+		case 2:
+			us.lastWeekUpdate[currency] = time.Now()
+			us.cachesPoloStats[currency].WeekAvg, us.cachesPoloStats[currency].WeekStd = GetAvgAndStd(poloniexStatsArr, time.Now().Add(-24*time.Hour*7))
+			fallthrough
+		case 3:
+			us.lastDayUpdate[currency] = time.Now()
+			us.cachesPoloStats[currency].DayAvg, us.cachesPoloStats[currency].DayStd = GetAvgAndStd(poloniexStatsArr, time.Now().Add(-24*time.Hour))
+			fallthrough
+		case 4:
+			us.lastHourUpdate[currency] = time.Now()
+			us.cachesPoloStats[currency].HrAvg, us.cachesPoloStats[currency].HrStd = GetAvgAndStd(poloniexStatsArr, time.Now().Add(-1*time.Hour))
+		}
+		us.cachesPoloStats[currency].FiveMinAvg, _ = GetAvgAndStd(poloniexStatsArr, time.Now().Add(-5*time.Minute))
+
+		v := us.cachesPoloStats[currency]
+		us.cachelock.Unlock()
+
+		return v, nil
 
 	}
 	return nil, nil
