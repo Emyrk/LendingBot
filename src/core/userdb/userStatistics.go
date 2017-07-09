@@ -441,17 +441,23 @@ func (p *PoloniexStats) String() string {
 func (us *UserStatisticsDB) GetAllPoloniexStatistics(currency string) (*[]PoloniexStat, error) {
 	var poloniexStatsArr []PoloniexStat
 
-	s, c, err := us.mdb.GetCollection(mongo.C_Exchange_POL)
-	if err != nil {
-		return nil, fmt.Errorf("Mongo: GetPoloniexStatistics: getcol: %s", err)
-	}
-	defer s.Close()
+	poloDatStats := us.GetPoloniexDataLastXDays(30, currency)
 
-	find := bson.M{"currency": currency}
-	err = c.Find(find).Sort("-_id").All(&poloniexStatsArr)
-	if err != nil {
-		return nil, fmt.Errorf("Mongo: getPoloniexStats: findAll: %s", err.Error())
+	// No data
+	if len(poloDatStats[0]) == 0 {
+		return &poloniexStatsArr, nil
 	}
+
+	n := time.Now()
+	n = time.Date(n.Year(), n.Month(), n.Day(), 0, 0, 0, 0, time.UTC)
+
+	for _, v := range poloDatStats {
+		for _, s := range v {
+			poloniexStatsArr = append(poloniexStatsArr, PoloniexStat{Currency: currency, Rate: s.Rate, Time: n.Add(time.Duration(s.SecondsPastMidnight) * time.Second)})
+		}
+		n = n.Add(-24 * time.Hour)
+	}
+
 	return &poloniexStatsArr, nil
 }
 
