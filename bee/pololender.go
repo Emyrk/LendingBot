@@ -512,6 +512,13 @@ func (l *Lender) getAmtForBTCValue(amount float64, currency string) float64 {
 		return amount
 	}
 
+	if currency == "IOT" {
+		return amount / l.BitfinLender.iotLast
+	}
+	if currency == "EOS" {
+		return amount / l.BitfinLender.eosLast
+	}
+
 	l.tickerlock.RLock()
 	t, ok := l.ticker[fmt.Sprintf("BTC_%s", currency)]
 	l.tickerlock.RUnlock()
@@ -526,6 +533,14 @@ func (l *Lender) getBTCAmount(amount float64, currency string) float64 {
 	if currency == "BTC" {
 		return amount
 	}
+
+	if currency == "IOT" {
+		return amount * l.BitfinLender.iotLast
+	}
+	if currency == "EOS" {
+		return amount * l.BitfinLender.eosLast
+	}
+
 	l.tickerlock.RLock()
 	t, ok := l.ticker[fmt.Sprintf("BTC_%s", currency)]
 	l.tickerlock.RUnlock()

@@ -164,7 +164,7 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 
 		avail := bals[bitfinex.WalletKey{"deposit", lower}].Available
 
-		if avail < 0 {
+		if avail <= 0 {
 			continue
 		}
 
@@ -239,8 +239,6 @@ func (l *Lender) recordBitfinexStatistics(username string,
 						l.BitfinLender.iotLast = ti.LastPrice
 					}
 				}
-
-				fmt.Println(l.BitfinLender.iotLast)
 
 				last = l.BitfinLender.iotLast
 				if last == 0 {
