@@ -164,11 +164,26 @@ func (ud *UserDatabase) FetchAllUsers() ([]User, error) {
 
 	for _, k := range keys {
 		u := NewBlankUser()
-		f, err := ud.get(UsersBucket, k, u)
-		if f && err == nil {
-			all = append(all, *u)
+
+		data, err := ud.db.Get(UsersBucket, k)
+		if err != nil {
 			continue
 		}
+
+		if data == nil {
+			continue
+		}
+
+		err = u.SafeUnmarshal(data)
+		if err != nil {
+			continue
+		}
+		all = append(all, *u)
+		// f, err := ud.get(UsersBucket, k, u)
+		// if f && err == nil {
+		// 	all = append(all, *u)
+		// 	continue
+		// }
 	}
 
 	return all, nil
