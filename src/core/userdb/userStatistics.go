@@ -1130,7 +1130,7 @@ func (us *UserStatisticsDB) SaveLendingHistory(lendHist *AllLendingHistoryEntry)
 
 		//CAN OPTIMIZE LATER
 		upsertAction := bson.M{"$set": lendHist}
-		_, err = c.UpsertId(lendHist.Time, upsertAction)
+		_, err = c.UpsertId(lendHist.Username+lendHist.Time.String(), upsertAction)
 		if err != nil {
 			return fmt.Errorf("Mongo: SaveLendingHistory: upsert: %s", err)
 		}
@@ -1161,10 +1161,7 @@ func (us *UserStatisticsDB) GetLendHistorySummary(username string, t time.Time) 
 
 		//CAN OPTIMIZE LATER
 		q := bson.M{
-			"$and": []bson.M{
-				bson.M{"email": username},
-				bson.M{"time": t},
-			},
+			"_id": username + t.String(),
 		}
 		err = c.Find(q).One(result)
 		if err != nil {
