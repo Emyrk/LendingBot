@@ -28,6 +28,8 @@ const (
 
 	C_Exchange_POL = "poloniexExchange"
 	C_Exchange_BIT = "bitfinexExchange"
+
+	C_BotActivity = "botActivity"
 	//STAT END
 
 	//AUDIT BEGIN

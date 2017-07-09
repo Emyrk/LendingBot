@@ -347,6 +347,20 @@ func (r AppAuthRequired) ChangePassword() revel.Result {
 	return r.RenderJSON(data)
 }
 
+func (r AppAuthRequired) GetActivityLogs() revel.Result {
+	data := make(map[string]interface{})
+
+	logs, err := state.GetActivityLog(r.Session[SESSION_EMAIL], r.Params.Query.Get("time"))
+	if err != nil {
+		fmt.Printf("WARNING: Failed to get user activity logs: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
+		data[JSON_ERROR] = "Server error, failed to retrieve logs. Contact support: support@hodl.zone."
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+	data["logs"] = logs
+	return r.RenderJSON(data)
+}
+
 func (r AppAuthRequired) UserDashboard() revel.Result {
 	if revel.DevMode {
 		return r.RenderError(&revel.Error{

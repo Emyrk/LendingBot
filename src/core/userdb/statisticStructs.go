@@ -18,6 +18,16 @@ type MongoAllUserStatistics struct {
 	UserStatistics []AllUserStatistic `bson:"userstats"`
 }
 
+type BotActivity struct {
+	Username    string                 `bson:"_id"`
+	ActivityLog *[]BotActivityLogEntry `bson:"activitylog"`
+}
+
+type BotActivityLogEntry struct {
+	Log  string    `json:"l"`
+	Time time.Time `json:"t"`
+}
+
 type AllUserStatistic struct {
 	Currencies map[string]*UserStatistic `json:"currencies",msg:"currencies"`
 

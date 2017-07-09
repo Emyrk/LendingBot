@@ -564,3 +564,23 @@ func (s *State) HasUserPrivilege(email string, priv userdb.UserLevel) bool {
 	}
 	return true
 }
+
+func (s *State) GetActivityLog(email string, timeString string) (*[]userdb.BotActivityLogEntry, error) {
+	if timeString == "" {
+		botAct, err := s.userStatistic.GetBotActivity(email)
+		if err != nil {
+			return nil, err
+		}
+		if botAct == nil {
+			b := make([]userdb.BotActivityLogEntry, 0, 0)
+			return &b, nil
+		}
+		return botAct.ActivityLog, nil
+	}
+
+	botActLogs, err := s.userStatistic.GetBotActivityTimeGreater(email, time.Now().UTC())
+	if err != nil {
+		return nil, err
+	}
+	return botActLogs, nil
+}

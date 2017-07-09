@@ -36,6 +36,7 @@ POST	/dashboard/settings/setexchangekeys		AppAuthRequired.SetExchangeKeys
 Get 	/dashboard/settings/enableuserlending	AppAuthRequired.GetEnableUserLending
 POST	/dashboard/settings/enableuserlending	AppAuthRequired.SetEnableUserLending
 POST	/dashboard/settings/changepass			AppAuthRequired.ChangePassword
+GET     /dashboard/sysadmin/getactivitylog		AppAuthRequired.GetActivityLogs
 
 GET		/validauth								App.ValidAuth
 

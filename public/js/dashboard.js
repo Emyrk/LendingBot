@@ -87,9 +87,11 @@ app.controller('dashBaseController', ['$scope', '$http', '$log', "$location", "$
 		}, 15000)
 	}]);
 
-app.controller('dashInfoController', ['$scope', '$http', '$log',
-	function($scope, $http, $log) {
+app.controller('dashInfoController', ['$scope', '$http', '$log', '$interval', '$timeout',
+	function($scope, $http, $log, $interval, $timeout) {
 		var dashInfoScope = $scope;
+		var activityLog;
+		var activityLogPromise;
 
 		dashInfoScope.getCurrentUserStats = function() {
 			$http(
@@ -112,44 +114,84 @@ app.controller('dashInfoController', ['$scope', '$http', '$log',
 			});
 		}
 
-		dashInfoScope.getLendingHistory = function() {
+		dashInfoScope.getGetActivityLog = function() {
+			var logTime = null;
+			if (dashInfoScope.logs > 0) {
+				logTime = dashInfoScope.logs[0].time;
+			}
 			$http(
 			{
 				method: 'GET',
-				url: '/dashboard/data/lendinghistory',
-				data : {
+				url: '/dashboard/sysadmin/getactivitylog',
+				params: {
+					time: logTime,
 				},
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
 				withCredentials: true
 			})
 			.then((res) => {
 				//success
-				console.log(res.data);
-				$.each(res.data.CompleteLoans, (index, val) => {
-					var tr = $("<tr>")
-					.append($("<td>").html(val.currency))
-					.append($("<td>").html(parseFloat(val.rate).toFixed(4)))
-					.append($("<td>").html(val.amount))
-					.append($("<td>").html(val.earned))
-					.append($("<td>").html(val.fee))
-					.append($("<td>").html(val.close));
-					// .append($("<td>").html(val.duration));
-					$("#lendingHistory").append(tr);
-				});
-				if (!$.fn.DataTable.isDataTable('#datatable-responsive')) {
-					$('#datatable-responsive').DataTable({
-						filter: false
+				console.log("Retrieved activityLog");
+				dashInfoScope.logs = res.data.logs;
+				if (dashInfoScope.logs) {
+					$timeout(() => {
+						if (!$.fn.DataTable.isDataTable('#activityLog')) {
+							activityLog = $('#activityLog').DataTable({
+								filter: true,
+							});
+						} else {
+							activityLog.rows().invalidate('data');
+						}
 					});
 				}
 			}, (err) => {
 				//error
-				$log.error("LendingHistory: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				$log.error("getGetActivityLog: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
 			});
 		}
 
+		// dashInfoScope.getLendingHistory = function() {
+		// 	$http(
+		// 	{
+		// 		method: 'GET',
+		// 		url: '/dashboard/data/lendinghistory',
+		// 		data : {
+		// 		},
+		// 		withCredentials: true
+		// 	})
+		// 	.then((res) => {
+		// 		//success
+		// 		console.log(res.data);
+		// 		$.each(res.data.CompleteLoans, (index, val) => {
+		// 			var tr = $("<tr>")
+		// 			.append($("<td>").html(val.currency))
+		// 			.append($("<td>").html(parseFloat(val.rate).toFixed(4)))
+		// 			.append($("<td>").html(val.amount))
+		// 			.append($("<td>").html(val.earned))
+		// 			.append($("<td>").html(val.fee))
+		// 			.append($("<td>").html(val.close));
+		// 			// .append($("<td>").html(val.duration));
+		// 			$("#lendingHistory").append(tr);
+		// 		});
+		// 		if (!$.fn.DataTable.isDataTable('#datatable-responsive')) {
+		// 			$('#datatable-responsive').DataTable({
+		// 				filter: false
+		// 			});
+		// 		}
+		// 	}, (err) => {
+		// 		//error
+		// 		$log.error("LendingHistory: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+		// 	});
+		// }
+
 		//init
 		dashInfoScope.getCurrentUserStats();
-		dashInfoScope.getLendingHistory();
+		// dashInfoScope.getLendingHistory();
 		dashInfoScope.backgroundColor = backgroundColor;
+		//start interval to reload active changes
+		dashInfoScope.getGetActivityLog();
+		activityLogPromise = $interval(() => {dashInfoScope.getGetActivityLog();}, 2000)
+		dashInfoScope.$on('$destroy', function () {$interval.cancel(activityLogPromise)});
 		//----
 	}]);
 

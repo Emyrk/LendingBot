@@ -14,7 +14,7 @@ import (
 	"github.com/Emyrk/LendingBot/src/core/database/mongo"
 	// "github.com/revel/revel"
 	"github.com/tinylib/msgp/msgp"
-	// "gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -1203,4 +1203,82 @@ func abs(a float64) float64 {
 		return a * -1
 	}
 	return a
+}
+
+func (us *UserStatisticsDB) AddBotActivityLogEntry(username string, botAct *[]BotActivityLogEntry) error {
+	s, c, err := us.mdb.GetCollection(mongo.C_BotActivity)
+	if err != nil {
+		return fmt.Errorf("SetBotActivity: createSession: %s", err.Error())
+	}
+	defer s.Close()
+
+	//CAN OPTIMIZE LATER
+	upsertKey := bson.M{
+		"_id": username,
+	}
+	upsertAction := bson.M{
+		"$push": bson.M{
+			"activitylog": bson.M{
+				"$each":  botAct,
+				"$sort":  bson.M{"time": -1},
+				"$slice": 100,
+			},
+		},
+	}
+
+	_, err = c.Upsert(upsertKey, upsertAction)
+	if err != nil {
+		return fmt.Errorf("SetBotActivity: upsert: %s", err)
+	}
+	return nil
+}
+
+func (us *UserStatisticsDB) GetBotActivity(username string) (*BotActivity, error) {
+	s, c, err := us.mdb.GetCollection(mongo.C_BotActivity)
+	if err != nil {
+		return nil, fmt.Errorf("GetBotActivity: createSession: %s", err.Error())
+	}
+	defer s.Close()
+
+	var result BotActivity
+
+	//CAN OPTIMIZE LATER
+	q := bson.M{
+		"_id": username,
+	}
+	err = c.Find(q).One(&result)
+	if err == mgo.ErrNotFound {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("GetBotActivity: find: %s", err)
+	}
+	return &result, nil
+}
+
+func (us *UserStatisticsDB) GetBotActivityTimeGreater(username string, t time.Time) (*[]BotActivityLogEntry, error) {
+	s, c, err := us.mdb.GetCollection(mongo.C_BotActivity)
+	if err != nil {
+		return nil, fmt.Errorf("GetBotActivityTimeGreater: createSession: %s", err.Error())
+	}
+	defer s.Close()
+
+	botActLogArr := make([]BotActivityLogEntry, 0)
+
+	// //CAN OPTIMIZE LATER
+	o1 := bson.D{{"$match", bson.M{"_id": username}}}
+	o2 := bson.D{{"$unwind", "$activitylog"}}
+	o3 := bson.D{{"$match", bson.M{"activitylog.time": bson.M{"$gt": t}}}}
+	o4 := bson.D{{"$project", bson.M{"_id": 0}}}
+	ops := []bson.D{o1, o2, o3, o4}
+	var result bson.M
+	iter := c.Pipe(ops).Iter()
+	for iter.Next(&result) {
+		botActLogArr = append(botActLogArr, BotActivityLogEntry{
+			Time: result["activitylog"].(bson.M)["time"].(time.Time),
+			Log:  result["activitylog"].(bson.M)["log"].(string),
+		})
+	}
+
+	return &botActLogArr, nil
 }
