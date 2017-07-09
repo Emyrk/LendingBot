@@ -678,7 +678,7 @@ func (us *UserStatisticsDB) GetStatistics(username string, dayRange int, exchang
 						bson.M{"time": bson.M{"$lt": timeDayRangeStart}},
 						bson.M{"time": bson.M{"$gt": timeDayRangeEnd}},
 						bson.M{"email": username},
-						bson.M{"exchange": exchange},
+						bson.M{"exchange": *exchange},
 					},
 				}
 			} else {
