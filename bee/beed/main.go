@@ -36,7 +36,7 @@ func main() {
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-c
-		log.Printf("Recievived ctrl+c. Closing balancer")
+		log.Printf("Recievived ctrl+c. Closing bee")
 		be.Shutdown()
 		os.Exit(1)
 	}()

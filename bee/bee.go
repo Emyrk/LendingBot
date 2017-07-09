@@ -122,6 +122,9 @@ func (b *Bee) Report() string {
 	str += fmt.Sprintf("  %-15s : %d/%d\n", "SendChannel", len(b.SendChannel), cap(b.SendChannel))
 	str += fmt.Sprintf("  %-15s : %d/%d\n", "RecieveChannel", len(b.RecieveChannel), cap(b.RecieveChannel))
 	str += fmt.Sprintf("  %-15s : %d/%d\n", "ErrorChannel", len(b.ErrorChannel), cap(b.ErrorChannel))
+	str += fmt.Sprintf("==== Lender [%s] ====\n", b.ID)
+	str += fmt.Sprintf("%s\n", b.LendingBot.Report())
+	str += fmt.Sprintf("==== Users [%s] ====\n", b.ID)
 	b.userlock.RLock()
 	for _, u := range b.Users {
 		str += u.String() + "\n"
