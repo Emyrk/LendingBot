@@ -56,7 +56,7 @@ func (c App) Sandbox() revel.Result {
 
 func (c App) Index() revel.Result {
 	llog := appLog.WithField("method", "Index")
-	stats, err := json.Marshal(state.GetPoloniexStatistics("BTC"))
+	stats, err := json.Marshal(GetQuickPoloniexStatistics("BTC"))
 	if err != nil {
 		llog.Errorf("ERROR CRUCIAL!!!: retrieving index stats: %s\n", err.Error())
 		c.ViewArgs["poloniexStats"] = "null"
