@@ -201,7 +201,7 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 							continue
 						}
 						var a = cur.activerate*100
-						var avg = [unix, numberFix(a)]
+						var avg = [unix, numberFix(a, 5)]
 						var lowest = cur.lowestrate*100
 						if(lowest == 0) {
 							lowest = prevLowest
@@ -214,24 +214,24 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 						if (highest == 0) {
 							highest = a
 						}
-						var range = [unix, numberFix(lowest), numberFix(highest)]
+						var range = [unix, numberFix(lowest, 5), numberFix(highest, 5)]
 						if (res.data.data[i][c].exchange == "bit") {
 							bitfinAveragePoints.push(avg)
 							bitfincRangePoints.push(range)
-							bitfinLent.push([unix, cur.availlent])
-							bitfinNotLent.push([unix, cur.availbal + cur.onorder])
+							bitfinLent.push([unix, numberFix(cur.availlent, 3)])
+							bitfinNotLent.push([unix, numberFix(cur.availbal + cur.onorder, 3)])
 						} else {
 							poloAveragePoints.push(avg)
 							poloRangePoints.push(range)
-							poloLent.push([unix, cur.availlent])
-							poloNotLent.push([unix, cur.availbal + cur.onorder])
+							poloLent.push([unix, numberFix(cur.availlent, 3)])
+							poloNotLent.push([unix, numberFix(cur.availbal + cur.onorder, 3)])
 						}
 					}
 				}
 
 
 				initLineRangeGraph(poloAveragePoints, poloRangePoints, bitfinAveragePoints, bitfincRangePoints)
-				initPercentLentGraph(bitfinLent, bitfinNotLent, poloLent, poloNotLent)
+				initPercentLentGraph(bitfinLent, bitfinNotLent, poloLent, poloNotLent, coinScope.coin)
 
 
 			}, (err) => {
@@ -266,11 +266,11 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 
 	}]);
 
-function numberFix(n) {
-	return Number(n.toFixed(5))
+function numberFix(n, l) {
+	return Number(n.toFixed(l))
 }
 
-function initPercentLentGraph(bitfinLent, bitfinNotLent, poloLent, poloNotLent) {
+function initPercentLentGraph(bitfinLent, bitfinNotLent, poloLent, poloNotLent, coin) {
 	Highcharts.chart('lent-totals-graph', {
 
 		title: {
@@ -290,7 +290,7 @@ function initPercentLentGraph(bitfinLent, bitfinNotLent, poloLent, poloNotLent) 
 		tooltip: {
 			crosshairs: true,
 			shared: true,
-			valueSuffix: '%'
+			valueSuffix: 'coin'
 		},
 
 		legend: {
