@@ -129,9 +129,14 @@ func main() {
 				fmt.Printf("ERROR: retrieving polo stats")
 			} else {
 				fmt.Printf("Exchange info found: %d\n", len(*psArr))
+				c := 0
 				for _, ps := range *psArr {
+					c++
 					if ps.Rate > 2 {
 						bad++
+						continue
+					}
+					if c%2 == 0 {
 						continue
 					}
 					err = userStatMigrateDB.userStatMongoDB.RecordPoloniexStatisticTime(coin, ps.Rate, ps.Time)
