@@ -18,7 +18,13 @@ import (
 	_ "github.com/Emyrk/LendingBot/src/log"
 
 	"github.com/revel/revel"
+	log "github.com/sirupsen/logrus"
 )
+
+var launchLog = log.WithFields(log.Fields{
+	"package": "controllers",
+	"file":    "launch",
+})
 
 const (
 	DEV_FAKE  = "devFake"
@@ -37,7 +43,7 @@ func Launch() {
 	//lender.RegisterPrometheus()
 	//queuer.RegisterPrometheus()
 
-	fmt.Println("MODE IS: ", revel.RunMode)
+	launchLog.Infof("MODE IS: %s", revel.RunMode)
 	switch revel.RunMode {
 	case DEV_FAKE:
 		//devFake mode

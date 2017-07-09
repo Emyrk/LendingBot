@@ -11,7 +11,10 @@ import (
 	"time"
 )
 
-var cachelog = log.WithField("package", "controllers")
+var utilLog = log.WithFields(log.Fields{
+	"package": "controllers",
+	"file":    "util",
+})
 
 const (
 	CACHE_TIME           = 10 * time.Minute
@@ -22,14 +25,16 @@ const (
 )
 
 func DeleteCacheToken(sessionId string) error {
-	fmt.Printf("Deleting SessionID[%s]\n", sessionId)
+	llog := utilLog.WithField("method", "CurrentUserStats")
+	llog.Infof("Deleting SessionID[%s]\n", sessionId)
 	go cache.Set(sessionId, "", 1*time.Second)
 	go cache.Delete(sessionId)
 	return nil
 }
 
 func SetCacheEmail(sessionId string, email string) error {
-	fmt.Printf("Set SessionID[%s], email[%s]\n", sessionId, email)
+	llog := utilLog.WithField("method", "SetCacheEmail")
+	llog.Infof("Set SessionID[%s], email[%s]\n", sessionId, email)
 	go cache.Set(sessionId, email, CACHE_TIME)
 	return nil
 }
@@ -43,7 +48,8 @@ func ValidCacheEmail(sessionId string, email string) bool {
 		}
 	}
 
-	fmt.Printf("Comparing strings [%s]s, [%s]\n", e, email)
+	llog := utilLog.WithField("method", "ValidCacheEmail")
+	llog.Infof("Comparing strings [%s]s, [%s]\n", e, email)
 
 	return e == email && len(e) > 0 && len(email) > 0
 }
@@ -82,7 +88,7 @@ func GetTimeoutCookie() *http.Cookie {
 }
 
 func CacheGetLendingHistory(email string) (*poloniex.PoloniexAuthentictedLendingHistoryRespone, bool) {
-	llog := cachelog.WithField("method", "CacheGetLendingHistory")
+	llog := utilLog.WithField("method", "CacheGetLendingHistory")
 	var poloniexHistory poloniex.PoloniexAuthentictedLendingHistoryRespone
 	if err := cache.Get(email+CACHE_LENDING_ENDING, &poloniexHistory); err != nil {
 		llog.Infof("NOT found cache lending history for user %s", email)
@@ -93,7 +99,7 @@ func CacheGetLendingHistory(email string) (*poloniex.PoloniexAuthentictedLending
 }
 
 func CacheSetLendingHistory(email string, p poloniex.PoloniexAuthentictedLendingHistoryRespone) {
-	llog := cachelog.WithField("method", "CacheGetLendingHistory")
+	llog := utilLog.WithField("method", "CacheGetLendingHistory")
 	llog.Infof("Setting lending history for user %s", email)
 	go cache.Set(email+CACHE_LENDING_ENDING, p, CACHE_LEND_HIST_TIME)
 }

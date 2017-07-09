@@ -1,14 +1,19 @@
 package controllers
 
 import (
-	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/Emyrk/LendingBot/src/core"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"github.com/revel/revel"
+	log "github.com/sirupsen/logrus"
 )
+
+var appSysAdminLog = log.WithFields(log.Fields{
+	"package": "controllers",
+	"file":    "appSysAdmin",
+})
 
 type AppSysAdmin struct {
 	*revel.Controller
@@ -19,11 +24,13 @@ func (s AppSysAdmin) SysAdminDashboard() revel.Result {
 }
 
 func getUsers() (map[string]interface{}, error) {
+	llog := appSysAdminLog.WithField("method", "getUsers")
+
 	data := make(map[string]interface{})
 
 	safeUsers, err := state.GetAllUsers()
 	if err != nil {
-		fmt.Printf("WARNING: User failed to get all users: error: %s\n", err.Error())
+		llog.Warningf("Warning failed to get all users: error: %s\n", err.Error())
 		data[JSON_ERROR] = "Failed to get all users. Look at logs."
 		return nil, err
 	}
@@ -61,11 +68,13 @@ func (s AppSysAdmin) DeleteUser() revel.Result {
 }
 
 func (s AppSysAdmin) DeleteInvite() revel.Result {
+	llog := appSysAdminLog.WithField("method", "DeleteInvite")
+
 	data := make(map[string]interface{})
 
 	err := state.DeleteInvite(s.Params.Form.Get("rawc"))
 	if err != nil {
-		fmt.Printf("WARNING: User failed to delete invite: [%s] error: %s\n", s.Session[SESSION_EMAIL], err.Error())
+		llog.Warningf("Warning user failed to delete invite: [%s] error: %s\n", s.Session[SESSION_EMAIL], err.Error())
 		data[JSON_ERROR] = "Failed to change delete invite."
 		s.Response.Status = 500
 		return s.RenderJSON(data)
@@ -75,11 +84,13 @@ func (s AppSysAdmin) DeleteInvite() revel.Result {
 }
 
 func (s AppSysAdmin) MakeInvite() revel.Result {
+	llog := appSysAdminLog.WithField("method", "MakeInvite")
+
 	data := make(map[string]interface{})
 
 	h, err := strconv.Atoi(s.Params.Form.Get("hr"))
 	if err != nil {
-		fmt.Printf("WARNING: failed to convert hours to int: [%s] error: %s\n", s.Session[SESSION_EMAIL], err.Error())
+		llog.Warningf("Warning failed to convert hours to int: [%s] error: %s\n", s.Session[SESSION_EMAIL], err.Error())
 		data[JSON_ERROR] = "Failed to change hours to int."
 		s.Response.Status = 500
 		return s.RenderJSON(data)
@@ -87,7 +98,7 @@ func (s AppSysAdmin) MakeInvite() revel.Result {
 
 	c, err := strconv.Atoi(s.Params.Form.Get("cap"))
 	if err != nil {
-		fmt.Printf("WARNING: failed to convert capacity to int: [%s] error: %s\n", s.Session[SESSION_EMAIL], err.Error())
+		llog.Warningf("Warning failed to convert capacity to int: [%s] error: %s\n", s.Session[SESSION_EMAIL], err.Error())
 		data[JSON_ERROR] = "Failed to change capacity to int."
 		s.Response.Status = 500
 		return s.RenderJSON(data)
@@ -96,7 +107,7 @@ func (s AppSysAdmin) MakeInvite() revel.Result {
 	t := time.Now().Add(time.Duration(h) * time.Hour)
 	err = state.AddInviteCode(s.Params.Form.Get("rawc"), c, t)
 	if err != nil {
-		fmt.Printf("WARNING: User failed to create invite: [%s] error: %s\n", s.Session[SESSION_EMAIL], err.Error())
+		llog.Warningf("Warning user failed to create invite: [%s] error: %s\n", s.Session[SESSION_EMAIL], err.Error())
 		data[JSON_ERROR] = "Failed to create invite."
 		s.Response.Status = 500
 		return s.RenderJSON(data)
@@ -106,11 +117,13 @@ func (s AppSysAdmin) MakeInvite() revel.Result {
 }
 
 func (s AppSysAdmin) GetInvites() revel.Result {
+	llog := appSysAdminLog.WithField("method", "GetInvites")
+
 	data := make(map[string]interface{})
 
 	inviteCodes, err := state.ListInviteCodes()
 	if err != nil {
-		fmt.Printf("WARNING: User failed to get invite codes: [%s] error: %s\n", s.Session[SESSION_EMAIL], err.Error())
+		llog.Warningf("Warning user failed to get invite codes: [%s] error: %s\n", s.Session[SESSION_EMAIL], err.Error())
 		data[JSON_ERROR] = "Error failed to get invite codes."
 		s.Response.Status = 500
 		return s.RenderJSON(data)
@@ -122,11 +135,13 @@ func (s AppSysAdmin) GetInvites() revel.Result {
 }
 
 func (s AppSysAdmin) ChangeUserPrivilege() revel.Result {
+	llog := appSysAdminLog.WithField("method", "ChangeUserPrivilege")
+
 	data := make(map[string]interface{})
 
 	u, _ := state.FetchUser(s.Session[SESSION_EMAIL])
 	if !u.AuthenticatePassword(s.Params.Form.Get("pass")) {
-		fmt.Printf("ERROR: User failed to validate pass: [%s]\n", s.Session[SESSION_EMAIL])
+		llog.Errorf("Error user failed to validate pass: [%s]\n", s.Session[SESSION_EMAIL])
 		data[JSON_ERROR] = "Failed to change user privelege. Invalid pass."
 		s.Response.Status = 400
 		return s.RenderJSON(data)
@@ -134,7 +149,7 @@ func (s AppSysAdmin) ChangeUserPrivilege() revel.Result {
 
 	priv, err := state.UpdateUserPrivilege(s.Params.Form.Get("email"), s.Params.Form.Get("priv"))
 	if err != nil {
-		fmt.Printf("WARNING: User failed to update privelege: [%s] error: %s\n", s.Session[SESSION_EMAIL], err.Error())
+		llog.Warningf("Warning user failed to update privelege: [%s] error: %s\n", s.Session[SESSION_EMAIL], err.Error())
 		data[JSON_ERROR] = "Failed to change user privelege."
 		s.Response.Status = 500
 		return s.RenderJSON(data)
@@ -168,8 +183,10 @@ func (s AppSysAdmin) DeleteLogs() revel.Result {
 
 //called before any auth required function
 func (s AppSysAdmin) AuthUserSysAdmin() revel.Result {
+	llog := appSysAdminLog.WithField("method", "AuthUserSysAdmin")
+
 	if !ValidCacheEmail(s.Session.ID(), s.Session[SESSION_EMAIL]) {
-		fmt.Printf("WARNING: AuthUserSysAdmin has invalid cache: [%s] sessionId:[%s]\n", s.Session[SESSION_EMAIL], s.Session.ID())
+		llog.Warningf("Warning has invalid cache: [%s] sessionId:[%s]\n", s.Session[SESSION_EMAIL], s.Session.ID())
 		s.Session[SESSION_EMAIL] = ""
 		s.Response.Status = 403
 		return s.RenderTemplate("errors/403.html")
@@ -177,7 +194,7 @@ func (s AppSysAdmin) AuthUserSysAdmin() revel.Result {
 
 	err := SetCacheEmail(s.Session.ID(), s.Session[SESSION_EMAIL])
 	if err != nil {
-		fmt.Printf("WARNING: AuthUserSysAdmin failed to set cache: [%s] and error: %s\n", s.Session.ID(), err.Error())
+		llog.Warningf("Warning failed to set cache: [%s] and error: %s\n", s.Session.ID(), err.Error())
 		s.Session[SESSION_EMAIL] = ""
 		s.Response.Status = 403
 		return s.RenderTemplate("errors/403.html")

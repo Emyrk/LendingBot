@@ -14,7 +14,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var dcLog = log.WithField("package", "DataCalls")
+var dataCallsLog = log.WithFields(log.Fields{
+	"package": "controllers",
+	"file":    "dataCalls",
+})
 
 // Struct to UserDash
 type UserDashStructure struct {
@@ -175,7 +178,6 @@ func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
 
 			totalAct := float64(0)
 			for _, v := range now.Currencies {
-				// fmt.Println(v)
 				today.LoanRate += v.AverageActiveRate * (v.ActiveLentBalance * v.BTCRate)
 				totalAct += v.ActiveLentBalance * v.BTCRate
 				today.BTCLent += v.ActiveLentBalance * v.BTCRate
@@ -207,10 +209,12 @@ func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
 }
 
 func (r AppAuthRequired) CurrentUserStats() revel.Result {
+	llog := dataCallsLog.WithField("method", "CurrentUserStats")
+
 	email := r.Session[SESSION_EMAIL]
 	u, err := state.FetchUser(email)
 	if err != nil || u == nil {
-		fmt.Println("Error: CurrentUserStats: fetching user for dashboard")
+		llog.Errorf("Error fetching user for dashboard")
 		return r.Redirect(App.Index)
 	}
 
@@ -227,9 +231,10 @@ func (r AppAuthRequired) CurrentUserStats() revel.Result {
 }
 
 func (r AppAuthRequired) GetDetailedUserStats() revel.Result {
+	llog := dataCallsLog.WithField("method", "GetDetailedUserStats")
+
 	data := make(map[string]interface{})
 
-	llog := dcLog.WithField("method", "GetDetailedUserStats")
 	email := r.Session[SESSION_EMAIL]
 	u, err := state.FetchUser(email)
 	if err != nil || u == nil {
@@ -239,7 +244,7 @@ func (r AppAuthRequired) GetDetailedUserStats() revel.Result {
 
 	stats, err := state.GetUserStatistics(email, 30, "")
 	if err != nil {
-		llog.Errorf("Getting user stats: %s", err.Error())
+		llog.Errorf("Error getting user stats: %s", err.Error())
 		data[JSON_ERROR] = "Internal Error grabbing stats"
 		r.Response.Status = 500
 		return r.RenderJSON(data)
@@ -251,7 +256,7 @@ func (r AppAuthRequired) GetDetailedUserStats() revel.Result {
 }
 
 func (r AppAuthRequired) LendingHistorySummary() revel.Result {
-	llog := dcLog.WithField("method", "LendingHistorySummary()")
+	llog := dataCallsLog.WithField("method", "LendingHistorySummary()")
 	data := make(map[string]interface{})
 
 	email := r.Session[SESSION_EMAIL]
@@ -325,7 +330,7 @@ func getRates() map[string]float64 {
 }
 
 func (r AppAuthRequired) LendingHistory() revel.Result {
-	llog := dcLog.WithField("method", "LendingHistory()")
+	llog := dataCallsLog.WithField("method", "LendingHistory")
 
 	email := r.Session[SESSION_EMAIL]
 

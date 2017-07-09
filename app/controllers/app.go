@@ -2,8 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
-	"io"
 
 	"github.com/Emyrk/LendingBot/src/core"
 	"github.com/Emyrk/LendingBot/src/core/email"
@@ -12,9 +10,14 @@ import (
 
 	// Init logger
 	_ "github.com/Emyrk/LendingBot/src/log"
+	log "github.com/sirupsen/logrus"
 )
 
 var state *core.State
+var appLog = log.WithFields(log.Fields{
+	"package": "controllers",
+	"file":    "app",
+})
 
 func init() {
 	RegisterPrometheus()
@@ -52,9 +55,10 @@ func (c App) Sandbox() revel.Result {
 }
 
 func (c App) Index() revel.Result {
+	llog := appLog.WithField("method", "Index")
 	stats, err := json.Marshal(state.GetPoloniexStatistics("BTC"))
 	if err != nil {
-		fmt.Printf("ERROR CRUCIAL!!!: retrieving index stats: %s\n", err.Error())
+		llog.Errorf("ERROR CRUCIAL!!!: retrieving index stats: %s\n", err.Error())
 		c.ViewArgs["poloniexStats"] = "null"
 	} else {
 		c.ViewArgs["poloniexStats"] = string(stats)
@@ -93,19 +97,9 @@ func (c App) Landing() revel.Result {
 	return c.Render()
 }
 
-func (c App) unmarshalUser(body io.ReadCloser) (string, string) {
-	var jsonUser JSONUser
-	err := json.NewDecoder(body).Decode(&jsonUser)
-	if err != nil {
-		fmt.Printf("Error unmarshaling user %s", err.Error())
-		return "", ""
-	}
-	defer body.Close()
-	AppPageHitLogin.Inc()
-	return jsonUser.Email, jsonUser.Pass
-}
-
 func (c App) Login() revel.Result {
+	llog := appLog.WithField("method", "Login")
+
 	email := c.Params.Form.Get("email")
 	pass := c.Params.Form.Get("pass")
 	twofa := c.Params.Form.Get("twofa")
@@ -113,13 +107,13 @@ func (c App) Login() revel.Result {
 	data := make(map[string]interface{})
 	ok, _, err := state.AuthenticateUser2FA(email, pass, twofa)
 	if err != nil {
-		fmt.Printf("Error authenticating err: %s\n", err.Error())
+		llog.Errorf("Error authenticating err: %s\n", err.Error())
 		data[JSON_ERROR] = "Invalid username, password or 2fa, please try again."
 		c.Response.Status = 500
 		return c.RenderJSON(data)
 	}
 	if !ok {
-		fmt.Printf("Error authenticating email: %s\n", email)
+		llog.Errorf("Error authenticating email: %s\n", email)
 		data[JSON_ERROR] = "Invalid username, password or 2fa, please try again."
 		c.Response.Status = 400
 		return c.RenderJSON(data)
@@ -137,6 +131,8 @@ func (c App) Login() revel.Result {
 }
 
 func (c App) Register() revel.Result {
+	llog := appLog.WithField("method", "Register")
+
 	e := c.Params.Form.Get("email")
 	pass := c.Params.Form.Get("pass")
 	code := c.Params.Form.Get("ic")
@@ -145,14 +141,14 @@ func (c App) Register() revel.Result {
 
 	ok, err := state.ClaimInviteCode(e, code)
 	if err != nil {
-		fmt.Printf("ERROR: Error claiming invite code: %s\n", err.Error())
+		llog.Errorf("Error claiming invite code: %s\n", err.Error())
 		data[JSON_ERROR] = "Invite code invalid."
 		c.Response.Status = 500
 		return c.RenderJSON(data)
 	}
 
 	if !ok {
-		fmt.Printf("WARNING: Invite code invalid: %s\n", err.Error())
+		llog.Warningf("Warning invite code invalid: %s\n", err.Error())
 		data[JSON_ERROR] = "Invite code invalid."
 		c.Response.Status = 400
 		return c.RenderJSON(data)
@@ -160,7 +156,7 @@ func (c App) Register() revel.Result {
 
 	apiErr := state.NewUser(e, pass)
 	if apiErr != nil {
-		fmt.Printf("Error registering user: %s\n", apiErr.LogError.Error())
+		llog.Errorf("Error registering user: %s\n", apiErr.LogError.Error())
 		data[JSON_ERROR] = apiErr.UserError.Error()
 		c.Response.Status = 400
 		return c.RenderJSON(data)
@@ -172,7 +168,7 @@ func (c App) Register() revel.Result {
 
 	u, err := state.FetchUser(e)
 	if err != nil {
-		fmt.Printf("ERROR: Register fetching new user: %s\n", err)
+		llog.Errorf("Error fetching new user: %s\n", err)
 	} else {
 		link := MakeURL("verifyemail/" + url.QueryEscape(u.Username) + "/" + url.QueryEscape(u.VerifyString))
 
@@ -187,10 +183,10 @@ func (c App) Register() revel.Result {
 		})
 
 		if err != nil {
-			fmt.Printf("ERROR: Register Parsing template: %s\n", err)
+			llog.Errorf("Error register parsing template: %s\n", err)
 		} else {
 			if err = emailRequest.SendEmail(); err != nil {
-				fmt.Printf("ERROR: Register Sending email: %s\n", err)
+				llog.Errorf("Error register sending email: %s\n", err)
 			}
 		}
 	}
@@ -201,12 +197,14 @@ func (c App) Register() revel.Result {
 }
 
 func (c App) VerifyEmail() revel.Result {
+	llog := appLog.WithField("method", "VerifyEmail")
+
 	email := c.Params.Route.Get("email")
 	hash := c.Params.Route.Get("hash")
 
 	err := state.VerifyEmail(email, hash)
 	if err != nil {
-		fmt.Printf("WARNING: Attempt to verify email: %s hash: %s, error: %s\n", email, hash, err.Error())
+		llog.Warningf("Attempt to verify email: %s hash: %s, error: %s\n", email, hash, err.Error())
 		return c.NotFound("Invalid link. Please verify your email again.")
 	}
 	c.ViewArgs["email"] = email
@@ -222,6 +220,8 @@ func (c App) NewPassRequestGET() revel.Result {
 }
 
 func (c App) NewPassRequestPOST() revel.Result {
+	llog := appLog.WithField("method", "NewPassRequestPOST")
+
 	e := c.Params.Form.Get("email")
 
 	c.ViewArgs["get"] = false
@@ -230,7 +230,7 @@ func (c App) NewPassRequestPOST() revel.Result {
 
 	tokenString, err := state.GetNewJWTOTP(e)
 	if err != nil {
-		fmt.Printf("ERROR: getting new JWTOTP email: [%s] error:%s\n", err.Error())
+		llog.Errorf("Error getting new JWTOTP email: [%s] error:%s\n", err.Error())
 		// c.Response.Status = 500
 		// return c.RenderTemplate("errors/500.html")
 		return c.RenderTemplate("App/NewPassRequest.html")
@@ -247,14 +247,14 @@ func (c App) NewPassRequestPOST() revel.Result {
 	})
 
 	if err != nil {
-		fmt.Printf("ERROR: Parsing template: %s\n", err.Error())
+		llog.Errorf("Error parsing template: %s\n", err.Error())
 		// c.Response.Status = 500
 		// return c.RenderTemplate("errors/500.html")
 		return c.RenderTemplate("App/NewPassRequest.html")
 	}
 
 	if err = emailRequest.SendEmail(); err != nil {
-		fmt.Printf("ERROR: Sending new password email: %s\n", err.Error())
+		llog.Errorf("Error sending new password email: %s\n", err.Error())
 		// c.Response.Status = 500
 		// return c.RenderTemplate("errors/500.html")
 		return c.RenderTemplate("App/NewPassRequest.html")
@@ -272,6 +272,8 @@ func (c App) NewPassResponseGet() revel.Result {
 }
 
 func (c App) NewPassResponsePost() revel.Result {
+	llog := appLog.WithField("method", "NewPassResponsePost")
+
 	tokenString := c.Params.Route.Get("jwt")
 	pass := c.Params.Form.Get("pass")
 	c.ViewArgs["get"] = false
@@ -279,7 +281,7 @@ func (c App) NewPassResponsePost() revel.Result {
 	c.ViewArgs["success"] = true
 	if !state.SetNewPasswordJWTOTP(tokenString, pass) {
 		c.ViewArgs["success"] = false
-		fmt.Printf("ERROR: with new pass request JWTOTP: %s\n", tokenString)
+		llog.Errorf("Error with new pass request JWTOTP: %s\n", tokenString)
 		c.Response.Status = 400
 	}
 	c.ViewArgs["Inverse"] = true

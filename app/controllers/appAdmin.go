@@ -9,7 +9,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var caLog = log.WithField("package", "appAdmin")
+var appAdminLog = log.WithFields(log.Fields{
+	"package": "controllers",
+	"file":    "admin",
+})
 
 type AppAdmin struct {
 	*revel.Controller
@@ -25,7 +28,7 @@ func (s AppAdmin) DashboardQueuerStatus() revel.Result {
 }
 
 func (s AppAdmin) DashboardLogs() revel.Result {
-	llog := caLog.WithField("method", "DashboardLogs")
+	llog := appAdminLog.WithField("method", "DashboardLogs")
 	logs, err := ourlog.ReadLogs()
 	if err != nil {
 		logs = fmt.Sprintf("Error reading log: %s", err.Error())
@@ -36,7 +39,7 @@ func (s AppAdmin) DashboardLogs() revel.Result {
 }
 
 func (s AppAdmin) GetLogs() revel.Result {
-	llog := caLog.WithField("method", "GetLogs")
+	llog := appAdminLog.WithField("method", "GetLogs")
 	logs, err := ourlog.ReadLogs()
 	if err != nil {
 		logs = fmt.Sprintf("Error reading log: %s", err.Error())
@@ -64,15 +67,17 @@ func (s AppAdmin) ConductAudit() revel.Result {
 
 //called before any auth required function
 func (s AppAdmin) AuthUserAdmin() revel.Result {
+	llog := appAdminLog.WithField("method", "AuthUserAdmin")
+
 	if !ValidCacheEmail(s.Session.ID(), s.Session[SESSION_EMAIL]) {
-		fmt.Printf("WARNING: AuthUserSysAdmin has invalid cache: [%s] sessionId:[%s]\n", s.Session[SESSION_EMAIL], s.Session.ID())
+		llog.Warningf("Warning invalid cache: [%s] sessionId:[%s]\n", s.Session[SESSION_EMAIL], s.Session.ID())
 		s.Session[SESSION_EMAIL] = ""
 		return s.Redirect(App.Index)
 	}
 
 	err := SetCacheEmail(s.Session.ID(), s.Session[SESSION_EMAIL])
 	if err != nil {
-		fmt.Printf("WARNING: AuthUserSysAdmin failed to set cache: [%s] and error: %s\n", s.Session.ID(), err.Error())
+		llog.Warningf("Warning failed to set cache: [%s] and error: %s\n", s.Session.ID(), err.Error())
 		s.Session[SESSION_EMAIL] = ""
 		return s.Redirect(App.Index)
 	}
