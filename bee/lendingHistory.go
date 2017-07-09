@@ -270,7 +270,7 @@ func compilePoloniexData(data []poloniex.PoloniexAuthentictedLendingHistory, t t
 
 		f, err := strconv.ParseFloat(d.Fee, 64)
 		if err == nil {
-			ent.PoloniexData[d.Currency].Fees += f * -1
+			ent.PoloniexData[d.Currency].Fees += f
 		} else {
 			flog.WithFields(log.Fields{"item": "Fees", "currency": d.Currency}).Errorf("Error parsing float: Raw: %s, err: %s", d.Fee, err.Error())
 		}
