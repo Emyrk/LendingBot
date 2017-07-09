@@ -137,14 +137,13 @@ func (u *User) SafeUnmarshal(data []byte) error {
 	u1 := NewV1BlankUser()
 	n, err := u1.UnmarshalBinaryData(data)
 	if err == nil && len(n) == 0 {
-		u = UserToV2User(u1)
+		u.UserToV2User(u1)
 		return nil
 	}
 	return json.Unmarshal(data, u)
 }
 
-func UserToV2User(u *UserV1) *User {
-	u2 := new(User)
+func (u2 *User) UserToV2User(u *UserV1) {
 	u2.Username = u.Username
 	u2.PasswordHash = u.PasswordHash
 	u2.Salt = u.Salt
@@ -161,8 +160,6 @@ func UserToV2User(u *UserV1) *User {
 	u2.PoloniexMiniumLend = u.MiniumLend
 	u2.PoloniexEnabled = u.PoloniexEnabled
 	u2.PoloniexKeys = u.PoloniexKeys
-
-	return u2
 }
 
 // filterUsername returns false if illegal characters
