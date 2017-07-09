@@ -131,7 +131,7 @@ func main() {
 				for _, ps := range *psArr {
 					err = userStatMigrateDB.userStatMongoDB.RecordPoloniexStatisticTime(coin, ps.Rate, ps.Time)
 					if err != nil {
-						fmt.Printf("ERROR: saving poloniex stats")
+						fmt.Printf("ERROR: saving poloniex stats: %s\n", err.Error())
 					}
 				}
 			}
