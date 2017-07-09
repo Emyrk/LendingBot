@@ -533,7 +533,7 @@ func (us *UserStatisticsDB) GetPoloniexStatistics(currency string) (*PoloniexSta
 			},
 		}
 
-		fmt.Println(len(poloniexStatsArr), t)
+		fmt.Println(len(poloniexStatsArr), t, currency, find)
 		err = c.Find(find).Sort("-_id").All(&poloniexStatsArr)
 		if err != nil {
 			return nil, fmt.Errorf("Mongo: getPoloniexStats: findAll: %s", err.Error())
