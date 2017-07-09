@@ -21,7 +21,7 @@ var (
 func init() {
 	Currencies = make(map[int][]string)
 	Currencies[PoloniexExchange] = []string{"BTC", "BTS", "CLAM", "DOGE", "DASH", "LTC", "MAID", "STR", "XMR", "XRP", "ETH", "FCT"}
-	Currencies[BitfinexExchange] = []string{"BTC", "ETH", "ETC", "ZEC", "XMR", "LTC", "DASH", "USD"}
+	Currencies[BitfinexExchange] = []string{"BTC", "ETH", "ETC", "ZEC", "XMR", "LTC", "DASH", "USD", "IOT", "EOS"}
 
 	MaxLendAmt = make(map[int]map[string]float64)
 	MaxLendAmt[PoloniexExchange] = make(map[string]float64)

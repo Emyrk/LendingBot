@@ -11,7 +11,7 @@ app.factory('redirectInterceptor', [ "$q", "$location", "$window", "$interval",
         	console.log("RESPONSE: " + response);
         	if (response.status == 403) {
         		window.location = "/";
-        		$interval(() => { window.location = "/"; } );
+        		$interval(() => { window.location = "/"; }, 2000);
         	}
     		return $q.reject(response);
         }
