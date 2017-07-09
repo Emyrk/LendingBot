@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Emyrk/LendingBot/slack"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -93,6 +94,7 @@ func (b *Bee) Runloop() {
 	b.LastHearbeat = time.Now()
 	go b.HandleSends()
 	go b.HandleReceieves()
+	slackError := false
 	for {
 		time.Sleep(100 * time.Millisecond)
 		b.Recount()
@@ -102,6 +104,10 @@ func (b *Bee) Runloop() {
 		// React on state changes
 		switch b.Status {
 		case Online:
+			if slackError {
+				slackError = false
+				slack.SendMessage(":frog:", "beeBot", "alerts", fmt.Sprintf("@channel Bee [%s] has come back online"))
+			}
 			// Process Received Parcels
 			b.ProcessParcels()
 		case Offline:
@@ -110,6 +116,10 @@ func (b *Bee) Runloop() {
 				flog.Warningf("Shutting down, has been: %fs. We only allow %fs", time.Since(b.LastHearbeat).Seconds(), b.RebalanceDuration.Seconds())
 				b.Shutdown()
 			} else {
+				if time.Since(b.LastHearbeat) > time.Minute && !slackError {
+					slack.SendMessage(":rage:", "beeBot", "alerts", fmt.Sprintf("@channel Bee [%s] has been dead for over a minute"))
+					slackError = true
+				}
 				time.Sleep(250 * time.Millisecond)
 			}
 		case Shutdown:
