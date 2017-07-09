@@ -315,7 +315,7 @@ func (l *QueenBee) rising(exchange int, currency string) int {
 	}
 	if l.exchangeStats[exchange][currency].HrAvg > l.exchangeStats[exchange][currency].DayAvg+(1*l.exchangeStats[exchange][currency].DayStd) {
 		return 2
-	} else if l.exchangeStats[exchange][currency].HrAvg > l.exchangeStats[exchange][currency].DayAvg+(.05*l.exchangeStats[exchange][currency].DayStd) {
+	} else if l.exchangeStats[exchange][currency].HrAvg > l.exchangeStats[exchange][currency].DayAvg+(0.05*l.exchangeStats[exchange][currency].DayStd) {
 		return 1
 	}
 
