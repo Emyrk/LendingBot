@@ -78,7 +78,7 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 	}()
 
 	// Only process once per minute max
-	if time.Since(v) < time.Minute {
+	if time.Since(v) < time.Second { //time.Minute {
 		return nil
 	}
 

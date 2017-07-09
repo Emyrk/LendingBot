@@ -310,7 +310,7 @@ func (a *Auditor) UserDBUserToBalancerUser(u *userdb.User, exch int) (*User, err
 		if err != nil {
 			return nil, err
 		}
-		fmt.Println(balUser.AccessKey, balUser.SecretKey)
+		fmt.Printf("%x, %s, %s", u.BitfinexKeys.EncryptedAPIKey, balUser.AccessKey, balUser.SecretKey)
 	}
 	return balUser, nil
 }

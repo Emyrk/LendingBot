@@ -22,7 +22,6 @@ func (h *Hive) UpdateUserKey(email string, exch int) error {
 
 // AddUser will add a user to a bee and the BasePool
 func (h *Hive) AddUser(u *User) error {
-	u.Active = true
 	var err error
 
 	// Ensure API key exists
@@ -35,6 +34,7 @@ func (h *Hive) AddUser(u *User) error {
 			return fmt.Errorf("User not found in db")
 		}
 	}
+	u.Active = true
 
 	// Find the Slave with the least on this exchange
 	bees := h.Slaves.GetAndLockAllBees(false)
