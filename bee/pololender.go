@@ -83,6 +83,7 @@ type LendUser struct {
 func (l *Lender) Runloop() {
 	go l.BitfinLender.Run()
 	for {
+		startLoop := time.Now()
 		// Process all users
 		for _, u := range l.Users {
 			// Find the latest update
@@ -147,8 +148,11 @@ func (l *Lender) Runloop() {
 			return
 		default:
 		}
-		l.cycles++
 
+		took := time.Since(startLoop).Seconds()
+		if took < 10 {
+			time.Sleep(time.Duration(10-took) * time.Second)
+		}
 	}
 }
 
