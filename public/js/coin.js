@@ -118,8 +118,8 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 					// res.data.LoanHistory
 					for(i = res.data.LoanHistory.length-1; i >= 0; i--) {
 						if (new Date(res.data.LoanHistory[i].time).getFullYear() > 2000) {
-							var f = parseFloat(res.data.LoanHistory[i].data[coinScope.coin].fees),
-							e = parseFloat(res.data.LoanHistory[i].data[coinScope.coin].earned);
+							var f = parseFloat(res.data.LoanHistory[i].poloniexdata[coinScope.coin].fees),
+							e = parseFloat(res.data.LoanHistory[i].poloniexdata[coinScope.coin].earned);
 							fee.push(f);
 							earned.push(e);
 							var usdRate = res.data.USDRates["USD_"+coinScope.coin]
