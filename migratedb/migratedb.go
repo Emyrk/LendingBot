@@ -168,7 +168,7 @@ func main() {
 						fmt.Printf("Error saving user %s userStat: %s\n", u.Username, err.Error())
 					}
 				}
-				fmt.Printf("     - Kept %d/%d", keep, len(stats))
+				fmt.Printf("     - Kept %d/%d\n", keep, len(stats))
 			}
 		}
 		fmt.Printf("---------FINISHED MIRGATE USERSTATS---------\n")
