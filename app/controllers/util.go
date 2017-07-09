@@ -46,7 +46,7 @@ func ValidCacheEmail(sessionId string, email string) bool {
 		}
 	}
 
-	fmt.Printf("Comparing strings [%s]s, [%s]\n", e, email)
+	// fmt.Printf("Comparing strings [%s]s, [%s]\n", e, email)
 
 	return e == email && len(e) > 0 && len(email) > 0
 }
