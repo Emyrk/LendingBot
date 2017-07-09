@@ -15,21 +15,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var AvaiableCoins = []string{
-	"BTC",
-	"BTS",
-	"CLAM",
-	"DOGE",
-	"DASH",
-	"LTC",
-	"MAID",
-	"STR",
-	"XMR",
-	"XRP",
-	"ETH",
-	"FCT",
-}
-
 var llog = generalBeeLogger.WithField("subpackage", "LendingHistory")
 
 type LendingHistoryKeeper struct {
@@ -118,7 +103,7 @@ func (l *LendingHistoryKeeper) SavePoloniexMonth(username, accesskey, secretkey 
 		l.WorkOnLockPolo.Unlock()
 	}()
 	start := time.Now()
-	flog.WithField("user", username).Infof("Saving Month starting")
+	flog.WithField("user", username).Infof("[P] Saving Month starting")
 
 	skipped := 0
 	total := float64(0)
@@ -131,7 +116,7 @@ func (l *LendingHistoryKeeper) SavePoloniexMonth(username, accesskey, secretkey 
 	curr := top.Add(time.Hour * -72).Add(1 * time.Second)
 	for i := l.FindStart(username, top, balancer.PoloniexExchange); i < 30; i++ {
 		per := time.Now()
-		flog.Infof("Username: %s, Top: %s", username, top.String())
+		flog.Infof("[P] Username: %s, Top: %s", username, top.String())
 
 		v, err := l.MyBee.userStatDB.GetLendHistorySummary(username, top) //l.St.LoadLendingSummary(username, curr)
 		if v == nil || err != nil || !v.PoloSet {
@@ -164,12 +149,12 @@ func (l *LendingHistoryKeeper) SavePoloniexMonth(username, accesskey, secretkey 
 		total += time.Since(per).Seconds()
 	}
 
-	flog.WithField("user", username).Infof("Saving month completed in %fs. %d Skipped, avg %fs", time.Since(start).Seconds(), skipped, total/28)
+	flog.WithField("user", username).Infof("[P] Saving month completed in %fs. %d Skipped, avg %fs", time.Since(start).Seconds(), skipped, total/28)
 	return true
 }
 
 func (l *LendingHistoryKeeper) SaveBitfinexMonth(username, accesskey, secretkey string) bool {
-	flog := llog.WithField("func", "SaveBitfinexMonth").WithField("exch", "Poloniex")
+	flog := llog.WithField("func", "SaveBitfinexMonth").WithField("exch", "Bitfinex")
 	l.WorkOnLockBit.RLock()
 	v, ok := l.WorkingOnBit[username]
 	l.WorkOnLockBit.RUnlock()
@@ -191,7 +176,7 @@ func (l *LendingHistoryKeeper) SaveBitfinexMonth(username, accesskey, secretkey 
 		l.WorkOnLockBit.Unlock()
 	}()
 	start := time.Now()
-	flog.WithField("user", username).Infof("Saving Month starting")
+	flog.WithField("user", username).Infof("[B] Saving Month starting")
 
 	skipped := 0
 	total := float64(0)
@@ -204,7 +189,7 @@ func (l *LendingHistoryKeeper) SaveBitfinexMonth(username, accesskey, secretkey 
 	curr := top.Add(time.Hour * -24).Add(1 * time.Second)
 	for i := l.FindStart(username, top, balancer.BitfinexExchange); i < 30; i++ {
 		per := time.Now()
-		flog.Infof("Username: %s, Top: %s", username, top.String())
+		flog.Infof("[B] Username: %s, Top: %s", username, top.String())
 
 		v, err := l.MyBee.userStatDB.GetLendHistorySummary(username, top) //l.St.LoadLendingSummary(username, curr)
 		if v == nil || err != nil || !v.BitfinSet {
@@ -237,7 +222,7 @@ func (l *LendingHistoryKeeper) SaveBitfinexMonth(username, accesskey, secretkey 
 		total += time.Since(per).Seconds()
 	}
 
-	flog.WithField("user", username).Infof("Saving month completed in %fs. %d Skipped, avg %fs", time.Since(start).Seconds(), skipped, total/28)
+	flog.WithField("user", username).Infof("[B] Saving month completed in %fs. %d Skipped, avg %fs", time.Since(start).Seconds(), skipped, total/28)
 	return true
 }
 

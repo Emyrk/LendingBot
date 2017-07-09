@@ -158,7 +158,7 @@ type UserStatistic struct {
 func RandStats() *userdb.AllUserStatistic {
 	stats := userdb.NewAllUserStatistic()
 
-	for _, v := range curarr {
+	for _, v := range userdb.AvaiableCoins {
 		r := .1
 		if v == "BTC" {
 			r = 1
