@@ -41,7 +41,7 @@ func (a *CurrentUserStatistics) combine(b *CurrentUserStatistics) *CurrentUserSt
 	aTot := a.BTCLent + a.BTCNotLent
 	bTot := b.BTCLent + b.BTCNotLent
 
-	c.LoanRate = ((a.LoanRate * a.BTCLent) + (b.LoanRate + b.BTCLent)) / (a.BTCLent + b.BTCLent)
+	c.LoanRate = ((a.LoanRate * a.BTCLent) + (b.LoanRate * b.BTCLent)) / (a.BTCLent + b.BTCLent)
 	c.BTCLent = a.BTCLent + b.BTCLent
 	c.BTCNotLent = a.BTCNotLent + b.BTCNotLent
 	c.LendingPercent = c.BTCLent / (c.BTCLent + c.BTCNotLent)
@@ -50,6 +50,8 @@ func (a *CurrentUserStatistics) combine(b *CurrentUserStatistics) *CurrentUserSt
 	c.LendingPercentChange = ((aTot * a.LendingPercentChange) + (bTot * b.LendingPercentChange)) / (aTot + bTot)
 	c.BTCLentChange = a.BTCLentChange + b.BTCLentChange
 	c.BTCNotLentChange = a.BTCNotLentChange + b.BTCNotLentChange
+	fmt.Println(a, b, c)
+
 	return c
 }
 
