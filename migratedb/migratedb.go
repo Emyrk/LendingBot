@@ -155,7 +155,12 @@ func main() {
 			for i := 0; i < 29; i++ {
 				stats := userStatMigrateDB.userStatEmbeddedDB.GetStatisticsOneDay(u.Username, i)
 				fmt.Printf("userstat info found for [%s] Day [%d]: %d\n", u.Username, i, len(stats))
+				c := 0
 				for i, _ := range stats {
+					c++
+					if c%3 != 0 {
+						continue
+					}
 					err = userStatMigrateDB.userStatMongoDB.RecordData(&stats[i])
 					if err != nil {
 						fmt.Printf("Error saving user %s userStat: %s\n", u.Username, err.Error())
