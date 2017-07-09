@@ -272,7 +272,7 @@ function numberFix(n, l) {
 
 function initPercentLentGraph(bitfinLent, bitfinNotLent, poloLent, poloNotLent, coin) {
 	Highcharts.chart('lent-totals-graph', {
-
+		colors: ['#33cc33', '#ff3300', '#248f24', '#b32400'],
 		title: {
 			text: 'Total Currency Being Lent'
 		},
@@ -290,7 +290,7 @@ function initPercentLentGraph(bitfinLent, bitfinNotLent, poloLent, poloNotLent, 
 		tooltip: {
 			crosshairs: true,
 			shared: true,
-			valueSuffix: 'coin'
+			valueSuffix: coin
 		},
 
 		legend: {
@@ -301,36 +301,36 @@ function initPercentLentGraph(bitfinLent, bitfinNotLent, poloLent, poloNotLent, 
 			data: poloLent,
 			zIndex: 1,
 			marker: {
-				fillColor: 'white',
+				fillColor: "#0a6970",
 				lineWidth: 2,
-				lineColor: Highcharts.getOptions().colors[0]
+				lineColor: "#0a6970"
 			}
 		}, {
 			name: 'Poloniex Currency NotLent',
 			data: poloNotLent,
 			zIndex: 1,
 			marker: {
-				fillColor: 'white',
+				fillColor: "#0a6970",
 				lineWidth: 2,
-				lineColor: Highcharts.getOptions().colors[0]
+				lineColor: "#0a6970"
 			}
 		}, {
 			name: 'Bitfinex Currency Lent',
 			data: bitfinLent,
 			zIndex: 1,
 			marker: {
-				fillColor: 'white',
+				fillColor: "#004d00",
 				lineWidth: 2,
-				lineColor: Highcharts.getOptions().colors[0]
+				lineColor: "#004d00"
 			}
 		}, {
 			name: 'Bitfinex Currency NotLent',
 			data: bitfinNotLent,
 			zIndex: 1,
 			marker: {
-				fillColor: 'white',
+				fillColor: "#004d00",
 				lineWidth: 2,
-				lineColor: Highcharts.getOptions().colors[0]
+				lineColor: "#004d00"
 			}
 		}]
 	});	
