@@ -133,7 +133,7 @@ func (u *UserV1) GetLevelString() string {
 }
 
 func (u *UserV1) String() string {
-	return fmt.Sprintf("UserName: %s, Level: %s", u.Username, LevelToString(u.Level))
+	return fmt.Sprintf("UserName: %s, Level: %s, PoloKeys: %t", u.Username, LevelToString(u.Level), !u.PoloniexKeys.APIKeyEmpty())
 }
 
 func (a *UserV1) IsSameAs(b *UserV1) bool {
@@ -339,7 +339,6 @@ func (u *UserV1) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 	// starttime
 	err = u.StartTime.UnmarshalBinary(newData[:15])
 	if err != nil {
-		fmt.Println("1")
 		return data, err
 	}
 	newData = newData[15:]
@@ -347,7 +346,6 @@ func (u *UserV1) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 	// jwttime
 	err = u.JWTTime.UnmarshalBinary(newData[:15])
 	if err != nil {
-		fmt.Println("2")
 		return data, err
 	}
 	newData = newData[15:]
@@ -355,7 +353,6 @@ func (u *UserV1) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 	// level
 	v, err := primitives.BytesToUint32(newData[:4])
 	if err != nil {
-		fmt.Println("3")
 		return data, err
 	}
 	u.Level = UserLevel(v)
@@ -364,14 +361,12 @@ func (u *UserV1) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 	// miniummlend
 	newData, err = u.MiniumLend.UnmarshalBinaryData(newData)
 	if err != nil {
-		fmt.Println("4")
 		return data, err
 	}
 
 	// Lending Strat
 	v, err = primitives.BytesToUint32(newData[:4])
 	if err != nil {
-		fmt.Println("5")
 		return data, err
 	}
 	u.LendingStrategy = v
@@ -390,7 +385,6 @@ func (u *UserV1) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 		var issuer string
 		issuer, newData, err = primitives.UnmarshalStringFromBytesData(newData, 100)
 		if err != nil {
-			fmt.Println("6")
 			return data, err
 		}
 		u.Issuer = issuer
@@ -398,7 +392,6 @@ func (u *UserV1) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 		// len 2fa
 		l, err := primitives.BytesToUint32(newData[:4])
 		if err != nil {
-			fmt.Println("7")
 			return data, err
 		}
 		newData = newData[4:]
@@ -406,7 +399,6 @@ func (u *UserV1) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 		// 2fa
 		totp, err := twofactor.TOTPFromBytes(newData[:l], u.Issuer)
 		if err != nil {
-			fmt.Println("8")
 			return data, err
 		}
 		u.User2FA = totp
@@ -425,7 +417,6 @@ func (u *UserV1) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 	var vrystr string
 	vrystr, newData, err = primitives.UnmarshalStringFromBytesData(newData, 64)
 	if err != nil {
-		fmt.Println("9")
 		return data, nil
 	}
 	u.VerifyString = vrystr
@@ -433,14 +424,12 @@ func (u *UserV1) UnmarshalBinaryData(data []byte) (newData []byte, err error) {
 	// PoloniexEnabled
 	newData, err = u.PoloniexEnabled.UnmarshalBinaryData(newData)
 	if err != nil {
-		fmt.Println("10")
 		return data, nil
 	}
 
 	// PoloniexKeys
 	newData, err = u.PoloniexKeys.UnmarshalBinaryData(newData)
 	if err != nil {
-		fmt.Println("11")
 		return data, err
 	}
 
