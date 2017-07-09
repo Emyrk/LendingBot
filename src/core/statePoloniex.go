@@ -203,6 +203,12 @@ func (s *State) PoloniexGetLoanOrders(currency string) (*poloniex.PoloniexLoanOr
 	return s.PoloniexAPI.GetLoanOrders(currency)
 }
 
+func (s *State) PoloniexGetTicker() (map[string]poloniex.PoloniexTicker, error) {
+	take()
+	PoloPublicCalls.Inc()
+	return s.PoloniexAPI.GetTicker()
+}
+
 func (s *State) PoloniexSingleAuthenticatedTradeHistory(currency, username, start, end string) (resp poloniex.PoloniexAuthenticatedTradeHistoryResponse, err error) {
 	if currency == "all" {
 		return resp, fmt.Errorf("Cannot be 'all'")

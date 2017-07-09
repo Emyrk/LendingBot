@@ -71,7 +71,7 @@ func (q *Queuer) Close() error {
 }
 
 func (q *Queuer) Start() {
-	ticker := time.NewTicker(time.Second * 10)
+	ticker := time.NewTicker(time.Second * 30)
 	interval := 0
 	q.LoadUsers()
 
@@ -93,6 +93,7 @@ func (q *Queuer) Start() {
 			}
 			interval = 0
 
+			check := false
 			if time.Since(last).Seconds() > 60 {
 				var str = ""
 				str += fmt.Sprintf("Have %d users to make jobs for\n", len(q.AllUsers))
@@ -101,11 +102,12 @@ func (q *Queuer) Start() {
 				}
 				q.Status = str
 				last = time.Now()
+				check = true
 			}
 			// if time.Since(lastCalc).Seconds() > 30 {
 			// 	q.calcStats()
 			// }
-			q.AddJobs()
+			q.AddJobs(check)
 
 		}
 	}
@@ -119,13 +121,15 @@ func (q *Queuer) calcStats() {
 	QueuerJobsMade.Inc()
 }
 
-func (q *Queuer) AddJobs() {
+func (q *Queuer) AddJobs(save bool) {
 	for _, u := range q.AllUsers {
 		j := lender.NewManualJob(u.Username, u.MiniumumLoanAmts, u.LendingStrategy, u.EnablesCurrencies)
 		if j.Currency == nil || j.MinimumLend == nil {
 			continue
 		}
-		q.Lender.SaveMonth(u.Username)
+		if save {
+			go q.Lender.SaveMonth(u.Username)
+		}
 		q.Lender.AddJob(j)
 		QueuerJobsMade.Inc()
 	}

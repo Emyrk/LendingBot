@@ -132,6 +132,7 @@ func NewLender(s *core.State) *Lender {
 }
 
 func (l *Lender) SaveMonth(username string) {
+	return
 	l.LHKeeper.SaveMonth(username)
 }
 
@@ -268,7 +269,7 @@ func (l *Lender) JobQueueLength() int {
 }
 
 func (l *Lender) UpdateTicker() {
-	ticker, err := l.State.PoloniexAPI.GetTicker()
+	ticker, err := l.State.PoloniexGetTicker()
 	if err == nil {
 		l.Ticker = ticker
 	}
@@ -341,12 +342,12 @@ func (l *Lender) CalculateLoanRate(currency string) error {
 	s := l.State
 	loans, err := s.PoloniexGetLoanOrders(currency)
 	if err != nil {
-		clog.WithFields(log.Fields{"method": "CalcLoan"}).Errorf("Error when grabbing loans for CalcRate: %s", err.Error())
+		clog.WithFields(log.Fields{"method": "CalcLoan", "currency": currency}).Errorf("Error when grabbing loans for CalcRate: %s", err.Error())
 		return err
 	}
-
 	if len(loans.Offers) == 0 {
-		clog.WithFields(log.Fields{"method": "CalcLoan"}).Errorf("No offers found in loan book.")
+		clog.WithFields(log.Fields{"method": "CalcLoan", "currency": currency}).Errorf("Error when grabbing loans for CalcRate: %s", "No loans in loanbook")
+		return fmt.Errorf("No loans in loan book for %s", currency)
 	}
 
 	breakoff := l.getAmtForBTCValue(5, currency)
@@ -648,7 +649,7 @@ func (l *Lender) tierOneProcessJob(j *Job) error {
 			if ok && v.GetBestReturnRate() > 0 {
 				poloRate := v.GetBestReturnRate()
 				if rate < poloRate {
-					rate = (rate + poloRate) / 2
+					rate = poloRate // (rate + poloRate) / 2
 				}
 			}
 		}

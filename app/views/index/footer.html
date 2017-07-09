@@ -28,6 +28,52 @@
   ga('send', 'pageview');
 </script>
 
+<script>
+$(document).ready(function() {
+    $('#loginForm').bind('submit', $('#loginForm'), function(event) {
+        var form = this;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (form.submitted) {
+            return;
+        }
+
+        form.submitted = true;
+        form.submitted = false;
+        form.submit();
+
+        // $.ajax({
+        //     url: '/login',
+        //     method : "POST",
+        //     data: {
+        //         username: $('input[name=username]').val(),
+        //         password: $('input[name=password]').val()
+        //     },
+        //     success: function(response) {
+        //         form.submitted = false;
+        //         form.submit(); //invoke the save password in browser
+        //     }
+        // });
+    });
+    $('#registerForm').bind('submit', $('#registerForm'), function(event) {
+        var form = this;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (form.submitted) {
+            return;
+        }
+
+        form.submitted = true;
+        form.submitted = false;
+        form.submit();
+    }
+});
+</script>
+
 	[[if eq .RunMode "dev"]]
 		[[template "debug.html" .]]
 	[[else]]

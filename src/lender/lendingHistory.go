@@ -45,19 +45,18 @@ func NewLendingHistoryKeeper(s *core.State) *LendingHistoryKeeper {
 }
 
 func (l *LendingHistoryKeeper) SaveMonth(username string) {
-	l.WorkOnLock.RLock()
+	l.WorkOnLock.Lock()
 	v, ok := l.WorkingOn[username]
-	l.WorkOnLock.RUnlock()
 	if !ok {
 		l.WorkingOn[username] = time.Now()
 	} else {
 		// If done within 5hrs, don't bother
 		if time.Since(v).Seconds() < 60*60*10 {
+			l.WorkOnLock.Unlock()
 			return
 		}
 	}
 
-	l.WorkOnLock.Lock()
 	l.WorkingOn[username] = time.Now()
 	l.WorkOnLock.Unlock()
 	defer func() {
@@ -71,6 +70,7 @@ func (l *LendingHistoryKeeper) SaveMonth(username string) {
 		flog.WithField("user", username).Errorf("No slaves to make lending hist calls")
 		return
 	}
+	flog.Infof("Starting saving month for user: %s", username)
 
 	n := time.Now().UTC()
 	top := time.Date(n.Year(), n.Month(), n.Day(), 0, 0, 0, 0, time.UTC)
@@ -105,6 +105,7 @@ func (l *LendingHistoryKeeper) SaveMonth(username string) {
 		top = top.Add(-24 * time.Hour)
 		curr = curr.Add(-24 * time.Hour)
 	}
+	flog.Infof("Finished saving month for user: %s. Took %fs", username, time.Since(n).Seconds())
 }
 
 func (l *LendingHistoryKeeper) getLendhist(username, start, end, limit string) (resp poloniex.PoloniexAuthentictedLendingHistoryRespone, err error) {
