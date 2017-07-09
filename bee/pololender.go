@@ -81,7 +81,7 @@ type LendUser struct {
 }
 
 func (*LendUser) Prefix() string {
-	return fmt.Sprintf("%s ", time.Now())
+	return fmt.Sprintf("%s ", time.Now().UTC())
 }
 
 func (l *Lender) Runloop() {
