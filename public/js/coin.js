@@ -290,7 +290,8 @@ function initPercentLentGraph(bitfinLent, bitfinNotLent, poloLent, poloNotLent, 
 		tooltip: {
 			crosshairs: true,
 			shared: true,
-			valueSuffix: coin
+			valueSuffix: " " + coin,
+			thousandsSep: ','
 		},
 
 		legend: {
@@ -356,7 +357,8 @@ function initLineRangeGraph(poloAverages, poloRanges, bitfinexAvgerages, bitfine
 		tooltip: {
 			crosshairs: true,
 			shared: true,
-			valueSuffix: '%'
+			valueSuffix: '%',
+			thousandsSep: ','
 		},
 
 		legend: {
