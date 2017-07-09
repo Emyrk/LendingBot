@@ -310,6 +310,7 @@ func (b *Bee) ProcessParcels() {
 					if mu.Username == m.U.Username && mu.Exchange == m.U.Exchange {
 						// Same user, get out
 						newU = i
+						b.userlock.Unlock()
 						break
 					}
 				}
