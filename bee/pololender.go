@@ -498,6 +498,7 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 	// Save here
 	// TODO: Jesse Save the stats here. This is the userstatistics, we will retrieve these by time
 	// db.RecordData(stats)
+	stats.Exchange = userdb.PoloniexExchange
 	err := l.Bee.SaveUserStastics(stats)
 
 	l.recordMapLock.Lock()
@@ -509,6 +510,13 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 func (l *Lender) getAmtForBTCValue(amount float64, currency string) float64 {
 	if currency == "BTC" {
 		return amount
+	}
+
+	if currency == "IOT" {
+		return amount / l.BitfinLender.iotLast
+	}
+	if currency == "EOS" {
+		return amount / l.BitfinLender.eosLast
 	}
 
 	l.tickerlock.RLock()
@@ -525,6 +533,14 @@ func (l *Lender) getBTCAmount(amount float64, currency string) float64 {
 	if currency == "BTC" {
 		return amount
 	}
+
+	if currency == "IOT" {
+		return amount * l.BitfinLender.iotLast
+	}
+	if currency == "EOS" {
+		return amount * l.BitfinLender.eosLast
+	}
+
 	l.tickerlock.RLock()
 	t, ok := l.ticker[fmt.Sprintf("BTC_%s", currency)]
 	l.tickerlock.RUnlock()
