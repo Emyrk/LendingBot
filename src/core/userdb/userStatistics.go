@@ -1111,7 +1111,7 @@ func (a *AllLendingHistoryEntry) Pop() {
 // LendingHistory
 func (us *UserStatisticsDB) SaveLendingHistory(lendHist *AllLendingHistoryEntry) error {
 	if us.mdb != nil {
-		s, c, err := us.mdb.GetCollection(mongo.C_LendHist_POL)
+		s, c, err := us.mdb.GetCollection(mongo.C_LendHist)
 		if err != nil {
 			return fmt.Errorf("Mongo: SaveLendingHistory: createSession: %s", err.Error())
 		}
@@ -1142,7 +1142,7 @@ func (us *UserStatisticsDB) SaveLendingHistory(lendHist *AllLendingHistoryEntry)
 func (us *UserStatisticsDB) GetLendHistorySummary(username string, t time.Time) (*AllLendingHistoryEntry, error) {
 	if us.mdb != nil {
 		result := NewAllLendingHistoryEntry()
-		s, c, err := us.mdb.GetCollection(mongo.C_LendHist_POL)
+		s, c, err := us.mdb.GetCollection(mongo.C_LendHist)
 		if err != nil {
 			return result, fmt.Errorf("Mongo: GetLendHistorySummary: createSession: %s", err.Error())
 		}
