@@ -32,7 +32,7 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 				},
 				legend: {
 					selectedMode:false,
-					data:['Poloniex Earned', 'Poloniex Fee']
+					data:['Poloniex Earned', 'Poloniex Fee', 'Bitfinex Earned', 'Bitfinex Fee']
 				},
 				toolbox: {
 					show : true,
