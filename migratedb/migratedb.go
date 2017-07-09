@@ -121,6 +121,7 @@ func main() {
 		// fmt.Printf("---------FINISHED MIRGATE LENDING HISTORY---------\n")
 		fmt.Printf("---------START MIRGATE EXCHANGE---------\n")
 
+		bad := 0
 		poloCoins := []string{"BTC", "BTS", "CLAM", "DOGE", "DASH", "LTC", "MAID", "STR", "XMR", "XRP", "ETH", "FCT"}
 		for _, coin := range poloCoins {
 			psArr, err := userStatMigrateDB.userStatEmbeddedDB.GetAllPoloniexStatistics(coin)
@@ -129,6 +130,10 @@ func main() {
 			} else {
 				fmt.Printf("Exchange info found: %d\n", len(*psArr))
 				for _, ps := range *psArr {
+					if ps.Rate > 2 {
+						bad++
+						continue
+					}
 					err = userStatMigrateDB.userStatMongoDB.RecordPoloniexStatisticTime(coin, ps.Rate, ps.Time)
 					if err != nil {
 						fmt.Printf("ERROR: saving poloniex stats")
@@ -137,6 +142,7 @@ func main() {
 			}
 		}
 
+		fmt.Printf("Found %d bad\n", bad)
 		fmt.Printf("---------FINISHED MIRGATE EXCHANGE---------\n")
 		fmt.Printf("---------START MIRGATE USERSTATS---------\n")
 
