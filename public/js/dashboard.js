@@ -84,7 +84,20 @@ app.controller('dashBaseController', ['$scope', '$http', '$log', "$location", "$
 			if($cookies.get('HODL_TIMEOUT') == null) {
 				$window.location = '/'
 			}
-		}, 15000)
+		}, 15000);
+
+		dashBaseScope.getUTCDate = function() {
+			var now = new Date;
+			dashBaseScope.currentUTC = months[now.getMonth()] + " " + now.getDate() + " " + 
+				now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds()
+		}
+
+		//init
+		dashBaseScope.getUTCDate();
+		$interval(() => {
+			dashBaseScope.getUTCDate();
+		}, 350);
+		/////////
 	}]);
 
 app.controller('dashInfoController', ['$scope', '$http', '$log', '$interval', '$timeout',
@@ -584,3 +597,4 @@ var backgroundColor =[
 "#9ACD32",
 "#FF6347"
 ]
+var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
