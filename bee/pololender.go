@@ -149,6 +149,7 @@ func (l *Lender) Runloop() {
 		default:
 		}
 
+		l.cycles++
 		took := time.Since(startLoop).Seconds()
 		if took < 10 {
 			time.Sleep(time.Duration(10-took) * time.Second)
