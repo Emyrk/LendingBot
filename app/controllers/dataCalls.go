@@ -35,6 +35,24 @@ type CurrentUserStatistics struct {
 	BTCEarned float64 `json:"btcearned"`
 }
 
+func (a *CurrentUserStatistics) combine(b *CurrentUserStatistics) *CurrentUserStatistics {
+	c := newCurrentUserStatistics()
+
+	aTot := a.BTCLent + a.BTCNotLent
+	bTot := b.BTCLent + b.BTCNotLent
+
+	c.LoanRate = ((a.LoanRate * a.BTCLent) + (b.LoanRate + b.BTCLent)) / (a.BTCLent + b.BTCLent)
+	c.BTCLent = a.BTCLent + b.BTCLent
+	c.BTCNotLent = a.BTCNotLent + b.BTCNotLent
+	c.LendingPercent = c.BTCLent / (c.BTCLent + c.BTCNotLent)
+
+	c.LoanRateChange = ((aTot * a.LoanRateChange) + (bTot * b.LoanRateChange)) / (aTot + bTot)
+	c.LendingPercentChange = ((aTot * a.LendingPercentChange) + (bTot * b.LendingPercentChange)) / (aTot + bTot)
+	c.BTCLentChange = a.BTCLentChange + b.BTCLentChange
+	c.BTCNotLentChange = a.BTCNotLentChange + b.BTCNotLentChange
+	return c
+}
+
 func (c *CurrentUserStatistics) scrub() {
 	if math.IsNaN(c.LoanRate) {
 		c.LoanRate = 0
@@ -94,6 +112,14 @@ func newUserBalanceDetails() *UserBalanceDetails {
 	return u
 }
 
+func (a *UserBalanceDetails) combine(b *UserBalanceDetails) {
+	for k, v := range b.CurrencyMap {
+		m, _ := a.CurrencyMap[k]
+		a.CurrencyMap[k] = v + m
+	}
+	a.compute()
+}
+
 // compute computed the percentmap
 func (u *UserBalanceDetails) compute() {
 	total := float64(0)
@@ -129,42 +155,53 @@ func (u *UserBalanceDetails) scrub() {
 }
 
 func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
-	userStats, err := state.GetUserStatistics(email, 2)
+	poloUserStats, err := state.GetUserStatistics(email, 2, "polo")
+	bitUserStats, err := state.GetUserStatistics(email, 2, "bit")
 
-	balanceDetails := newUserBalanceDetails()
-	today := newCurrentUserStatistics()
-	if err != nil {
-		balanceDetails.compute()
+	collapse := func(data [][]userdb.AllUserStatistic) (*CurrentUserStatistics, *UserBalanceDetails) {
+		balanceDetails := newUserBalanceDetails()
+		today := newCurrentUserStatistics()
+		if err != nil {
+			balanceDetails.compute()
+			return today, balanceDetails
+		}
+		l := len(poloUserStats)
+		if l > 0 && len(poloUserStats[0]) > 0 {
+			now := poloUserStats[0][0]
+			// Set balance ratios
+			balanceDetails.CurrencyMap = now.TotalCurrencyMap
+			balanceDetails.compute()
+
+			totalAct := float64(0)
+			for _, v := range now.Currencies {
+				// fmt.Println(v)
+				today.LoanRate += v.AverageActiveRate * (v.ActiveLentBalance * v.BTCRate)
+				totalAct += v.ActiveLentBalance * v.BTCRate
+				today.BTCLent += v.ActiveLentBalance * v.BTCRate
+				today.BTCNotLent += (v.OnOrderBalance + v.AvailableBalance) * v.BTCRate
+			}
+			today.LoanRate = today.LoanRate / totalAct
+
+			today.LendingPercent = today.BTCLent / (today.BTCLent + today.BTCNotLent)
+
+			yesterday := userdb.GetCombinedDayAverage(poloUserStats[1])
+			if yesterday != nil {
+				today.LoanRateChange = today.LoanRate - yesterday.LoanRate
+				today.BTCLentChange = today.BTCLent - yesterday.Lent
+				today.BTCNotLentChange = today.BTCNotLent - yesterday.NotLent
+				today.LendingPercentChange = today.LendingPercent - yesterday.LendingPercent
+			}
+		}
 		return today, balanceDetails
 	}
-	l := len(userStats)
-	if l > 0 && len(userStats[0]) > 0 {
-		now := userStats[0][0]
-		// Set balance ratios
-		balanceDetails.CurrencyMap = now.TotalCurrencyMap
-		balanceDetails.compute()
 
-		totalAct := float64(0)
-		for _, v := range now.Currencies {
-			// fmt.Println(v)
-			today.LoanRate += v.AverageActiveRate * (v.ActiveLentBalance * v.BTCRate)
-			totalAct += v.ActiveLentBalance * v.BTCRate
-			today.BTCLent += v.ActiveLentBalance * v.BTCRate
-			today.BTCNotLent += (v.OnOrderBalance + v.AvailableBalance) * v.BTCRate
-		}
-		today.LoanRate = today.LoanRate / totalAct
+	poloToday, poloBals := collapse(poloUserStats)
+	bitToday, bitBals := collapse(bitUserStats)
 
-		today.LendingPercent = today.BTCLent / (today.BTCLent + today.BTCNotLent)
+	poloBals.combine(bitBals)
+	balanceDetails := poloBals
 
-		yesterday := userdb.GetCombinedDayAverage(userStats[1])
-		if yesterday != nil {
-			today.LoanRateChange = today.LoanRate - yesterday.LoanRate
-			today.BTCLentChange = today.BTCLent - yesterday.Lent
-			today.BTCNotLentChange = today.BTCNotLent - yesterday.NotLent
-			today.LendingPercentChange = today.LendingPercent - yesterday.LendingPercent
-		}
-	}
-
+	today := poloToday.combine(bitToday)
 	return today, balanceDetails
 }
 
@@ -199,7 +236,7 @@ func (r AppAuthRequired) GetDetailedUserStats() revel.Result {
 		return r.Redirect(App.Index)
 	}
 
-	stats, err := state.GetUserStatistics(email, 30)
+	stats, err := state.GetUserStatistics(email, 30, "")
 	if err != nil {
 		llog.Errorf("Getting user stats: %s", err.Error())
 		data[JSON_ERROR] = "Internal Error grabbing stats"

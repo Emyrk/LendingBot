@@ -9,8 +9,6 @@ import (
 	"github.com/Emyrk/LendingBot/balancer"
 	"github.com/Emyrk/LendingBot/src/core"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
-	"github.com/Emyrk/LendingBot/src/lender"
-	"github.com/Emyrk/LendingBot/src/queuer"
 
 	// For Prometheus
 	"github.com/prometheus/client_golang/prometheus"
@@ -29,8 +27,6 @@ const (
 )
 
 var _ = revel.Equal
-
-var _, _ = queuer.RegisterPrometheus, lender.RegisterPrometheus
 
 //var Queuer *queuer.Queuer
 //var Lender *lender.Lender
@@ -225,7 +221,7 @@ func RandomLendingHistoryData(username string) *userdb.AllLendingHistoryEntry {
 	all := userdb.NewAllLendingHistoryEntry()
 	for _, v := range curarr {
 		d := new(userdb.LendingHistoryEntry)
-		all.Data[v] = d
+		all.PoloniexData[v] = d
 		d.Currency = v
 		d.AvgDuration = randomFloat(0, 2)
 		interest := randomFloat(0.1, 0.005)

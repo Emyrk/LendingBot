@@ -326,8 +326,16 @@ func (s *State) SetUserKeys(username, acessKey, secretKey string, exchange userd
 	return nil
 }
 
-func (s *State) GetUserStatistics(username string, dayRange int) ([][]userdb.AllUserStatistic, error) {
-	return s.userStatistic.GetStatistics(username, dayRange, nil)
+func (s *State) GetUserStatistics(username string, dayRange int, u string) ([][]userdb.AllUserStatistic, error) {
+	ptr := new(userdb.UserExchange)
+	if u == "" {
+		ptr = nil
+	} else if u == "bit" {
+		*ptr = userdb.BitfinexExchange
+	} else {
+		*ptr = userdb.PoloniexExchange
+	}
+	return s.userStatistic.GetStatistics(username, dayRange, ptr)
 }
 
 func (s *State) EnableUserLending(username string, c string, exchange userdb.UserExchange) error {
