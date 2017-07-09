@@ -862,6 +862,74 @@ func (api *API) CancelActiveOffersByCurrency(currency string) (err error) {
 	return
 }
 
+type FundingEarning struct {
+	Currency    string `json:"currency"`
+	Amount      string `json:"amount"`
+	Balance     string `json:"balance"`
+	Description string `json:"description"`
+	Timestamp   string `json:"timestamp"`
+}
+
+func (api *API) GetFundingEarningsFromTime(start, end time.Time) ([]FundingEarning, error) {
+	return api.GetFundingEarnings(fmt.Sprintf("%d", start.Unix()), fmt.Sprintf("%d", end.Unix()))
+}
+
+func (api *API) GetFundingEarnings(start, end string) ([]FundingEarning, error) {
+	request := struct {
+		URL      string `json:"request"`
+		Nonce    string `json:"nonce"`
+		Currency string `json:"currency"`
+		Wallet   string `json:"wallet"`
+		Since    string `json:"since"`
+		Until    string `json:"until"`
+	}{
+		"/v1/history",
+		strconv.FormatInt(time.Now().UnixNano(), 10),
+		"ETH",
+		"deposit",
+		start,
+		end,
+	}
+
+	var all []json.RawMessage
+
+	resp, err := api.post(request.URL, request)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(resp, &all)
+	if err != nil { // Failed to unmarshal expected message
+		// Attempt to unmarshal the error message
+		errorMessage := ErrorMessage{}
+		err = json.Unmarshal(resp, &errorMessage)
+		if err != nil { // Not expected message and not expected error, bailing...
+			if len(resp) > 100 {
+				resp = resp[:100]
+			}
+			return nil, fmt.Errorf("Unknown api error: %s", string(resp))
+		}
+
+		return nil, errors.New("API: " + errorMessage.Message)
+	}
+
+	var earnings []FundingEarning
+
+	for _, i := range all {
+		var n FundingEarning
+		err := json.Unmarshal(i, &n)
+		if err != nil {
+			continue
+		}
+		if n.Description != "Margin Funding Payment on wallet Deposit" {
+			continue
+		}
+		earnings = append(earnings, n)
+	}
+
+	return earnings, nil
+}
+
 ///////////////////////////////////////
 // API query methods
 ///////////////////////////////////////

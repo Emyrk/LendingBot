@@ -288,7 +288,7 @@ var lastRates time.Time
 
 func init() {
 	Rates = make(map[string]float64)
-	for _, c := range curarr {
+	for _, c := range userdb.AvaiableCoins {
 		Rates[fmt.Sprintf("USD_%s", c)] = 0
 	}
 }
@@ -309,7 +309,7 @@ func getRates() map[string]float64 {
 	tickerPtr := Balancer.RateCalculator.GetTicker()
 	ticker := *tickerPtr
 	btcusd, _ := ticker["USDT_BTC"]
-	for _, c := range curarr {
+	for _, c := range userdb.AvaiableCoins {
 		if c == "BTC" {
 			m["USD_BTC"] = btcusd.Last
 		} else {

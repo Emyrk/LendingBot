@@ -288,6 +288,10 @@ func (b *Bee) SendHearbeat() {
 	b.SendChannel <- p
 }
 
+func (b *Bee) AddBotActivityLogEntry(username string, log string) {
+	b.userStatDB.AddBotActivityLogEntry(username, []userdb.BotActivityLogEntry{Log: log, Time: time.Now()})
+}
+
 func (b *Bee) ProcessParcels() {
 	for {
 		select {

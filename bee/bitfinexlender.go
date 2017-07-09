@@ -74,6 +74,7 @@ func (bl *BitfinexLender) take() error {
 }
 
 func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
+	historySaved := false
 	bl := l.BitfinLender
 	bl.usersDoneLock.RLock()
 	v, _ := bl.usersDone[u.U.Username]
@@ -96,9 +97,13 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 	}
 	notes := ""
 
-	defer func(n string) {
-		l.Bee.updateUser(u.U.Username, u.U.Exchange, n, time.Now(), time.Time{})
-	}(notes)
+	defer func(monthtoo bool, n string) {
+		if monthtoo {
+			l.Bee.updateUser(u.U.Username, u.U.Exchange, n, time.Now(), time.Now())
+		} else {
+			l.Bee.updateUser(u.U.Username, u.U.Exchange, n, time.Now(), time.Time{})
+		}
+	}(historySaved, notes)
 
 	dbu, err := l.Bee.FetchUser(u.U.Username)
 	if err != nil {
@@ -194,6 +199,11 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 
 		clog.WithFields(log.Fields{"rate": frr, "amount": avail}).Infof("Created Loan")
 		var _ = avail
+	}
+
+	historySaved = l.HistoryKeeper.SaveBitfinexMonth(u.U.Username, u.U.AccessKey, u.U.SecretKey)
+	if historySaved {
+		u.U.LastHistorySaved = time.Now()
 	}
 
 	return nil

@@ -140,8 +140,6 @@ func launchPrometheus(port int) {
 	go http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 }
 
-var curarr = []string{"BTC", "BTS", "CLAM", "DOGE", "DASH", "LTC", "MAID", "STR", "XMR", "XRP", "ETH", "FCT"}
-
 func Populate(username string, db *userdb.UserStatisticsDB) {
 	n := time.Now()
 	for i := 0; i < 31; i++ {
@@ -182,7 +180,7 @@ func Populate(username string, db *userdb.UserStatisticsDB) {
 func RandStats(t time.Time) *userdb.AllUserStatistic {
 	stats := userdb.NewAllUserStatistic()
 
-	for _, v := range curarr {
+	for _, v := range userdb.AvaiableCoins {
 		r := .1
 		if v == "BTC" {
 			r = 1
@@ -225,7 +223,7 @@ func randomFloat(min, max float64) float64 {
 
 func RandomLendingHistoryData(username string) *userdb.AllLendingHistoryEntry {
 	all := userdb.NewAllLendingHistoryEntry()
-	for _, v := range curarr {
+	for _, v := range userdb.AvaiableCoins {
 		d := new(userdb.LendingHistoryEntry)
 		all.PoloniexData[v] = d
 		d.Currency = v

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Emyrk/LendingBot/slack"
+	"github.com/Emyrk/LendingBot/src/core/bitfinex"
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	log "github.com/sirupsen/logrus"
@@ -42,6 +43,8 @@ type QueenBee struct {
 
 	poloTickerLock sync.RWMutex
 	poloTicker     map[string]poloniex.PoloniexTicker
+	// EOS and IOT
+	bitfinexTickerCorrections *ExtraTickers
 
 	cachedTicker *map[string]poloniex.PoloniexTicker
 	lastCache    time.Time
@@ -54,6 +57,28 @@ type QueenBee struct {
 	quit chan struct{}
 
 	usdb *userdb.UserStatisticsDB
+}
+
+type ExtraTickers struct {
+	iotLast  poloniex.PoloniexTicker
+	eosLast  poloniex.PoloniexTicker
+	lastDone time.Time
+}
+
+func (e *ExtraTickers) Update() {
+	if time.Since(e.lastDone) > time.Minute*30 {
+		api := bitfinex.New("", "")
+		ti, err := api.Ticker("IOTBTC")
+		if err == nil {
+			e.iotLast.Last = ti.LastPrice
+		}
+
+		ti, err = api.Ticker("EOSBTC")
+		if err == nil {
+			e.eosLast.Last = ti.LastPrice
+		}
+		e.lastDone = time.Now()
+	}
 }
 
 func NewRateCalculator(h *Hive, uri, dbu, dbp string) *QueenBee {
@@ -387,7 +412,10 @@ func (l *QueenBee) UpdateTicker() {
 	l.LastTickerUpdate = time.Now()
 	poloTicker, err := l.PoloniexAPI.GetTicker()
 	if err == nil {
+		l.bitfinexTickerCorrections.Update()
 		l.poloTickerLock.Lock()
+		l.poloTicker["BTC_EOS"] = l.bitfinexTickerCorrections.eosLast
+		l.poloTicker["BTC_IOT"] = l.bitfinexTickerCorrections.eosLast
 		l.poloTicker = poloTicker
 		l.poloTickerLock.Unlock()
 	}

@@ -741,7 +741,7 @@ func GetCombinedDayAverage(dayStats []AllUserStatistic) *DayAvg {
 
 	all := make(map[string][]UserStatistic)
 	for _, v := range dayStats {
-		for _, currency := range curarr {
+		for _, currency := range AvaiableCoins {
 			tmp := v.Currencies[currency]
 			if tmp != nil {
 				all[currency] = append(all[currency], *tmp)
@@ -750,7 +750,7 @@ func GetCombinedDayAverage(dayStats []AllUserStatistic) *DayAvg {
 	}
 
 	count := float64(0)
-	for _, currency := range curarr {
+	for _, currency := range AvaiableCoins {
 		sD := GetDayAvg(all[currency])
 		if sD != nil {
 			total := sD.AvgBTCValue * (sD.NotLent + sD.Lent)
@@ -850,7 +850,7 @@ func (us *UserStatisticsDB) getStatsFromBucket(bucket []byte) []AllUserStatistic
 				tmp.Currencies = make(map[string]*UserStatistic)
 				tmp.Currencies["BTC"] = &n
 
-				for _, v := range curarr {
+				for _, v := range AvaiableCoins {
 					var o UserStatistic
 					o.Currency = v
 					o.Time = old.Time
