@@ -378,8 +378,12 @@ func (s *State) FetchAllUsers() ([]userdb.User, error) {
 	return s.userDB.FetchAllUsers()
 }
 
-func (s *State) GetPoloniexStatistics(currency string) *userdb.PoloniexStats {
+func (s *State) GetQuickPoloniexStatistics(currency string) *userdb.PoloniexStats {
 	return s.userStatistic.GetQuickPoloniexStatistics(currency)
+}
+
+func (s *State) GetPoloniexStatistics(currency string) (*userdb.PoloniexStats, error) {
+	return s.userStatistic.GetPoloniexStatistics(currency)
 }
 
 // RecordPoloniexStatistics is for recording the current lending rate on poloniex
