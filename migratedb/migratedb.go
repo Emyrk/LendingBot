@@ -14,7 +14,7 @@ type UserMigrateDB struct {
 
 type UserStatMigrateDB struct {
 	userStatMongoDBBalacner *userdb.UserStatisticsDB
-	userStatMongoDBBee      *userdb.UserStatisticsDB
+	userStatMongoDBee       *userdb.UserStatisticsDB
 	userStatEmbeddedDB      *userdb.UserStatisticsDB
 }
 
@@ -57,7 +57,7 @@ func SetUpUserStatMigrateDB() *UserStatMigrateDB {
 	if mongoBeePass == "" {
 		panic("Running in prod, but no revel pass given in env var 'MONGO_BEE_PASS'")
 	}
-	userStatMigrateDB.userStatMongoDBBee, err = userdb.NewUserStatisticsMongoDB(uri, "bee", mongoBeePass)
+	userStatMigrateDB.userStatMongoDBee, err = userdb.NewUserStatisticsMongoDB(uri, "bee", mongoBeePass)
 	if err != nil {
 		panic(fmt.Sprintf("Error connecting to userstat bee mongodb: %s\n", err.Error()))
 	}
@@ -75,11 +75,12 @@ func SetUpUserStatMigrateDB() *UserStatMigrateDB {
 
 func main() {
 	// fmt.Printf("---------STARTED MIRGATE USER DB---------\n")
-	// userMigrateDB := SetUpUserDB()
+	userMigrateDB := SetUpUserDB()
 
-	// users, err := userMigrateDB.userEmbeddedDB.FetchAllUsers()
-	// if err != nil {
-	// 	panic(fmt.Sprintf("Error retrieving users: %s\n", err.Error()))
+	users, err := userMigrateDB.userEmbeddedDB.FetchAllUsers()
+	if err != nil {
+		panic(fmt.Sprintf("Error retrieving users: %s\n", err.Error()))
+	}
 	// } else {
 	// 	fmt.Printf("Successfully retrieved %d users\n", len(users))
 	// 	for i, _ := range users {
@@ -174,7 +175,7 @@ func main() {
 						continue
 					}
 					keep++
-					err = userStatMigrateDB.userStatMongoDB.RecordData(&stats[i])
+					err = userStatMigrateDB.userStatMongoDBee.RecordData(&stats[i])
 					if err != nil {
 						fmt.Printf("Error saving user %s userStat: %s\n", u.Username, err.Error())
 					}
