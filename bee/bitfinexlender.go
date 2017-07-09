@@ -296,6 +296,8 @@ func (l *Lender) recordBitfinexStatistics(username string,
 	for _, v := range balancer.Currencies[balancer.BitfinexExchange] {
 		cur := correctCurencyString(v)
 		for _, loan := range activeLoan[cur] {
+			loan.Rate = loan.Rate / 100 / 365
+
 			stats.Currencies[cur].ActiveLentBalance += loan.Amount
 			stats.Currencies[cur].AverageActiveRate += loan.Rate
 			activeLentCount[loan.Currency] += 1
