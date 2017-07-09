@@ -143,7 +143,7 @@ func main() {
 		for _, u := range users {
 			for i := 0; i < 29; i++ {
 				stats := userStatMigrateDB.userStatEmbeddedDB.GetStatisticsOneDay(u.Username, i)
-				fmt.Printf("userstat info found for %s: %d\n", u.Username, len(stats))
+				fmt.Printf("userstat info found for [%s] Day [%d]: %d\n", u.Username, i, len(stats))
 				for i, _ := range stats {
 					err = userStatMigrateDB.userStatEmbeddedDB.RecordData(&stats[i])
 					if err != nil {
