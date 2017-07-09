@@ -702,4 +702,21 @@ func Test_botactivity(t *testing.T) {
 	if (*b.ActivityLog)[99].Log != "97" {
 		t.Errorf("99 Error with log='%s' time='%s'\n", (*b.ActivityLog)[3].Log, (*b.ActivityLog)[3].Time)
 	}
+
+	balsV2, err := ua.GetBotActivityTimeGreater("test", now)
+	if err != nil {
+		t.Errorf("Error getting time greater: %s\n", err.Error())
+	}
+
+	if len(*balsV2) < 2 {
+		t.Errorf("Error length of balls should be 2 is %d\n", len(*balsV2))
+		t.FailNow()
+	}
+
+	if (*balsV2)[0].Log != "new 1" {
+		t.Errorf("GetBoatActivityTimeGreater error with log='%s' time='%s'\n", (*balsV2)[0].Log, (*balsV2)[0].Time)
+	}
+	if (*balsV2)[1].Log != "new 0" {
+		t.Errorf("GetBoatActivityTimeGreater error with log='%s' time='%s'\n", (*balsV2)[0].Log, (*balsV2)[0].Time)
+	}
 }

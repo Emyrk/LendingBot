@@ -24,8 +24,8 @@ type BotActivity struct {
 }
 
 type BotActivityLogEntry struct {
-	Log  string
-	Time time.Time
+	Log  string    `json:"l"`
+	Time time.Time `json:"t"`
 }
 
 type AllUserStatistic struct {
