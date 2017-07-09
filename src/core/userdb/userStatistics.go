@@ -87,7 +87,7 @@ func newUserStatisticsDB(dbType string) (*UserStatisticsDB, error) {
 	}
 
 	if dbType != "mongo" {
-		if dbType == "bolt" {
+		if dbType != "bolt" {
 			u.db = database.NewMapDB()
 			u.startDB()
 		} else {
