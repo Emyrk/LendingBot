@@ -633,7 +633,7 @@ func (us *UserStatisticsDB) RecordPoloniexStatisticTime(currency string, rate fl
 //TODO REMOVE AFTER MIGRATE
 //Deprecated
 func (us *UserStatisticsDB) GetStatisticsOneDay(username string, day int) []AllUserStatistic {
-	stats := make([]AllUserStatistic, dayRange)
+	stats := make([]AllUserStatistic, day)
 
 	buc := us.getBucketPlusX(username, day*-1)
 	statlist := us.getStatsFromBucket(buc)
