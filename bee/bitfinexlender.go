@@ -31,6 +31,9 @@ type BitfinexLender struct {
 	iotLastTime time.Time
 	iotLast     float64
 
+	eosLastTime time.Time
+	eosLast     float64
+
 	quit chan bool
 }
 
@@ -228,11 +231,28 @@ func (l *Lender) recordBitfinexStatistics(username string,
 					api := bitfinex.New("", "")
 					ti, err := api.Ticker("IOTBTC")
 					if err == nil {
+						l.BitfinLender.iotLastTime = time.Now()
 						l.BitfinLender.iotLast = ti.LastPrice
 					}
 				}
 
 				lastS := l.BitfinLender.iotLast
+				if lastS == 0 {
+					l.tickerlock.RUnlock()
+					return nil, fmt.Errorf("No ticker found for %s", uppered)
+				}
+				last = lastS
+			} else if uppered == "EOS" {
+				if time.Since(l.BitfinLender.eosLastTime) > time.Minute*30 {
+					api := bitfinex.New("", "")
+					ti, err := api.Ticker("EOSBTC")
+					if err == nil {
+						l.BitfinLender.eosLastTime = time.Now()
+						l.BitfinLender.eosLast = ti.LastPrice
+					}
+				}
+
+				lastS := l.BitfinLender.eosLast
 				if lastS == 0 {
 					l.tickerlock.RUnlock()
 					return nil, fmt.Errorf("No ticker found for %s", uppered)
