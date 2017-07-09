@@ -538,10 +538,6 @@ func (us *UserStatisticsDB) GetPoloniexStatistics(currency string) (*PoloniexSta
 			return nil, fmt.Errorf("Mongo: getPoloniexStats: findAll: %s", err.Error())
 		}
 
-		if len(poloniexStatsArr) == 0 {
-			return nil, nil
-		}
-
 		us.cachelock.Lock()
 		switch update {
 		case 1:
