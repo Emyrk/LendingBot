@@ -399,7 +399,7 @@ func (us *UserStatisticsDB) GetPoloniexDataLastXDays(dayRange int, currency stri
 			continue
 		}
 		stats := make([]PoloniexRateSample, 0)
-		fmt.Printf("Found %d data entries for day %d\n", len(datas), dayRange)
+		fmt.Printf("Found %d data entries for day %d\n", len(datas), i)
 		for i, data := range datas {
 			rate, err := primitives.BytesToFloat64(data)
 			if err != nil {

@@ -130,6 +130,7 @@ func main() {
 		// fmt.Printf("---------FINISHED MIRGATE LENDING HISTORY---------\n")
 		// fmt.Printf("---------START MIRGATE EXCHANGE---------\n")
 
+		// bad := 0
 		// poloCoins := []string{"BTC", "BTS", "CLAM", "DOGE", "DASH", "LTC", "MAID", "STR", "XMR", "XRP", "ETH", "FCT"}
 		// for _, coin := range poloCoins {
 		// 	psArr, err := userStatMigrateDB.userStatEmbeddedDB.GetAllPoloniexStatistics(coin)
@@ -137,8 +138,17 @@ func main() {
 		// 		fmt.Printf("ERROR: retrieving polo stats")
 		// 	} else {
 		// 		fmt.Printf("Exchange info found: %d\n", len(*psArr))
+		// 		c := 0
 		// 		for _, ps := range *psArr {
-		// 			err = userStatMigrateDB.userStatMongoDBBalacner.RecordPoloniexStatisticTime(coin, ps.Rate, ps.Time)
+		// 			c++
+		// 			if ps.Rate > 2 {
+		// 				bad++
+		// 				continue
+		// 			}
+		// 			if c%2 == 0 {
+		// 				continue
+		// 			}
+		// 			err = userStatMigrateDB.userStatMongoDB.RecordPoloniexStatisticTime(coin, ps.Rate, ps.Time)
 		// 			if err != nil {
 		// 				fmt.Printf("ERROR: saving poloniex stats: %s\n", err.Error())
 		// 			}
@@ -146,6 +156,7 @@ func main() {
 		// 	}
 		// }
 
+		// fmt.Printf("Found %d bad\n", bad)
 		// fmt.Printf("---------FINISHED MIRGATE EXCHANGE---------\n")
 		fmt.Printf("---------START MIRGATE USERSTATS---------\n")
 
@@ -153,12 +164,22 @@ func main() {
 			for i := 0; i < 29; i++ {
 				stats := userStatMigrateDB.userStatEmbeddedDB.GetStatisticsOneDay(u.Username, i)
 				fmt.Printf("userstat info found for [%s] Day [%d]: %d\n", u.Username, i, len(stats))
+				c := 0
+				keep := 0
+				prune := len(stats) - 100
 				for i, _ := range stats {
-					err = userStatMigrateDB.userStatMongoDBBee.RecordData(&stats[i])
+					c++
+					if prune > 0 && c%3 != 0 {
+						prune--
+						continue
+					}
+					keep++
+					err = userStatMigrateDB.userStatMongoDB.RecordData(&stats[i])
 					if err != nil {
 						fmt.Printf("Error saving user %s userStat: %s\n", u.Username, err.Error())
 					}
 				}
+				fmt.Printf("     - Kept %d/%d\n", keep, len(stats))
 			}
 		}
 		fmt.Printf("---------FINISHED MIRGATE USERSTATS---------\n")
