@@ -10,10 +10,16 @@ import (
 	"github.com/Emyrk/LendingBot/src/core/email"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"github.com/revel/revel"
+	log "github.com/sirupsen/logrus"
 )
 
 var _ = userdb.SaltLength
 var SkipAuth = false
+
+var appAuthrequiredLog = log.WithFields(log.Fields{
+	"package": "controllers",
+	"file":    "appAuthrequiredLog",
+})
 
 type AppAuthRequired struct {
 	*revel.Controller
@@ -35,22 +41,28 @@ type Pass struct {
 	Pass string `json:"pass"`
 }
 
+//Deprecated should use form on front end to avoid
 func (r AppAuthRequired) unmarshal2fa(body io.ReadCloser) *Enable2fa {
+	llog := appAuthrequiredLog.WithField("method", "unmarshal2fa")
+
 	var json2fa Enable2fa
 	err := json.NewDecoder(body).Decode(&json2fa)
 	if err != nil {
-		fmt.Printf("Error unmarshaling 2fa: %s\n", err.Error())
+		llog.Errorf("Error unmarshaling 2fa: %s\n", err.Error())
 		return nil
 	}
 	defer body.Close()
 	return &json2fa
 }
 
+//Deprecated should use form on front end to avoid
 func (r AppAuthRequired) unmarshalPass(body io.ReadCloser) string {
+	llog := appAuthrequiredLog.WithField("method", "unmarshalPass")
+
 	var jsonPass Pass
 	err := json.NewDecoder(body).Decode(&jsonPass)
 	if err != nil {
-		fmt.Printf("Error unmarshaling pass: %s\n", err.Error())
+		llog.Errorf("Error unmarshaling pass: %s\n", err.Error())
 		return ""
 	}
 	defer body.Close()
@@ -58,12 +70,14 @@ func (r AppAuthRequired) unmarshalPass(body io.ReadCloser) string {
 }
 
 func (r AppAuthRequired) Dashboard() revel.Result {
+	llog := appAuthrequiredLog.WithField("method", "Dashboard")
+
 	r.ViewArgs["Version"] = VersionNumber
 
 	email := r.Session[SESSION_EMAIL]
 	u, err := state.FetchUser(email)
 	if err != nil || u == nil {
-		fmt.Println("Error: Dashboard: fetching user for dashboard")
+		llog.Errorf("Error fetching user for dashboard")
 		return r.Redirect(App.Index)
 	}
 	r.ViewArgs["UserLevel"] = fmt.Sprintf("%d", u.Level)
@@ -90,10 +104,12 @@ func (r AppAuthRequired) InfoDashboard() revel.Result {
 }
 
 func (r AppAuthRequired) Enable2FA() revel.Result {
+	llog := appAuthrequiredLog.WithField("method", "Enable2FA")
+
 	data := make(map[string]interface{})
 	json2fa := r.unmarshal2fa(r.Request.Body)
 	if json2fa == nil {
-		fmt.Printf("Error grabbing 2fa err\n")
+		llog.Errorf("Error grabbing 2fa err\n")
 		data[JSON_ERROR] = "Internal error. Please contact: support@hodl.zone"
 		r.Response.Status = 500
 		return r.RenderJSON(data)
@@ -102,7 +118,7 @@ func (r AppAuthRequired) Enable2FA() revel.Result {
 
 	err := state.Enable2FA(email, json2fa.Pass, json2fa.Token, json2fa.Enable)
 	if err != nil {
-		fmt.Printf("Error enabling 2fa err: %s\n", err.Error())
+		llog.Errorf("Error enabling 2fa err: %s\n", err.Error())
 		data[JSON_ERROR] = "Invalid password, please try again."
 		r.Response.Status = 400
 		return r.RenderJSON(data)
@@ -116,12 +132,14 @@ func (r AppAuthRequired) Enable2FA() revel.Result {
 }
 
 func (r AppAuthRequired) SetExchangeKeys() revel.Result {
+	llog := appAuthrequiredLog.WithField("method", "SetExchangeKeys")
+
 	data := make(map[string]interface{})
 
 	email := r.Session[SESSION_EMAIL]
 	err := state.SetUserKeys(email, r.Params.Form.Get("exchangekey"), r.Params.Form.Get("exchangesecret"), userdb.UserExchange(r.Params.Form.Get("exch")))
 	if err != nil {
-		fmt.Printf("Error authenticating setting Poloniex Keys err: %s\n", err.Error())
+		llog.Errorf("Error authenticating setting Poloniex Keys err: %s\n", err.Error())
 		data[JSON_ERROR] = fmt.Sprintf("Error: %s", err.Error())
 		r.Response.Status = 500
 		return r.RenderJSON(data)
@@ -142,7 +160,7 @@ func (r AppAuthRequired) SetExchangeKeys() revel.Result {
 
 	d, err := json.Marshal(poloniexKeys)
 	if err != nil {
-		fmt.Printf("Error marshalling poloniex keys, err: %s\n", err.Error())
+		llog.Errorf("Error marshalling poloniex keys, err: %s\n", err.Error())
 		data[JSON_ERROR] = "Error marshalling keys"
 		r.Response.Status = 500
 		return r.RenderJSON(data)
@@ -154,6 +172,8 @@ func (r AppAuthRequired) SetExchangeKeys() revel.Result {
 }
 
 func (r AppAuthRequired) SettingsDashboardUser() revel.Result {
+	llog := appAuthrequiredLog.WithField("method", "SettingsDashboardUser")
+
 	u, _ := state.FetchUser(r.Session[SESSION_EMAIL])
 
 	r.ViewArgs["verified"] = fmt.Sprintf("%t", u.Verified)
@@ -165,7 +185,7 @@ func (r AppAuthRequired) SettingsDashboardUser() revel.Result {
 	} else {
 		s, err := u.PoloniexKeys.DecryptAPIKeyString(u.GetCipherKey(state.CipherKey))
 		if err != nil {
-			fmt.Printf("Error decrypting Api Keys String: %s\n", err.Error())
+			llog.Errorf("Error decrypting Api Keys String: %s\n", err.Error())
 			s = ""
 		}
 		r.ViewArgs["poloniexKey"] = s
@@ -182,6 +202,8 @@ func (r AppAuthRequired) SettingsDashboardUser() revel.Result {
 }
 
 func (r AppAuthRequired) SettingsDashboardLending() revel.Result {
+	llog := appAuthrequiredLog.WithField("method", "SettingsDashboardLending")
+
 	u, _ := state.FetchUser(r.Session[SESSION_EMAIL])
 
 	if u.PoloniexKeys.APIKeyEmpty() {
@@ -189,7 +211,7 @@ func (r AppAuthRequired) SettingsDashboardLending() revel.Result {
 	} else {
 		s, err := u.PoloniexKeys.DecryptAPIKeyString(u.GetCipherKey(state.CipherKey))
 		if err != nil {
-			fmt.Printf("Error decrypting Api Keys String: %s\n", err.Error())
+			llog.Errorf("Error decrypting Api Keys String: %s\n", err.Error())
 			s = ""
 		}
 		r.ViewArgs["poloniexKey"] = s
@@ -206,13 +228,15 @@ func (r AppAuthRequired) SettingsDashboardLending() revel.Result {
 }
 
 func (r AppAuthRequired) Create2FA() revel.Result {
+	llog := appAuthrequiredLog.WithField("method", "Create2FA")
+
 	pass := r.unmarshalPass(r.Request.Body)
 
 	data := make(map[string]interface{})
 
 	qr, err := state.Add2FA(r.Session[SESSION_EMAIL], pass)
 	if err != nil {
-		fmt.Printf("Error authenticating 2fa err: %s\n", err.Error())
+		llog.Errorf("Error authenticating 2fa err: %s\n", err.Error())
 		data[JSON_ERROR] = "Invalid password, please try again."
 		r.Response.Status = 400
 		return r.RenderJSON(data)
@@ -225,12 +249,14 @@ func (r AppAuthRequired) Create2FA() revel.Result {
 }
 
 func (r AppAuthRequired) RequestEmailVerification() revel.Result {
+	llog := appAuthrequiredLog.WithField("method", "RequestEmailVerification")
+
 	u, _ := state.FetchUser(r.Session[SESSION_EMAIL])
 
 	data := make(map[string]interface{})
 
 	if u.Verified {
-		fmt.Printf("WARNING: User already verified: %s\n", r.Session[SESSION_EMAIL])
+		llog.Warningf("WARNING: User already verified: %s\n", r.Session[SESSION_EMAIL])
 		data[JSON_ERROR] = "User already verified. No email sent."
 		r.Response.Status = 400
 		return r.RenderJSON(data)
@@ -249,14 +275,14 @@ func (r AppAuthRequired) RequestEmailVerification() revel.Result {
 	})
 
 	if err != nil {
-		fmt.Printf("ERROR: Parsing template: %s\n", err)
+		llog.Errorf("Error parsing template: %s\n", err)
 		data[JSON_ERROR] = "Internal Error. Please contact support at: support@hodl.zone"
 		r.Response.Status = 500
 		return r.RenderJSON(data)
 	}
 
 	if err = emailRequest.SendEmail(); err != nil {
-		fmt.Printf("ERROR: Sending email: %s\n", err)
+		llog.Errorf("Error sending email: %s\n", err)
 		data[JSON_ERROR] = "Internal Error. Please contact support at: support@hodl.zone"
 		r.Response.Status = 500
 		return r.RenderJSON(data)
@@ -266,11 +292,13 @@ func (r AppAuthRequired) RequestEmailVerification() revel.Result {
 }
 
 func (r AppAuthRequired) GetEnableUserLending() revel.Result {
+	llog := appAuthrequiredLog.WithField("method", "GetEnableUserLending")
+
 	data := make(map[string]interface{})
 
 	u, err := state.FetchUser(r.Session[SESSION_EMAIL])
 	if err != nil {
-		fmt.Printf("WARNING: GetEnableUserLending: User failed to find user: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
+		llog.Warningf("Warning user failed to find user: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
 		data[JSON_ERROR] = "Bad Request. Contact support@hodl.zone"
 		r.Response.Status = 400
 		return r.RenderJSON(data)
@@ -288,7 +316,7 @@ func (r AppAuthRequired) GetEnableUserLending() revel.Result {
 		minLendInterface = u.BitfinexMiniumumLend
 		break
 	default:
-		fmt.Printf("WARNING: GetEnableUserLending: failed to set user exchange key: [%s] unknown exchange: %s\n", r.Session[SESSION_EMAIL], r.Params.Form.Get("exch"))
+		llog.Warningf("Warning failed to set user exchange key: [%s] unknown exchange: %s\n", r.Session[SESSION_EMAIL], r.Params.Form.Get("exch"))
 		data[JSON_ERROR] = "Bad Request. Exchange unknown. Contact support@hodl.zone"
 		r.Response.Status = 400
 		return r.RenderJSON(data)
@@ -307,12 +335,14 @@ func (r AppAuthRequired) GetEnableUserLending() revel.Result {
 }
 
 func (r AppAuthRequired) SetEnableUserLending() revel.Result {
+	llog := appAuthrequiredLog.WithField("method", "SetEnableUserLending")
+
 	data := make(map[string]interface{})
 
 	// /ENABLE USER LENDING
 	err := state.EnableUserLending(r.Session[SESSION_EMAIL], r.Params.Form.Get("enable"), userdb.UserExchange(r.Params.Form.Get("exch")))
 	if err != nil {
-		fmt.Printf("WARNING: User failed to enable/disable lending: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
+		llog.Warningf("Warning user failed to enable/disable lending: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
 		data[JSON_ERROR] = "Failed to set and failed to enable/disable."
 		r.Response.Status = 400
 		return r.RenderJSON(data)
@@ -322,7 +352,7 @@ func (r AppAuthRequired) SetEnableUserLending() revel.Result {
 	// SET USER LENDING AMOUNT
 	err = state.SetAllUserMinimumLoan(r.Session[SESSION_EMAIL], r.Params.Form.Get("min"), userdb.UserExchange(r.Params.Form.Get("exch")))
 	if err != nil {
-		fmt.Printf("WARNING: User failed set lending: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
+		llog.Warningf("Warning user failed set lending: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
 		data[JSON_ERROR] = "Failed to set values, but enable/disable went through."
 		r.Response.Status = 400
 		return r.RenderJSON(data)
@@ -334,11 +364,13 @@ func (r AppAuthRequired) SetEnableUserLending() revel.Result {
 }
 
 func (r AppAuthRequired) ChangePassword() revel.Result {
+	llog := appAuthrequiredLog.WithField("method", "ChangePassword")
+
 	data := make(map[string]interface{})
 
 	err := state.SetUserNewPass(r.Session[SESSION_EMAIL], r.Params.Form.Get("pass"), r.Params.Form.Get("passnew"))
 	if err != nil {
-		fmt.Printf("WARNING: User failed to reset pass: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
+		llog.Warningf("Warning user failed to reset pass: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
 		data[JSON_ERROR] = "Password incorrect. Please try again."
 		r.Response.Status = 400
 		return r.RenderJSON(data)
@@ -348,11 +380,13 @@ func (r AppAuthRequired) ChangePassword() revel.Result {
 }
 
 func (r AppAuthRequired) GetActivityLogs() revel.Result {
+	llog := appAuthrequiredLog.WithField("method", "GetActivityLogs")
+
 	data := make(map[string]interface{})
 
 	logs, err := state.GetActivityLog(r.Session[SESSION_EMAIL], r.Params.Query.Get("time"))
 	if err != nil {
-		fmt.Printf("WARNING: Failed to get user activity logs: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
+		llog.Warningf("Warning failed to get user activity logs: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
 		data[JSON_ERROR] = "Server error, failed to retrieve logs. Contact support: support@hodl.zone."
 		r.Response.Status = 500
 		return r.RenderJSON(data)
@@ -373,8 +407,10 @@ func (r AppAuthRequired) UserDashboard() revel.Result {
 
 //called before any auth required function
 func (r AppAuthRequired) AuthUser() revel.Result {
+	llog := appAuthrequiredLog.WithField("method", "AuthUser")
+
 	if !ValidCacheEmail(r.Session.ID(), r.Session[SESSION_EMAIL]) {
-		fmt.Printf("WARNING: AuthUser has invalid cache: [%s] sessionId:[%s]\n", r.Session[SESSION_EMAIL], r.Session.ID())
+		llog.Warningf("Warning invalid cache: [%s] sessionId:[%s]\n", r.Session[SESSION_EMAIL], r.Session.ID())
 		r.Session[SESSION_EMAIL] = ""
 		r.Response.Status = 403
 		return r.RenderTemplate("errors/403.html")
@@ -382,7 +418,7 @@ func (r AppAuthRequired) AuthUser() revel.Result {
 
 	err := SetCacheEmail(r.Session.ID(), r.Session[SESSION_EMAIL])
 	if err != nil {
-		fmt.Printf("WARNING: AuthUser failed to set cache: [%s] and error: %s\n", r.Session.ID(), err.Error())
+		llog.Warningf("Warning failed to set cache: [%s] and error: %s\n", r.Session.ID(), err.Error())
 		r.Session[SESSION_EMAIL] = ""
 		r.Response.Status = 403
 		return r.RenderTemplate("errors/403.html")
