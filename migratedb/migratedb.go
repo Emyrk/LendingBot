@@ -44,11 +44,11 @@ func SetUpUserStatMigrateDB() *UserStatMigrateDB {
 	userStatMigrateDB := new(UserStatMigrateDB)
 
 	uri := "mongo.hodl.zone:27017"
-	mongoRevelPass := os.Getenv("MONGO_BEE_PASS")
+	mongoRevelPass := os.Getenv("MONGO_BALANCER_PASS")
 	if mongoRevelPass == "" {
-		panic("Running in prod, but no revel pass given in env var 'MONGO_BEE_PASS'")
+		panic("Running in prod, but no revel pass given in env var 'MONGO_BALANCER_PASS'")
 	}
-	userStatMigrateDB.userStatMongoDB, err = userdb.NewUserStatisticsMongoDB(uri, "bee", mongoRevelPass)
+	userStatMigrateDB.userStatMongoDB, err = userdb.NewUserStatisticsMongoDB(uri, "balancer", mongoRevelPass)
 	if err != nil {
 		panic(fmt.Sprintf("Error connecting to user mongodb: %s\n", err.Error()))
 	}
@@ -145,7 +145,7 @@ func main() {
 				stats := userStatMigrateDB.userStatEmbeddedDB.GetStatisticsOneDay(u.Username, i)
 				fmt.Printf("userstat info found for [%s] Day [%d]: %d\n", u.Username, i, len(stats))
 				for i, _ := range stats {
-					err = userStatMigrateDB.userStatEmbeddedDB.RecordData(&stats[i])
+					err = userStatMigrateDB.userStatMongoDB.RecordData(&stats[i])
 					if err != nil {
 						fmt.Printf("Error saving user %s userStat: %s\n", u.Username, err.Error())
 					}
