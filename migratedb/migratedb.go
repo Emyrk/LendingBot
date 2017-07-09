@@ -175,7 +175,9 @@ func main() {
 						continue
 					}
 					keep++
-					err = userStatMigrateDB.userStatMongoDBee.RecordData(&stats[i])
+					s := stats[i]
+					s.Exchange = userdb.PoloniexExchange
+					err = userStatMigrateDB.userStatMongoDBee.RecordData(&s)
 					if err != nil {
 						fmt.Printf("Error saving user %s userStat: %s\n", u.Username, err.Error())
 					}

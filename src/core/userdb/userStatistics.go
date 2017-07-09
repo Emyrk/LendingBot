@@ -489,6 +489,14 @@ func (us *UserStatisticsDB) GetAllPoloniexStatistics(currency string) (*[]Poloni
 	return &poloniexStatsArr, nil
 }
 
+// GetQuickPoloniexStatistics only uses cache
+func (us *UserStatisticsDB) GetQuickPoloniexStatistics(currency string) *PoloniexStats {
+	us.cachelock.RLock()
+	v := us.cachesPoloStats[currency]
+	us.cachelock.RUnlock()
+	return v
+}
+
 func (us *UserStatisticsDB) GetPoloniexStatistics(currency string) (*PoloniexStats, error) {
 	var poloniexStatsArr []PoloniexStat
 
