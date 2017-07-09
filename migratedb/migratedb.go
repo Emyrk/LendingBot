@@ -121,18 +121,17 @@ func main() {
 		// fmt.Printf("---------FINISHED MIRGATE LENDING HISTORY---------\n")
 		fmt.Printf("---------START MIRGATE EXCHANGE---------\n")
 
-		for _, u := range users {
-			poloCoins := []string{"BTC", "BTS", "CLAM", "DOGE", "DASH", "LTC", "MAID", "STR", "XMR", "XRP", "ETH", "FCT"}
-			for _, coin := range poloCoins {
-				psArr, err := userStatMigrateDB.userStatEmbeddedDB.GetAllPoloniexStatistics(coin)
-				if err != nil {
-					fmt.Printf("ERROR: retrieving polo stats for user: %s\n", u.Username)
-				} else {
-					for _, ps := range *psArr {
-						err = userStatMigrateDB.userStatMongoDB.RecordPoloniexStatisticTime(coin, ps.Rate, ps.Time)
-						if err != nil {
-							fmt.Printf("ERROR: saving poloniex stats: %s\n", u.Username)
-						}
+		poloCoins := []string{"BTC", "BTS", "CLAM", "DOGE", "DASH", "LTC", "MAID", "STR", "XMR", "XRP", "ETH", "FCT"}
+		for _, coin := range poloCoins {
+			psArr, err := userStatMigrateDB.userStatEmbeddedDB.GetAllPoloniexStatistics(coin)
+			if err != nil {
+				fmt.Printf("ERROR: retrieving polo stats")
+			} else {
+				fmt.Printf("Exchange info found: %d\n", len(*psArr))
+				for _, ps := range *psArr {
+					err = userStatMigrateDB.userStatMongoDB.RecordPoloniexStatisticTime(coin, ps.Rate, ps.Time)
+					if err != nil {
+						fmt.Printf("ERROR: saving poloniex stats")
 					}
 				}
 			}
@@ -144,6 +143,7 @@ func main() {
 		for _, u := range users {
 			for i := 0; i < 29; i++ {
 				stats := userStatMigrateDB.userStatEmbeddedDB.GetStatisticsOneDay(u.Username, i)
+				fmt.Printf("userstat info found for %s: %d\n", u.Username, len(stats))
 				for i, _ := range stats {
 					err = userStatMigrateDB.userStatEmbeddedDB.RecordData(&stats[i])
 					if err != nil {
