@@ -319,7 +319,7 @@ func (l *Lender) recordBitfinexStatistics(username string,
 
 	// Finish Active Averages
 	for k := range stats.Currencies {
-		stats.Currencies[k].AverageActiveRate = stats.Currencies[k].AverageActiveRate / activeLentCount[k] / 365
+		stats.Currencies[k].AverageActiveRate = stats.Currencies[k].AverageActiveRate / activeLentCount[k]
 	}
 
 	// On Order
@@ -327,8 +327,9 @@ func (l *Lender) recordBitfinexStatistics(username string,
 	for _, v := range balancer.Currencies[balancer.BitfinexExchange] {
 		cur := correctCurencyString(v)
 		for _, loan := range inact[cur] {
+			loan.Rate = loan.Rate / 365 / 100
 			stats.Currencies[cur].OnOrderBalance += loan.RemainingAmount
-			stats.Currencies[cur].AverageOnOrderRate += loan.RemainingAmount
+			stats.Currencies[cur].AverageOnOrderRate += loan.Rate
 			inactiveLentCount[cur] += 1
 
 			stats.TotalCurrencyMap[cur] += l.getBTCAmount(loan.RemainingAmount, cur)
@@ -336,7 +337,7 @@ func (l *Lender) recordBitfinexStatistics(username string,
 	}
 
 	for k := range stats.Currencies {
-		stats.Currencies[k].AverageOnOrderRate = stats.Currencies[k].AverageOnOrderRate / inactiveLentCount[k] / 365
+		stats.Currencies[k].AverageOnOrderRate = stats.Currencies[k].AverageOnOrderRate / inactiveLentCount[k]
 	}
 
 	// Check if to save
