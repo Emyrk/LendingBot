@@ -210,7 +210,7 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 							highest = a
 						}
 						var range = [unix, numberFix(lowest), numberFix(highest)]
-						if (cur.exchange == "bit") {
+						if (res.data.data[i][c].exchange == "bit") {
 							bitfinAveragePoints.push(avg)
 							bitfincRangePoints.push(range)
 						} else {
