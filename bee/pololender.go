@@ -417,6 +417,7 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 	stats := userdb.NewAllUserStatistic()
 	stats.Time = time.Now()
 	stats.Username = username
+	stats.Exchange = userdb.PoloniexExchange
 
 	for _, v := range balancer.Currencies[balancer.PoloniexExchange] {
 		var last float64 = 1

@@ -201,6 +201,7 @@ func (l *Lender) recordBitfinexStatistics(username string,
 	stats := userdb.NewAllUserStatistic()
 	stats.Time = time.Now()
 	stats.Username = username
+	stats.Exchange = userdb.BitfinexExchange
 
 	// Ticker
 	for _, v := range balancer.Currencies[balancer.BitfinexExchange] {
