@@ -80,6 +80,10 @@ type LendUser struct {
 	U balancer.User
 }
 
+func (*LendUser) Prefix() string {
+	return fmt.Sprintf("%s ", time.Now())
+}
+
 func (l *Lender) Runloop() {
 	go l.BitfinLender.Run()
 	for {
@@ -191,6 +195,9 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 		return nil
 	}
 
+	logentry := fmt.Sprintf("%s : PoloniexBot analyzed your account and found nothing needed to be done", u.Prefix())
+	defer l.Bee.AddBotActivityLogEntry(u.U.Username, logentry)
+
 	if u.U.AccessKey == "" {
 		return fmt.Errorf("No access key for user %s", u.U.Username)
 	}
@@ -210,9 +217,16 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 		bals, err = l.Polo.PoloniexGetAvailableBalances(u.U.AccessKey, u.U.SecretKey)
 		if err != nil && !strings.Contains(err.Error(), "Unable to JSON Unmarshal response. Resp: []") {
 			flog.WithField("retry", i).Errorf("Error getting balances: %s", err.Error())
-			if !strings.Contains(err.Error(), "Connection timed out. Please try again.") {
+			if strings.Contains(err.Error(), "Connection timed out. Please try again.") {
 				// Let it retry
+				if i == 2 {
+					logentry = fmt.Sprintf("%s : PoloniexBot encounterd an error getting available balances: %s", u.Prefix(), err.Error())
+					return err
+				}
 				continue
+			} else {
+				logentry = fmt.Sprintf("%s : PoloniexBot encounterd an error getting available balances: %s", u.Prefix(), err.Error())
+				return err
 			}
 		}
 		break
@@ -224,9 +238,16 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 		inactiveLoans, err = l.Polo.PoloniexGetInactiveLoans(u.U.AccessKey, u.U.SecretKey)
 		if err != nil && !strings.Contains(err.Error(), "Unable to JSON Unmarshal response. Resp: []") {
 			flog.WithField("retry", i).Errorf("Error getting inactive loans: %s", err.Error())
-			if !strings.Contains(err.Error(), "Connection timed out. Please try again.") {
+			if strings.Contains(err.Error(), "Connection timed out. Please try again.") {
 				// Let it retry
+				if i == 2 {
+					logentry = fmt.Sprintf("%s : PoloniexBot encounterd an error getting inactive loans: %s", u.Prefix(), err.Error())
+					return err
+				}
 				continue
+			} else {
+				logentry = fmt.Sprintf("%s : PoloniexBot encounterd an error getting inactive loans: %s", u.Prefix(), err.Error())
+				return err
 			}
 		}
 		break
@@ -244,9 +265,16 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 			}
 		} else if err != nil && !strings.Contains(err.Error(), "Unable to JSON Unmarshal response. Resp: []") {
 			flog.WithField("retry", i).Errorf("Error getting active loans: %s", err.Error())
-			if !strings.Contains(err.Error(), "Connection timed out. Please try again.") {
+			if strings.Contains(err.Error(), "Connection timed out. Please try again.") {
 				// Let it retry
+				if i == 2 {
+					logentry = fmt.Sprintf("%s : PoloniexBot encounterd an error getting active loans: %s", u.Prefix(), err.Error())
+					return err
+				}
 				continue
+			} else {
+				logentry = fmt.Sprintf("%s : PoloniexBot encounterd an error getting active loans: %s", u.Prefix(), err.Error())
+				return err
 			}
 		}
 		break
@@ -259,6 +287,7 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 	JobPart1.Observe(float64(time.Since(part1).Nanoseconds()))
 	part2 := time.Now()
 
+	currLogs := ""
 	for _, curr := range dbu.PoloniexEnabled.Keys() { //u.U.MinimumLend {
 		min := dbu.PoloniexMiniumLend.Get(curr)
 		clog := flog.WithFields(log.Fields{"currency": curr, "exchange": balancer.GetExchangeString(u.U.Exchange)})
@@ -380,27 +409,21 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 
 		_, err = l.Polo.PoloniexCreateLoanOffer(curr, amt, rate, 2, false, u.U.AccessKey, u.U.SecretKey)
 		if err != nil { //} && strings.Contains(err.Error(), "Too many requests") {
-			// Sleep in our inner loop. This can be dangerous, should put these calls in a seperate queue to handle
-			// time.Sleep(5 * time.Second)
-			// _, err = s.PoloniexCreateLoanOffer(j.Currency[i], amt, rate, 2, false, j.Username)
-			if err != nil {
-				msg := fmt.Sprintf("Error creating loan: %s", err.Error())
-				clog.Errorf(msg)
-				notes += msg + "\n"
-			}
+			msg := fmt.Sprintf("Error creating loan: %s", err.Error())
+			clog.Errorf(msg)
+			notes += msg + "\n"
+
+			currLogs += fmt.Sprintf("   PoloniexBot attempted to create a loan for %f %s at %f, but failed: %s\n", amt, curr, rate, err.Error())
 		} else {
 			clog.WithFields(log.Fields{"rate": rate, "amount": amt}).Infof("Created Loan")
 			notes += fmt.Sprintf("Created loan for %f %s at %f\n", amt, curr, rate)
-		}
-
-		if err != nil {
-			msg := fmt.Sprintf("[Offer] Error in Lending: %s", err.Error())
-			clog.Errorf(msg)
-			notes += msg + "\n"
-			continue
+			currLogs += fmt.Sprintf("   Loan made for %f %s at %f\n", amt, curr, rate)
 		}
 		JobPart2.Observe(float64(time.Since(part2).Nanoseconds()))
 		LoansCreated.Inc()
+	}
+	if len(currLogs) > 0 {
+		logentry = fmt.Sprintf("%s PoloniexBot Lending Actions:\n%s", u.Prefix(), currLogs)
 	}
 
 	l.usersDoneLock.Lock()
