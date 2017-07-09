@@ -13,8 +13,9 @@ type UserMigrateDB struct {
 }
 
 type UserStatMigrateDB struct {
-	userStatMongoDB    *userdb.UserStatisticsDB
-	userStatEmbeddedDB *userdb.UserStatisticsDB
+	userStatMongoDBBalacner *userdb.UserStatisticsDB
+	userStatMongoDBBee      *userdb.UserStatisticsDB
+	userStatEmbeddedDB      *userdb.UserStatisticsDB
 }
 
 func SetUpUserDB() *UserMigrateDB {
@@ -44,13 +45,21 @@ func SetUpUserStatMigrateDB() *UserStatMigrateDB {
 	userStatMigrateDB := new(UserStatMigrateDB)
 
 	uri := "mongo.hodl.zone:27017"
-	mongoRevelPass := os.Getenv("MONGO_BAL_PASS")
-	if mongoRevelPass == "" {
+	mongoBalancerPass := os.Getenv("MONGO_BAL_PASS")
+	if mongoBalancerPass == "" {
 		panic("Running in prod, but no revel pass given in env var 'MONGO_BAL_PASS'")
 	}
-	userStatMigrateDB.userStatMongoDB, err = userdb.NewUserStatisticsMongoDB(uri, "balancer", mongoRevelPass)
+	userStatMigrateDB.userStatMongoDBBalacner, err = userdb.NewUserStatisticsMongoDB(uri, "balancer", mongoBalancerPass)
 	if err != nil {
-		panic(fmt.Sprintf("Error connecting to user mongodb: %s\n", err.Error()))
+		panic(fmt.Sprintf("Error connecting to userstat balancer mongodb: %s\n", err.Error()))
+	}
+	mongoBeePass := os.Getenv("MONGO_BEE_PASS")
+	if mongoBeePass == "" {
+		panic("Running in prod, but no revel pass given in env var 'MONGO_BEE_PASS'")
+	}
+	userStatMigrateDB.userStatMongoDBBee, err = userdb.NewUserStatisticsMongoDB(uri, "bee", mongoBeePass)
+	if err != nil {
+		panic(fmt.Sprintf("Error connecting to userstat bee mongodb: %s\n", err.Error()))
 	}
 
 	v := os.Getenv("USER_DB")
@@ -65,24 +74,24 @@ func SetUpUserStatMigrateDB() *UserStatMigrateDB {
 }
 
 func main() {
-	fmt.Printf("---------STARTED MIRGATE USER DB---------\n")
-	userMigrateDB := SetUpUserDB()
+	// fmt.Printf("---------STARTED MIRGATE USER DB---------\n")
+	// userMigrateDB := SetUpUserDB()
 
-	users, err := userMigrateDB.userEmbeddedDB.FetchAllUsers()
-	if err != nil {
-		panic(fmt.Sprintf("Error retrieving users: %s\n", err.Error()))
-	} else {
-		fmt.Printf("Successfully retrieved %d users\n", len(users))
-		for i, _ := range users {
-			err = userMigrateDB.userMongoDB.PutUser(&users[i])
-			if err != nil {
-				fmt.Printf("ERROR: adding user: %s\n", users[i].Username)
-			} else {
-				fmt.Printf("Success: adding user: %s\n", users[i].Username)
-			}
-		}
-	}
-	fmt.Printf("---------FINISHED MIRGATE USER DB---------\n\n")
+	// users, err := userMigrateDB.userEmbeddedDB.FetchAllUsers()
+	// if err != nil {
+	// 	panic(fmt.Sprintf("Error retrieving users: %s\n", err.Error()))
+	// } else {
+	// 	fmt.Printf("Successfully retrieved %d users\n", len(users))
+	// 	for i, _ := range users {
+	// 		err = userMigrateDB.userMongoDB.PutUser(&users[i])
+	// 		if err != nil {
+	// 			fmt.Printf("ERROR: adding user: %s\n", users[i].Username)
+	// 		} else {
+	// 			fmt.Printf("Success: adding user: %s\n", users[i].Username)
+	// 		}
+	// 	}
+	// }
+	// fmt.Printf("---------FINISHED MIRGATE USER DB---------\n\n")
 
 	fmt.Printf("---------STARTED MIRGATE USERSTATS DB---------\n")
 	userStatMigrateDB := SetUpUserStatMigrateDB()
@@ -106,7 +115,7 @@ func main() {
 		// 		if err != nil {
 		// 			fmt.Printf("ERROR: retrieving lending history for day[%s]for user: %s\n", top.String(), u.Username)
 		// 		} else if v != nil {
-		// 			err := userStatMigrateDB.userStatMongoDB.SaveLendingHistory(v)
+		// 			err := userStatMigrateDB.userStatMongoDBBalacner.SaveLendingHistory(v)
 		// 			if err != nil {
 		// 				fmt.Printf("ERROR: saving lending history for day[%s] for user: %s\n", top.String(), u.Username)
 		// 			}
@@ -119,25 +128,25 @@ func main() {
 		// }
 
 		// fmt.Printf("---------FINISHED MIRGATE LENDING HISTORY---------\n")
-		fmt.Printf("---------START MIRGATE EXCHANGE---------\n")
+		// fmt.Printf("---------START MIRGATE EXCHANGE---------\n")
 
-		poloCoins := []string{"BTC", "BTS", "CLAM", "DOGE", "DASH", "LTC", "MAID", "STR", "XMR", "XRP", "ETH", "FCT"}
-		for _, coin := range poloCoins {
-			psArr, err := userStatMigrateDB.userStatEmbeddedDB.GetAllPoloniexStatistics(coin)
-			if err != nil {
-				fmt.Printf("ERROR: retrieving polo stats")
-			} else {
-				fmt.Printf("Exchange info found: %d\n", len(*psArr))
-				for _, ps := range *psArr {
-					err = userStatMigrateDB.userStatMongoDB.RecordPoloniexStatisticTime(coin, ps.Rate, ps.Time)
-					if err != nil {
-						fmt.Printf("ERROR: saving poloniex stats: %s\n", err.Error())
-					}
-				}
-			}
-		}
+		// poloCoins := []string{"BTC", "BTS", "CLAM", "DOGE", "DASH", "LTC", "MAID", "STR", "XMR", "XRP", "ETH", "FCT"}
+		// for _, coin := range poloCoins {
+		// 	psArr, err := userStatMigrateDB.userStatEmbeddedDB.GetAllPoloniexStatistics(coin)
+		// 	if err != nil {
+		// 		fmt.Printf("ERROR: retrieving polo stats")
+		// 	} else {
+		// 		fmt.Printf("Exchange info found: %d\n", len(*psArr))
+		// 		for _, ps := range *psArr {
+		// 			err = userStatMigrateDB.userStatMongoDBBalacner.RecordPoloniexStatisticTime(coin, ps.Rate, ps.Time)
+		// 			if err != nil {
+		// 				fmt.Printf("ERROR: saving poloniex stats: %s\n", err.Error())
+		// 			}
+		// 		}
+		// 	}
+		// }
 
-		fmt.Printf("---------FINISHED MIRGATE EXCHANGE---------\n")
+		// fmt.Printf("---------FINISHED MIRGATE EXCHANGE---------\n")
 		fmt.Printf("---------START MIRGATE USERSTATS---------\n")
 
 		for _, u := range users {
@@ -145,7 +154,7 @@ func main() {
 				stats := userStatMigrateDB.userStatEmbeddedDB.GetStatisticsOneDay(u.Username, i)
 				fmt.Printf("userstat info found for [%s] Day [%d]: %d\n", u.Username, i, len(stats))
 				for i, _ := range stats {
-					err = userStatMigrateDB.userStatMongoDB.RecordData(&stats[i])
+					err = userStatMigrateDB.userStatMongoDBBee.RecordData(&stats[i])
 					if err != nil {
 						fmt.Printf("Error saving user %s userStat: %s\n", u.Username, err.Error())
 					}
