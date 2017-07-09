@@ -159,15 +159,16 @@ func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
 	bitUserStats, err := state.GetUserStatistics(email, 2, "bit")
 
 	collapse := func(data [][]userdb.AllUserStatistic) (*CurrentUserStatistics, *UserBalanceDetails) {
+		fmt.Println(data)
 		balanceDetails := newUserBalanceDetails()
 		today := newCurrentUserStatistics()
 		if err != nil {
 			balanceDetails.compute()
 			return today, balanceDetails
 		}
-		l := len(poloUserStats)
-		if l > 0 && len(poloUserStats[0]) > 0 {
-			now := poloUserStats[0][0]
+		l := len(data)
+		if l > 0 && len(data[0]) > 0 {
+			now := data[0][0]
 			// Set balance ratios
 			balanceDetails.CurrencyMap = now.TotalCurrencyMap
 			balanceDetails.compute()
@@ -184,7 +185,7 @@ func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
 
 			today.LendingPercent = today.BTCLent / (today.BTCLent + today.BTCNotLent)
 
-			yesterday := userdb.GetCombinedDayAverage(poloUserStats[1])
+			yesterday := userdb.GetCombinedDayAverage(data[1])
 			if yesterday != nil {
 				today.LoanRateChange = today.LoanRate - yesterday.LoanRate
 				today.BTCLentChange = today.BTCLent - yesterday.Lent
