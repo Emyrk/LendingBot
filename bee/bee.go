@@ -119,6 +119,7 @@ func (b *Bee) Report() string {
 	str := fmt.Sprintf("==== Bee [%s] ====\n", b.ID)
 	str += fmt.Sprintf("  %-15s : %s\n", "Status", balancer.StatusToString(b.Status))
 	str += fmt.Sprintf("  %-15s : %s\n", "LastHeartbeat", b.LastHearbeat)
+	str += fmt.Sprintf("  %-15s : %d\n", "UserCount", len(b.Users))
 	str += fmt.Sprintf("  %-15s : %d/%d\n", "SendChannel", len(b.SendChannel), cap(b.SendChannel))
 	str += fmt.Sprintf("  %-15s : %d/%d\n", "RecieveChannel", len(b.RecieveChannel), cap(b.RecieveChannel))
 	str += fmt.Sprintf("  %-15s : %d/%d\n", "ErrorChannel", len(b.ErrorChannel), cap(b.ErrorChannel))
