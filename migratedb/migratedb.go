@@ -2,9 +2,8 @@ package migratedb
 
 import (
 	"fmt"
-	"time"
+	"os"
 
-	"github.com/Emyrk/LendingBot/src/core"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"github.com/revel/revel"
 )
@@ -37,16 +36,13 @@ func SetUpUserDB() *UserMigrateDB {
 	if len(v) == 0 {
 		v = "UserDatabase.db"
 	}
-	userMigrateDB.userStatEmbeddedDB, err = userdb.NewBoltUserDatabase(v)
-	if err != nil {
-		panic(fmt.Sprintf("Error connecting to user embedded: %s\n", err.Error()))
-	}
+	userMigrateDB.userEmbeddedDB = userdb.NewBoltUserDatabase(v)
 	return userMigrateDB
 }
 
 func SetUpUserStatMigrateDB() *UserStatMigrateDB {
 	var err error
-	userStatMigrateDB := new(userStatMigrateDB)
+	userStatMigrateDB := new(UserStatMigrateDB)
 
 	uri := revel.Config.StringDefault("database.uri", "mongodb://localhost:27017")
 	mongoRevelPass := os.Getenv("MONGO_REVEL_PASS")
@@ -75,15 +71,15 @@ func main() {
 
 	users, err := userMigrateDB.userEmbeddedDB.FetchAllUsers()
 	if err != nil {
-		panic("Error retrieving users: %s\n", err.Error())
+		panic(fmt.Sprintf("Error retrieving users: %s\n", err.Error()))
 	} else {
 		fmt.Printf("Successfully retrieved %d users\n", len(users))
-		for _, u := range users {
-			err = userMigrateDB.userMongoDB.PutUser(u)
+		for i, _ := range users {
+			err = userMigrateDB.userMongoDB.PutUser(&users[i])
 			if err != nil {
-				fmt.Printf("ERROR: adding user: %s\n", u.Username)
+				fmt.Printf("ERROR: adding user: %s\n", users[i].Username)
 			} else {
-				fmt.Printf("Success: adding user: %s\n", u.Username)
+				fmt.Printf("Success: adding user: %s\n", users[i].Username)
 			}
 		}
 	}
@@ -92,7 +88,7 @@ func main() {
 	fmt.Printf("---------STARTED MIRGATE USERSTATS DB---------\n")
 	userStatMigrateDB := SetUpUserStatMigrateDB()
 	if err != nil {
-		panic("Error retrieving userstat: %s\n", err.Error())
+		panic(fmt.Sprintf("Error retrieving userstat: %s\n", err.Error()))
 	} else {
 		// lendingHist, err := userStatMigrateDB.userStatEmbeddedDB.GetLendHistorySummary(username, time.Now().UTC())
 		// if err != nil {
@@ -133,7 +129,7 @@ func main() {
 				if err != nil {
 					fmt.Printf("ERROR: retrieving polo stats for user: %s\n", u.Username)
 				} else {
-					for _, ps := range psArr {
+					for _, ps := range *psArr {
 						err = userStatMigrateDB.userStatMongoDB.RecordPoloniexStatisticTime(coin, ps.Rate, ps.Time)
 						if err != nil {
 							fmt.Printf("ERROR: saving poloniex stats: %s\n", u.Username)
@@ -149,9 +145,11 @@ func main() {
 		for _, u := range users {
 			for i := 0; i < 29; i++ {
 				stats := userStatMigrateDB.userStatEmbeddedDB.GetStatisticsOneDay(u.Username, i)
-				err = userStatMigrateDB.userStatEmbeddedDB.RecordData(stats)
-				if err != nil {
-					fmt.Printf("Error saving user %s userStat: %s\n", u.Username, err.Error())
+				for i, _ := range stats {
+					err = userStatMigrateDB.userStatEmbeddedDB.RecordData(&stats[i])
+					if err != nil {
+						fmt.Printf("Error saving user %s userStat: %s\n", u.Username, err.Error())
+					}
 				}
 			}
 		}
