@@ -158,11 +158,7 @@ func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
 	poloUserStats, err := state.GetUserStatistics(email, 2, "polo")
 	bitUserStats, err := state.GetUserStatistics(email, 2, "bit")
 
-	fmt.Println(poloUserStats)
-	fmt.Println(bitUserStats)
-
 	collapse := func(data [][]userdb.AllUserStatistic) (*CurrentUserStatistics, *UserBalanceDetails) {
-		fmt.Println(data)
 		balanceDetails := newUserBalanceDetails()
 		today := newCurrentUserStatistics()
 		if err != nil {
@@ -196,7 +192,6 @@ func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
 				today.LendingPercentChange = today.LendingPercent - yesterday.LendingPercent
 			}
 		}
-		fmt.Println(today, balanceDetails)
 		return today, balanceDetails
 	}
 

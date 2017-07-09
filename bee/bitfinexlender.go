@@ -28,6 +28,9 @@ type BitfinexLender struct {
 
 	nextStart time.Time
 
+	iotLastTime time.Time
+	iotLast     float64
+
 	quit chan bool
 }
 
@@ -220,6 +223,21 @@ func (l *Lender) recordBitfinexStatistics(username string,
 					return nil, fmt.Errorf("No ticker found for %s (used USDT)", uppered)
 				}
 				last = 1 / lastS.Last
+			} else if uppered == "IOT" {
+				if time.Since(l.BitfinLender.iotLastTime) > time.Minute*30 {
+					api := bitfinex.New("", "")
+					ti, err := api.Ticker("IOTBTC")
+					if err == nil {
+						l.BitfinLender.iotLast = ti.LastPrice
+					}
+				}
+
+				lastS := l.BitfinLender.iotLast
+				if lastS == 0 {
+					l.tickerlock.RUnlock()
+					return nil, fmt.Errorf("No ticker found for %s", uppered)
+				}
+				last = lastS
 			} else {
 				lastS, ok := l.ticker[fmt.Sprintf("BTC_%s", uppered)]
 				if !ok {
