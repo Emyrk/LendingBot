@@ -29,15 +29,20 @@ var AvaiableCoins = []string{
 	"BTC",
 	"BTS",
 	"CLAM",
-	"DOGE",
 	"DASH",
+	"DOGE",
+	"EOS",
+	"ETC",
+	"ETH",
+	"FCT",
+	"IOT",
 	"LTC",
 	"MAID",
 	"STR",
+	"USD",
 	"XMR",
 	"XRP",
-	"ETH",
-	"FCT",
+	"ZEC",
 }
 
 func CoinExists(coin string) bool {
