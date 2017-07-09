@@ -313,6 +313,7 @@ func (s *State) SetUserKeys(username, acessKey, secretKey string, exchange userd
 			return fmt.Errorf("There was an error using your Poloniex keys. There is a chance they are not valid. Try setting them again, and if this continues contact Support@hodl.zone")
 		}
 	case userdb.BitfinexExchange:
+		fmt.Println(pk.DecryptAPIKeyString(u.GetCipherKey(s.CipherKey)))
 		u.BitfinexKeys = pk
 	default:
 		return fmt.Errorf("Exchange not recognized: %s", exchange)
