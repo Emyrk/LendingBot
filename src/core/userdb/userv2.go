@@ -140,6 +140,7 @@ func (u *User) SafeUnmarshal(data []byte) error {
 		u = UserToV2User(u1)
 		return nil
 	}
+	fmt.Println(u1, len(n))
 
 	return json.Unmarshal(data, u)
 }
