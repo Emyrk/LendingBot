@@ -24,11 +24,9 @@ const (
 	STAT_DB_TEST = "statdb_test"
 
 	C_UserStat = "userStat"
+	C_LendHist = "lendingHist"
 
-	C_LendHist_POL = "poloniexLendingHist"
 	C_Exchange_POL = "poloniexExchange"
-
-	C_LendHist_BIT = "bitfinexLendingHist"
 	C_Exchange_BIT = "bitfinexExchange"
 	//STAT END
 
