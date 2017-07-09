@@ -164,6 +164,10 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 
 		avail := bals[bitfinex.WalletKey{"deposit", lower}].Available
 
+		if avail < 0 {
+			continue
+		}
+
 		err = bl.take()
 		if err != nil {
 			return err
