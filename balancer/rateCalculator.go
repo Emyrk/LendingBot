@@ -104,6 +104,7 @@ func NewRateCalculator(h *Hive, uri, dbu, dbp string) *QueenBee {
 	}
 	tmp := make(map[string]poloniex.PoloniexTicker)
 	q.cachedTicker = &tmp
+	q.bitfinexTickerCorrections = new(ExtraTickers)
 
 	return q
 }
