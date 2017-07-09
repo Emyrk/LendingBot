@@ -437,6 +437,24 @@ func (p *PoloniexStats) String() string {
 		p.HrAvg, p.DayAvg, p.WeekAvg, p.MonthAvg, p.HrStd, p.DayStd, p.WeekStd, p.MonthStd)
 }
 
+//Used for migration from embedded to mongo
+func (us *UserStatisticsDB) GetAllPoloniexStatistics(currency string) (*[]PoloniexStat, error) {
+	var poloniexStatsArr []PoloniexStat
+
+	s, c, err := us.mdb.GetCollection(mongo.C_Exchange_POL)
+	if err != nil {
+		return nil, fmt.Errorf("Mongo: GetPoloniexStatistics: getcol: %s", err)
+	}
+	defer s.Close()
+
+	find := bson.M{"currency": currency}
+	err = c.Find(find).Sort("-_id").All(&poloniexStatsArr)
+	if err != nil {
+		return nil, fmt.Errorf("Mongo: getPoloniexStats: findAll: %s", err.Error())
+	}
+	return &poloniexStatsArr, nil
+}
+
 func (us *UserStatisticsDB) GetPoloniexStatistics(currency string) (*PoloniexStats, error) {
 	poloStats := new(PoloniexStats)
 	var poloniexStatsArr []PoloniexStat
@@ -612,7 +630,7 @@ func (us *UserStatisticsDB) RecordPoloniexStatisticTime(currency string, rate fl
 	return us.db.Put(buck, secBytes, data)
 }
 
-func (us *UserStatisticsDB) GetStatistics(username string, dayRange int) ([][]AllUserStatistic, error) {
+func (us *UserStatisticsDB) GetStatistics(username string, dayRange int, exchange *UserExchange) ([][]AllUserStatistic, error) {
 	if dayRange > 30 {
 		return nil, fmt.Errorf("Day range must be less than 30")
 	}
@@ -653,12 +671,24 @@ func (us *UserStatisticsDB) GetStatistics(username string, dayRange int) ([][]Al
 
 			tempS := make([]AllUserStatistic, 0)
 			retStructAllStat := NewAllUserStatistic()
-			find := bson.M{
-				"$and": []bson.M{
-					bson.M{"time": bson.M{"$lt": timeDayRangeStart}},
-					bson.M{"time": bson.M{"$gt": timeDayRangeEnd}},
-					bson.M{"email": username},
-				},
+			var find bson.M
+			if exchange != nil {
+				find = bson.M{
+					"$and": []bson.M{
+						bson.M{"time": bson.M{"$lt": timeDayRangeStart}},
+						bson.M{"time": bson.M{"$gt": timeDayRangeEnd}},
+						bson.M{"email": username},
+						bson.M{"exchange": exchange},
+					},
+				}
+			} else {
+				find = bson.M{
+					"$and": []bson.M{
+						bson.M{"time": bson.M{"$lt": timeDayRangeStart}},
+						bson.M{"time": bson.M{"$gt": timeDayRangeEnd}},
+						bson.M{"email": username},
+					},
+				}
 			}
 			iter := c.Find(find).Sort("-time").Iter()
 			for iter.Next(retStructAllStat) {

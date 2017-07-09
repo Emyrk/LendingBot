@@ -328,7 +328,7 @@ func (s *State) SetUserKeys(username, acessKey, secretKey string, exchange userd
 }
 
 func (s *State) GetUserStatistics(username string, dayRange int) ([][]userdb.AllUserStatistic, error) {
-	return s.userStatistic.GetStatistics(username, dayRange)
+	return s.userStatistic.GetStatistics(username, dayRange, nil)
 }
 
 func (s *State) EnableUserLending(username string, c string, exchange userdb.UserExchange) error {
