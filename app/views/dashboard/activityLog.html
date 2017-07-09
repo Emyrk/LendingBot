@@ -1,0 +1,46 @@
+ <div class="col-lg-8 col-md-12 col-sm-12 col-xs-12">
+  <div class="x_panel">
+    <div class="x_title">
+      <h2>Lending Activity<small> Live action of bot activity.</small></h2>
+      [[if eq .RunMode "dev"]]
+      <ul class="nav navbar-right panel_toolbox">
+        <li style="float:right;"><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+        </li>
+        <li class="dropdown" style="float:right;">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-info-circle"></i></a>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="#">Settings 1</a>
+            </li>
+            <li><a href="#">Settings 2</a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+      [[end]]
+      <div class="clearfix"></div>
+    </div>
+    <div class="x_content">
+      <p class="text-muted font-13 m-b-30">
+        This is a complete list of the running HODL bot activity on your account. Please keep in mind this a compilation of activity from your active exchanges.
+      </p>
+      <table id="activityLog" class="table table-striped table-bordered dataTable no-footer" cellspacing="0" width="100%">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Message</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="l in logs track by l.t">
+            <td>
+              {{l.t}}
+            </td>
+            <td>
+              {{l.l}}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
