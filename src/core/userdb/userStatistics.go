@@ -1204,3 +1204,51 @@ func abs(a float64) float64 {
 	}
 	return a
 }
+
+func (us *UserStatisticsDB) AddBotActivityLogEntry(username string, botAct *[]BotActivityLogEntry) error {
+	s, c, err := us.mdb.GetCollection(mongo.C_BotActivity)
+	if err != nil {
+		return fmt.Errorf("SetBotActivity: createSession: %s", err.Error())
+	}
+	defer s.Close()
+
+	//CAN OPTIMIZE LATER
+	upsertKey := bson.M{
+		"_id": username,
+	}
+	upsertAction := bson.M{
+		"$push": bson.M{
+			"activitylog": bson.M{
+				"$each":  botAct,
+				"$sort":  bson.M{"time": -1},
+				"$slice": 100,
+			},
+		},
+	}
+
+	_, err = c.Upsert(upsertKey, upsertAction)
+	if err != nil {
+		return fmt.Errorf("SetBotActivity: upsert: %s", err)
+	}
+	return nil
+}
+
+func (us *UserStatisticsDB) GetBotActivity(username string) (*BotActivity, error) {
+	s, c, err := us.mdb.GetCollection(mongo.C_BotActivity)
+	if err != nil {
+		return nil, fmt.Errorf("GetBotActivity: createSession: %s", err.Error())
+	}
+	defer s.Close()
+
+	var result BotActivity
+
+	//CAN OPTIMIZE LATER
+	q := bson.M{
+		"_id": username,
+	}
+	err = c.Find(q).One(&result)
+	if err != nil {
+		return nil, fmt.Errorf("GetBotActivity: find: %s", err)
+	}
+	return &result, nil
+}
