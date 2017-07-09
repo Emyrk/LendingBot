@@ -174,7 +174,7 @@ func (ud *UserDatabase) FetchAllUsers() ([]User, error) {
 			continue
 		}
 
-		fmt.Printf("Raw %s: %x\n", k, data)
+		fmt.Printf("Raw %x: %x\n", k, data)
 
 		err = u.SafeUnmarshal(data)
 		if err != nil {
