@@ -188,6 +188,9 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 					var prevLowest = 0
 					for(c = 0; c < res.data.data[i].length; c++) {
 						var cur = res.data.data[i][c].currencies[coinScope.coin]
+						if (cur == undefined || cur == null) {
+							continue
+						}
 						var unix = new Date(cur.time).getTime()
 						if ((cur.activerate*100) > 2 ||  cur.activerate == 0){
 							continue

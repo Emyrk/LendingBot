@@ -43,6 +43,10 @@ type Lender struct {
 	usersDone     map[string]time.Time
 
 	HistoryKeeper *LendingHistoryKeeper
+
+	// Report
+	usercycles int
+	cycles     int
 }
 
 func (l *Lender) SetTicker(t map[string]poloniex.PoloniexTicker) {
@@ -66,6 +70,10 @@ func NewLender(b *Bee) *Lender {
 	l.HistoryKeeper = NewLendingHistoryKeeper(b)
 
 	return l
+}
+
+func (l *Lender) Report() string {
+	return fmt.Sprintf("Cycles: %d, UsersProcesses: %d", l.cycles, l.usercycles)
 }
 
 type LendUser struct {
@@ -125,6 +133,7 @@ func (l *Lender) Runloop() {
 						"exchange": balancer.GetExchangeString(u.U.Exchange)}).Errorf("[BitfinexLending] Error: %s", err.Error())
 				}
 			}
+			l.usercycles++
 			JobProcessDuration.Observe(float64(time.Since(duration).Nanoseconds()))
 		}
 
@@ -138,6 +147,8 @@ func (l *Lender) Runloop() {
 			return
 		default:
 		}
+		l.cycles++
+
 	}
 }
 

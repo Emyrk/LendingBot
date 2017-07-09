@@ -24,6 +24,7 @@ type BitfinexLender struct {
 
 	API         *bitfinex.API
 	rateLimiter *rate.RateLimiter
+	spamLimiter *rate.RateLimiter
 
 	nextStart time.Time
 
@@ -35,8 +36,8 @@ func NewBitfinexLender() *BitfinexLender {
 	b.API = bitfinex.New("Public", "Calls")
 	b.Ticker = make(map[string]bitfinex.V2Ticker)
 	b.FundingTicker = make(map[string]bitfinex.V2FundingTicker)
-	// b.rateLimiter = rate.New(90, time.Minute)
-	b.rateLimiter = rate.New(9, time.Second)
+	b.rateLimiter = rate.New(90, time.Minute)
+	b.spamLimiter = rate.New(15, time.Second)
 	b.usersDone = make(map[string]time.Time)
 	b.quit = make(chan bool)
 
@@ -57,6 +58,7 @@ func (bl *BitfinexLender) take() error {
 	if ok {
 		return nil
 	}
+	bl.spamLimiter.Wait()
 	if remain < time.Second*1 {
 		time.Sleep(remain)
 		return nil
@@ -78,7 +80,7 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 	}()
 
 	// Only process once per minute max
-	if time.Since(v) < time.Second { //time.Minute {
+	if time.Since(v) < time.Minute { //time.Minute {
 		return nil
 	}
 
@@ -96,7 +98,6 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 
 	api := bitfinex.New(u.U.AccessKey, u.U.SecretKey)
 
-	fmt.Println(u.U.AccessKey, u.U.SecretKey)
 	// api.Ticker(symbol)
 	err = bl.take()
 	if err != nil {

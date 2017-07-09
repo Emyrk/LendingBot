@@ -98,6 +98,7 @@ func (l *LendingHistoryKeeper) SaveMonth(username, accesskey, secretkey string) 
 		per := time.Now()
 		flog.Infof("Username: %s, Top: %s", username, top.String())
 		v, err := l.MyBee.userStatDB.GetLendHistorySummary(username, top) //l.St.LoadLendingSummary(username, curr)
+		fmt.Println(top, v, err)
 		if v == nil || err != nil {
 			resp, err := l.getLendhist(accesskey, secretkey, fmt.Sprintf("%d", curr.Unix()-1), fmt.Sprintf("%d", top.Unix()), "")
 			if err != nil {
