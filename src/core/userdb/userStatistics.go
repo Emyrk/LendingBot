@@ -1152,7 +1152,7 @@ func (us *UserStatisticsDB) GetLendHistorySummary(username string, t time.Time) 
 		q := bson.M{
 			"$and": []bson.M{
 				bson.M{"email": username},
-				bson.M{"_id": t},
+				bson.M{"time": t},
 			},
 		}
 		err = c.Find(q).One(result)

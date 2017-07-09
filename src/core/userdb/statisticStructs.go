@@ -49,7 +49,7 @@ type AllLendingHistoryEntry struct {
 
 	PoloniexData map[string]*LendingHistoryEntry `json:"poloniexdata",msg:"poloniexdata"`
 	BitfinexData map[string]*LendingHistoryEntry `json:"bitfinexdata",msg:"bitfinexdata"`
-	Time         time.Time                       `bson:"_id" json:"time",msg:"time"`
+	Time         time.Time                       `bson:"time" json:"time",msg:"time"`
 	ShortTime    string                          `json:"shorttime",msg:"shorttime"`
 	Username     string                          `bson:"email" json:"username",msg:"username"`
 }
