@@ -3,6 +3,7 @@
 		<div class="x_title">
 			<h2>Last Month {{coin}} Lending History</h2>
 			<div class="clearfix"></div>
+			<p>Each day represents the loans that closed on that given day. Keep in mind that this has some data skew because loans can be up to 2 days in length, meaning a loan placed today might not show up until 2 days from now. This causes days with average shorter durations appear more profitible. </p>
 		</div>
 		<div class="x_content">
 			<div ng-show="hasCompleteLoans">
@@ -32,6 +33,19 @@
                 <strong><span><i class="fa fa-spinner fa-spin"></i></span></strong>
               </div>
 			<div id="lending-rate-graph" ng-show="detailedLendingHistory" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+		</div>
+	</div>
+	<div class="x_panel">
+		<div class="x_title">
+			<h2>Last Month {{coin}} Lending Amounts</h2>
+			<div class="clearfix"></div>
+			<p>Here shows the amount of crypto that was being lent, and not being lent throughout the last month.</p>
+		</div>
+		<div class="x_content">
+			<div class="alert alert-info fade in" role="alert" ng-show="loadingDetailedLendingHistory">Loading detailed lending history... this may take a moment.
+				<strong><span><i class="fa fa-spinner fa-spin"></i></span></strong>
+			</div>
+			<div id="lent-totals-graph" ng-show="detailedLendingHistory" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
 		</div>
 	</div>
 </div>

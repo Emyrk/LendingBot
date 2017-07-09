@@ -174,6 +174,11 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 				var poloRangePoints = [];
 				var bitfinAveragePoints = [];
 				var bitfincRangePoints = [];
+
+				var poloLent = [];
+				var poloNotLent = [];
+				var bitfinLent = [];
+				var bitfinNotLent = [];
 				// for(i =0; i < 10; i++) {
 				// 	averagePoints.push([i, i])
 				// 	rangePoints.push([i, i,i+5])
@@ -213,15 +218,20 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 						if (res.data.data[i][c].exchange == "bit") {
 							bitfinAveragePoints.push(avg)
 							bitfincRangePoints.push(range)
+							bitfinLent.push([unix, cur.availlent])
+							bitfinNotLent.push([unix, cur.availbal + cur.onorder])
 						} else {
 							poloAveragePoints.push(avg)
 							poloRangePoints.push(range)
+							poloLent.push([unix, cur.availlent])
+							poloNotLent.push([unix, cur.availbal + cur.onorder])
 						}
 					}
 				}
 
 
 				initLineRangeGraph(poloAveragePoints, poloRangePoints, bitfinAveragePoints, bitfincRangePoints)
+				initPercentLentGraph(bitfinLent, bitfinNotLent, poloLent, poloNotLent)
 
 
 			}, (err) => {
@@ -258,6 +268,72 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 
 function numberFix(n) {
 	return Number(n.toFixed(5))
+}
+
+function initPercentLentGraph(bitfinLent, bitfinNotLent, poloLent, poloNotLent) {
+	Highcharts.chart('lent-totals-graph', {
+
+		title: {
+			text: 'Total Currency Being Lent'
+		},
+
+		xAxis: {
+			type: 'datetime'
+		},
+
+		yAxis: {
+			title: {
+				text: null
+			}
+		},
+
+		tooltip: {
+			crosshairs: true,
+			shared: true,
+			valueSuffix: '%'
+		},
+
+		legend: {
+		},
+
+		series: [{
+			name: 'Poloniex Currency Lent',
+			data: poloLent,
+			zIndex: 1,
+			marker: {
+				fillColor: 'white',
+				lineWidth: 2,
+				lineColor: Highcharts.getOptions().colors[0]
+			}
+		}, {
+			name: 'Poloniex Currency NotLent',
+			data: poloNotLent,
+			zIndex: 1,
+			marker: {
+				fillColor: 'white',
+				lineWidth: 2,
+				lineColor: Highcharts.getOptions().colors[0]
+			}
+		}, {
+			name: 'Bitfinex Currency Lent',
+			data: bitfinLent,
+			zIndex: 1,
+			marker: {
+				fillColor: 'white',
+				lineWidth: 2,
+				lineColor: Highcharts.getOptions().colors[0]
+			}
+		}, {
+			name: 'Bitfinex Currency NotLent',
+			data: bitfinNotLent,
+			zIndex: 1,
+			marker: {
+				fillColor: 'white',
+				lineWidth: 2,
+				lineColor: Highcharts.getOptions().colors[0]
+			}
+		}]
+	});	
 }
 
 function initLineRangeGraph(poloAverages, poloRanges, bitfinexAvgerages, bitfinexRanges) {
