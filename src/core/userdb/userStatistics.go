@@ -87,7 +87,7 @@ func newUserStatisticsDB(dbType string) (*UserStatisticsDB, error) {
 	}
 
 	if dbType != "mongo" {
-		if dbType == "bolt" {
+		if dbType != "bolt" {
 			u.db = database.NewMapDB()
 			u.startDB()
 		} else {
@@ -399,14 +399,17 @@ func (us *UserStatisticsDB) GetPoloniexDataLastXDays(dayRange int, currency stri
 			continue
 		}
 		stats := make([]PoloniexRateSample, 0)
+		fmt.Printf("Found %d data entries for day %d\n", len(datas), dayRange)
 		for i, data := range datas {
 			rate, err := primitives.BytesToFloat64(data)
 			if err != nil {
+				fmt.Println("Could not parse rate")
 				continue
 			}
 
 			secondsPast, err := primitives.BytesToUint32(keys[i])
 			if err != nil {
+				fmt.Println("Could not parse seconds")
 				continue
 			}
 
