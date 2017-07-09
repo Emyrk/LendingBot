@@ -98,7 +98,6 @@ func (l *LendingHistoryKeeper) SaveMonth(username, accesskey, secretkey string) 
 		per := time.Now()
 		flog.Infof("Username: %s, Top: %s", username, top.String())
 		v, err := l.MyBee.userStatDB.GetLendHistorySummary(username, top) //l.St.LoadLendingSummary(username, curr)
-		fmt.Println(top, v, err)
 		if v == nil || err != nil {
 			resp, err := l.getLendhist(accesskey, secretkey, fmt.Sprintf("%d", curr.Unix()-1), fmt.Sprintf("%d", top.Unix()), "")
 			if err != nil {
@@ -154,40 +153,40 @@ func compileData(data []poloniex.PoloniexAuthentictedLendingHistory, t time.Time
 		if dt.Day() != t.Day() {
 			continue
 		}
-		if _, ok := ent.Data[d.Currency]; !ok {
+		if _, ok := ent.PoloniexData[d.Currency]; !ok {
 			e := new(userdb.LendingHistoryEntry)
 			e.Currency = d.Currency
-			ent.Data[d.Currency] = e
+			ent.PoloniexData[d.Currency] = e
 		}
 
 		dur, err := strconv.ParseFloat(d.Duration, 64)
 		if err == nil {
-			ent.Data[d.Currency].AvgDuration += dur
+			ent.PoloniexData[d.Currency].AvgDuration += dur
 		} else {
 			flog.WithFields(log.Fields{"item": "AvgDur", "currency": d.Currency}).Errorf("Error parsing int: Raw: %s, err: %s", d.Duration, err.Error())
 		}
 
 		f, err := strconv.ParseFloat(d.Fee, 64)
 		if err == nil {
-			ent.Data[d.Currency].Fees += f * -1
+			ent.PoloniexData[d.Currency].Fees += f * -1
 		} else {
 			flog.WithFields(log.Fields{"item": "Fees", "currency": d.Currency}).Errorf("Error parsing float: Raw: %s, err: %s", d.Fee, err.Error())
 		}
 
 		e, err := strconv.ParseFloat(d.Earned, 64)
 		if err == nil {
-			ent.Data[d.Currency].Earned += e
+			ent.PoloniexData[d.Currency].Earned += e
 		} else {
 			flog.WithFields(log.Fields{"item": "Earned", "currency": d.Currency}).Errorf("Error parsing float: Raw: %s, err: %s", d.Earned, err.Error())
 
 		}
 
-		ent.Data[d.Currency].LoanCounts++
+		ent.PoloniexData[d.Currency].LoanCounts++
 	}
 
-	for k := range ent.Data {
-		if ent.Data[k].LoanCounts > 0 {
-			ent.Data[k].AvgDuration = ent.Data[k].AvgDuration / float64(ent.Data[k].LoanCounts)
+	for k := range ent.PoloniexData {
+		if ent.PoloniexData[k].LoanCounts > 0 {
+			ent.PoloniexData[k].AvgDuration = ent.PoloniexData[k].AvgDuration / float64(ent.PoloniexData[k].LoanCounts)
 		}
 	}
 

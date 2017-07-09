@@ -1092,14 +1092,18 @@ func GetDayBytes(day int) []byte {
 
 func NewAllLendingHistoryEntry() *AllLendingHistoryEntry {
 	l := new(AllLendingHistoryEntry)
-	l.Data = make(map[string]*LendingHistoryEntry)
+	l.PoloniexData = make(map[string]*LendingHistoryEntry)
+	l.BitfinexData = make(map[string]*LendingHistoryEntry)
 	return l
 }
 
 func (a *AllLendingHistoryEntry) Pop() {
 	for _, v := range AvaiableCoins {
-		if _, ok := a.Data[v]; !ok {
-			a.Data[v] = new(LendingHistoryEntry)
+		if _, ok := a.PoloniexData[v]; !ok {
+			a.PoloniexData[v] = new(LendingHistoryEntry)
+		}
+		if _, ok := a.BitfinexData[v]; !ok {
+			a.BitfinexData[v] = new(LendingHistoryEntry)
 		}
 	}
 }

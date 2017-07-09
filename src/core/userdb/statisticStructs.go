@@ -43,10 +43,15 @@ type UserStatistic struct {
 }
 
 type AllLendingHistoryEntry struct {
-	Data      map[string]*LendingHistoryEntry `json:"data",msg:"data"`
-	Time      time.Time                       `bson:"_id" json:"time",msg:"time"`
-	ShortTime string                          `json:"shorttime",msg:"shorttime"`
-	Username  string                          `bson:"email" json:"username",msg:"username"`
+	// This is polo data
+	PoloSet   bool `json:"poloset"`
+	BitfinSet bool `json:"bitfinset"`
+
+	PoloniexData map[string]*LendingHistoryEntry `json:"poloniexdata",msg:"poloniexdata"`
+	BitfinexData map[string]*LendingHistoryEntry `json:"bitfinexdata",msg:"bitfinexdata"`
+	Time         time.Time                       `bson:"_id" json:"time",msg:"time"`
+	ShortTime    string                          `json:"shorttime",msg:"shorttime"`
+	Username     string                          `bson:"email" json:"username",msg:"username"`
 }
 
 type LendingHistoryEntry struct {
@@ -70,7 +75,10 @@ func (l *AllLendingHistoryEntry) SetTime(t time.Time) {
 
 func (l *AllLendingHistoryEntry) String() string {
 	str := fmt.Sprintf("[%s] %s: \n", l.Username, l.ShortTime)
-	for _, v := range l.Data {
+	for _, v := range l.PoloniexData {
+		str += v.String()
+	}
+	for _, v := range l.BitfinexData {
 		str += v.String()
 	}
 	return str
