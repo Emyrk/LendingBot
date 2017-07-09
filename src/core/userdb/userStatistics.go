@@ -630,6 +630,17 @@ func (us *UserStatisticsDB) RecordPoloniexStatisticTime(currency string, rate fl
 	return us.db.Put(buck, secBytes, data)
 }
 
+//TODO REMOVE AFTER MIGRATE
+//Deprecated
+func (us *UserStatisticsDB) GetStatisticsOneDay(username string, day int) []AllUserStatistic {
+	stats := make([]AllUserStatistic, dayRange)
+
+	buc := us.getBucketPlusX(username, day*-1)
+	statlist := us.getStatsFromBucket(buc)
+
+	return statlist
+}
+
 func (us *UserStatisticsDB) GetStatistics(username string, dayRange int, exchange *UserExchange) ([][]AllUserStatistic, error) {
 	if dayRange > 30 {
 		return nil, fmt.Errorf("Day range must be less than 30")
