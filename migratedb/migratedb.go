@@ -157,9 +157,11 @@ func main() {
 				fmt.Printf("userstat info found for [%s] Day [%d]: %d\n", u.Username, i, len(stats))
 				c := 0
 				keep := 0
+				prune := len(stats) - 100
 				for i, _ := range stats {
 					c++
-					if c%3 != 0 {
+					if prune > 0 && c%3 != 0 {
+						prune--
 						continue
 					}
 					keep++
