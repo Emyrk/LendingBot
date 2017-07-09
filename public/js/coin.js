@@ -24,13 +24,15 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 					},
 					formatter: function (params){
 						return "Date: " + params[0].name + '<br/>'
+						+ params[2].seriesName + ' : ' + params[2].value.toFixed(6) + '<br/>'
+						+ params[3].seriesName + ' : ' + params[3].value.toFixed(6) + '<br/>'
 						+ params[0].seriesName + ' : ' + params[0].value.toFixed(6) + '<br/>'
 						+ params[1].seriesName + ' : ' + params[1].value.toFixed(6);
 					}
 				},
 				legend: {
 					selectedMode:false,
-					data:['Earned', 'Fee']
+					data:['Poloniex Earned', 'Poloniex Fee']
 				},
 				toolbox: {
 					show : true,
@@ -58,9 +60,9 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 				],
 				series : [
 				{
-					name:'Fee',
+					name:'Poloniex Fee',
 					type:'bar',
-					stack: 'sum',
+					stack: 'poloniex',
 					itemStyle: {
 						normal: {
 							color: '#ff4c4c',
@@ -69,12 +71,12 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 							barBorderRadius:0,
 						}
 					},
-					data: (coinScope.isLendingHistoryCrypto ? coinScope.loanHistory.fee : coinScope.loanHistory.feeDollar),
+					data: (coinScope.isLendingHistoryCrypto ? coinScope.loanHistory.poloFee : coinScope.loanHistory.poloFeeDollar),
 				},
 				{
-					name:'Earned',
+					name:'Poloniex Earned',
 					type:'bar',
-					stack: 'sum',
+					stack: 'poloniex',
 					barCategoryGap: '50%',
 					itemStyle: {
 						normal: {
@@ -90,7 +92,42 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 							}
 						}
 					},
-					data: (coinScope.isLendingHistoryCrypto ? coinScope.loanHistory.earned : coinScope.loanHistory.earnedDollar),
+					data: (coinScope.isLendingHistoryCrypto ? coinScope.loanHistory.poloEarned : coinScope.loanHistory.poloEarnedDollar),
+				},
+				{
+					name:'Bitfinex Fee',
+					type:'bar',
+					stack: 'bitfinex',
+					itemStyle: {
+						normal: {
+							color: '#ff1a1a',
+							barBorderColor: '#ff1a1a',
+							barBorderWidth: 6,
+							barBorderRadius:0,
+						}
+					},
+					data: (coinScope.isLendingHistoryCrypto ? coinScope.loanHistory.bitfinexFee : coinScope.loanHistory.bitfinexFeeDollar),
+				},
+				{
+					name:'Bitfinex Earned',
+					type:'bar',
+					stack: 'bitfinex',
+					barCategoryGap: '50%',
+					itemStyle: {
+						normal: {
+							color: '#2db92d',
+							barBorderColor: '#2db92d',
+							barBorderWidth: 6,
+							barBorderRadius:0,
+							label : {
+								show: true, position: 'top',
+								formatter: function (params) {
+									return params.value.toFixed(5);
+								},
+							}
+						}
+					},
+					data: (coinScope.isLendingHistoryCrypto ? coinScope.loanHistory.bitfinexEarned : coinScope.loanHistory.bitfinexEarnedDollar),
 				},
 				]
 			}
@@ -110,41 +147,58 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 				coinScope.hasCompleteLoans = res.data.LoanHistory ? true : false;
 				if (coinScope.hasCompleteLoans) {
 					earnedFeeChart = echarts.init(document.getElementById('lendingHistoryChart')),
-					earned = [],
-					fee = [],
+					poloEarned = [],
+					poloFee = [],
+					bitfinexEarned = [],
+					bitfinexFee = [],
+
 					dates = [],
-					earnedDollar = [],
-					feeDollar = [];
+
+					poloEarnedDollar = [],
+					poloFeeDollar = [],
+					bitfinexEarnedDollar = [],
+					bitfinexFeeDollar = [];
 					// res.data.LoanHistory
 					for(i = res.data.LoanHistory.length-1; i >= 0; i--) {
 						if (new Date(res.data.LoanHistory[i].time).getFullYear() > 2000) {
-							var f = parseFloat(res.data.LoanHistory[i].poloniexdata[coinScope.coin].fees),
-							e = parseFloat(res.data.LoanHistory[i].poloniexdata[coinScope.coin].earned);
-							fee.push(f);
-							earned.push(e);
+							var pf = parseFloat(res.data.LoanHistory[i].poloniexdata[coinScope.coin].fees),
+							pe = parseFloat(res.data.LoanHistory[i].poloniexdata[coinScope.coin].earned);
+							bf = parseFloat(res.data.LoanHistory[i].bitfinexdata[coinScope.coin].fees),
+							be = parseFloat(res.data.LoanHistory[i].bitfinexdata[coinScope.coin].earned);
+
+							poloFee.push(pf);
+							poloEarned.push(pe);
+							bitfinexFee.push(bf);
+							bitfinexEarned.push(be);
 							var usdRate = res.data.USDRates["USD_"+coinScope.coin]
 							if (usdRate == null) {
 								usdRate = 1
 							}
 							console.log(res.data)
 
-							feeDollar.push(f*parseFloat(usdRate));
-							earnedDollar.push(e*parseFloat(usdRate));
+							poloFeeDollar.push(pf*parseFloat(usdRate));
+							poloEarnedDollar.push(pe*parseFloat(usdRate));
+							bitfinexFeeDollar.push(bf*parseFloat(usdRate));
+							bitfinexEarnedDollar.push(be*parseFloat(usdRate));
 							var t = new Date(res.data.LoanHistory[i].time)
 							var mon = t.getMonth()+1;
 							dates.push(mon + "/" + t.getDate());
 						}
 					}
-					if (earned.length == 0) {
+					if (poloEarned.length == 0) {
 						coinScope.hasCompleteLoans = false;
 						return;
 					}
 					coinScope.loanHistory = {
-						earned : earned,
-						fee : fee,
+						poloEarned : poloEarned,
+						poloFee : poloFee,
+						bitfinexEarned : bitfinexEarned,
+						bitfinexFee : bitfinexFee,
 						dates : dates,
-						earnedDollar : earnedDollar,
-						feeDollar : feeDollar,
+						poloEarnedDollar : poloEarnedDollar,
+						poloFeeDollar : poloFeeDollar,
+						bitfinexEarnedDollar : bitfinexEarnedDollar,
+						bitfinexFeeDollar : bitfinexFeeDollar,
 					}
 					
 					earnedFeeChart.setOption(coinScope.getLendingHistoryOption());

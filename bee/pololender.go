@@ -407,7 +407,7 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 	l.usersDone[u.U.Username] = time.Now()
 	l.usersDoneLock.Unlock()
 
-	historySaved = l.HistoryKeeper.SaveMonth(u.U.Username, u.U.AccessKey, u.U.SecretKey)
+	historySaved = l.HistoryKeeper.SavePoloniexMonth(u.U.Username, u.U.AccessKey, u.U.SecretKey)
 	if historySaved {
 		u.U.LastHistorySaved = time.Now()
 	}
