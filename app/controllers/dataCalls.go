@@ -172,7 +172,6 @@ func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
 		l := len(data)
 		if l > 0 && len(data[0]) > 0 {
 			now := data[0][0]
-			fmt.Println(now)
 			// Set balance ratios
 			balanceDetails.CurrencyMap = now.TotalCurrencyMap
 			balanceDetails.compute()
@@ -201,8 +200,6 @@ func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
 
 	poloToday, poloBals := collapse(poloUserStats)
 	bitToday, bitBals := collapse(bitUserStats)
-	fmt.Println(poloToday, poloBals)
-	fmt.Println(bitToday, bitBals)
 
 	poloBals.combine(bitBals)
 	balanceDetails := poloBals
