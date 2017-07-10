@@ -205,8 +205,6 @@ func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
 	balanceDetails := poloBals
 
 	today := poloToday.combine(bitToday)
-
-	fmt.Println(today, balanceDetails)
 	return today, balanceDetails
 }
 
