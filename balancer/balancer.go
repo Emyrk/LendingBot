@@ -14,6 +14,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+func init() {
+	RegisterPrometheus()
+}
+
 var Test = false
 
 var instanceLogger = log.WithField("instancetype", "Balancer")
