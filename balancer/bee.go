@@ -106,7 +106,7 @@ func (b *Bee) Runloop() {
 		case Online:
 			if slackError {
 				slackError = false
-				slack.SendMessage(":frog:", "beeBot", "alerts", fmt.Sprintf("@channel Bee [%s] has come back online"))
+				slack.SendMessage(":frog:", "beeBot", "alerts", fmt.Sprintf("@channel Bee [%s] has come back online", b.ID))
 			}
 			// Process Received Parcels
 			b.ProcessParcels()
@@ -117,7 +117,7 @@ func (b *Bee) Runloop() {
 				b.Shutdown()
 			} else {
 				if time.Since(b.LastHearbeat) > time.Minute && !slackError {
-					slack.SendMessage(":rage:", "beeBot", "alerts", fmt.Sprintf("@channel Bee [%s] has been dead for over a minute"))
+					slack.SendMessage(":rage:", "beeBot", "alerts", fmt.Sprintf("@channel Bee [%s] has been dead for over a minute", b.ID))
 					slackError = true
 				}
 				time.Sleep(250 * time.Millisecond)
