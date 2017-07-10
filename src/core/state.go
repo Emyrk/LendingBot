@@ -308,10 +308,10 @@ func (s *State) SetUserKeys(username, acessKey, secretKey string, exchange userd
 		}
 		u.PoloniexKeys = pk
 
-		_, err = s.PoloniexGetBalances(username)
-		if err != nil {
-			return fmt.Errorf("There was an error using your Poloniex keys. There is a chance they are not valid. Try setting them again, and if this continues contact Support@hodl.zone")
-		}
+		// _, err = s.PoloniexGetBalances(username)
+		// if err != nil {
+		// 	return fmt.Errorf("There was an error using your Poloniex keys. There is a chance they are not valid. Try setting them again, and if this continues contact Support@hodl.zone")
+		// }
 	case userdb.BitfinexExchange:
 		u.BitfinexKeys = pk
 	default:
