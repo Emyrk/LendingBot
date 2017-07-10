@@ -32,7 +32,6 @@ func DeleteCacheToken(sessionId string) error {
 }
 
 func SetCacheEmail(sessionId string, email string) error {
-	fmt.Printf("Set SessionID[%s], email[%s]\n", sessionId, email)
 	go cache.Set(sessionId, email, CACHE_TIME)
 	return nil
 }

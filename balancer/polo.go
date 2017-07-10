@@ -19,7 +19,7 @@ type PoloniexAPIWithRateLimit struct {
 
 func NewPoloniexAPIWithRateLimit() *PoloniexAPIWithRateLimit {
 	p := new(PoloniexAPIWithRateLimit)
-	p.limiter = ratelimit.New(6)
+	p.limiter = ratelimit.New(4)
 	p.polo = poloniex.StartPoloniex()
 	return p
 }
