@@ -124,7 +124,7 @@ func Launch() {
 	//go lenderBot.Start()
 	//go queuerBot.Start()
 	go launchPrometheus(9911)
-	go Balancer.Run(9100)
+	go Balancer.Run(9200)
 	go StartProfiler()
 }
 
