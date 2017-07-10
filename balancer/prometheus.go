@@ -15,7 +15,7 @@ var (
 	})
 
 	PoloCallTakeWait = prometheus.NewSummary(prometheus.SummaryOpts{
-		Name: "hodlzone_poloniex_take_wait",
+		Name: "hodlzone_balancer_poloniex_take_wait",
 		Help: "Wait for a polo call",
 	})
 
