@@ -196,13 +196,14 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 	}
 
 	logentry := fmt.Sprintf("PoloniexBot analyzed your account and found nothing needed to be done")
-	defer l.Bee.AddBotActivityLogEntry(u.U.Username, logentry)
 
 	if u.U.AccessKey == "" {
+		l.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("PoloniexBot could not find an access key"))
 		return fmt.Errorf("No access key for user %s", u.U.Username)
 	}
 
 	if u.U.SecretKey == "" {
+		l.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("PoloniexBot could not find a secret key"))
 		return fmt.Errorf("No secret key for user %s", u.U.Username)
 	}
 
@@ -221,11 +222,13 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 				// Let it retry
 				if i == 2 {
 					logentry = fmt.Sprintf("PoloniexBot encounterd an error getting available balances: %s", err.Error())
+					l.Bee.AddBotActivityLogEntry(u.U.Username, logentry)
 					return err
 				}
 				continue
 			} else {
 				logentry = fmt.Sprintf("PoloniexBot encounterd an error getting available balances: %s", err.Error())
+				l.Bee.AddBotActivityLogEntry(u.U.Username, logentry)
 				return err
 			}
 		}
@@ -242,11 +245,13 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 				// Let it retry
 				if i == 2 {
 					logentry = fmt.Sprintf("PoloniexBot encounterd an error getting inactive loans: %s", err.Error())
+					l.Bee.AddBotActivityLogEntry(u.U.Username, logentry)
 					return err
 				}
 				continue
 			} else {
 				logentry = fmt.Sprintf("PoloniexBot encounterd an error getting inactive loans: %s", err.Error())
+				l.Bee.AddBotActivityLogEntry(u.U.Username, logentry)
 				return err
 			}
 		}
@@ -269,11 +274,13 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 				// Let it retry
 				if i == 2 {
 					logentry = fmt.Sprintf("PoloniexBot encounterd an error getting active loans: %s", err.Error())
+					l.Bee.AddBotActivityLogEntry(u.U.Username, logentry)
 					return err
 				}
 				continue
 			} else {
 				logentry = fmt.Sprintf("PoloniexBot encounterd an error getting active loans: %s", err.Error())
+				l.Bee.AddBotActivityLogEntry(u.U.Username, logentry)
 				return err
 			}
 		}
@@ -425,6 +432,7 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 	if len(currLogs) > 0 {
 		logentry = fmt.Sprintf("PoloniexBot Lending Actions:\n%s", currLogs)
 	}
+	l.Bee.AddBotActivityLogEntry(u.U.Username, logentry)
 
 	l.usersDoneLock.Lock()
 	l.usersDone[u.U.Username] = time.Now()
