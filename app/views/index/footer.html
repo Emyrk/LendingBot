@@ -21,7 +21,7 @@
 	</footer>
 
 
-<!-- <iframe src="ablankpage.htm" id="temp" name="temp" style="display:none"></iframe> -->
+<iframe src="ablankpage.htm" id="temp" name="temp" style="display:none"></iframe>
 
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -31,21 +31,25 @@
   ga('create', 'UA-100320722-1', 'auto');
   ga('send', 'pageview');
 </script>
-
-<script>
+<form id='hiddenLoginForm' action='/' method='post'>
+    <input type='text' name='username' id="hiddenUser">
+    <input type='password' name='password' id="hiddenPass">
+    <button id='loginButton' type='button'>Login</button>
+</form>
+<!-- <script>
 $(document).ready(function() {
     $('#loginForm').bind('submit', $('#loginForm'), function(event) {
         var form = this;
 
-        event.preventDefault();
-        event.stopPropagation();
+        // event.preventDefault();
+        // event.stopPropagation();
 
-        if (form.submitted) {
-            return;
-        }
+        // if (form.submitted) {
+        //     return;
+        // }
 
-        form.submitted = true;
-        form.submitted = false;
+        // form.submitted = true;
+        // form.submitted = false;
         form.submit();
 
         // $.ajax({
@@ -76,7 +80,7 @@ $(document).ready(function() {
         form.submit();
     });
 });
-</script>
+</script> -->
 
 	[[if eq .RunMode "dev"]]
 		[[template "debug.html" .]]
