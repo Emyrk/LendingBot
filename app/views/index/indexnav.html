@@ -1,4 +1,4 @@
-<div class="navbar navbar-inverse navbar-lock" ng-init="isLoggedIn =[[.IsLoggedIn]]">
+<div class="navbar navbar-inverse navbar-lock" ng-init="isLoggedIn = ('[[.IsLoggedIn]]' == ''? false : true)">
   <div class="container-fluid">
     <div class="navbar-header">
       <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -18,8 +18,6 @@
     </div><!--/.nav-collapse -->
   </div>
 </div>
-
-<iframe src="ablankpage.htm" id="temp" name="temp" style="display:none"></iframe>
 
 <!-- Log in -->
 <div class="modal fade login-modal" tabindex="-1" role="dialog" aria-hidden="true" ng-init="loginError = '';">
@@ -45,14 +43,14 @@
                         <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-xs-2 col-sm-offset-0" for="email">Email
                         </label>
                         <div class="col-md-3 col-sm-3 col-xs-7">
-                          <input type="email" id="email" ng-model="login.email" name="username" required="required" class="form-control col-md-7 col-xs-12" ng-disabled="attemptingLogin" class="login-field" autocomplete="on">
+                          <input tabindex=1 type="email" id="email" ng-model="login.email" name="username" required="required" class="form-control col-md-7 col-xs-12" ng-disabled="attemptingLogin" class="login-field" autocomplete="on">
                         </div>
                       </div>
                       <div class="item form-group">
                         <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-sm-offset-0" for="password">Password
                         </label>
                         <div class="col-md-3 col-sm-3 col-xs-7">
-                          <input id="passwordLogin" type="password" name="password" data-validate-length="6,100" class="form-control col-md-7 col-xs-12" required="required" ng-model="login.pass" ng-disabled="attemptingLogin" class="login-field" autocomplete="on">
+                          <input tabindex=2 id="passwordLogin" type="password" name="password" data-validate-length="6,100" class="form-control col-md-7 col-xs-12" required="required" ng-model="login.pass" ng-disabled="attemptingLogin" class="login-field" autocomplete="on">
                         </div>
                       </div>
                       <div class="item form-group">

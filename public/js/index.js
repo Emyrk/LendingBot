@@ -145,8 +145,8 @@ function init_validator () {
         	submit = false;
         }
 
-        if (submit)
-        	this.submit();
+        // if (submit)
+        // 	this.submit();
 
         return false;
     });
