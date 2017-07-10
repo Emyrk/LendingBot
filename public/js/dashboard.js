@@ -203,7 +203,7 @@ app.controller('dashInfoController', ['$scope', '$http', '$log', '$interval', '$
 		dashInfoScope.backgroundColor = backgroundColor;
 		//start interval to reload active changes
 		dashInfoScope.getGetActivityLog();
-		activityLogPromise = $interval(() => {dashInfoScope.getGetActivityLog();}, 2000)
+		activityLogPromise = $interval(() => {dashInfoScope.getGetActivityLog();}, 5000)
 		dashInfoScope.$on('$destroy', function () {$interval.cancel(activityLogPromise)});
 		//----
 	}]);
