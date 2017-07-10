@@ -170,9 +170,9 @@ func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
 			return today, balanceDetails
 		}
 		l := len(data)
-		fmt.Println(data)
 		if l > 0 && len(data[0]) > 0 {
 			now := data[0][0]
+			fmt.Println(now)
 			// Set balance ratios
 			balanceDetails.CurrencyMap = now.TotalCurrencyMap
 			balanceDetails.compute()
