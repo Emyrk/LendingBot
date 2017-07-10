@@ -7,7 +7,7 @@ import (
 )
 
 func Test_message_alert(t *testing.T) {
-	err := SendMessage(":+1:", "testBot", "test", "@channel test")
+	err := SendMessage(":+1:", "testBot", "test", "test")
 	if err != nil {
 		for _, e := range *err {
 			t.Errorf("Sending slack: %s\n", e.Error())
