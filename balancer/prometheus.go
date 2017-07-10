@@ -10,7 +10,7 @@ var _ = fmt.Println
 
 var (
 	PoloPrivateCalls = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "hodlezone_poloniex_private_calls_total",
+		Name: "hodlezone_balancer_poloniex_private_calls_total",
 		Help: "Number of public polo calls",
 	})
 
@@ -20,7 +20,7 @@ var (
 	})
 
 	PoloPublicCalls = prometheus.NewCounter(prometheus.CounterOpts{
-		Name: "hodlezone_poloniex_public_calls_total",
+		Name: "hodlezone_balancer_poloniex_public_calls_total",
 		Help: "Number of public polo calls",
 	})
 
