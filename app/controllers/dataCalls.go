@@ -162,6 +162,10 @@ func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
 	poloUserStats, err := state.GetUserStatistics(email, 2, "polo")
 	bitUserStats, err := state.GetUserStatistics(email, 2, "bit")
 
+	if email == "stevenmasley@gmail.com" {
+		fmt.Println(poloUserStats)
+	}
+
 	collapse := func(data [][]userdb.AllUserStatistic) (*CurrentUserStatistics, *UserBalanceDetails) {
 		balanceDetails := newUserBalanceDetails()
 		today := newCurrentUserStatistics()
