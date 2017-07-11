@@ -162,10 +162,6 @@ func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
 	poloUserStats, err := state.GetUserStatistics(email, 2, "polo")
 	bitUserStats, err := state.GetUserStatistics(email, 2, "bit")
 
-	if email == "stevenmasley@gmail.com" {
-		fmt.Println(poloUserStats)
-	}
-
 	collapse := func(data [][]userdb.AllUserStatistic) (*CurrentUserStatistics, *UserBalanceDetails) {
 		balanceDetails := newUserBalanceDetails()
 		today := newCurrentUserStatistics()
@@ -176,6 +172,11 @@ func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
 		l := len(data)
 		if l > 0 && len(data[0]) > 0 {
 			now := data[0][0]
+
+			if email == "stevenmasley@gmail.com" {
+				fmt.Println(data[0][0])
+			}
+
 			// Set balance ratios
 			balanceDetails.CurrencyMap = now.TotalCurrencyMap
 			balanceDetails.compute()
