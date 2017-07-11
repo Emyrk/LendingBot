@@ -214,14 +214,22 @@ func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
 		fmt.Println(e1, e2)
 		fmt.Println("POLO:", string(p), "\nBITFIN", string(b))
 	}
+
+	// Clean up any NaNs
+	bitBals.scrub()
+	poloBals.scrub()
 	poloBals.Combine(bitBals)
 	balanceDetails := poloBals
 
+	// Clean up any NaNs
+	poloToday.scrub()
+	bitToday.scrub()
 	today := poloToday.Combine(bitToday)
 	if email == "stevenmasley@gmail.com" || email == "donna@militarygloves.com" {
 		t, _ := json.Marshal(today)
 		fmt.Println("TODAY", string(t))
 	}
+	today.scrub()
 	return today, balanceDetails
 }
 
