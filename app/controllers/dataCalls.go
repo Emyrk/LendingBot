@@ -219,7 +219,7 @@ func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
 	if email == "stevenmasley@gmail.com" {
 		p, _ := json.Marshal(poloToday)
 		b, _ := json.Marshal(bitToday)
-		fmt.Println(p, b)
+		fmt.Println(string(p), string(b))
 	}
 	poloBals.combine(bitBals)
 	balanceDetails := poloBals
