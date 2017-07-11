@@ -183,10 +183,17 @@ func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
 
 			totalAct := float64(0)
 			for _, v := range now.Currencies {
+
+				if email == "stevenmasley@gmail.com" {
+					fmt.Println(v.Currency, v.AverageActiveRate, v.ActiveLentBalance)
+				}
 				today.LoanRate += v.AverageActiveRate * (v.ActiveLentBalance * v.BTCRate)
 				totalAct += v.ActiveLentBalance * v.BTCRate
 				today.BTCLent += v.ActiveLentBalance * v.BTCRate
 				today.BTCNotLent += (v.OnOrderBalance + v.AvailableBalance) * v.BTCRate
+			}
+			if email == "stevenmasley@gmail.com" {
+				fmt.Println(today.LoanRate, totalAct)
 			}
 			today.LoanRate = today.LoanRate / totalAct
 
