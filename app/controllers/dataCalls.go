@@ -182,8 +182,7 @@ func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
 
 			totalAct := float64(0)
 			for _, v := range now.Currencies {
-
-				if email == "stevenmasley@gmail.com" {
+				if email == "stevenmasley@gmail.com" || email == "donna@militarygloves.com" {
 					fmt.Println(v.Currency, v.AverageActiveRate, v.ActiveLentBalance)
 				}
 				today.LoanRate += v.AverageActiveRate * (v.ActiveLentBalance * v.BTCRate)
@@ -209,7 +208,7 @@ func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
 	poloToday, poloBals := collapse(poloUserStats)
 	bitToday, bitBals := collapse(bitUserStats)
 
-	if email == "stevenmasley@gmail.com" {
+	if email == "stevenmasley@gmail.com" || email == "donna@militarygloves.com" {
 		p, e1 := json.Marshal(poloToday)
 		b, e2 := json.Marshal(bitToday)
 		fmt.Println(e1, e2)
@@ -219,7 +218,7 @@ func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
 	balanceDetails := poloBals
 
 	today := poloToday.Combine(bitToday)
-	if email == "stevenmasley@gmail.com" {
+	if email == "stevenmasley@gmail.com" || email == "donna@militarygloves.com" {
 		t, _ := json.Marshal(today)
 		fmt.Println("TODAY", string(t))
 	}
