@@ -217,9 +217,10 @@ func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
 	bitToday, bitBals := collapse(bitUserStats)
 
 	if email == "stevenmasley@gmail.com" {
-		p, _ := json.Marshal(poloToday)
-		b, _ := json.Marshal(bitToday)
-		fmt.Println(string(p), string(b))
+		p, e1 := json.Marshal(poloToday)
+		b, e2 := json.Marshal(bitToday)
+		fmt.Println(e1, e2)
+		fmt.Println("POLO:", string(p), "\nBITFIN", string(b))
 	}
 	poloBals.combine(bitBals)
 	balanceDetails := poloBals
@@ -227,7 +228,7 @@ func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
 	today := poloToday.combine(bitToday)
 	if email == "stevenmasley@gmail.com" {
 		t, _ := json.Marshal(today)
-		fmt.Println(string(t))
+		fmt.Println("TODAY", string(t))
 	}
 	return today, balanceDetails
 }
