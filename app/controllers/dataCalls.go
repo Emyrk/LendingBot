@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	"math/rand"
@@ -13,6 +14,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 )
+
+var _ = json.Marshal
 
 var dataCallsLog = log.WithFields(log.Fields{
 	"package": "controllers",
@@ -213,10 +216,19 @@ func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
 	poloToday, poloBals := collapse(poloUserStats)
 	bitToday, bitBals := collapse(bitUserStats)
 
+	if email == "stevenmasley@gmail.com" {
+		p, _ := json.Marshal(poloToday)
+		b, _ := json.Marshal(bitToday)
+		fmt.Println(p, b)
+	}
 	poloBals.combine(bitBals)
 	balanceDetails := poloBals
 
 	today := poloToday.combine(bitToday)
+	if email == "stevenmasley@gmail.com" {
+		t, _ := json.Marshal(today)
+		fmt.Println(string(t))
+	}
 	return today, balanceDetails
 }
 
