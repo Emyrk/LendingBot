@@ -2,21 +2,21 @@ var app=angular.module("lendingApp",["ngRoute","ngMask", "ngCookies"]);
 
 app.factory('redirectInterceptor', [ "$q", "$location", "$window", "$interval", 
 	function($q,$location,$window, $interval){
-    return  {
-        response:function(response) {
-        	console.log("RESPONSE: " + response);
-        	return response
-        },
-        responseError:function(response) {
-        	console.log("RESPONSE: " + response);
-        	if (response.status == 403) {
-        		window.location = "/";
-        		$interval(() => { window.location = "/"; }, 2000);
-        	}
-    		return $q.reject(response);
-        }
-    }
-}]);
+		return  {
+			response:function(response) {
+				console.log("RESPONSE: " + response);
+				return response
+			},
+			responseError:function(response) {
+				console.log("RESPONSE: " + response);
+				if (response.status == 403) {
+					window.location = "/";
+					$interval(() => { window.location = "/"; }, 2000);
+				}
+				return $q.reject(response);
+			}
+		}
+	}]);
 
 app.config(['$routeProvider', '$locationProvider', '$httpProvider',
 	function($routeProvider, $locationProvider, $httpProvider) {
@@ -89,7 +89,7 @@ app.controller('dashBaseController', ['$scope', '$http', '$log', "$location", "$
 		dashBaseScope.getUTCDate = function() {
 			var now = new Date;
 			dashBaseScope.currentUTC = months[now.getMonth()] + " " + now.getDate() + " " + 
-				now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds()
+			now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds()
 		}
 
 		//init
@@ -151,9 +151,23 @@ app.controller('dashInfoController', ['$scope', '$http', '$log', '$interval', '$
 						if (!$.fn.DataTable.isDataTable('#activityLog')) {
 							activityLog = $('#activityLog').DataTable({
 								filter: true,
+								columns: [
+								{data : "t", title: "Time"},
+								{data : "l", title: "Message"},
+								],
+								"order": [[ 0, 'desc' ]],
 							});
+							activityLog.rows.add(dashInfoScope.logs).draw();
+							// activityLog.fnAddData(dashInfoScope.logs, true);
+							// activityLog.draw();
 						} else {
-							activityLog.rows().invalidate('data');
+							var page = angular.copy(activityLog.page());
+							activityLog.rows().remove();
+							activityLog.rows.add(dashInfoScope.logs).draw(false);
+							activityLog.page(page).draw(false);
+							// activityLog.fnDraw(false)
+							// activityLog.fnAddData(dashInfoScope.logs);
+							// activityLog.draw();
 						}
 					});
 				}
@@ -465,22 +479,22 @@ app.controller('dashSettingsLendingController', ['$scope', '$http', '$log', '$ti
 		dashSettingsLendingScope.getExchangeName = function() {
 			switch (dashSettingsLendingScope.exch) {
 				case 'pol':
-					return 'Poloniex';
+				return 'Poloniex';
 				case 'bit':
-					return 'Bitfinex';
+				return 'Bitfinex';
 				default:
-					return 'UNKNOWN EXCHANGE NAME';
+				return 'UNKNOWN EXCHANGE NAME';
 			}
 		}
 
 		dashSettingsLendingScope.getExchangeUrl = function() {
 			switch (dashSettingsLendingScope.exch) {
 				case 'pol':
-					return 'https://www.poloniex.com/apiKeys';
+				return 'https://www.poloniex.com/apiKeys';
 				case 'bit':
-					return 'https://www.bitfinex.com/api';
+				return 'https://www.bitfinex.com/api';
 				default:
-					return 'UNKNOWN URL';
+				return 'UNKNOWN URL';
 			}
 		}
 
@@ -546,8 +560,8 @@ function init_chart_doughnut(balanceData){
 
 	console.log('init_chart_doughnut');
 	Object.keys(balanceData.currencymap).forEach(function(key) {
-	    value = balanceData.currencymap[key];
-	    balanceData.currencymap[key] = value.toFixed(3)
+		value = balanceData.currencymap[key];
+		balanceData.currencymap[key] = value.toFixed(3)
 	});
 
 
