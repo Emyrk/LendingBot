@@ -15,6 +15,7 @@ import (
 	"time"
 )
 
+var _ = bson.M{}
 var _ = fmt.Sprintf
 var db *MongoDB
 var session *mgo.Session
@@ -731,7 +732,8 @@ func Test_botactivity(t *testing.T) {
 var _ = errors.New
 
 func Test_user_session(t *testing.T) {
-	db, err = CreateTestStatDB("127.0.0.1:27017", "revel", os.Getenv("MONGO_REVEL_PASS"))
+	nsNotFoundErr := errors.New("ns not found")
+	db, err = CreateTestUserDB("127.0.0.1:27017", "revel", os.Getenv("MONGO_REVEL_PASS"))
 	if err != nil {
 		t.Error(err.Error())
 		t.FailNow()
@@ -741,22 +743,18 @@ func Test_user_session(t *testing.T) {
 		t.Errorf("createSession: %s", err.Error())
 		t.FailNow()
 	}
-	err = c.Remove(bson.M{})
-	if err != nil {
-		t.Errorf("Error removing collection: %s", err.Error())
+	err = c.DropCollection()
+	if err != nil && err.Error() != nsNotFoundErr.Error() {
+		t.Errorf("Error dropping collection: %s", err.Error())
 	}
 	s.Close()
 
-	db, err = CreateTestStatDB("127.0.0.1:27017", "revel", os.Getenv("MONGO_REVEL_PASS"))
+	db, err = CreateTestUserDB("127.0.0.1:27017", "revel", os.Getenv("MONGO_REVEL_PASS"))
 	if err != nil {
 		t.Error(err.Error())
 		t.FailNow()
 	}
-	usdb, err := userdb.NewUserStatisticsMongoDBGiven(db)
-	if err != nil {
-		t.Errorf("Error creating new stat mongodb: %s\n", err.Error())
-		t.FailNow()
-	}
+	usdb := userdb.NewMongoUserDatabaseGiven(db)
 
 	testMac, err := net.ParseMAC("08:00:2B:BC:31:DC")
 	if err != nil {
@@ -766,11 +764,12 @@ func Test_user_session(t *testing.T) {
 	testEmail := "test"
 	testIp := net.ParseIP("216.14.49.184")
 	testTime := time.Now().UTC()
-	err = usdb.UpdateUserSession(testEmail, testTime, testIp, testMac, true)
+	_, err = usdb.UpdateUserSession(testEmail, testTime, testIp, testMac, true)
 	if err != nil {
 		t.Errorf("Error updating user session: %s", err.Error())
 	}
 
+	//get one session that is open
 	allSessions, err := usdb.GetAllUserSessions(testEmail, 0, 100)
 	if err != nil {
 		t.Errorf("Error getting all user sessions: %s", err.Error())
@@ -780,8 +779,89 @@ func Test_user_session(t *testing.T) {
 		t.FailNow()
 	}
 
-	sesRet := userdb.Session{nil, testEmail, testTime, testTime, 0, testIp, testMac, true}
+	sesRet := userdb.Session{nil, testEmail, testTime, testTime, 0, nil, testIp, testMac, true}
 	if (*allSessions)[0].IsSameAs(&sesRet, true) == false {
-		t.Error("Error sessions not equal: ", *allSessions, sesRet)
+		t.Error("Error sessions not equal: ", "\n", *allSessions, "\n", sesRet)
+	}
+
+	//add another open session
+	test2Mac, err := net.ParseMAC("08:00:2B:BC:31:DC")
+	if err != nil {
+		t.Errorf("Error creating mac: %s", err.Error())
+		t.FailNow()
+	}
+	test2Email := "test"
+	test2Ip := net.ParseIP("216.14.49.185")
+	test2Time := time.Now().UTC()
+	_, err = usdb.UpdateUserSession(test2Email, test2Time, test2Ip, test2Mac, true)
+	if err != nil {
+		t.Errorf("Error updating user2 session: %s", err.Error())
+	}
+
+	allSessions, err = usdb.GetAllUserSessions(testEmail, 0, 100)
+	if err != nil {
+		t.Errorf("Error getting all user sessions2: %s", err.Error())
+	}
+	if len(*allSessions) != 2 {
+		t.Errorf("Error with length of all sessions should be 2 is %d", len(*allSessions))
+		t.FailNow()
+	}
+
+	sesRet2 := userdb.Session{nil, test2Email, test2Time, test2Time, 0, nil, test2Ip, test2Mac, true}
+	if (*allSessions)[1].IsSameAs(&sesRet, true) == false {
+		t.Error("Error sessions 2 not equal: ", *allSessions, sesRet)
+	}
+	if (*allSessions)[0].IsSameAs(&sesRet2, true) == false {
+		t.Error("Error sessions 3 not equal: ", *allSessions, sesRet)
+	}
+
+	//increment one and set to off
+	_, err = usdb.UpdateUserSession(testEmail, testTime, testIp, testMac, false)
+	if err != nil {
+		t.Errorf("Error updating user3 session: %s", err.Error())
+	}
+
+	allSessions, err = usdb.GetAllUserSessions(testEmail, 2, 100)
+	if err != nil {
+		t.Errorf("Error getting all user sessions3: %s", err.Error())
+	}
+	if len(*allSessions) != 1 {
+		t.Errorf("Error with length of all sessions 1 should be 1 is %d", len(*allSessions))
+		t.FailNow()
+	}
+	sesRet.Open = false
+	if (*allSessions)[0].IsSameAs(&sesRet, true) == false {
+		t.Error("Error sessions 4 not equal: ", "\n", *allSessions, "\n", sesRet)
+	}
+
+	allSessions, err = usdb.GetAllUserSessions(testEmail, 1, 100)
+	if err != nil {
+		t.Errorf("Error getting all user sessions3: %s", err.Error())
+	}
+	if len(*allSessions) != 1 {
+		t.Errorf("Error with length of all sessions 2 should be 1 is %d", len(*allSessions))
+		t.FailNow()
+	}
+	if (*allSessions)[0].IsSameAs(&sesRet2, true) == false {
+		t.Error("Error sessions 5 not equal: ", *allSessions, sesRet)
+	}
+
+	//test update renewal time
+	rTime, err := usdb.UpdateUserSession(test2Email, test2Time, test2Ip, test2Mac, true)
+	if err != nil {
+		t.Errorf("Error updating user4 session: %s", err.Error())
+	}
+	allSessions, err = usdb.GetAllUserSessions(testEmail, 1, 100)
+	if err != nil {
+		t.Errorf("Error getting all user sessions4: %s", err.Error())
+	}
+	if len(*allSessions) != 1 {
+		t.Errorf("Error with length of all sessions 3 should be 1 is %d", len(*allSessions))
+		t.FailNow()
+	}
+	sesRet2.RenewalCount++
+	sesRet2.LastRenewalTime = rTime
+	if (*allSessions)[0].IsSameAs(&sesRet2, true) == false {
+		t.Error("Error sessions 5 not equal: ", "\n", *allSessions, "\n", sesRet2)
 	}
 }
