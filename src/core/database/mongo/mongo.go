@@ -16,7 +16,8 @@ const (
 	USER_DB      = "userdb"
 	USER_DB_TEST = "userdb_test"
 
-	C_USER = "user"
+	C_USER    = "user"
+	C_Session = "session"
 	//AUDIT END
 
 	//STAT BEGIN
@@ -183,7 +184,7 @@ func CreateTestStatDB(uri, dbu, dbp string) (*MongoDB, error) {
 	}
 	defer session.Close()
 
-	c := session.DB(STAT_DB_TEST).C(C_UserStat)
+	c := session.DB(STAT_DB_TEST).C(C_Session)
 
 	var index mgo.Index
 	index = mgo.Index{
