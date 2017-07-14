@@ -131,6 +131,8 @@ type User struct {
 	BitfinexMiniumumLend BitfinexMiniumumLendStruct
 	BitfinexEnabled      BitfinexEnabledStruct
 	BitfinexKeys         *ExchangeKeys
+
+	SessionExpiryTime time.Duration `bson:"sesexpdur"`
 }
 
 func (u *User) SafeUnmarshal(data []byte) error {

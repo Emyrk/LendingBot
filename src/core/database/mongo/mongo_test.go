@@ -7,6 +7,8 @@ import (
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
@@ -756,15 +758,11 @@ func Test_user_session(t *testing.T) {
 	}
 	usdb := userdb.NewMongoUserDatabaseGiven(db)
 
-	testMac, err := net.ParseMAC("08:00:2B:BC:31:DC")
-	if err != nil {
-		t.Errorf("Error creating mac: %s", err.Error())
-		t.FailNow()
-	}
+	testSessionId := "apples"
 	testEmail := "test"
 	testIp := net.ParseIP("216.14.49.184")
 	testTime := time.Now().UTC()
-	_, err = usdb.UpdateUserSession(testEmail, testTime, testIp, testMac, true)
+	err = usdb.UpdateUserSession(testSessionId, testEmail, testTime, testIp, true)
 	if err != nil {
 		t.Errorf("Error updating user session: %s", err.Error())
 	}
@@ -779,25 +777,22 @@ func Test_user_session(t *testing.T) {
 		t.FailNow()
 	}
 
-	sesRet := userdb.Session{nil, testEmail, testTime, testTime, 0, nil, testIp, testMac, true}
+	sessionIP := userdb.SessionIP{testIp, testTime}
+	sesRetArr := []userdb.SessionIP{sessionIP}
+	sesRet := userdb.Session{nil, testSessionId, testEmail, testTime, testTime, 0, nil, testIp, true, sesRetArr}
 	if (*allSessions)[0].IsSameAs(&sesRet, true) == false {
 		t.Error("Error sessions not equal: ", "\n", *allSessions, "\n", sesRet)
 	}
 
 	//add another open session
-	test2Mac, err := net.ParseMAC("08:00:2B:BC:31:DC")
-	if err != nil {
-		t.Errorf("Error creating mac: %s", err.Error())
-		t.FailNow()
-	}
+	test2SessionId := "pears"
 	test2Email := "test"
 	test2Ip := net.ParseIP("216.14.49.185")
 	test2Time := time.Now().UTC()
-	_, err = usdb.UpdateUserSession(test2Email, test2Time, test2Ip, test2Mac, true)
+	err = usdb.UpdateUserSession(test2SessionId, test2Email, test2Time, test2Ip, true)
 	if err != nil {
 		t.Errorf("Error updating user2 session: %s", err.Error())
 	}
-
 	allSessions, err = usdb.GetAllUserSessions(testEmail, 0, 100)
 	if err != nil {
 		t.Errorf("Error getting all user sessions2: %s", err.Error())
@@ -807,16 +802,18 @@ func Test_user_session(t *testing.T) {
 		t.FailNow()
 	}
 
-	sesRet2 := userdb.Session{nil, test2Email, test2Time, test2Time, 0, nil, test2Ip, test2Mac, true}
+	sessionIP = userdb.SessionIP{test2Ip, test2Time}
+	sesRetArr2 := []userdb.SessionIP{sessionIP}
+	sesRet2 := userdb.Session{nil, test2SessionId, test2Email, test2Time, test2Time, 0, nil, test2Ip, true, sesRetArr2}
 	if (*allSessions)[1].IsSameAs(&sesRet, true) == false {
-		t.Error("Error sessions 2 not equal: ", *allSessions, sesRet)
+		t.Error("Error sessions 2 not equal: ", JsonPrettyHelper((*allSessions)[1]), JsonPrettyHelper(sesRet))
 	}
 	if (*allSessions)[0].IsSameAs(&sesRet2, true) == false {
-		t.Error("Error sessions 3 not equal: ", *allSessions, sesRet)
+		t.Error("Error sessions 3 not equal: ", "\n", JsonPrettyHelper((*allSessions)[0]), "\n", JsonPrettyHelper(sesRet2))
 	}
 
 	//increment one and set to off
-	_, err = usdb.UpdateUserSession(testEmail, testTime, testIp, testMac, false)
+	err = usdb.UpdateUserSession(testSessionId, testEmail, testTime, testIp, false)
 	if err != nil {
 		t.Errorf("Error updating user3 session: %s", err.Error())
 	}
@@ -843,11 +840,12 @@ func Test_user_session(t *testing.T) {
 		t.FailNow()
 	}
 	if (*allSessions)[0].IsSameAs(&sesRet2, true) == false {
-		t.Error("Error sessions 5 not equal: ", *allSessions, sesRet)
+		t.Error("Error sessions 5 not equal: ", JsonPrettyHelper((*allSessions)[0]), JsonPrettyHelper(sesRet2))
 	}
 
+	rTime := time.Now().UTC()
 	//test update renewal time
-	rTime, err := usdb.UpdateUserSession(test2Email, test2Time, test2Ip, test2Mac, true)
+	err = usdb.UpdateUserSession(test2SessionId, test2Email, rTime, test2Ip, true)
 	if err != nil {
 		t.Errorf("Error updating user4 session: %s", err.Error())
 	}
@@ -862,6 +860,20 @@ func Test_user_session(t *testing.T) {
 	sesRet2.RenewalCount++
 	sesRet2.LastRenewalTime = rTime
 	if (*allSessions)[0].IsSameAs(&sesRet2, true) == false {
-		t.Error("Error sessions 5 not equal: ", "\n", *allSessions, "\n", sesRet2)
+		t.Error("Error sessions 6 not equal: ", "\n", JsonPrettyHelper((*allSessions)[0]), "\n", JsonPrettyHelper(sesRet2))
 	}
+}
+
+func JsonPrettyHelper(i userdb.Session) string {
+	b, _ := json.Marshal(i)
+	var out bytes.Buffer
+	json.Indent(&out, b, "", "  ")
+	return string(out.Bytes())
+}
+
+func JsonPrettyHelperArr(i []userdb.Session) string {
+	b, _ := json.Marshal(i)
+	var out bytes.Buffer
+	json.Indent(&out, b, "", "  ")
+	return string(out.Bytes())
 }

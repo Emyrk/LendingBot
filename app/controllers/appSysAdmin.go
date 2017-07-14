@@ -185,14 +185,14 @@ func (s AppSysAdmin) DeleteLogs() revel.Result {
 func (s AppSysAdmin) AuthUserSysAdmin() revel.Result {
 	llog := appSysAdminLog.WithField("method", "AuthUserSysAdmin")
 
-	if !ValidCacheEmail(s.Session.ID(), s.Session[SESSION_EMAIL]) {
+	if !ValidCacheEmail(s.Session.ID(), s.ClientIP, s.Session[SESSION_EMAIL]) {
 		llog.Warningf("Warning has invalid cache: [%s] sessionId:[%s]\n", s.Session[SESSION_EMAIL], s.Session.ID())
 		s.Session[SESSION_EMAIL] = ""
 		s.Response.Status = 403
 		return s.RenderTemplate("errors/403.html")
 	}
 
-	err := SetCacheEmail(s.Session.ID(), s.Session[SESSION_EMAIL])
+	err := SetCacheEmail(s.Session.ID(), s.ClientIP, s.Session[SESSION_EMAIL])
 	if err != nil {
 		llog.Warningf("Warning failed to set cache: [%s] and error: %s\n", s.Session.ID(), err.Error())
 		s.Session[SESSION_EMAIL] = ""

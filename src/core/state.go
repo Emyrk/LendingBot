@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"net"
 	"os"
 	"time"
 
@@ -17,10 +18,15 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var stateLog = log.WithFields(log.Fields{
+	"package": "core",
+	"file":    "state",
+})
+
 const (
-	DB_MAP   = iota
-	DB_BOLT  = iota
-	DB_MONGO = iota
+	DB_MAP = iota
+	DB_BOLT
+	DB_MONGO
 )
 
 func init() {
@@ -582,4 +588,33 @@ func (s *State) GetActivityLog(email string, timeString string) (*[]userdb.BotAc
 		return nil, err
 	}
 	return botActLogs, nil
+}
+
+func (s *State) UpdateUserSession(sessionId, email string, renewalTime time.Time, ip net.IP, open bool) {
+	llog := stateLog.WithField("method", "UpdateUserSession")
+
+	err := s.userDB.UpdateUserSession(sessionId, email, renewalTime, ip, open)
+	if err != nil {
+		llog.Errorf("Error updating user session: %s", err.Error())
+	}
+}
+
+func (s *State) GetUserSession(sessionId, email string, ip net.IP) *userdb.Session {
+	llog := stateLog.WithField("method", "GetUserSession")
+
+	ses, err := s.userDB.GetUserSession(sessionId, email)
+	if err != nil {
+		llog.Errorf("Error getting user [%s] session [%s], with ip [%s]: %s", email, sessionId, ip.String(), err.Error())
+		return nil
+	}
+	return ses
+}
+
+func (s *State) CloseUserSession(sessionId, email string, ip net.IP) {
+	llog := stateLog.WithField("method", "CloseUserSession")
+
+	err := s.userDB.CloseUserSession(sessionId)
+	if err != nil {
+		llog.Errorf("Error closing user [%s] session [%s], with ip [%s]: %s", email, sessionId, ip.String(), err.Error())
+	}
 }

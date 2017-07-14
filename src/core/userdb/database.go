@@ -2,6 +2,7 @@ package userdb
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/Emyrk/LendingBot/src/core/database"
 	"github.com/Emyrk/LendingBot/src/core/database/mongo"
@@ -99,6 +100,26 @@ func (ud *UserDatabase) FetchUserIfFound(username string) (*User, error) {
 		return nil, fmt.Errorf("Not found")
 	}
 	return u, nil
+}
+
+func (ud *UserDatabase) FetchUserSessionGivenSession(username string) (*time.Time, error) {
+	//CAN OPTIMIZE LATER
+	s, c, err := ud.mdb.GetCollection(mongo.C_USER)
+	if err != nil {
+		return nil, fmt.Errorf("FetchUserSessionGivenSession getCol: %s", err.Error())
+	}
+	defer s.Close()
+
+	var result bson.M
+	err = c.FindId(username).Select(bson.M{"sesexptime": 1, "_id": 0}).One(&result)
+	if err == mgo.ErrNotFound {
+		return nil, fmt.Errorf("FetchUserSessionGivenSession user not found: %s", username)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("FetchUserSessionGivenSession find: %s", err.Error())
+	}
+	t := result["sesexptime"].(time.Time).UTC()
+	return &t, nil
 }
 
 func (ud *UserDatabase) FetchUser(username string) (*User, error) {
