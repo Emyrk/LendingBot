@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	SMTP_EMAIL_USER     = "general@hodl.zone"
-	SMTP_EMAIL_PASS     = "utdiCHXoaW32BECLGqQr"
+	SMTP_EMAIL_USER     = "general2@hodl.zone"
+	SMTP_EMAIL_PASS     = "aka@>35RNKANSDFKN2#k%rnJKABSDF"
 	SMTP_EMAIL_HOST     = "smtp.zoho.com"
 	SMTP_EMAIL_PORT     = "587"
 	SMTP_EMAIL_NO_REPLY = "no_reply@hodl.zone"
