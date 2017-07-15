@@ -47,7 +47,13 @@ func (r *Request) SendEmail() error {
 	subject := "Subject: " + r.subject + "!\n"
 	msg := []byte(subject + mime + "\n" + r.Body)
 	addr := SMTP_EMAIL_HOST + ":" + SMTP_EMAIL_PORT
-	llog.Infof("%s\n%s\n%s\n", r.to, r.subject, r.Body)
+	llog.Infof("*********************************************\n"+
+		"TO:%s\n"+
+		"-----------------------------------------\n"+
+		"SUBJECT:%s\n"+
+		"-----------------------------------------\n"+
+		"%s\n"+
+		"*********************************************\n", r.to, r.subject, r.Body)
 	slack.SendMessage(":rage:", "Email Request", "alerts", "Email needs to be sent. Check logs.")
 	if err := smtp.SendMail(addr, auth, r.from, r.to, msg); err != nil {
 		return err
