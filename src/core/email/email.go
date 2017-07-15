@@ -7,6 +7,7 @@ import (
 	"net/smtp"
 	"text/template"
 
+	"github.com/Emyrk/LendingBot/slack"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -39,14 +40,15 @@ func NewHTMLRequest(from string, to []string, subject string) *Request {
 }
 
 func (r *Request) SendEmail() error {
+	llog := emailLog.WithField("method", "SendEmail")
+
 	auth := smtp.PlainAuth("", SMTP_EMAIL_USER, SMTP_EMAIL_PASS, SMTP_EMAIL_HOST)
 	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
 	subject := "Subject: " + r.subject + "!\n"
 	msg := []byte(subject + mime + "\n" + r.Body)
 	addr := SMTP_EMAIL_HOST + ":" + SMTP_EMAIL_PORT
-	emailLog.Info(r.to)
-	emailLog.Info(r.subject)
-	emailLog.Info(r.Body)
+	llog.Infof("%s\n%s\n%s\n", r.to, r.subject, r.Body)
+	slack.SendMessage(":rage:", "Email Request", "alerts", "Email needs to be sent. Check logs.")
 	if err := smtp.SendMail(addr, auth, r.from, r.to, msg); err != nil {
 		return err
 	}
