@@ -6,7 +6,13 @@ import (
 	"io/ioutil"
 	"net/smtp"
 	"text/template"
+
+	log "github.com/sirupsen/logrus"
 )
+
+var emailLog = log.WithFields(log.Fields{
+	"package": "email",
+})
 
 const (
 	SMTP_EMAIL_USER     = "general2@hodl.zone"
@@ -38,7 +44,9 @@ func (r *Request) SendEmail() error {
 	subject := "Subject: " + r.subject + "!\n"
 	msg := []byte(subject + mime + "\n" + r.Body)
 	addr := SMTP_EMAIL_HOST + ":" + SMTP_EMAIL_PORT
-
+	emailLog.Info(r.to)
+	emailLog.Info(r.subject)
+	emailLog.Info(r.Body)
 	if err := smtp.SendMail(addr, auth, r.from, r.to, msg); err != nil {
 		return err
 	}
