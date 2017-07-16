@@ -3,11 +3,13 @@ package email
 import (
 	"bufio"
 	"bytes"
+	"encoding/base64"
+	"fmt"
 	"io/ioutil"
 	"net/smtp"
 	"text/template"
 
-	"github.com/Emyrk/LendingBot/slack"
+	// "github.com/Emyrk/LendingBot/slack"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -16,9 +18,9 @@ var emailLog = log.WithFields(log.Fields{
 })
 
 const (
-	SMTP_EMAIL_USER     = "general2@hodl.zone"
-	SMTP_EMAIL_PASS     = "aka@>35RNKANSDFKN2#k%rnJKABSDF"
-	SMTP_EMAIL_HOST     = "smtp.zoho.com"
+	SMTP_EMAIL_USER     = "hodlzonesite@gmail.com"
+	SMTP_EMAIL_PASS     = "cqvrijwdlbxzrawa"
+	SMTP_EMAIL_HOST     = "smtp.gmail.com"
 	SMTP_EMAIL_PORT     = "587"
 	SMTP_EMAIL_NO_REPLY = "no_reply@hodl.zone"
 )
@@ -40,25 +42,38 @@ func NewHTMLRequest(from string, to []string, subject string) *Request {
 }
 
 func (r *Request) SendEmail() error {
-	llog := emailLog.WithField("method", "SendEmail")
+	// llog := emailLog.WithField("method", "SendEmail")
 
 	auth := smtp.PlainAuth("", SMTP_EMAIL_USER, SMTP_EMAIL_PASS, SMTP_EMAIL_HOST)
-	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
-	subject := "Subject: " + r.subject + "!\n"
-	msg := []byte(subject + mime + "\n" + r.Body)
-	addr := SMTP_EMAIL_HOST + ":" + SMTP_EMAIL_PORT
-	llog.Infof("*********************************************\n"+
-		"TO:%s\n"+
-		"-----------------------------------------\n"+
-		"SUBJECT:%s\n"+
-		"-----------------------------------------\n"+
-		"%s\n"+
-		"*********************************************\n", r.to, r.subject, r.Body)
-	slack.SendMessage(":rage:", "Email Request", "alerts", "Email needs to be sent. Check logs.")
-	if err := smtp.SendMail(addr, auth, r.from, r.to, msg); err != nil {
-		return err
+
+	toStr := ""
+	for i, e := range r.to {
+		toStr += e
+		if i < len(r.to)-1 {
+			toStr += ","
+		}
 	}
-	return nil
+
+	header := make(map[string]string)
+	header["From"] = r.from
+	header["Subject"] = r.subject
+	header["MIME-Version"] = "1.0"
+	header["Content-Type"] = "text/html; charset=\"utf-8\""
+	header["Content-Transfer-Encoding"] = "base64"
+
+	message := ""
+	for k, v := range header {
+		message += fmt.Sprintf("%s: %s\r\n", k, v)
+	}
+	message += "\r\n" + base64.StdEncoding.EncodeToString([]byte(r.Body))
+	err := smtp.SendMail(
+		SMTP_EMAIL_HOST+":"+SMTP_EMAIL_PORT,
+		auth,
+		r.from,
+		r.to,
+		[]byte(message),
+	)
+	return err
 }
 
 func (r *Request) ParseTemplate(file string, data interface{}) error {

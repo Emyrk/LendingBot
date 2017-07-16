@@ -172,7 +172,7 @@ func (c App) Register() revel.Result {
 	} else {
 		link := MakeURL("verifyemail/" + url.QueryEscape(u.Username) + "/" + url.QueryEscape(u.VerifyString))
 
-		emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_USER, []string{
+		emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_NO_REPLY, []string{
 			c.Session[SESSION_EMAIL],
 		}, "Verify Account")
 
@@ -236,7 +236,7 @@ func (c App) NewPassRequestPOST() revel.Result {
 		return c.RenderTemplate("App/NewPassRequest.html")
 	}
 
-	emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_USER, []string{
+	emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_NO_REPLY, []string{
 		e,
 	}, "Reset Password")
 

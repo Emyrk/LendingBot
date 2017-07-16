@@ -264,7 +264,7 @@ func (r AppAuthRequired) RequestEmailVerification() revel.Result {
 
 	link := MakeURL("verifyemail/" + url.QueryEscape(u.Username) + "/" + url.QueryEscape(u.VerifyString))
 
-	emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_USER, []string{
+	emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_NO_REPLY, []string{
 		r.Session[SESSION_EMAIL],
 	}, "Verify Account")
 

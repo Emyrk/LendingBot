@@ -28,7 +28,7 @@ func (t *AppTest) After() {
 
 func (t *AppTest) TestEmail() {
 
-	r := email.NewHTMLRequest(email.SMTP_EMAIL_USER, []string{
+	r := email.NewHTMLRequest(email.SMTP_EMAIL_NO_REPLY, []string{
 		"stevenmasley@gmail.com",
 		"masley.dean@gmail.com",
 	}, "This is a test email")
