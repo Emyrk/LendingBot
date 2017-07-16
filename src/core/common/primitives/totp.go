@@ -1,9 +1,9 @@
 package primitives
 
 import (
+	"fmt"
 	"github.com/DistributedSolutions/twofactor"
 	"gopkg.in/mgo.v2/bson"
-	// "fmt"
 )
 
 type Totp struct {
@@ -12,15 +12,18 @@ type Totp struct {
 
 // GetBSON implements bson.Getter.
 func (a *Totp) GetBSON() (interface{}, error) {
-	b, err := a.ToBytes()
-	if err != nil {
-		return nil, err
+	if a.Totp != nil {
+		b, err := a.ToBytes()
+		if err != nil {
+			return nil, fmt.Errorf("Error marshalling totp bson [%s]: %s", a, err.Error())
+		}
+		return struct {
+			Totp []byte `json:"totp" bson:"totp"`
+		}{
+			Totp: b,
+		}, nil
 	}
-	return struct {
-		Totp []byte `json:"totp" bson:"totp"`
-	}{
-		Totp: b,
-	}, nil
+	return nil, nil
 }
 
 // SetBSON implements bson.Setter.
