@@ -189,3 +189,33 @@ func (ud *UserDatabase) GetAllUserSessions(email string, open uint8, limit int) 
 	}
 	return &retSessions, nil
 }
+
+func (ud *UserDatabase) GetUserSession(sessionId, email string) (*Session, error) {
+	s, c, err := ud.mdb.GetCollection(mongo.C_Session)
+	if err != nil {
+		return nil, err
+	}
+	defer s.Close()
+
+	var retSession Session
+	err = c.Find(bson.M{"sessionId": sessionId}).One(&retSession)
+	if err != nil {
+		return nil, err
+	}
+	return &retSession, nil
+}
+
+func (ud *UserDatabase) CloseUserSession(sessionId string) error {
+	s, c, err := ud.mdb.GetCollection(mongo.C_Session)
+	if err != nil {
+		return err
+	}
+	defer s.Close()
+
+	//update old ones
+	err = c.Update(bson.M{"sessionId": sessionId}, bson.M{"$set": bson.M{"open": false}})
+	if err != nil {
+		return err
+	}
+	return nil
+}
