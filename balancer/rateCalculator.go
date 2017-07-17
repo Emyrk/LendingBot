@@ -423,6 +423,11 @@ func (l *QueenBee) UpdateTicker() {
 	LenderUpdateTicker.Inc()
 }
 
+func (q *QueenBee) GetQuickPoloniexStatisitics(currency string) *userdb.PoloniexStats {
+	v := q.usdb.GetQuickPoloniexStatistics(currency)
+	return v
+}
+
 func (q *QueenBee) GetExchangeStatisitics(exchange int, currency string) *userdb.PoloniexStats {
 
 	var llog = log.WithFields(log.Fields{
