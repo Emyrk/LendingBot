@@ -127,7 +127,7 @@ func (ud *UserDatabase) UpdateUserSession(sessionId, email string, recordTime ti
 		return fmt.Errorf("Emails do not match session[%s]. Session email [%s]. Given email [%s]", sessionId, session.Email, email)
 	}
 	if session.Open == false {
-		return fmt.Errorf("Session [%s] aready closed. Attempted update by email[%s] with ip[%s]", sessionId, email, string(ip))
+		return fmt.Errorf("Session [%s] aready closed. Attempted update by email[%s] with ip[%s]", sessionId, email, ip.String())
 	}
 	// /error check
 

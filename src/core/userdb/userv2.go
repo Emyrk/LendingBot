@@ -215,6 +215,8 @@ func NewUser(username string, password string) (*User, error) {
 	u.Verified = false
 	u.VerifyString = hex.EncodeToString(verifyBytes)
 
+	u.SessionExpiryTime = DEFAULT_SESSION_DUR
+
 	return u, nil
 }
 

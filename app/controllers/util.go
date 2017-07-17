@@ -33,6 +33,8 @@ const (
 
 	CACHE_TIME_USER_DUR   = 12 * time.Hour
 	CACHE_USER_DUR_ENDING = "_durEnd"
+
+	HODL_SESSION_ID = "hodlSessionId"
 )
 
 func SetCacheDurEnd(sessionId, ip, email string, expiryDur time.Duration) {
@@ -49,11 +51,14 @@ func SetCacheDurEnd(sessionId, ip, email string, expiryDur time.Duration) {
 func GetCacheDurEnd(sessionId, email string, ip net.IP) (*time.Duration, error) {
 	expiryDur := userdb.DEFAULT_SESSION_DUR
 	if err := cache.Get(email+CACHE_USER_DUR_ENDING, &expiryDur); err != nil {
-		ses, err := state.FetchUser(email)
+		u, err := state.FetchUser(email)
 		if err != nil {
 			return nil, fmt.Errorf("Error fetching user: %s", email)
 		}
-		expiryDur = ses.SessionExpiryTime
+		if u == nil {
+			return nil, fmt.Errorf("Error user is nil: %s", email)
+		}
+		expiryDur = u.SessionExpiryTime
 	}
 	return &expiryDur, nil
 }

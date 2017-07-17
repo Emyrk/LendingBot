@@ -8,6 +8,7 @@ import (
 
 	"github.com/Emyrk/LendingBot/src/core"
 	"github.com/Emyrk/LendingBot/src/core/email"
+	"github.com/Emyrk/LendingBot/src/core/poloniex"
 	"github.com/revel/revel"
 
 	// Init logger
@@ -123,7 +124,9 @@ func (c App) Login() revel.Result {
 
 	c.Session[SESSION_EMAIL] = email
 
-	SetCacheEmail(c.Session.ID(), c.ClientIP, email)
+	hodlSessionId := poloniex.GetSHA512([]byte(time.Now().UTC().Format("2006-01-02 15:04:05.00")))
+	c.Session[HODL_SESSION_ID] = string(hodlSessionId)
+	SetCacheEmail(string(hodlSessionId), c.ClientIP, email)
 
 	c.SetCookie(GetTimeoutCookie())
 
@@ -170,7 +173,7 @@ func (c App) Register() revel.Result {
 	if err != nil {
 		llog.Errorf("Error fetching new user: %s\n", err)
 	} else {
-		SetCacheEmail(c.Session.ID(), c.ClientIP, u.Username)
+		SetCacheEmail(c.Session[HODL_SESSION_ID], c.ClientIP, u.Username)
 
 		link := MakeURL("verifyemail/" + url.QueryEscape(u.Username) + "/" + url.QueryEscape(u.VerifyString))
 
@@ -300,7 +303,7 @@ func (c App) ValidAuth() revel.Result {
 //called before any auth required function
 func (c App) AppAuthUser() revel.Result {
 	if len(c.Session[SESSION_EMAIL]) > 0 {
-		ses := state.GetUserSession(c.Session.ID(), c.Session[SESSION_EMAIL], net.ParseIP(c.ClientIP))
+		ses := state.GetUserSession(c.Session[HODL_SESSION_ID], c.Session[SESSION_EMAIL], net.ParseIP(c.ClientIP))
 		if ses == nil {
 			c.Session[SESSION_EMAIL] = ""
 		}
