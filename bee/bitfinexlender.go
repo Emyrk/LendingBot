@@ -328,6 +328,15 @@ func (l *Lender) recordBitfinexStatistics(username string,
 			}
 			stats.TotalCurrencyMap[cur] += l.getBTCAmount(loan.Amount, cur)
 		}
+
+		for _, loan := range inact[cur] {
+			loan.Rate = loan.Rate / 365 / 100
+			stats.Currencies[cur].ActiveLentBalance += loan.ExecutedAmount
+			stats.Currencies[cur].AverageActiveRate += loan.Rate
+			activeLentCount[cur] += 1
+
+			stats.TotalCurrencyMap[cur] += l.getBTCAmount(loan.ExecutedAmount, cur)
+		}
 	}
 
 	// Finish Active Averages
