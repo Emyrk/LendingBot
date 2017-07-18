@@ -600,6 +600,9 @@ func (s *State) UpdateUserSession(sessionId, email string, renewalTime time.Time
 }
 
 func (s *State) GetUserSession(sessionId, email string, ip net.IP) *userdb.Session {
+	if email == "" || sessionId == "" {
+		return nil
+	}
 	llog := stateLog.WithField("method", "GetUserSession")
 
 	ses, err := s.userDB.GetUserSession(sessionId, email)

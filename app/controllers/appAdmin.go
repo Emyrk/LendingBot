@@ -69,15 +69,15 @@ func (s AppAdmin) ConductAudit() revel.Result {
 func (s AppAdmin) AuthUserAdmin() revel.Result {
 	llog := appAdminLog.WithField("method", "AuthUserAdmin")
 
-	if !ValidCacheEmail(s.Session[HODL_SESSION_ID], s.ClientIP, s.Session[SESSION_EMAIL]) {
-		llog.Warningf("Warning invalid cache: [%s] sessionId:[%s]", s.Session[SESSION_EMAIL], s.Session[HODL_SESSION_ID])
+	if !ValidCacheEmail(s.Session.ID(), s.ClientIP, s.Session[SESSION_EMAIL]) {
+		llog.Warningf("Warning invalid cache: [%s] sessionId:[%s]", s.Session[SESSION_EMAIL], s.Session.ID())
 		s.Session[SESSION_EMAIL] = ""
 		return s.Redirect(App.Index)
 	}
 
-	err := SetCacheEmail(s.Session[HODL_SESSION_ID], s.ClientIP, s.Session[SESSION_EMAIL])
+	err := SetCacheEmail(s.Session.ID(), s.ClientIP, s.Session[SESSION_EMAIL])
 	if err != nil {
-		llog.Warningf("Warning failed to set cache: [%s] and error: %s", s.Session[HODL_SESSION_ID], err.Error())
+		llog.Warningf("Warning failed to set cache: [%s] and error: %s", s.Session.ID(), err.Error())
 		s.Session[SESSION_EMAIL] = ""
 		return s.Redirect(App.Index)
 	}

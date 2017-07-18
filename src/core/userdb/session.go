@@ -12,19 +12,17 @@ import (
 
 const (
 	DEFAULT_SESSION_DUR = time.Duration(10) * time.Minute
-	SESSION_FORMAT      = "2006-01-02 15:04:05.00"
+	SESSION_FORMAT      = "2006-01-02 15:04:05.000"
 )
 
 type Session struct {
-	SessionId        string      `bson:"sessionId"`
-	Email            string      `bson:"email"`
-	InitialStartTime time.Time   `bson:"ist"`
-	LastRenewalTime  time.Time   `bson:"lrt"`
-	RenewalCount     uint64      `bson:"rc"`
-	CloseTime        *time.Time  `bson:"ct"`
-	CurrentIP        net.IP      `bson:"ip"`
-	Open             bool        `bson:"open"`
-	IPS              []SessionIP `bson:"ips"`
+	SessionId       string         `bson:"sessionId"`
+	Email           string         `bson:"email"`
+	LastRenewalTime time.Time      `bson:"lrt"`
+	CurrentIP       net.IP         `bson:"ip"`
+	Open            bool           `bson:"open"`
+	IPS             []SessionIP    `bson:"ips"`
+	ChangeState     []SessionState `bson:"changestate"` //tracks when session has changed from opened to close or when reopened
 }
 
 type SessionIP struct {
@@ -32,57 +30,61 @@ type SessionIP struct {
 	StartTime time.Time `bson:"st"`
 }
 
+type SessionAction string
+
+const (
+	OPENED   SessionAction = "O"
+	CLOSED   SessionAction = "C"
+	REOPENED SessionAction = "R" //occurs with timeout of session so reloging in
+)
+
+type SessionState struct {
+	SessionAction SessionAction `bson:"sessionaction"`
+	ActionTime    time.Time     `bson:"actiontime,omitempty"`
+}
+
 func (ses Session) IsSameAs(sesComp *Session) bool {
 	if ses.SessionId != sesComp.SessionId {
+		fmt.Println("YYYYYY 1")
 		return false
 	}
 	if ses.Email != sesComp.Email {
-		return false
-	}
-	if ses.InitialStartTime.UTC().Format(SESSION_FORMAT) < sesComp.InitialStartTime.UTC().Format(SESSION_FORMAT) {
-		fmt.Println("yeeeeeeeeeeess1")
+		fmt.Println("YYYYYY 2")
 		return false
 	}
 	if ses.LastRenewalTime.UTC().Format(SESSION_FORMAT) < sesComp.LastRenewalTime.UTC().Format(SESSION_FORMAT) {
-		fmt.Println("yeeeeeeeeeeess2")
+		fmt.Println("YYYYYY 3")
 		return false
-	}
-	if ses.RenewalCount != sesComp.RenewalCount {
-		fmt.Println("yeeeeeeeeeeess3")
-		return false
-	}
-	if ses.CloseTime != nil {
-		if sesComp.CloseTime != nil {
-			if ses.CloseTime.UTC().Format(SESSION_FORMAT) < sesComp.CloseTime.UTC().Format(SESSION_FORMAT) {
-				fmt.Println("yeeeeeeeeeeess4")
-				return false
-			}
-		}
-	}
-	if sesComp.CloseTime != nil {
-		if ses.CloseTime != nil {
-			if ses.CloseTime.UTC().Format(SESSION_FORMAT) < sesComp.CloseTime.UTC().Format(SESSION_FORMAT) {
-				fmt.Println("yeeeeeeeeeeess5")
-				return false
-			}
-		}
 	}
 	if ses.CurrentIP.Equal(sesComp.CurrentIP) == false {
-		fmt.Println("yeeeeeeeeeeess6")
+		fmt.Println("YYYYYY 4")
 		return false
 	}
 	if ses.Open != sesComp.Open {
-		fmt.Println("yeeeeeeeeeeess7")
+		fmt.Println("YYYYYY 5")
 		return false
 	}
 	if len(ses.IPS) != len(sesComp.IPS) {
-		fmt.Println("yeeeeeeeeeeess8")
+		fmt.Println("YYYYYY 6")
 		return false
 	}
 	for i, _ := range ses.IPS {
 		if ses.IPS[i].StartTime.UTC().Format(SESSION_FORMAT) != sesComp.IPS[i].StartTime.UTC().Format(SESSION_FORMAT) {
-
-			fmt.Println("yeeeeeeeeeeess10")
+			fmt.Println("YYYYYY 7")
+			return false
+		}
+	}
+	if len(ses.ChangeState) != len(sesComp.ChangeState) {
+		fmt.Println("YYYYYY 8", len(ses.ChangeState), len(sesComp.ChangeState))
+		return false
+	}
+	for i, _ := range ses.ChangeState {
+		if ses.ChangeState[i].ActionTime.UTC().Format(SESSION_FORMAT) != sesComp.ChangeState[i].ActionTime.UTC().Format(SESSION_FORMAT) {
+			fmt.Println("YYYYYY 9", ses.ChangeState[i].ActionTime.UTC().Format(SESSION_FORMAT), sesComp.ChangeState[i].ActionTime.UTC().Format(SESSION_FORMAT))
+			return false
+		}
+		if ses.ChangeState[i].SessionAction != sesComp.ChangeState[i].SessionAction {
+			fmt.Println("YYYYYY 10")
 			return false
 		}
 	}
@@ -96,21 +98,22 @@ func (ud *UserDatabase) UpdateUserSession(sessionId, email string, recordTime ti
 	}
 	defer s.Close()
 
+	recordTime = recordTime.UTC()
+
 	session, err := ud.findSession(sessionId, c)
 	if err != nil {
 		if err.Error() == mgo.ErrNotFound.Error() {
 			// if you cant find it add it
 			ips := []SessionIP{SessionIP{ip, recordTime}}
+			cs := []SessionState{SessionState{OPENED, recordTime}}
 			err = c.Insert(&Session{
-				SessionId:        sessionId,
-				Email:            email,
-				InitialStartTime: recordTime,
-				LastRenewalTime:  recordTime,
-				RenewalCount:     0,
-				CloseTime:        nil,
-				CurrentIP:        ip,
-				Open:             true,
-				IPS:              ips,
+				SessionId:       sessionId,
+				Email:           email,
+				LastRenewalTime: recordTime,
+				CurrentIP:       ip,
+				Open:            true,
+				IPS:             ips,
+				ChangeState:     cs,
 			})
 			if err != nil {
 				return err
@@ -126,18 +129,22 @@ func (ud *UserDatabase) UpdateUserSession(sessionId, email string, recordTime ti
 	if session.Email != email {
 		return fmt.Errorf("Emails do not match session[%s]. Session email [%s]. Given email [%s]", sessionId, session.Email, email)
 	}
-	if session.Open == false {
-		return fmt.Errorf("Session [%s] aready closed. Attempted update by email[%s] with ip[%s]", sessionId, email, ip.String())
+	if session.Open == false && open == false {
+		return fmt.Errorf("Session [%s] aready closed, trying to close sesssion again. Attempted update by email[%s] with ip[%s]", sessionId, email, ip.String())
 	}
 	// /error check
 
-	if open == false {
-		session.CloseTime = &recordTime
+	if session.Open == false && open == true {
+		session.ChangeState = append(session.ChangeState, SessionState{REOPENED, recordTime})
+		session.Open = true
+		session.LastRenewalTime = recordTime
+	} else if session.Open == true && open == false {
+		session.ChangeState = append(session.ChangeState, SessionState{CLOSED, recordTime})
 		session.Open = false
-	} else {
-		session.RenewalCount++
+	} else if session.Open == true && open == true {
 		session.LastRenewalTime = recordTime
 	}
+
 	if session.CurrentIP.Equal(ip) == false {
 		session.CurrentIP = ip
 		session.IPS = append(session.IPS, SessionIP{ip, recordTime})
@@ -215,6 +222,7 @@ func (ud *UserDatabase) CloseUserSession(sessionId string) error {
 	//update old ones
 	err = c.Update(bson.M{"sessionId": sessionId}, bson.M{"$set": bson.M{"open": false}})
 	if err != nil {
+		fmt.Println("failed", err.Error())
 		return err
 	}
 	return nil

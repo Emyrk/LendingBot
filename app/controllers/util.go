@@ -33,8 +33,6 @@ const (
 
 	CACHE_TIME_USER_DUR   = 12 * time.Hour
 	CACHE_USER_DUR_ENDING = "_durEnd"
-
-	HODL_SESSION_ID = "hodlSessionId"
 )
 
 func SetCacheDurEnd(sessionId, ip, email string, expiryDur time.Duration) {
@@ -63,10 +61,10 @@ func GetCacheDurEnd(sessionId, email string, ip net.IP) (*time.Duration, error) 
 	return &expiryDur, nil
 }
 
-func DeleteCacheToken(sessionId string) error {
-	fmt.Printf("Deleting SessionID[%s]\n", sessionId)
+func DeleteCacheToken(sessionId, ip, email string) error {
 	go cache.Set(sessionId, "", 1*time.Second)
 	go cache.Delete(sessionId)
+	state.CloseUserSession(sessionId, email, net.ParseIP(ip))
 	return nil
 }
 
@@ -116,6 +114,12 @@ func ValidCacheEmail(sessionId, ip, email string) bool {
 		}
 
 		if ses.LastRenewalTime.Add(*expiryDur).UTC().Format(userdb.SESSION_FORMAT) < time.Now().UTC().Format(userdb.SESSION_FORMAT) {
+			if ses.Open == true {
+				//close session if it says open and time is incorrect. more for logging than anything else
+				go func() {
+					state.CloseUserSession(sessionId, email, net.ParseIP(ip))
+				}()
+			}
 			return false
 		}
 
