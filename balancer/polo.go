@@ -3,7 +3,7 @@ package balancer
 import (
 	"fmt"
 	//"sync"
-	//"time"
+	"time"
 
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
 	//"github.com/Emyrk/LendingBot/src/core/userdb"
@@ -19,13 +19,14 @@ type PoloniexAPIWithRateLimit struct {
 
 func NewPoloniexAPIWithRateLimit() *PoloniexAPIWithRateLimit {
 	p := new(PoloniexAPIWithRateLimit)
-	p.limiter = ratelimit.New(4)
+	p.limiter = ratelimit.New(5)
 	p.polo = poloniex.StartPoloniex()
 	return p
 }
 
 func (p *PoloniexAPIWithRateLimit) take() {
 	//n := time.Now()
+	time.Sleep(75 * time.Millisecond)
 	p.limiter.Take()
 	//PoloCallTakeWait.Observe(float64(time.Since(n).Nanoseconds()))
 }

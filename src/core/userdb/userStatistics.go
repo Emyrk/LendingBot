@@ -817,16 +817,16 @@ func GetCombinedDayAverage(dayStats []AllUserStatistic) *DayAvg {
 		if sD != nil {
 			total := sD.AvgBTCValue * (sD.NotLent + sD.Lent)
 			da.LoanRate += sD.LoanRate * (sD.Lent * sD.AvgBTCValue)
-			da.Lent += sD.Lent * total
-			da.NotLent += sD.NotLent * total
+			da.Lent += sD.Lent * sD.AvgBTCValue
+			da.NotLent += sD.NotLent * sD.AvgBTCValue
 			da.LendingPercent += sD.LendingPercent * total
 			count += total
 		}
 	}
 
 	da.LoanRate = da.LoanRate / count
-	da.Lent = da.Lent / count
-	da.NotLent = da.NotLent / count
+	//da.Lent = da.Lent / count
+	//da.NotLent = da.NotLent / count
 	da.LendingPercent = da.LendingPercent / count
 	return da
 }

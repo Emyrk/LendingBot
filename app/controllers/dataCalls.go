@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 	"math/rand"
@@ -13,6 +14,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 )
+
+var _ = json.Marshal
 
 var dataCallsLog = log.WithFields(log.Fields{
 	"package": "controllers",
@@ -38,7 +41,7 @@ type CurrentUserStatistics struct {
 	BTCEarned float64 `json:"btcearned"`
 }
 
-func (a *CurrentUserStatistics) combine(b *CurrentUserStatistics) *CurrentUserStatistics {
+func (a *CurrentUserStatistics) Combine(b *CurrentUserStatistics) *CurrentUserStatistics {
 	c := newCurrentUserStatistics()
 
 	aTot := a.BTCLent + a.BTCNotLent
@@ -116,7 +119,7 @@ func newUserBalanceDetails() *UserBalanceDetails {
 	return u
 }
 
-func (a *UserBalanceDetails) combine(b *UserBalanceDetails) {
+func (a *UserBalanceDetails) Combine(b *UserBalanceDetails) {
 	for k, v := range b.CurrencyMap {
 		m, _ := a.CurrencyMap[k]
 		a.CurrencyMap[k] = v + m
@@ -172,6 +175,7 @@ func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
 		l := len(data)
 		if l > 0 && len(data[0]) > 0 {
 			now := data[0][0]
+
 			// Set balance ratios
 			balanceDetails.CurrencyMap = now.TotalCurrencyMap
 			balanceDetails.compute()
@@ -201,10 +205,17 @@ func getUserStats(email string) (*CurrentUserStatistics, *UserBalanceDetails) {
 	poloToday, poloBals := collapse(poloUserStats)
 	bitToday, bitBals := collapse(bitUserStats)
 
-	poloBals.combine(bitBals)
+	// Clean up any NaNs
+	bitBals.scrub()
+	poloBals.scrub()
+	poloBals.Combine(bitBals)
 	balanceDetails := poloBals
 
-	today := poloToday.combine(bitToday)
+	// Clean up any NaNs
+	poloToday.scrub()
+	bitToday.scrub()
+	today := poloToday.Combine(bitToday)
+	today.scrub()
 	return today, balanceDetails
 }
 

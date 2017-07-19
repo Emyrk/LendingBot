@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/DistributedSolutions/twofactor"
 	"github.com/Emyrk/LendingBot/src/core/common/primitives"
 )
 
@@ -112,10 +111,10 @@ type User struct {
 	LendingStrategy uint32    `json:"lendstrat"`
 
 	// 2FA
-	Has2FA     bool            `json:"has2fa"`
-	Enabled2FA bool            `json:"enabled2fa"`
-	User2FA    *twofactor.Totp `json:"user2fa"`
-	Issuer     string          `json:"issuer"`
+	Has2FA     bool             `json:"has2fa"`
+	Enabled2FA bool             `json:"enabled2fa"`
+	User2FA    *primitives.Totp `json:"user2fa"`
+	Issuer     string           `json:"issuer"`
 
 	// JWT Change Pass
 	JWTOTP [43]byte `json:"jwtotp"`

@@ -33,7 +33,7 @@
               <div class="col-md-12 col-sm-12 col-xs-12">
                 <div class="x_panel">
                   <div class="x_content">
-                    <form target="temp" class="form-horizontal form-label-left" name="loginForm" novalidate="" autocomplete="on" id="loginForm" method="POST" action="/dashboard">
+                    <form target="temp" class="form-horizontal form-label-left loginRegisterForm" name="loginForm" novalidate="" autocomplete="on" id="loginForm" method="POST" action="/dashboard">
                       <div class="item form-group" ng-show="loginError.length > 0">
                         <div class="col-md-9 col-sm-9 col-xs-9 col-md-offset-3 col-sm-offset-3 col-xs-offset-3" style="color:red;">
                           <strong>Error!</strong> {{loginError}}
@@ -97,7 +97,7 @@
               <div class="col-md-12 col-sm-12 col-xs-12">
                 <div class="x_panel">
                   <div class="x_content">
-                    <form target="temp" class="form-horizontal form-label-left" name="registerForm" novalidate="" id="registerForm">
+                    <form target="temp" class="form-horizontal form-label-left loginRegisterForm" name="registerForm" novalidate="" id="registerForm">
                       <div class="item form-group" ng-show="registerError.length > 0">
                         <div class="col-md-9 col-sm-9 col-xs-9 col-md-offset-3 col-sm-offset-3 col-xs-offset-3" style="color:red;">
                           <strong>Error!</strong> {{registerError}}

@@ -19,7 +19,7 @@ const (
 	// COOKIE_JWT_MAP            = "jwt-cookie"
 	JWT_EXPIRY_TIME           = 10 * time.Minute
 	JWT_EXPIRY_TIME_TEST_FAIL = 1 * time.Second
-	JWT_EXPIRY_TIME_NEW_PASS  = 10 * time.Minute
+	JWT_EXPIRY_TIME_NEW_PASS  = 10 * time.Hour
 )
 
 func Encrypt(plaintext []byte, key []byte) ([]byte, error) {
