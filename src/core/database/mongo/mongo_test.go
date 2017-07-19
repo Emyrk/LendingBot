@@ -635,13 +635,15 @@ func Test_user_userdb(t *testing.T) {
 // }
 
 func Test_botactivity(t *testing.T) {
+	nsNotFoundErr := errors.New("ns not found")
+
 	givenUa, err := CreateTestStatDB("127.0.0.1:27017", "revel", os.Getenv("MONGO_REVEL_PASS"))
 	if err != nil {
 		t.Error(err.Error())
 		t.FailNow()
 	}
 	s, c, err := givenUa.GetCollection(C_BotActivity)
-	if err != nil {
+	if err != nil && err.Error() != nsNotFoundErr.Error() {
 		t.Errorf("createSession: %s", err.Error())
 		t.FailNow()
 	}

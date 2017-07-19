@@ -175,6 +175,37 @@ func CreateTestUserDB(uri, dbu, dbp string) (*MongoDB, error) {
 	return db, nil
 }
 
+func CreateBlankTestUserDB(uri, dbu, dbp string) (*MongoDB, error) {
+	db := createMongoDB(uri, USER_DB_TEST, dbu, dbp)
+
+	session, err := db.CreateSession()
+	if err != nil {
+		return nil, err
+	}
+	defer session.Close()
+
+	err = session.DB(USER_DB_TEST).DropDatabase()
+	if err != nil {
+		return nil, err
+	}
+
+	c := session.DB(USER_DB_TEST).C(C_USER)
+
+	index := mgo.Index{
+		Key:        []string{"username"},
+		Unique:     true,
+		DropDups:   true,
+		Background: true,
+		Sparse:     true,
+	}
+
+	err = c.EnsureIndex(index)
+	if err != nil {
+		return nil, err
+	}
+	return db, nil
+}
+
 func CreateTestStatDB(uri, dbu, dbp string) (*MongoDB, error) {
 	db := createMongoDB(uri, STAT_DB_TEST, dbu, dbp)
 
@@ -183,6 +214,39 @@ func CreateTestStatDB(uri, dbu, dbp string) (*MongoDB, error) {
 		return nil, err
 	}
 	defer session.Close()
+
+	c := session.DB(STAT_DB_TEST).C(C_Session)
+
+	var index mgo.Index
+	index = mgo.Index{
+		Key:        []string{"email"},
+		Unique:     false,
+		DropDups:   false,
+		Background: true,
+		Sparse:     true,
+	}
+
+	err = c.EnsureIndex(index)
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
+}
+
+func CreateBlankTestStatDB(uri, dbu, dbp string) (*MongoDB, error) {
+	db := createMongoDB(uri, STAT_DB_TEST, dbu, dbp)
+
+	session, err := db.CreateSession()
+	if err != nil {
+		return nil, err
+	}
+	defer session.Close()
+
+	err = session.DB(STAT_DB_TEST).DropDatabase()
+	if err != nil {
+		return nil, err
+	}
 
 	c := session.DB(STAT_DB_TEST).C(C_Session)
 

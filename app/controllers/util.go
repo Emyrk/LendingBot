@@ -92,6 +92,7 @@ func SetCacheEmail(sessionId, ip, email string) error {
 
 func ValidCacheEmail(sessionId, ip, email string) bool {
 	llog := utilLog.WithField("method", "ValidCacheEmail")
+
 	var (
 		expiryDur *time.Duration
 		err       error

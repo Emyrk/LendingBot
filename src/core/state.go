@@ -11,6 +11,7 @@ import (
 
 	"github.com/Emyrk/LendingBot/src/core/common/primitives"
 	"github.com/Emyrk/LendingBot/src/core/cryption"
+	"github.com/Emyrk/LendingBot/src/core/database/mongo"
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"github.com/badoux/checkmail"
@@ -27,6 +28,7 @@ const (
 	DB_MAP = iota
 	DB_BOLT
 	DB_MONGO
+	DB_MONGO_EMPTY
 )
 
 func init() {
@@ -59,6 +61,10 @@ func NewStateWithMap() *State {
 	return newState(DB_MAP, false)
 }
 
+func NewStateWithMongoEmpty() *State {
+	return newState(DB_MONGO_EMPTY, false)
+}
+
 func NewStateWithMongo() *State {
 	return newState(DB_MONGO, false)
 }
@@ -78,7 +84,10 @@ func newState(dbType int, fakePolo bool) *State {
 		panic("Running in prod, but no revel pass given in env var 'MONGO_REVEL_PASS'")
 	}
 
-	var err error
+	var (
+		err     error
+		dbGiven *mongo.MongoDB
+	)
 	s := new(State)
 	switch dbType {
 	case DB_MAP:
@@ -94,6 +103,12 @@ func newState(dbType int, fakePolo bool) *State {
 		if err != nil {
 			panic(fmt.Sprintf("Error connecting to user mongodb: %s\n", err.Error()))
 		}
+	case DB_MONGO_EMPTY:
+		dbGiven, err = mongo.CreateBlankTestUserDB(uri, "", "")
+		if err != nil {
+			panic(fmt.Sprintf("Error connecting to user mongodb: %s\n", err.Error()))
+		}
+		s.userDB = userdb.NewMongoUserDatabaseGiven(dbGiven)
 	default:
 		v := os.Getenv("USER_DB")
 		if len(v) == 0 {
@@ -126,6 +141,12 @@ func newState(dbType int, fakePolo bool) *State {
 		s.userStatistic, err = userdb.NewUserStatisticsDB()
 	case DB_MONGO:
 		s.userStatistic, err = userdb.NewUserStatisticsMongoDB(uri, "revel", mongoRevelPass)
+	case DB_MONGO_EMPTY:
+		dbGiven, err = mongo.CreateBlankTestStatDB(uri, "", "")
+		if err != nil {
+			break
+		}
+		s.userStatistic, err = userdb.NewUserStatisticsMongoDBGiven(dbGiven)
 	}
 	if err != nil {
 		panic(fmt.Sprintf("Could not create user statistic database %s", err.Error()))
@@ -139,6 +160,9 @@ func newState(dbType int, fakePolo bool) *State {
 	case DB_BOLT:
 		s.userInviteCodes = userdb.NewInviteDB()
 	case DB_MONGO:
+		//todo
+		fallthrough
+	case DB_MONGO_EMPTY:
 		//todo
 		fallthrough
 	default:

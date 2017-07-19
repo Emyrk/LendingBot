@@ -16,6 +16,8 @@ import (
 var _ = userdb.SaltLength
 var SkipAuth = false
 
+var ignoredRoutes = map[string]bool{"/logout": true, "/dashboard/getactivitylog": true}
+
 var appAuthrequiredLog = log.WithFields(log.Fields{
 	"package": "controllers",
 	"file":    "appAuthrequiredLog",
@@ -417,6 +419,13 @@ func (r AppAuthRequired) AuthUser() revel.Result {
 		return r.RenderTemplate("errors/403.html")
 	}
 
+	//must add rep
+	if ignoredRoutes[r.Request.RequestURI] == true {
+		return nil
+	}
+
+	AppPageAuthUser.Inc()
+
 	err := SetCacheEmail(r.Session.ID(), r.ClientIP, r.Session[SESSION_EMAIL])
 	if err != nil {
 		llog.Warningf("Warning failed to set cache: [%s] and error: %s", r.Session.ID(), err.Error())
@@ -429,6 +438,5 @@ func (r AppAuthRequired) AuthUser() revel.Result {
 
 	r.SetCookie(GetTimeoutCookie())
 
-	AppPageAuthUser.Inc()
 	return nil
 }

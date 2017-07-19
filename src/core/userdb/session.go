@@ -134,12 +134,13 @@ func (ud *UserDatabase) UpdateUserSession(sessionId, email string, recordTime ti
 	}
 	// /error check
 
+	push := bson.M{}
 	if session.Open == false && open == true {
-		session.ChangeState = append(session.ChangeState, SessionState{REOPENED, recordTime})
+		push["changestate"] = SessionState{REOPENED, recordTime}
 		session.Open = true
 		session.LastRenewalTime = recordTime
 	} else if session.Open == true && open == false {
-		session.ChangeState = append(session.ChangeState, SessionState{CLOSED, recordTime})
+		push["changestate"] = SessionState{CLOSED, recordTime}
 		session.Open = false
 	} else if session.Open == true && open == true {
 		session.LastRenewalTime = recordTime
@@ -147,11 +148,23 @@ func (ud *UserDatabase) UpdateUserSession(sessionId, email string, recordTime ti
 
 	if session.CurrentIP.Equal(ip) == false {
 		session.CurrentIP = ip
-		session.IPS = append(session.IPS, SessionIP{ip, recordTime})
+		push["ips"] = SessionIP{ip, recordTime}
 	}
 
+	//bson.M{"changestate": newSessionState, "ips": newIP}
+
+	update := bson.M{
+		"$set": bson.M{
+			"open": open,
+			"lrt":  session.LastRenewalTime,
+			"ip":   ip,
+		},
+	}
+	if len(push) != 0 {
+		update["$push"] = push
+	}
 	//update old ones
-	err = c.Update(bson.M{"sessionId": sessionId}, session)
+	err = c.Update(bson.M{"sessionId": sessionId}, update)
 	if err != nil {
 		return err
 	}
@@ -219,11 +232,16 @@ func (ud *UserDatabase) CloseUserSession(sessionId string) error {
 	}
 	defer s.Close()
 
+	update := bson.M{
+		"$set":  bson.M{"open": false},
+		"$push": bson.M{"changestate": SessionState{CLOSED, time.Now().UTC()}},
+	}
 	//update old ones
-	err = c.Update(bson.M{"sessionId": sessionId}, bson.M{"$set": bson.M{"open": false}})
+	err = c.Update(bson.M{"sessionId": sessionId}, update)
 	if err != nil {
 		fmt.Println("failed", err.Error())
 		return err
 	}
+	fmt.Println("ADDED")
 	return nil
 }
