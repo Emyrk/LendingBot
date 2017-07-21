@@ -68,7 +68,7 @@ func (ud *UserDatabase) VerifyEmail(email, verifyString string) error {
 
 	var u *User
 	if ud.mdb != nil {
-		u, err := ud.FetchUserIfFound(email)
+		u, err = ud.FetchUserIfFound(email)
 		if err != nil {
 			return err
 		}
