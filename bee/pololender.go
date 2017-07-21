@@ -191,7 +191,7 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 			l.Bee.updateUser(u.U.Username, u.U.Exchange, n, time.Now(), time.Time{})
 		}
 	}(historySaved, notes)
-	dbu, err := l.Bee.FetchUserWithSelector(u.U.Username)
+	dbu, err := l.Bee.FetchUser(u.U.Username)
 	if err != nil {
 		return err
 	}
