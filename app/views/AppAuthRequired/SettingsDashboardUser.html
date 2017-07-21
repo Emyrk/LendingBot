@@ -42,7 +42,7 @@
 
 			<!-- QRCode -->
 			<div class="col-sm-12 col-xs-12" ng-show="qrcode">
-			<!-- <div class="col-sm-12 col-xs-12"> -->
+				<!-- <div class="col-sm-12 col-xs-12"> -->
 				<div class="x_panel">
 					<div class="x_title">
 						<h2>QRCode</h2>
@@ -144,6 +144,23 @@
 				</div>
 			</div>
 			<!-- /Verify Email-->
+
+			<!-- Alter Default Session Wait Time -->
+			<div class="col-sm-12 col-xs-12" ng-if="!verified">
+				<div class="x_panel">
+					<div class="x_title">
+						<h2>Extend Time Waited between Sessions</h2>
+						<div class="clearfix"></div>
+					</div>
+					<div class="x_content">
+						<div class="col-md-2">
+							<p>&#215; 'cursor' mode</p>
+							<input class="knob" data-width="100" data-height="120" data-cursor=true data-fgColor="#34495E" value="29">
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- /Alter Default Session Wait Time-->
 
 			<!-- Change Password -->
 			<div class="col-sm-12 col-xs-12">

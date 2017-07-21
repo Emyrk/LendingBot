@@ -192,12 +192,14 @@ func (s AppSysAdmin) AuthUserSysAdmin() revel.Result {
 		return s.RenderTemplate("errors/403.html")
 	}
 
-	err := SetCacheEmail(s.Session.ID(), s.ClientIP, s.Session[SESSION_EMAIL])
+	httpCookie, err := SetCacheEmail(s.Session.ID(), s.ClientIP, s.Session[SESSION_EMAIL])
 	if err != nil {
 		llog.Warningf("Warning failed to set cache: [%s] and error: %s", s.Session.ID(), err.Error())
 		s.Session[SESSION_EMAIL] = ""
 		s.Response.Status = 403
 		return s.RenderTemplate("errors/403.html")
+	} else {
+		s.SetCookie(httpCookie)
 	}
 
 	if !state.HasUserPrivilege(s.Session[SESSION_EMAIL], userdb.SysAdmin) {
@@ -207,8 +209,6 @@ func (s AppSysAdmin) AuthUserSysAdmin() revel.Result {
 
 	//do not cache auth pages yet
 	// s.Response.Out.Header().Set("Cache-Control", "no-cache, max-age=0, must-revalidate, no-store")
-
-	s.SetCookie(GetTimeoutCookie())
 
 	return nil
 }

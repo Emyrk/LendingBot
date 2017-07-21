@@ -123,9 +123,12 @@ func (c App) Login() revel.Result {
 
 	c.Session[SESSION_EMAIL] = email
 
-	SetCacheEmail(c.Session.ID(), c.ClientIP, email)
-
-	c.SetCookie(GetTimeoutCookie())
+	httpCookie, err := SetCacheEmail(c.Session.ID(), c.ClientIP, email)
+	if err != nil {
+		llog.Errorf("Error setting email cache: %s", err.Error())
+	} else {
+		c.SetCookie(httpCookie)
+	}
 
 	AppPageHitLogin.Inc()
 
@@ -170,7 +173,12 @@ func (c App) Register() revel.Result {
 	if err != nil {
 		llog.Errorf("Error fetching new user: %s", err)
 	} else {
-		SetCacheEmail(c.Session.ID(), c.ClientIP, u.Username)
+		httpCookie, err := SetCacheEmail(c.Session.ID(), c.ClientIP, u.Username)
+		if err != nil {
+			llog.Errorf("Error setting email cache: %s", err.Error())
+		} else {
+			c.SetCookie(httpCookie)
+		}
 
 		link := MakeURL("verifyemail/" + url.QueryEscape(u.Username) + "/" + url.QueryEscape(u.VerifyString))
 

@@ -32,10 +32,10 @@ func (t *AppTest) TestThatIndexPageWorks() {
 
 // func (t *AppTest) TestEmail() {
 
-	r := email.NewHTMLRequest(email.SMTP_EMAIL_NO_REPLY, []string{
-		"stevenmasley@gmail.com",
-		"masley.dean@gmail.com",
-	}, "This is a test email")
+// r := email.NewHTMLRequest(email.SMTP_EMAIL_NO_REPLY, []string{
+// 	"stevenmasley@gmail.com",
+// 	"masley.dean@gmail.com",
+// }, "This is a test email")
 
 // 	err := r.ParseTemplate("test.html", struct {
 // 		NameOne string

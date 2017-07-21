@@ -426,17 +426,17 @@ func (r AppAuthRequired) AuthUser() revel.Result {
 
 	AppPageAuthUser.Inc()
 
-	err := SetCacheEmail(r.Session.ID(), r.ClientIP, r.Session[SESSION_EMAIL])
+	httpCookie, err := SetCacheEmail(r.Session.ID(), r.ClientIP, r.Session[SESSION_EMAIL])
 	if err != nil {
 		llog.Warningf("Warning failed to set cache: [%s] and error: %s", r.Session.ID(), err.Error())
 		r.Session[SESSION_EMAIL] = ""
 		r.Response.Status = 403
 		return r.RenderTemplate("errors/403.html")
+	} else {
+		r.SetCookie(httpCookie)
 	}
 	//do not cache auth pages
 	// r.Response.Out.Header().Set("Cache-Control", "no-cache, max-age=0, must-revalidate, no-store")
-
-	r.SetCookie(GetTimeoutCookie())
 
 	return nil
 }
