@@ -66,14 +66,21 @@ func (ud *UserDatabase) VerifyEmail(email, verifyString string) error {
 		return err
 	}
 
-	u := NewBlankUser()
-	f, err := ud.get(UsersBucket, uh[:], u)
-	if err != nil {
-		return err
-	}
-
-	if !f {
-		return fmt.Errorf("User for that string not found")
+	var u *User
+	if ud.mdb != nil {
+		u, err := ud.FetchUserIfFound(email)
+		if err != nil {
+			return err
+		}
+	} else {
+		u = NewBlankUser()
+		f, err := ud.get(UsersBucket, uh[:], u)
+		if err != nil {
+			return err
+		}
+		if !f {
+			return fmt.Errorf("User for that string not found")
+		}
 	}
 
 	if u.VerifyString == verifyString && u.Username == email {
