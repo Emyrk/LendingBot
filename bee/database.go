@@ -3,6 +3,7 @@ package bee
 import (
 	"github.com/Emyrk/LendingBot/src/core/database/mongo"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
+	"gopkg.in/mgo.v2/bson"
 )
 
 var _ = mongo.AUDIT_DB
@@ -12,5 +13,15 @@ func (b *Bee) SaveUserStastics(stats *userdb.AllUserStatistic) error {
 }
 
 func (b *Bee) FetchUser(username string) (*userdb.User, error) {
-	return b.userDB.FetchUser(username)
+	selector := bson.M{
+		"level":                1,
+		"lendingstrategy":      1,
+		"poloniexminiumlend":   1,
+		"poloniexenabled":      1,
+		"poloniexkeys":         1,
+		"bitfinexminiumumlend": 1,
+		"bitfinexenabled":      1,
+		"bitfinexkeys":         1,
+	}
+	return b.userDB.FetchUserWithSelector(username, selector)
 }
