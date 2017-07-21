@@ -192,7 +192,7 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 		bl.tickerlock.RLock()
 		t, ok := bl.FundingTicker[fmt.Sprintf("f%s", lower)]
 		if ok {
-			frr = 0 //t.FRR
+			frr = t.LastPrice //t.FRR
 		}
 		var _ = t
 		bl.tickerlock.RUnlock()
