@@ -12,9 +12,13 @@ import (
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/mgo.v2/bson"
 )
 
-var poloLogger = log.WithFields(log.Fields{"package": "PoloLender"})
+var poloLogger = log.WithFields(log.Fields{
+	"pacakge": "bee",
+	"file":    "PoloLender",
+})
 
 type Lender struct {
 	Polo  *balancer.PoloniexAPIWithRateLimit
@@ -188,7 +192,17 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 			l.Bee.updateUser(u.U.Username, u.U.Exchange, n, time.Now(), time.Time{})
 		}
 	}(historySaved, notes)
-	dbu, err := l.Bee.FetchUser(u.U.Username)
+	selector := bson.M{
+		"level":                1,
+		"lendingstrategy":      1,
+		"poloniexminiumlend":   1,
+		"poloniexenabled":      1,
+		"poloniexkeys":         1,
+		"bitfinexminiumumlend": 1,
+		"bitfinexenabled":      1,
+		"bitfinexkeys":         1,
+	}
+	dbu, err := l.Bee.FetchUserWithSelector(u.U.Username)
 	if err != nil {
 		return err
 	}
