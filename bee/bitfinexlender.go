@@ -107,6 +107,7 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 
 	dbu, err := l.Bee.FetchUser(u.U.Username)
 	if err != nil {
+		l.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("BitfinexBot encountered an error fetching your account"))
 		return err
 	}
 
@@ -200,6 +201,8 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 		clog.WithFields(log.Fields{"rate": frr, "amount": avail}).Infof("Created Loan")
 		var _ = avail
 	}
+
+	l.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("BitfinexBot analyzed your account and found nothing needed to be done"))
 
 	historySaved = l.HistoryKeeper.SaveBitfinexMonth(u.U.Username, u.U.AccessKey, u.U.SecretKey)
 	if historySaved {
