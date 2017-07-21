@@ -106,7 +106,7 @@ func (ud *UserDatabase) FetchUser(username string) (*User, error) {
 	if ud.mdb != nil {
 		s, c, err := ud.mdb.GetCollection(mongo.C_USER)
 		if err != nil {
-			return nil, fmt.Errorf("PutUser: getCol: %s", err.Error())
+			return nil, fmt.Errorf("FetchUser: getCol: %s", err.Error())
 		}
 		defer s.Close()
 
@@ -116,7 +116,7 @@ func (ud *UserDatabase) FetchUser(username string) (*User, error) {
 			return nil, nil
 		}
 		if err != nil {
-			return nil, fmt.Errorf("PutUser: find: %s", err.Error())
+			return nil, fmt.Errorf("FetchUser: find: %s", err.Error())
 		}
 		result.PoloniexKeys.SetEmptyIfBlank()
 		return &result, nil
