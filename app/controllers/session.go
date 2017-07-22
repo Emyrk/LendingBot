@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"net"
 	"net/http"
 	"time"
 
@@ -75,6 +76,7 @@ func DeleteCacheToken(sessionId, ip, email string) error {
 		return fmt.Errorf("Error fetching user[%s] to delete new session: %s", email, err.Error())
 	} else {
 		//found user sessions
+		state.WriteSession(sessionId, email, time.Now(), net.ParseIP(ip), false)
 		delete(cacheSes.Sessions, sessionId)
 		if len(cacheSes.Sessions) == 0 {
 			err := cache.Delete(email)
@@ -107,6 +109,7 @@ func SetCacheEmail(sessionId, ip, email string) (*http.Cookie, error) {
 		now = time.Now().UTC()
 		cacheSes.Sessions[sessionId] = now
 	}
+	state.WriteSession(sessionId, email, now, net.ParseIP(ip), true)
 	if err = cache.Set(email, cacheSes, CACHE_TIME_USER_SESSION_MAX); err != nil {
 		return nil, fmt.Errorf("Error setting user [%s] session cache: %s", email, err.Error())
 	}
@@ -134,7 +137,7 @@ func ValidCacheEmail(sessionId, ip, email string) bool {
 				llog.Errorf("Error setting user [%s] session cache: %s", email, err.Error())
 				return false
 			}
-			llog.Errorf("Error session user[%s] ip[%s] no longer valid saved time[%s], given time[%s], expire duration[%d]", email, ip, sesLastUpdateTime.Format(userdb.SESSION_FORMAT), now.Format(userdb.SESSION_FORMAT), cacheSes.Expiry)
+			llog.Infof("Info session user[%s] ip[%s] no longer valid saved time[%s], given time[%s], expire duration[%d]", email, ip, sesLastUpdateTime.Format(userdb.SESSION_FORMAT), now.Format(userdb.SESSION_FORMAT), cacheSes.Expiry)
 			return false
 		}
 	}

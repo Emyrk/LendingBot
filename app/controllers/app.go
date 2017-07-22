@@ -2,9 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
-	"net"
 	"net/url"
-	"time"
 
 	"github.com/Emyrk/LendingBot/src/core"
 	"github.com/Emyrk/LendingBot/src/core/email"
@@ -307,17 +305,9 @@ func (c App) ValidAuth() revel.Result {
 
 //called before any auth required function
 func (c App) AppAuthUser() revel.Result {
-	if len(c.Session[SESSION_EMAIL]) > 0 {
-		ses := state.GetUserSession(c.Session.ID(), c.Session[SESSION_EMAIL], net.ParseIP(c.ClientIP))
-		if ses == nil {
-			c.Session[SESSION_EMAIL] = ""
-		}
-
-		//cutoff is 30 seconds for dashboard option
-		format := "2006-01-02T15:04:05.9-07:000"
-		if ses != nil && ses.LastRenewalTime.Add(30*time.Second).UTC().Format(format) > time.Now().UTC().Format(format) {
-			c.Session[SESSION_EMAIL] = ""
-		}
+	email := c.Session[SESSION_EMAIL]
+	if email != "" && !ValidCacheEmail(c.Session.ID(), c.ClientIP, email) {
+		c.Session[SESSION_EMAIL] = ""
 	}
 
 	return nil

@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	DEFAULT_SESSION_DUR = time.Duration(10) * time.Minute
+	DEFAULT_SESSION_DUR = 5 * time.Minute
 	SESSION_FORMAT      = "2006-01-02 15:04:05.000"
 )
 
@@ -33,9 +33,10 @@ type SessionIP struct {
 type SessionAction string
 
 const (
-	OPENED   SessionAction = "O"
-	CLOSED   SessionAction = "C"
-	REOPENED SessionAction = "R" //occurs with timeout of session so reloging in
+	OPENED     SessionAction = "O"
+	CLOSED     SessionAction = "C"
+	REOPENED   SessionAction = "R"  //occurs with timeout of session so reloging in
+	INITCLOSED SessionAction = "IC" //occurs on start up. Will have to change later. Time will be incorrect
 )
 
 type SessionState struct {
@@ -243,5 +244,25 @@ func (ud *UserDatabase) CloseUserSession(sessionId string) error {
 		return err
 	}
 	fmt.Println("ADDED")
+	return nil
+}
+
+func (ud *UserDatabase) CloseAllSessions() error {
+	s, c, err := ud.mdb.GetCollection(mongo.C_Session)
+	if err != nil {
+		return err
+	}
+	defer s.Close()
+
+	update := bson.M{
+		"$set":  bson.M{"open": false},
+		"$push": bson.M{"changestate": SessionState{INITCLOSED, time.Now().UTC()}},
+	}
+	//update old ones
+	err = c.Update(bson.M{}, update)
+	if err != nil {
+		fmt.Println("failed", err.Error())
+		return err
+	}
 	return nil
 }

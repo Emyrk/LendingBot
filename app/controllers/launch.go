@@ -75,11 +75,11 @@ func Launch() {
 		//should be all in memory with empty data
 
 		state = core.NewStateWithMongoEmpty()
-		ape := state.NewUser("admin@admin.com", "admin")
-		if ape != nil {
-			fmt.Println(ape)
-		}
-		state.UpdateUserPrivilege("admin@admin.com", "SysAdmin")
+		// ape := state.NewUser("admin@admin.com", "admin")
+		// if ape != nil {
+		// 	fmt.Println(ape)
+		// }
+		// state.UpdateUserPrivilege("admin@admin.com", "SysAdmin")
 
 		return
 		//to be used for unit testing/regression testing

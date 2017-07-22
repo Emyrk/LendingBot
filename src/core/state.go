@@ -47,6 +47,7 @@ type State struct {
 
 	// Poloniex Cache
 	poloniexCache *PoloniexAccessCache
+	sessionWriter *SessionWriter
 }
 
 func NewFakePoloniexState() *State {
@@ -172,6 +173,12 @@ func newState(dbType int, fakePolo bool) *State {
 	// SWITCHED TO BEES
 	// s.Master = NewMaster()
 	// s.Master.Run(6667)
+
+	//Start Session Writing
+
+	sesChan := make(chan *ChannelSession, 1000)
+	s.sessionWriter = &SessionWriter{channel: sesChan}
+	go s.sessionWriter.Run(s.userDB)
 
 	return s
 }
@@ -614,34 +621,52 @@ func (s *State) GetActivityLog(email string, timeString string) (*[]userdb.BotAc
 	return botActLogs, nil
 }
 
-func (s *State) UpdateUserSession(sessionId, email string, renewalTime time.Time, ip net.IP, open bool) {
-	llog := stateLog.WithField("method", "UpdateUserSession")
+type ChannelSession struct {
+	SessionId string
+	Email     string
+	Time      time.Time
+	CurrentIP net.IP
+	Open      bool
+}
 
-	err := s.userDB.UpdateUserSession(sessionId, email, renewalTime, ip, open)
+type SessionWriter struct {
+	channel chan *ChannelSession
+}
+
+func (c *SessionWriter) AddSession(cs *ChannelSession) {
+	c.channel <- cs
+}
+
+//go routine should NEVER be called besides start
+func (c *SessionWriter) Run(userDB *userdb.UserDatabase) {
+	llog := stateLog.WithField("method", "Run")
+	err := userDB.CloseAllSessions()
 	if err != nil {
-		llog.Errorf("Error updating user session: %s", err.Error())
+		llog.Errorf("Failed to terminate all user sessions on start: %s", err.Error())
+	}
+	for {
+		select {
+		case cs, ok := <-c.channel:
+			if ok {
+				//CAN OPTIMIZE LATER
+				//should make it one session for writing
+				err = userDB.UpdateUserSession(cs.SessionId, cs.Email, cs.Time, cs.CurrentIP, cs.Open)
+				if err != nil {
+					llog.Errorf("Error updating user session: %s", err.Error())
+				}
+			} else {
+				llog.Infof("No value ready, moving on")
+			}
+		}
 	}
 }
 
-func (s *State) GetUserSession(sessionId, email string, ip net.IP) *userdb.Session {
-	if email == "" || sessionId == "" {
-		return nil
-	}
-	llog := stateLog.WithField("method", "GetUserSession")
-
-	ses, err := s.userDB.GetUserSession(sessionId, email)
-	if err != nil {
-		llog.Errorf("Error getting user [%s] session [%s], with ip [%s]: %s", email, sessionId, ip.String(), err.Error())
-		return nil
-	}
-	return ses
-}
-
-func (s *State) CloseUserSession(sessionId, email string, ip net.IP) {
-	llog := stateLog.WithField("method", "CloseUserSession")
-
-	err := s.userDB.CloseUserSession(sessionId)
-	if err != nil {
-		llog.Errorf("Error closing user [%s] session [%s], with ip [%s]: %s", email, sessionId, ip.String(), err.Error())
-	}
+func (s *State) WriteSession(sessionId, email string, recordTime time.Time, ip net.IP, open bool) {
+	s.sessionWriter.AddSession(&ChannelSession{
+		SessionId: sessionId,
+		Email:     email,
+		Time:      recordTime,
+		CurrentIP: ip,
+		Open:      open,
+	})
 }
