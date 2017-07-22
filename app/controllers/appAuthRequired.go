@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"strconv"
+	"time"
 
 	"github.com/Emyrk/LendingBot/balancer"
 	"github.com/Emyrk/LendingBot/src/core/email"
@@ -104,6 +106,37 @@ func (r AppAuthRequired) CoinDashboard() revel.Result {
 func (r AppAuthRequired) InfoDashboard() revel.Result {
 	AppPageHitInfoDashboard.Inc()
 	return r.RenderTemplate("AppAuthRequired/InfoDashboard.html")
+}
+
+func (r AppAuthRequired) ChangeExpiry() revel.Result {
+	llog := appAuthrequiredLog.WithField("method", "ChangeExpiry")
+
+	data := make(map[string]interface{})
+
+	sesExp, err := strconv.Atoi(r.Params.Form.Get("sesexp"))
+	if err != nil {
+		llog.Errorf("Error parsing int user[%s] expiration: %s", r.Session[SESSION_EMAIL], r.Params.Form.Get("sesexp"))
+		data[JSON_ERROR] = "Internal error. Please contact: support@hodl.zone"
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+
+	err = state.SetUserExpiry(r.Session[SESSION_EMAIL], time.Duration(sesExp))
+	if err != nil {
+		llog.Errorf("Error setting user[%s] exp: %s", r.Session[SESSION_EMAIL], err.Error())
+		data[JSON_ERROR] = "Internal error. Please contact: support@hodl.zone"
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+
+	err = SetCacheDurEnd(r.Session[SESSION_EMAIL], time.Duration(sesExp))
+	if err != nil {
+		llog.Errorf("Error setting user[%s] cache session exp: %s", r.Session[SESSION_EMAIL], err.Error())
+		data[JSON_ERROR] = "Internal error. Please contact: support@hodl.zone"
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+	return r.RenderJSON(data)
 }
 
 func (r AppAuthRequired) Enable2FA() revel.Result {

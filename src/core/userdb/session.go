@@ -101,7 +101,7 @@ func (ud *UserDatabase) UpdateUserSession(sessionId, email string, recordTime ti
 
 	recordTime = recordTime.UTC()
 
-	session, err := ud.findSession(sessionId, c)
+	session, err := ud.findSession(sessionId, email, c)
 	if err != nil {
 		if err.Error() == mgo.ErrNotFound.Error() {
 			// if you cant find it add it
@@ -165,21 +165,21 @@ func (ud *UserDatabase) UpdateUserSession(sessionId, email string, recordTime ti
 		update["$push"] = push
 	}
 	//update old ones
-	err = c.Update(bson.M{"sessionId": sessionId}, update)
+	err = c.Update(bson.M{"sessionId": sessionId, "email": email}, update)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (ud *UserDatabase) findSession(sessionId string, c *mgo.Collection) (*Session, error) {
+func (ud *UserDatabase) findSession(sessionId, email string, c *mgo.Collection) (*Session, error) {
 	if c == nil {
 		return nil, fmt.Errorf("Error collection is nil")
 	}
 
 	var retSession Session
 
-	find := bson.M{"sessionId": sessionId}
+	find := bson.M{"sessionId": sessionId, "email": email}
 	err := c.Find(find).One(&retSession)
 	if err != nil {
 		return nil, err
@@ -219,14 +219,14 @@ func (ud *UserDatabase) GetUserSession(sessionId, email string) (*Session, error
 	defer s.Close()
 
 	var retSession Session
-	err = c.Find(bson.M{"sessionId": sessionId}).One(&retSession)
+	err = c.Find(bson.M{"sessionId": sessionId, "email": email}).One(&retSession)
 	if err != nil {
 		return nil, err
 	}
 	return &retSession, nil
 }
 
-func (ud *UserDatabase) CloseUserSession(sessionId string) error {
+func (ud *UserDatabase) CloseUserSession(sessionId, email string) error {
 	s, c, err := ud.mdb.GetCollection(mongo.C_Session)
 	if err != nil {
 		return err
@@ -238,7 +238,7 @@ func (ud *UserDatabase) CloseUserSession(sessionId string) error {
 		"$push": bson.M{"changestate": SessionState{CLOSED, time.Now().UTC()}},
 	}
 	//update old ones
-	err = c.Update(bson.M{"sessionId": sessionId}, update)
+	err = c.Update(bson.M{"sessionId": sessionId, "email": email}, update)
 	if err != nil {
 		fmt.Println("failed", err.Error())
 		return err

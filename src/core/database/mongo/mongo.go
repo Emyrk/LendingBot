@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 var _ = fmt.Println
@@ -184,11 +185,6 @@ func CreateBlankTestUserDB(uri, dbu, dbp string) (*MongoDB, error) {
 	}
 	defer session.Close()
 
-	err = session.DB(USER_DB_TEST).DropDatabase()
-	if err != nil {
-		return nil, err
-	}
-
 	c := session.DB(USER_DB_TEST).C(C_USER)
 
 	index := mgo.Index{
@@ -203,6 +199,20 @@ func CreateBlankTestUserDB(uri, dbu, dbp string) (*MongoDB, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	//remove all but admin user
+	_, err = c.RemoveAll(bson.M{"_id": bson.M{"$ne": "admin@admin.com"}})
+	if err != nil {
+		return nil, err
+	}
+
+	c = session.DB(USER_DB_TEST).C(C_Session)
+
+	_, err = c.RemoveAll(bson.M{})
+	if err != nil {
+		return nil, err
+	}
+
 	return db, nil
 }
 

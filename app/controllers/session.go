@@ -50,7 +50,7 @@ func getTimeoutCookie(dur time.Duration) *http.Cookie {
 	return timeoutCookie
 }
 
-func SetCacheDurEnd(sessionId, ip, email string, expiryDur time.Duration) error {
+func SetCacheDurEnd(email string, expiryDur time.Duration) error {
 	var (
 		cacheSes CacheSession
 		err      error
@@ -131,13 +131,13 @@ func ValidCacheEmail(sessionId, ip, email string) bool {
 		//found session update it
 		sesLastUpdateTime := cacheSes.Sessions[sessionId]
 		now := time.Now().UTC()
-		if sesLastUpdateTime.Add(cacheSes.Expiry).Format(userdb.SESSION_FORMAT) >= now.Add(cacheSes.Expiry).Format(userdb.SESSION_FORMAT) {
+		if sesLastUpdateTime.Add(cacheSes.Expiry).Format(userdb.SESSION_FORMAT) < now.Format(userdb.SESSION_FORMAT) {
 			delete(cacheSes.Sessions, sessionId)
 			if err = cache.Set(email, cacheSes, CACHE_TIME_USER_SESSION_MAX); err != nil {
 				llog.Errorf("Error setting user [%s] session cache: %s", email, err.Error())
 				return false
 			}
-			llog.Infof("Info session user[%s] ip[%s] no longer valid saved time[%s], given time[%s], expire duration[%d]", email, ip, sesLastUpdateTime.Format(userdb.SESSION_FORMAT), now.Format(userdb.SESSION_FORMAT), cacheSes.Expiry)
+			llog.Infof("Info session user[%s] ip[%s] no longer valid saved time[%s], given time[%s], expire duration[%d], new saved plus[%s]", email, ip, sesLastUpdateTime.Format(userdb.SESSION_FORMAT), now.Format(userdb.SESSION_FORMAT), cacheSes.Expiry, sesLastUpdateTime.Add(cacheSes.Expiry).Format(userdb.SESSION_FORMAT))
 			return false
 		}
 	}

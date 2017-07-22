@@ -621,6 +621,16 @@ func (s *State) GetActivityLog(email string, timeString string) (*[]userdb.BotAc
 	return botActLogs, nil
 }
 
+func (s *State) SetUserExpiry(email string, dur time.Duration) error {
+	u, err := s.userDB.FetchUserIfFound(email)
+	if err != nil {
+		return err
+	}
+
+	u.SessionExpiryTime = dur
+	return s.userDB.PutUser(u)
+}
+
 type ChannelSession struct {
 	SessionId string
 	Email     string

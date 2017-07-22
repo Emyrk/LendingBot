@@ -1,19 +1,16 @@
 package tests
 
 import (
-	"bytes"
-	"encoding/json"
-	"errors"
 	"fmt"
 	"net/url"
 	"time"
 
 	"github.com/Emyrk/LendingBot/app/controllers"
 	"github.com/Emyrk/LendingBot/src/core/database/mongo"
+	"github.com/revel/revel/cache"
 	// "github.com/Emyrk/LendingBot/src/core/email"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"github.com/revel/revel/testing"
-	"gopkg.in/mgo.v2/bson"
 )
 
 type AppTest struct {
@@ -50,160 +47,140 @@ func (t *AppTest) TestThatIndexPageWorks() {
 // 	t.AssertEqual(false, err != nil)
 // }
 
+func addCode(t *AppTest) {
+	v := url.Values{}
+	v.Set("email", "admin@admin.com")
+	v.Set("pass", "admin")
+	login(t, v)
+
+	v = url.Values{}
+	v.Set("rawc", "testcode")
+	v.Set("cap", fmt.Sprintf("%d", 10000))
+	v.Set("hr", fmt.Sprintf("%d", 20))
+	t.PostForm("/dashboard/sysadmin/makeinvite", v)
+	fmt.Println(t.Response.StatusCode)
+
+	logout(t)
+}
+
 func (t *AppTest) TestRegister() {
+	t.AssertEqual(resetUserDB(), nil)
+	t.AssertEqual(resetStatDB(), nil)
+
+	//just add it on first run dont care about error
+	addCode(t)
+
 	t.Get("/")
 	t.AssertOk()
 	t.AssertContentType("text/html; charset=utf-8")
 
-	json, err := json.Marshal(controllers.JSONUser{
-		"test@hodl.zone",
-		"testpass",
-	})
-	t.AssertEqual(false, err != nil)
-	reader := bytes.NewReader([]byte(json))
-	t.Post("/register", "application/json; charset=utf-8", reader)
+	v := GetDefaultLoginValues()
+	v.Set("ic", "testcode")
+	t.PostForm("/register", v)
+	t.AssertOk()
+	t.AssertContentType("application/json; charset=utf-8")
+
+	//check it was added to db
+	users, err := getAllUsers(GetDefaultLoginValues().Get("email"))
+	t.AssertEqual(nil, err)
+	t.AssertEqual(2, len(users))
+
+	//check that session is at count 1
+	ses, err := getAllUserSessions(GetDefaultLoginValues().Get("email"))
+	t.AssertEqual(len(ses), 1)
+	us := getUserSession(ses, GetDefaultLoginValues().Get("email"))
+	t.AssertEqual(len(us.ChangeState), 1)
+	t.AssertEqual(us.ChangeState[0].SessionAction, userdb.OPENED)
+
+	//check session cache
+	var cacheSes controllers.CacheSession
+	err = cache.Get(GetDefaultLoginValues().Get("email"), &cacheSes)
+	t.AssertEqual(nil, err)
+	t.AssertEqual(1, len(cacheSes.Sessions))
+	_, ok := cacheSes.Sessions[t.Session.ID()]
+	t.AssertEqual(ok, true)
+
+	logout(t)
+
+	//check that session is at count 2
+	ses, err = getAllUserSessions(GetDefaultLoginValues().Get("email"))
+	t.AssertEqual(len(ses), 1)
+	us = getUserSession(ses, GetDefaultLoginValues().Get("email"))
+	t.AssertEqual(len(us.ChangeState), 2)
+	t.AssertEqual(us.ChangeState[0].SessionAction, userdb.OPENED)
+	t.AssertEqual(us.ChangeState[1].SessionAction, userdb.CLOSED)
+
+	//check session cache
+	err = cache.Get(GetDefaultLoginValues().Get("email"), &cacheSes)
+	t.AssertNotEqual(nil, err)
+}
+
+func (t *AppTest) TestLoginLogout() {
+	t.TestRegister()
+
+	t.Get("/")
+	t.AssertOk()
+	t.AssertContentType("text/html; charset=utf-8")
+
+	t.PostForm("/login", GetDefaultLoginValues())
+	t.AssertOk()
+	t.AssertContentType("application/json; charset=utf-8")
+
+	t.Get("/logout")
+	t.AssertOk()
+	t.AssertContentType("text/html; charset=utf-8")
+}
+
+func login(t *AppTest, v url.Values) {
+	t.Get("/")
+	t.AssertOk()
+	t.AssertContentType("text/html; charset=utf-8")
+
+	t.PostForm("/login", v)
 	t.AssertOk()
 	t.AssertContentType("application/json; charset=utf-8")
 }
 
-func (t *AppTest) TestSession() {
-	err := setupSessionDB()
-	if err != nil {
-		t.Assertf(true, fmt.Sprintf("Error starting up db: %s", err.Error()))
-	}
-	uss, err := getAllUserSessions("test")
-	if err != nil {
-		t.Assertf(false, fmt.Sprintf("Error getting all users: %s", err.Error()))
-	}
-	t.Assertf(len(uss) == 0, fmt.Sprintf("Error length of users is not 0 is %d", len(uss)))
-
-	//login user
-	t.Get("/")
-	t.AssertOk()
-	t.PostForm("/login", GetDefaultLoginValues())
-	t.AssertOk()
-
-	//validating user session was opened
-	uss, err = getAllUserSessions(GetDefaultLoginValues().Get("email"))
-	if err != nil {
-		t.Assertf(false, fmt.Sprintf("Error getting all users: %s", err.Error()))
-	}
-	t.Assertf(len(uss) == 1, fmt.Sprintf("Error length of users is not 1 is %d", len(uss)))
-	loginSes := uss[0]
-	if loginSes.Open != true || loginSes.Email != GetDefaultLoginValues().Get("email") {
-		t.Assertf(false, fmt.Sprintf("Error login session doesnt match: %s", loginSes))
-	}
-	// /login user
-
-	//logout
+func logout(t *AppTest) {
 	t.Get("/logout")
 	t.AssertOk()
-	uss, err = getAllUserSessions(GetDefaultLoginValues().Get("email"))
-	if err != nil {
-		t.Assertf(false, fmt.Sprintf("Error getting all users: %s", err.Error()))
-	}
-	t.Assertf(len(uss) == 1, fmt.Sprintf("Error length of users is not 1 is %d", len(uss)))
-	if uss[0].Open != false {
-		t.Assertf(false, fmt.Sprintf("Error open should be false: %d", uss[0].Open))
-	}
-	if len(uss[0].ChangeState) != 2 {
-		t.Assertf(false, fmt.Sprintf("Error should be 2 is %d", len(uss[0].ChangeState)))
-	}
-	if uss[0].ChangeState[0].SessionAction != userdb.OPENED {
-		t.Assertf(false, fmt.Sprintf("Error first state should be OPENED: %d", uss[0].ChangeState[0].SessionAction))
-	}
-	if uss[0].ChangeState[1].SessionAction != userdb.CLOSED {
-		t.Assertf(false, fmt.Sprintf("Error first state should be CLOSED: %d", uss[1].ChangeState[0].SessionAction))
-	}
-	// /logout user
+	t.AssertContentType("text/html; charset=utf-8")
+}
 
-	//login user and timeout
-	t.PostForm("/login", GetDefaultLoginValues())
+func (t *AppTest) TestSetExpiry() {
+	t.TestRegister()
+
+	login(t, GetDefaultLoginValues())
+	v := url.Values{}
+	v.Set("sesexp", fmt.Sprintf("%d", 500*time.Millisecond))
+	t.PostForm("/dashboard/settings/changeexpiry", v)
 	t.AssertOk()
-	uss, err = getAllUserSessions(GetDefaultLoginValues().Get("email"))
-	if err != nil {
-		t.Assertf(false, fmt.Sprintf("Error getting all users: %s", err.Error()))
-	}
-	t.Assertf(len(uss) == 1, fmt.Sprintf("Error length of users is not 1 is %d", len(uss)))
-	if uss[0].Open != true {
-		t.Assertf(false, fmt.Sprintf("Error open should be false: %v", uss[0].Open))
-	}
-	if len(uss[0].ChangeState) != 3 {
-		t.Assertf(false, fmt.Sprintf("Error should be 3 is %d", len(uss[0].ChangeState)))
-	}
-	if uss[0].ChangeState[0].SessionAction != userdb.OPENED {
-		t.Assertf(false, fmt.Sprintf("Error first state should be OPENED: %d", uss[0].ChangeState[0].SessionAction))
-	}
-	if uss[0].ChangeState[1].SessionAction != userdb.CLOSED {
-		t.Assertf(false, fmt.Sprintf("Error first state should be CLOSED: %d", uss[1].ChangeState[0].SessionAction))
-	}
-	if uss[0].ChangeState[2].SessionAction != userdb.REOPENED {
-		t.Assertf(false, fmt.Sprintf("Error first state should be REOPEND: %d", uss[2].ChangeState[0].SessionAction))
-	}
-
-	time.Sleep(2000 * time.Millisecond)
-
-	t.Get("/dashboard")
-	t.AssertStatus(403)
-	uss, err = getAllUserSessions(GetDefaultLoginValues().Get("email"))
-	if err != nil {
-		t.Assertf(false, fmt.Sprintf("Error getting all users: %s", err.Error()))
-	}
-	t.Assertf(len(uss) == 1, fmt.Sprintf("Error length of users is not 1 is %d", len(uss)))
-	if uss[0].Open != false {
-		t.Assertf(false, fmt.Sprintf("Error open should be false: %v", uss[0].Open))
-	}
-	if len(uss[0].ChangeState) != 4 {
-		t.Assertf(false, fmt.Sprintf("Error should be 4 is %d", len(uss[0].ChangeState)))
-	}
-	if uss[0].ChangeState[0].SessionAction != userdb.OPENED {
-		t.Assertf(false, fmt.Sprintf("Error first state should be OPENED: %d", uss[0].ChangeState[0].SessionAction))
-	}
-	if uss[0].ChangeState[1].SessionAction != userdb.CLOSED {
-		t.Assertf(false, fmt.Sprintf("Error first state should be CLOSED: %d", uss[1].ChangeState[0].SessionAction))
-	}
-	if uss[0].ChangeState[2].SessionAction != userdb.REOPENED {
-		t.Assertf(false, fmt.Sprintf("Error first state should be REOPENED: %d", uss[2].ChangeState[0].SessionAction))
-	}
-	if uss[0].ChangeState[3].SessionAction != userdb.CLOSED {
-		t.Assertf(false, fmt.Sprintf("Error first state should be CLOSED: %d", uss[3].ChangeState[0].SessionAction))
-	}
-	// /login user and timeout
+	logout(t)
 }
 
 func GetDefaultLoginValues() url.Values {
 	v := url.Values{}
-	v.Set("email", "test")
+	v.Set("email", "test@hodl.zone")
 	v.Set("pass", "pass")
 	return v
 }
 
-func setupSessionDB() error {
-	nsNotFoundErr := errors.New("ns not found")
+func resetUserDB() error {
+	_, err := mongo.CreateBlankTestUserDB("127.0.0.1:27017", "", "")
+	return err
+}
 
-	db, err := mongo.CreateTestUserDB("127.0.0.1:27017", "", "")
-	if err != nil {
-		return fmt.Errorf("Error setting up userdb: %s", err.Error())
-	}
-	s, c, err := db.GetCollection(mongo.C_USER)
-	if err != nil {
-		return fmt.Errorf("createSession: %s", err.Error())
-	}
-	_, err = c.RemoveAll(bson.M{})
-	if err != nil && err.Error() != nsNotFoundErr.Error() {
-		return fmt.Errorf("Error removing all users: %s", err.Error())
-	}
+func resetStatDB() error {
+	_, err := mongo.CreateBlankTestStatDB("127.0.0.1:27017", "", "")
+	return err
+}
 
-	u, err := userdb.NewUser("test", "pass")
-	if err != nil {
-		return err
+func getUserSession(ses []userdb.Session, email string) *userdb.Session {
+	for i, s := range ses {
+		if s.Email == email {
+			return &ses[i]
+		}
 	}
-	u.SessionExpiryTime = 1 * time.Second
-	err = c.Insert(u)
-	if err != nil {
-		return fmt.Errorf("Error adding test user: %s", err.Error())
-	}
-	s.Close()
 	return nil
 }
 
@@ -217,52 +194,15 @@ func getAllUserSessions(email string) ([]userdb.Session, error) {
 	return *ses, err
 }
 
+func getAllUsers(email string) ([]userdb.User, error) {
+	dbGiven, err := mongo.CreateTestUserDB("127.0.0.1:27017", "", "")
+	if err != nil {
+		return nil, err
+	}
+	ud := userdb.NewMongoUserDatabaseGiven(dbGiven)
+	return ud.FetchAllUsers()
+}
+
 func (t *AppTest) After() {
 	println("Tear down")
 }
-
-// func (t *AppTest) TestLoginLogout() {
-// 	t.Get("/")
-// 	t.AssertOk()
-// 	t.AssertContentType("text/html; charset=utf-8")
-
-// 	json, err := json.Marshal(controllers.JSONUser{
-// 		"test@hodl.zone",
-// 		"testpass",
-// 	})
-// 	t.AssertEqual(false, err != nil)
-// 	reader := bytes.NewReader([]byte(json))
-// 	t.Post("/login", "application/json; charset=utf-8", reader)
-// 	t.AssertOk()
-
-// 	t.Get("/logout")
-// 	t.AssertOk()
-
-// 	t.Get("/dashboard")
-// 	t.AssertOk()
-// 	url, err := t.Response.Location()
-// 	t.AssertEqual(false, err != nil)
-// 	t.AssertEqual("/", url.Path)
-// }
-
-// func (t *AppTest) TestLoginTimeout() {
-// 	t.Get("/")
-// 	t.AssertOk()
-// 	t.AssertContentType("text/html; charset=utf-8")
-
-// 	json, err := json.Marshal(controllers.JSONUser{
-// 		"test@hodl.zone",
-// 		"testpass",
-// 	})
-// 	t.AssertEqual(false, err != nil)
-// 	reader := bytes.NewReader([]byte(json))
-// 	t.Post("/login", "application/json; charset=utf-8", reader)
-// 	t.AssertOk()
-
-// 	time.Sleep(3 * time.Second)
-
-// 	t.Get("/dashboard")
-// 	t.AssertOk()
-// 	url, err := t.Response.Location()
-// 	t.AssertEqual(false, err != nil)
-// }
