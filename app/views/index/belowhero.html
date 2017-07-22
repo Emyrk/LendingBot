@@ -146,7 +146,7 @@
 	function updateBTCAmount () {
 		if (poloniexStats != "null") {
 			obj = JSON.parse(poloniexStats)
-			rate = obj.dayavg
+			rate = obj.monthavg
 		}
 
 		// A = P(1 + r/n)^nt

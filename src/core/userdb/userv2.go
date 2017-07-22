@@ -177,6 +177,7 @@ func GetUsernameHash(username string) [32]byte {
 
 func NewBlankUser() *User {
 	u := new(User)
+	u.User2FA = new(primitives.Totp)
 	u.PoloniexKeys = NewBlankExchangeKeys()
 	u.BitfinexKeys = NewBlankExchangeKeys()
 	return u

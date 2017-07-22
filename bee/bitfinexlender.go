@@ -107,6 +107,7 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 
 	dbu, err := l.Bee.FetchUser(u.U.Username)
 	if err != nil {
+		l.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("BitfinexBot encountered an error fetching your account"))
 		return err
 	}
 
@@ -192,7 +193,7 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 		bl.tickerlock.RLock()
 		t, ok := bl.FundingTicker[fmt.Sprintf("f%s", lower)]
 		if ok {
-			frr = 0 //t.FRR
+			frr = t.LastPrice //t.FRR
 		}
 		var _ = t
 		bl.tickerlock.RUnlock()
@@ -200,6 +201,8 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 		clog.WithFields(log.Fields{"rate": frr, "amount": avail}).Infof("Created Loan")
 		var _ = avail
 	}
+
+	l.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("BitfinexBot analyzed your account and found nothing needed to be done"))
 
 	historySaved = l.HistoryKeeper.SaveBitfinexMonth(u.U.Username, u.U.AccessKey, u.U.SecretKey)
 	if historySaved {
@@ -327,6 +330,15 @@ func (l *Lender) recordBitfinexStatistics(username string,
 				}
 			}
 			stats.TotalCurrencyMap[cur] += l.getBTCAmount(loan.Amount, cur)
+		}
+
+		for _, loan := range inact[cur] {
+			loan.Rate = loan.Rate / 365 / 100
+			stats.Currencies[cur].ActiveLentBalance += loan.ExecutedAmount
+			stats.Currencies[cur].AverageActiveRate += loan.Rate
+			activeLentCount[cur] += 1
+
+			stats.TotalCurrencyMap[cur] += l.getBTCAmount(loan.ExecutedAmount, cur)
 		}
 	}
 

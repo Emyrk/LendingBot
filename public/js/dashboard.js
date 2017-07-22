@@ -88,8 +88,8 @@ app.controller('dashBaseController', ['$scope', '$http', '$log', "$location", "$
 
 		dashBaseScope.getUTCDate = function() {
 			var now = new Date;
-			dashBaseScope.currentUTC = months[now.getMonth()] + " " + now.getDate() + " " + 
-			now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds()
+			dashBaseScope.currentUTC = months[now.getUTCMonth()] + " " + now.getUTCDate() + " " + 
+			now.getUTCHours() + ":" + now.getUTCMinutes() + ":" + now.getUTCSeconds()
 		}
 
 		//init

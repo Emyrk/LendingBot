@@ -141,6 +141,8 @@ func newUserStatisticsDB(dbType string) (*UserStatisticsDB, error) {
 
 		u.LastPoloniexRateSave = make(map[string]time.Time)
 	}
+
+	u.GetPoloniexStatistics("BTC")
 	return u, nil
 }
 

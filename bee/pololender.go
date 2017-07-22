@@ -14,7 +14,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var poloLogger = log.WithFields(log.Fields{"package": "PoloLender"})
+var poloLogger = log.WithFields(log.Fields{
+	"pacakge": "bee",
+	"file":    "PoloLender",
+})
 
 type Lender struct {
 	Polo  *balancer.PoloniexAPIWithRateLimit

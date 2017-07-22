@@ -122,11 +122,45 @@ func (ud *UserDatabase) FetchUserSessionGivenSession(username string) (*time.Tim
 	return &t, nil
 }
 
+func (ud *UserDatabase) FetchUserWithSelector(username string, selector bson.M) (*User, error) {
+	if ud.mdb != nil {
+		s, c, err := ud.mdb.GetCollection(mongo.C_USER)
+		if err != nil {
+			return nil, fmt.Errorf("FetchUser: getCol: %s", err.Error())
+		}
+		defer s.Close()
+
+		var result User
+		err = c.FindId(username).Select(selector).One(&result)
+		if err == mgo.ErrNotFound {
+			return nil, nil
+		}
+		if err != nil {
+			return nil, fmt.Errorf("FetchUser: find: %s", err.Error())
+		}
+		result.PoloniexKeys.SetEmptyIfBlank()
+		return &result, nil
+	}
+
+	u := NewBlankUser()
+	hash := GetUsernameHash(username)
+	f, err := ud.get(UsersBucket, hash[:], u)
+	if err != nil {
+		return nil, err
+	}
+
+	if !f {
+		return nil, nil
+	}
+
+	return u, nil
+}
+
 func (ud *UserDatabase) FetchUser(username string) (*User, error) {
 	if ud.mdb != nil {
 		s, c, err := ud.mdb.GetCollection(mongo.C_USER)
 		if err != nil {
-			return nil, fmt.Errorf("PutUser: getCol: %s", err.Error())
+			return nil, fmt.Errorf("FetchUser: getCol: %s", err.Error())
 		}
 		defer s.Close()
 
@@ -136,7 +170,7 @@ func (ud *UserDatabase) FetchUser(username string) (*User, error) {
 			return nil, nil
 		}
 		if err != nil {
-			return nil, fmt.Errorf("PutUser: find: %s", err.Error())
+			return nil, fmt.Errorf("FetchUser: find: %s", err.Error())
 		}
 		result.PoloniexKeys.SetEmptyIfBlank()
 		return &result, nil
