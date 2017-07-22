@@ -186,7 +186,7 @@ func (s AppSysAdmin) AuthUserSysAdmin() revel.Result {
 	llog := appSysAdminLog.WithField("method", "AuthUserSysAdmin")
 
 	if !ValidCacheEmail(s.Session.ID(), s.ClientIP, s.Session[SESSION_EMAIL]) {
-		llog.Warningf("Warning has invalid cache: [%s] sessionId:[%s]", s.Session[SESSION_EMAIL], s.Session.ID())
+		llog.Warningf("Warning invalid cache: email[%s] sessionId:[%s] url[%s]", s.Session[SESSION_EMAIL], s.Session.ID(), s.Request.URL)
 		s.Session[SESSION_EMAIL] = ""
 		s.Response.Status = 403
 		return s.RenderTemplate("errors/403.html")
@@ -194,7 +194,7 @@ func (s AppSysAdmin) AuthUserSysAdmin() revel.Result {
 
 	httpCookie, err := SetCacheEmail(s.Session.ID(), s.ClientIP, s.Session[SESSION_EMAIL])
 	if err != nil {
-		llog.Warningf("Warning failed to set cache: [%s] and error: %s", s.Session.ID(), err.Error())
+		llog.Warningf("Warning failed to set cache: email[%s] sessionId:[%s] url[%s] and error: %s", s.Session[SESSION_EMAIL], s.Session.ID(), s.Request.URL, err.Error())
 		s.Session[SESSION_EMAIL] = ""
 		s.Response.Status = 403
 		return s.RenderTemplate("errors/403.html")

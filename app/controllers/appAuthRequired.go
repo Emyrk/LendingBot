@@ -446,7 +446,7 @@ func (r AppAuthRequired) AuthUser() revel.Result {
 	llog := appAuthrequiredLog.WithField("method", "AuthUser")
 
 	if !ValidCacheEmail(r.Session.ID(), r.ClientIP, r.Session[SESSION_EMAIL]) {
-		llog.Warningf("Warning invalid cache: [%s] sessionId:[%s]", r.Session[SESSION_EMAIL], r.Session.ID())
+		llog.Warningf("Warning invalid cache: email[%s] sessionId:[%s] url[%s]", r.Session[SESSION_EMAIL], r.Session.ID(), r.Request.URL)
 		r.Session[SESSION_EMAIL] = ""
 		r.Response.Status = 403
 		return r.RenderTemplate("errors/403.html")
@@ -461,7 +461,7 @@ func (r AppAuthRequired) AuthUser() revel.Result {
 
 	httpCookie, err := SetCacheEmail(r.Session.ID(), r.ClientIP, r.Session[SESSION_EMAIL])
 	if err != nil {
-		llog.Warningf("Warning failed to set cache: [%s] and error: %s", r.Session.ID(), err.Error())
+		llog.Warningf("Warning failed to set cache: email[%s] sessionId:[%s] url[%s] and error: %s", r.Session[SESSION_EMAIL], r.Session.ID(), r.Request.URL, err.Error())
 		r.Session[SESSION_EMAIL] = ""
 		r.Response.Status = 403
 		return r.RenderTemplate("errors/403.html")

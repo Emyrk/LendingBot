@@ -81,16 +81,17 @@ func (t *AppTest) TestRegister() {
 	t.AssertContentType("application/json; charset=utf-8")
 
 	//check it was added to db
-	users, err := getAllUsers(GetDefaultLoginValues().Get("email"))
+	users, err := getAllUsers()
 	t.AssertEqual(nil, err)
 	t.AssertEqual(2, len(users))
 
 	//check that session is at count 1
 	ses, err := getAllUserSessions(GetDefaultLoginValues().Get("email"))
 	t.AssertEqual(len(ses), 1)
-	us := getUserSession(ses, GetDefaultLoginValues().Get("email"))
+	us := getUserSessionFromAllSessions(ses, GetDefaultLoginValues().Get("email"))
 	t.AssertEqual(len(us.ChangeState), 1)
 	t.AssertEqual(us.ChangeState[0].SessionAction, userdb.OPENED)
+	t.AssertEqual(us.Open, true)
 
 	//check session cache
 	var cacheSes controllers.CacheSession
@@ -105,10 +106,11 @@ func (t *AppTest) TestRegister() {
 	//check that session is at count 2
 	ses, err = getAllUserSessions(GetDefaultLoginValues().Get("email"))
 	t.AssertEqual(len(ses), 1)
-	us = getUserSession(ses, GetDefaultLoginValues().Get("email"))
+	us = getUserSessionFromAllSessions(ses, GetDefaultLoginValues().Get("email"))
 	t.AssertEqual(len(us.ChangeState), 2)
 	t.AssertEqual(us.ChangeState[0].SessionAction, userdb.OPENED)
 	t.AssertEqual(us.ChangeState[1].SessionAction, userdb.CLOSED)
+	t.AssertEqual(us.Open, false)
 
 	//check session cache
 	err = cache.Get(GetDefaultLoginValues().Get("email"), &cacheSes)
@@ -126,9 +128,80 @@ func (t *AppTest) TestLoginLogout() {
 	t.AssertOk()
 	t.AssertContentType("application/json; charset=utf-8")
 
+	//check that session is at count 3
+	//because after register adds default 2
+	ses, err := getAllUserSessions(GetDefaultLoginValues().Get("email"))
+	t.AssertEqual(len(ses), 1)
+	us := getUserSessionFromAllSessions(ses, GetDefaultLoginValues().Get("email"))
+	t.AssertEqual(len(us.ChangeState), 3)
+	t.AssertEqual(us.ChangeState[2].SessionAction, userdb.REOPENED)
+	t.AssertEqual(us.Open, true)
+
+	//check session cache
+	var cacheSes controllers.CacheSession
+	err = cache.Get(GetDefaultLoginValues().Get("email"), &cacheSes)
+	t.AssertEqual(nil, err)
+	t.AssertEqual(1, len(cacheSes.Sessions))
+	_, ok := cacheSes.Sessions[t.Session.ID()]
+	t.AssertEqual(ok, true)
+
 	t.Get("/logout")
 	t.AssertOk()
 	t.AssertContentType("text/html; charset=utf-8")
+
+	//check that session is at count 4
+	ses, err = getAllUserSessions(GetDefaultLoginValues().Get("email"))
+	t.AssertEqual(len(ses), 1)
+	us = getUserSessionFromAllSessions(ses, GetDefaultLoginValues().Get("email"))
+	t.AssertEqual(len(us.ChangeState), 4)
+	t.AssertEqual(us.ChangeState[3].SessionAction, userdb.CLOSED)
+	t.AssertEqual(us.Open, false)
+
+	//check session cache
+	err = cache.Get(GetDefaultLoginValues().Get("email"), &cacheSes)
+	t.AssertNotEqual(nil, err)
+}
+
+func (t *AppTest) TestSetAndTimeoutExpiry() {
+	t.TestRegister() //+2 session count, total = 2
+
+	expTime := 200 * time.Millisecond
+
+	login(t, GetDefaultLoginValues()) //+1 session count, total = 3
+
+	v := url.Values{}
+	v.Set("sesexp", fmt.Sprintf("%d", expTime))
+	t.PostForm("/dashboard/settings/changeexpiry", v)
+	t.AssertOk()
+
+	//validate timeout was changed
+	u, err := getUser(GetDefaultLoginValues().Get("email"))
+	t.AssertEqual(nil, err)
+	t.AssertEqual(u.SessionExpiryTime, expTime)
+	////check session cache
+	var cacheSes controllers.CacheSession
+	err = cache.Get(GetDefaultLoginValues().Get("email"), &cacheSes)
+	t.AssertEqual(1, len(cacheSes.Sessions))
+	t.AssertEqual(cacheSes.Expiry, expTime)
+
+	//wait for timeout
+	time.Sleep(600 * time.Millisecond)
+
+	//should error out because of invalid session
+	t.Get("/dashboard") //+1 session count, total = 4
+	t.AssertStatus(403)
+
+	//session should be closed
+	ses, err := getAllUserSessions(GetDefaultLoginValues().Get("email"))
+	t.AssertEqual(len(ses), 1)
+	us := getUserSessionFromAllSessions(ses, GetDefaultLoginValues().Get("email"))
+	t.AssertEqual(len(us.ChangeState), 4)
+	t.AssertEqual(us.ChangeState[3].SessionAction, userdb.CLOSED)
+	t.AssertEqual(us.Open, false)
+
+	//cache should be deleted
+	err = cache.Get(GetDefaultLoginValues().Get("email"), &cacheSes)
+	t.Assertf(nil != err, "Error should be empty", cacheSes)
 }
 
 func login(t *AppTest, v url.Values) {
@@ -145,17 +218,6 @@ func logout(t *AppTest) {
 	t.Get("/logout")
 	t.AssertOk()
 	t.AssertContentType("text/html; charset=utf-8")
-}
-
-func (t *AppTest) TestSetExpiry() {
-	t.TestRegister()
-
-	login(t, GetDefaultLoginValues())
-	v := url.Values{}
-	v.Set("sesexp", fmt.Sprintf("%d", 500*time.Millisecond))
-	t.PostForm("/dashboard/settings/changeexpiry", v)
-	t.AssertOk()
-	logout(t)
 }
 
 func GetDefaultLoginValues() url.Values {
@@ -175,7 +237,7 @@ func resetStatDB() error {
 	return err
 }
 
-func getUserSession(ses []userdb.Session, email string) *userdb.Session {
+func getUserSessionFromAllSessions(ses []userdb.Session, email string) *userdb.Session {
 	for i, s := range ses {
 		if s.Email == email {
 			return &ses[i]
@@ -194,13 +256,22 @@ func getAllUserSessions(email string) ([]userdb.Session, error) {
 	return *ses, err
 }
 
-func getAllUsers(email string) ([]userdb.User, error) {
+func getAllUsers() ([]userdb.User, error) {
 	dbGiven, err := mongo.CreateTestUserDB("127.0.0.1:27017", "", "")
 	if err != nil {
 		return nil, err
 	}
 	ud := userdb.NewMongoUserDatabaseGiven(dbGiven)
 	return ud.FetchAllUsers()
+}
+
+func getUser(email string) (*userdb.User, error) {
+	dbGiven, err := mongo.CreateTestUserDB("127.0.0.1:27017", "", "")
+	if err != nil {
+		return nil, err
+	}
+	ud := userdb.NewMongoUserDatabaseGiven(dbGiven)
+	return ud.FetchUser(email)
 }
 
 func (t *AppTest) After() {
