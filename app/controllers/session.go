@@ -132,10 +132,8 @@ func ValidCacheEmail(sessionId, ip, email string) bool {
 		sesLastUpdateTime := cacheSes.Sessions[sessionId]
 		now := time.Now().UTC()
 		if sesLastUpdateTime.Add(cacheSes.Expiry).Format(userdb.SESSION_FORMAT) < now.Format(userdb.SESSION_FORMAT) {
-			fmt.Println("SESSIONS LEFT ", len(cacheSes.Sessions), cacheSes, len(cacheSes.Sessions) == 0)
 			delete(cacheSes.Sessions, sessionId)
 			state.WriteSession(sessionId, email, time.Now(), net.ParseIP(ip), false)
-			fmt.Println("SESSIONS LEFT ", len(cacheSes.Sessions), cacheSes, len(cacheSes.Sessions) == 0)
 			if len(cacheSes.Sessions) == 0 {
 				err := cache.Delete(email)
 				if err != nil {
