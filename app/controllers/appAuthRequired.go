@@ -129,13 +129,14 @@ func (r AppAuthRequired) ChangeExpiry() revel.Result {
 		return r.RenderJSON(data)
 	}
 
-	err = SetCacheDurEnd(r.Session[SESSION_EMAIL], time.Duration(sesExp))
+	err = SetCacheDurEnd(r.Session[SESSION_EMAIL], time.Duration(sesExp)*time.Minute)
 	if err != nil {
 		llog.Errorf("Error setting user[%s] cache session exp: %s", r.Session[SESSION_EMAIL], err.Error())
 		data[JSON_ERROR] = "Internal error. Please contact: support@hodl.zone"
 		r.Response.Status = 500
 		return r.RenderJSON(data)
 	}
+	llog.Info(r.Session[SESSION_EMAIL])
 	return r.RenderJSON(data)
 }
 
@@ -474,6 +475,7 @@ func (r AppAuthRequired) AuthUser() revel.Result {
 	} else {
 		r.SetCookie(httpCookie)
 	}
+	llog.Infof("Email on auth: %s", r.Session[SESSION_EMAIL])
 	//do not cache auth pages
 	// r.Response.Out.Header().Set("Cache-Control", "no-cache, max-age=0, must-revalidate, no-store")
 

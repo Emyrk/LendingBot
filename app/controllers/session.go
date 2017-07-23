@@ -139,6 +139,7 @@ func ValidCacheEmail(sessionId, ip, email string) bool {
 				if err != nil {
 					llog.Errorf("Error with deleting user[%s] sessions: %s", email, err.Error())
 				}
+				llog.Infof("Info session user[%s] ip[%s] no longer valid saved time[%s], given time[%s], expire duration[%d], new saved plus[%s], DELETED USER SESSION BECAUSE LENGTH IS 0", email, ip, sesLastUpdateTime.Format(userdb.SESSION_FORMAT), now.Format(userdb.SESSION_FORMAT), cacheSes.Expiry, sesLastUpdateTime.Add(cacheSes.Expiry).Format(userdb.SESSION_FORMAT))
 				return false
 			}
 			if err = cache.Set(email, cacheSes, CACHE_TIME_USER_SESSION_MAX); err != nil {

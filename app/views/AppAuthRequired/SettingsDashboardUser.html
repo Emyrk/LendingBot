@@ -4,11 +4,6 @@
 			<h3>Lending Settings</h3>
 		</div>
 		<div class="clearfix"></div>
-		<h1>
-		{{rangeTimeMin}}
-		{{rangeTimeMax}}
-		{{rangeTimeCur}}
-		</h1>
 		<div class="row" ng-init="enabled2FA = [[.enabled2FA]]; verified = [[.verified]]; has2FA = [[.has2FA]]; rangeTimeMin = [[.minSessionTime]]; rangeTimeMax = [[.maxSessionTime]]; rangeTimeCur = [[.currentSessionTime]];">
 			<!-- Create 2fa-->
 			<div class="col-sm-12 col-xs-12"  ng-show="!has2FA">
