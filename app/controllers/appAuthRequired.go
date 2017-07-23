@@ -121,7 +121,7 @@ func (r AppAuthRequired) ChangeExpiry() revel.Result {
 		return r.RenderJSON(data)
 	}
 
-	err = state.SetUserExpiry(r.Session[SESSION_EMAIL], time.Duration(sesExp))
+	err = state.SetUserExpiry(r.Session[SESSION_EMAIL], time.Duration(sesExp)*time.Minute)
 	if err != nil {
 		llog.Errorf("Error setting user[%s] exp: %s", r.Session[SESSION_EMAIL], err.Error())
 		data[JSON_ERROR] = "Internal error. Please contact: support@hodl.zone"
@@ -215,6 +215,12 @@ func (r AppAuthRequired) SettingsDashboardUser() revel.Result {
 	r.ViewArgs["verified"] = fmt.Sprintf("%t", u.Verified)
 	r.ViewArgs["has2FA"] = fmt.Sprintf("%t", u.Has2FA)
 	r.ViewArgs["enabled2FA"] = fmt.Sprintf("%t", u.Enabled2FA)
+	llog.Infof(fmt.Sprintf("%d", CACHE_TIME_USER_SESSION_MIN/time.Minute))
+	llog.Infof(fmt.Sprintf("%d", CACHE_TIME_USER_SESSION_MAX/time.Hour*60))
+	llog.Infof(fmt.Sprintf("%d", u.SessionExpiryTime/time.Minute))
+	r.ViewArgs["minSessionTime"] = fmt.Sprintf("%d", CACHE_TIME_USER_SESSION_MIN/time.Minute)
+	r.ViewArgs["maxSessionTime"] = fmt.Sprintf("%d", CACHE_TIME_USER_SESSION_MAX/time.Hour*60)
+	r.ViewArgs["currentSessionTime"] = fmt.Sprintf("%d", u.SessionExpiryTime/time.Minute)
 
 	if u.PoloniexKeys.APIKeyEmpty() {
 		r.ViewArgs["poloniexKey"] = ""

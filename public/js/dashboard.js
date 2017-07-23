@@ -227,8 +227,8 @@ app.controller('dashInfoAdvancedController', ['$scope', '$http', '$log',
 		var dashInfoAdvScope = $scope;
 	}]);
 
-app.controller('dashSettingsUserController', ['$scope', '$http', '$log',
-	function($scope, $http, $log) {
+app.controller('dashSettingsUserController', ['$scope', '$http', '$log', '$timeout',
+	function($scope, $http, $log, $timeout) {
 		var dashSettingsUserScope = $scope;
 
 		dashSettingsUserScope.create2FA = function() {
@@ -349,6 +349,30 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log',
 			})
 		}
 
+		dashSettingsUserScope.changeExpiry = function() {
+			dashSettingsUserScope.changeExpirySuccess = '';
+			dashSettingsUserScope.changeExpiryError = '';
+			$http(
+			{
+				method: 'POST',
+				url: '/dashboard/settings/changeexpiry',
+				data : $.param({
+					sesexp: rangeTimeSliderValue,
+				}),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				withCredentials: true
+			})
+			.then((res) => {
+				//success
+				$log.info("ChangeExpiry: Success.");
+				dashSettingsUserScope.changeExpirySuccess = 'Change Expiry Time was Successful!';
+			}, (err) => {
+				//error
+				$log.error("ChangeExpiry: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				dashSettingsUserScope.changeExpiryError = err.data.error;
+			});
+		}
+
 		//init
 		dashSettingsUserScope.loadingEnable2FA = false;
 		dashSettingsUserScope.loadingCreate2FA = false;
@@ -358,10 +382,12 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log',
 		dashSettingsUserScope.enable2FAError = '';
 		dashSettingsUserScope.verifiedError = '';
 		dashSettingsUserScope.changePassError = '';
+		dashSettingsUserScope.changeExpiryError = '';
 
 		dashSettingsUserScope.enable2FASuccess = '';
 		dashSettingsUserScope.verifiedSuccess = '';
 		dashSettingsUserScope.changePassSuccess = '';
+		dashSettingsUserScope.changeExpirySuccess = '';
 
 		dashSettingsUserScope.pass2FA = '';
 		dashSettingsUserScope.token = '';
@@ -369,6 +395,9 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log',
 		dashSettingsUserScope.passNew = '';
 		dashSettingsUserScope.passNew2 = '';
 		init_IonRangeSlider();
+		$timeout(() => {
+			init_range_time_slider(dashSettingsUserScope.rangeTimeMin, dashSettingsUserScope.rangeTimeMax, dashSettingsUserScope.rangeTimeCur);
+		});
 		//----
 	}]);
 
@@ -599,6 +628,7 @@ function init_InputMask() {
 	$(":input").inputmask();
 };
 
+var rangeTimeSliderValue = 0;
 
 /* ION RANGE SLIDER */
 
@@ -667,8 +697,29 @@ function init_IonRangeSlider() {
 			return m.format("Do MMMM, HH:mm");
 		}
 	});
-
 };
+
+function init_range_time_slider(min, max, cur) {
+	$("#range_time_slider").ionRangeSlider({
+		type: "single",
+		min: min,
+		max: max,
+		from: cur,
+		prettify: function(num) {
+			rangeTimeSliderValue = num;
+			if (num < 60) {
+				return num + " Minutes"
+			}
+			var n = parseInt(num/60), h = " Hour ";
+			if (n > 1) {
+				h = " Hours "
+			}
+			return n + h + num%60 + " Minutes";
+		}
+	});
+}
+
+
 
 var backgroundColor =[
 "#00BFFF",
