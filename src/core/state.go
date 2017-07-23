@@ -680,3 +680,18 @@ func (s *State) WriteSession(sessionId, email string, recordTime time.Time, ip n
 		Open:      open,
 	})
 }
+
+//returns all sessions but not including this one
+func (s *State) GetActiveSessions(email string, sessions map[string]time.Time, currentSessionId string) ([]userdb.Session, error) {
+	var uss []userdb.Session
+	tempUss, err := s.userDB.GetAllUserSessions(email, 1, 100)
+	if err != nil {
+		return uss, err
+	}
+	for _, o := range *tempUss {
+		if _, ok := sessions[o.SessionId]; ok && currentSessionId != o.SessionId {
+			uss = append(uss, o)
+		}
+	}
+	return uss, nil
+}

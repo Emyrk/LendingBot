@@ -218,6 +218,51 @@
 				</div>
 			</div>
 			<!-- /Change Password -->
+
+			<!-- CheckSessions -->
+			<div class="col-sm-12 col-xs-12" ng-init='userSessions = [[.sessions]];'>
+				<div class="x_panel">
+					<div class="x_title">
+						<h2>Active Sessions</h2>
+						<div class="clearfix"></div>
+					</div>
+					<div class="x_content">
+						<p>
+							<i>Note: Only sessions shown are those besides current session. To close this session, please logout.</i><br>
+							<span ng-show='userSessions.length == 0'>
+								No active active sessions open besides current session.
+							</span>
+						</p>
+						<div class="alert alert-success fade in" role="alert" ng-show="deleteSessionSuccess.length > 0">
+							<strong>{{deleteSessionSuccess}}</strong>
+						</div>
+						<div class="alert alert-danger fade in" role="alert" ng-show="deleteSessionError.length > 0">
+							<strong>{{deleteSessionError}}</strong>
+						</div>
+						<ul class="list-group" style="line-height:30px;" ng-show='userSessions.length > 0'>
+							<li class="list-group-item" ng-repeat="s in userSessions">
+								<div style="display: flex; justify-content: space-between;">
+									<div style="flex-direction: column;">
+										<p>
+											SessionId: {{s.sessionId}}<br>
+											Last Renewal Time: {{s.lrt}}<br>
+											Current IP: {{s.ip}}<br>
+										</p>
+									</div>
+									<div style="display: flex; justify-content: center; align-items: center;">
+										<div style="flex-direction: column; float:right;">
+											<button class="btn btn-sm btn-danger clearfix pull-right" ng-click="deleteSession(s.sessionId)">
+												Delete
+											</button>
+										</div>
+									</div>
+								</div>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<!-- /CheckSessions -->
 		</div>
 	</div>
 </div>

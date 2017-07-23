@@ -2,8 +2,10 @@ package controllers
 
 import (
 	"fmt"
+	"gopkg.in/mgo.v2"
 
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
+	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"github.com/revel/revel/cache"
 	log "github.com/sirupsen/logrus"
 )
@@ -44,4 +46,23 @@ func CacheGetLendingHistory(email string) (*poloniex.PoloniexAuthentictedLending
 func CacheSetLendingHistory(email string, p poloniex.PoloniexAuthentictedLendingHistoryRespone) {
 	fmt.Printf("Setting lending history for user %s", email)
 	go cache.Set(email+CACHE_LENDING_ENDING, p, CACHE_LEND_HIST_TIME)
+}
+
+func GetUserActiveSessions(email, sessionId string) ([]userdb.Session, error) {
+	var (
+		err error
+		uss []userdb.Session
+	)
+	cs, err := GetActiveSessions(email)
+	if err != nil {
+		if err.Error() == mgo.ErrNotFound.Error() {
+			return uss, nil
+		}
+		return uss, fmt.Errorf("CRITICAL! This should never happend. Error retrieving user sessions: %s", err.Error())
+	}
+	uss, err = state.GetActiveSessions(email, cs.Sessions, sessionId)
+	if err != nil {
+		return uss, fmt.Errorf("Error retrieving user sessions from db: %s", err.Error())
+	}
+	return uss, nil
 }

@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Emyrk/LendingBot/balancer"
@@ -92,7 +93,11 @@ func (r AppAuthRequired) Dashboard() revel.Result {
 }
 
 func (r AppAuthRequired) Logout() revel.Result {
-	DeleteCacheToken(r.Session.ID(), r.ClientIP, r.Session[SESSION_EMAIL])
+	llog := appAuthrequiredLog.WithField("method", "Logout")
+	if err := DeleteCacheToken(r.Session.ID(), r.ClientIP, r.Session[SESSION_EMAIL]); err != nil {
+		llog.Error("Error logging user[%s] out: %s", r.Session[SESSION_EMAIL], err.Error())
+		r.Response.Status = 500
+	}
 	delete(r.Session, SESSION_EMAIL)
 	AppPageHitInfoLogout.Inc()
 	return r.Redirect(App.Index)
@@ -136,7 +141,7 @@ func (r AppAuthRequired) ChangeExpiry() revel.Result {
 		r.Response.Status = 500
 		return r.RenderJSON(data)
 	}
-	llog.Info(r.Session[SESSION_EMAIL])
+	r.SetCookie(GetTimeoutCookie(time.Duration(sesExp) * time.Minute))
 	return r.RenderJSON(data)
 }
 
@@ -216,29 +221,23 @@ func (r AppAuthRequired) SettingsDashboardUser() revel.Result {
 	r.ViewArgs["verified"] = fmt.Sprintf("%t", u.Verified)
 	r.ViewArgs["has2FA"] = fmt.Sprintf("%t", u.Has2FA)
 	r.ViewArgs["enabled2FA"] = fmt.Sprintf("%t", u.Enabled2FA)
-	llog.Infof(fmt.Sprintf("%d", CACHE_TIME_USER_SESSION_MIN/time.Minute))
-	llog.Infof(fmt.Sprintf("%d", CACHE_TIME_USER_SESSION_MAX/time.Hour*60))
-	llog.Infof(fmt.Sprintf("%d", u.SessionExpiryTime/time.Minute))
 	r.ViewArgs["minSessionTime"] = fmt.Sprintf("%d", CACHE_TIME_USER_SESSION_MIN/time.Minute)
 	r.ViewArgs["maxSessionTime"] = fmt.Sprintf("%d", CACHE_TIME_USER_SESSION_MAX/time.Hour*60)
 	r.ViewArgs["currentSessionTime"] = fmt.Sprintf("%d", u.SessionExpiryTime/time.Minute)
 
-	if u.PoloniexKeys.APIKeyEmpty() {
-		r.ViewArgs["poloniexKey"] = ""
-	} else {
-		s, err := u.PoloniexKeys.DecryptAPIKeyString(u.GetCipherKey(state.CipherKey))
-		if err != nil {
-			llog.Errorf("Error decrypting Api Keys String: %s\n", err.Error())
-			s = ""
-		}
-		r.ViewArgs["poloniexKey"] = s
+	uss, err := GetUserActiveSessions(r.Session[SESSION_EMAIL], r.Session.ID())
+	if err != nil {
+		llog.Error("Error getting user active sessions: %s", err.Error())
 	}
-
-	if u.PoloniexKeys.SecretKeyEmpty() {
-		r.ViewArgs["poloniexSecret"] = ""
-	} else {
-		r.ViewArgs["poloniexSecret"] = ""
+	b, err := json.Marshal(uss)
+	if err != nil {
+		llog.Errorf("Error marshalling user sessions: %s", err.Error())
+		b = []byte("[]")
 	}
+	if len(uss) == 0 {
+		b = []byte("[]")
+	}
+	r.ViewArgs["sessions"] = string(b)
 
 	AppPageHitSetSettingDashUser.Inc()
 	return r.RenderTemplate("AppAuthRequired/SettingsDashboardUser.html")
@@ -438,8 +437,31 @@ func (r AppAuthRequired) GetActivityLogs() revel.Result {
 	return r.RenderJSON(data)
 }
 
+func (r AppAuthRequired) DeleteSession() revel.Result {
+	llog := appAuthrequiredLog.WithField("method", "DeleteSession")
+
+	data := make(map[string]interface{})
+	//delete session
+	if err := DeleteCacheToken(r.Params.Form.Get("sesid"), r.ClientIP, r.Session[SESSION_EMAIL]); err != nil {
+		llog.Error("Error deleting user session: %s", err.Error())
+		data[JSON_ERROR] = "Server error, failed to delete session. Contact support: support@hodl.zone."
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+	//get active sessions
+	uss, err := GetUserActiveSessions(r.Session[SESSION_EMAIL], r.Session.ID())
+	if err != nil {
+		llog.Error("Error getting user active sessions after delete: %s", err.Error())
+		data[JSON_ERROR] = "Server error, failed to delete session. Contact support: support@hodl.zone."
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+	data["ses"] = uss
+	return r.RenderJSON(data)
+}
+
 func (r AppAuthRequired) UserDashboard() revel.Result {
-	if revel.DevMode {
+	if revel.DevMode || strings.Contains(revel.RunMode, "dev") {
 		return r.RenderError(&revel.Error{
 			Title:       "404 Error.",
 			Description: "Looks like you are lost.",
@@ -475,7 +497,7 @@ func (r AppAuthRequired) AuthUser() revel.Result {
 	} else {
 		r.SetCookie(httpCookie)
 	}
-	llog.Infof("Email on auth: %s", r.Session[SESSION_EMAIL])
+
 	//do not cache auth pages
 	// r.Response.Out.Header().Set("Cache-Control", "no-cache, max-age=0, must-revalidate, no-store")
 

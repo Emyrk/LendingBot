@@ -1,3 +1,3 @@
 package controllers
 
-var VersionNumber = "0.2.1.0"
+var VersionNumber = "0.3.0.0"

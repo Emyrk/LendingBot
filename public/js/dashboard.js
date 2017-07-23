@@ -373,6 +373,31 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log', '$timeo
 			});
 		}
 
+		dashSettingsUserScope.deleteSession = function(sessionId) {
+			dashSettingsUserScope.deleteSessionSuccess = '';
+			dashSettingsUserScope.deleteSessionError = '';
+			$http(
+			{
+				method: 'POST',
+				url: '/dashboard/settings/deletesession',
+				data : $.param({
+					sesid: sessionId,
+				}),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				withCredentials: true
+			})
+			.then((res) => {
+				//success
+				$log.info("DeleteSession: Success.");
+				dashSettingsUserScope.deleteSessionSuccess = 'Delete Session Successful!';
+				dashSettingsUserScope.userSessions = res.data.ses;
+			}, (err) => {
+				//error
+				$log.error("DeleteSession: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				dashSettingsUserScope.deleteSessionError = err.data.error;
+			});
+		}
+
 		//init
 		dashSettingsUserScope.loadingEnable2FA = false;
 		dashSettingsUserScope.loadingCreate2FA = false;
@@ -383,11 +408,13 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log', '$timeo
 		dashSettingsUserScope.verifiedError = '';
 		dashSettingsUserScope.changePassError = '';
 		dashSettingsUserScope.changeExpiryError = '';
+		dashSettingsUserScope.deleteSessionError = '';
 
 		dashSettingsUserScope.enable2FASuccess = '';
 		dashSettingsUserScope.verifiedSuccess = '';
 		dashSettingsUserScope.changePassSuccess = '';
 		dashSettingsUserScope.changeExpirySuccess = '';
+		dashSettingsUserScope.deleteSessionSuccess = '';
 
 		dashSettingsUserScope.pass2FA = '';
 		dashSettingsUserScope.token = '';

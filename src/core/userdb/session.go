@@ -16,18 +16,18 @@ const (
 )
 
 type Session struct {
-	SessionId       string         `bson:"sessionId"`
-	Email           string         `bson:"email"`
-	LastRenewalTime time.Time      `bson:"lrt"`
-	CurrentIP       net.IP         `bson:"ip"`
-	Open            bool           `bson:"open"`
-	IPS             []SessionIP    `bson:"ips"`
-	ChangeState     []SessionState `bson:"changestate"` //tracks when session has changed from opened to close or when reopened
+	SessionId       string         `json:"sessionId" bson:"sessionId"`
+	Email           string         `json:"email" bson:"email"`
+	LastRenewalTime time.Time      `json:"lrt" bson:"lrt"`
+	CurrentIP       net.IP         `json:"ip" bson:"ip"`
+	Open            bool           `json:"open" bson:"open"`
+	IPS             []SessionIP    `json:"ips" bson:"ips"`
+	ChangeState     []SessionState `json:"changestate" bson:"changestate"` //tracks when session has changed from opened to close or when reopened
 }
 
 type SessionIP struct {
-	IP        net.IP    `bson:"ip"`
-	StartTime time.Time `bson:"st"`
+	IP        net.IP    `json:"ip" bson:"ip"`
+	StartTime time.Time `json:"st" bson:"st"`
 }
 
 type SessionAction string
@@ -46,46 +46,36 @@ type SessionState struct {
 
 func (ses Session) IsSameAs(sesComp *Session) bool {
 	if ses.SessionId != sesComp.SessionId {
-		fmt.Println("YYYYYY 1")
 		return false
 	}
 	if ses.Email != sesComp.Email {
-		fmt.Println("YYYYYY 2")
 		return false
 	}
 	if ses.LastRenewalTime.UTC().Format(SESSION_FORMAT) < sesComp.LastRenewalTime.UTC().Format(SESSION_FORMAT) {
-		fmt.Println("YYYYYY 3")
 		return false
 	}
 	if ses.CurrentIP.Equal(sesComp.CurrentIP) == false {
-		fmt.Println("YYYYYY 4")
 		return false
 	}
 	if ses.Open != sesComp.Open {
-		fmt.Println("YYYYYY 5")
 		return false
 	}
 	if len(ses.IPS) != len(sesComp.IPS) {
-		fmt.Println("YYYYYY 6")
 		return false
 	}
 	for i, _ := range ses.IPS {
 		if ses.IPS[i].StartTime.UTC().Format(SESSION_FORMAT) != sesComp.IPS[i].StartTime.UTC().Format(SESSION_FORMAT) {
-			fmt.Println("YYYYYY 7")
 			return false
 		}
 	}
 	if len(ses.ChangeState) != len(sesComp.ChangeState) {
-		fmt.Println("YYYYYY 8", len(ses.ChangeState), len(sesComp.ChangeState))
 		return false
 	}
 	for i, _ := range ses.ChangeState {
 		if ses.ChangeState[i].ActionTime.UTC().Format(SESSION_FORMAT) != sesComp.ChangeState[i].ActionTime.UTC().Format(SESSION_FORMAT) {
-			fmt.Println("YYYYYY 9", ses.ChangeState[i].ActionTime.UTC().Format(SESSION_FORMAT), sesComp.ChangeState[i].ActionTime.UTC().Format(SESSION_FORMAT))
 			return false
 		}
 		if ses.ChangeState[i].SessionAction != sesComp.ChangeState[i].SessionAction {
-			fmt.Println("YYYYYY 10")
 			return false
 		}
 	}

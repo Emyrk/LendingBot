@@ -35,7 +35,7 @@ const (
 	CACHE_LENDING_ENDING = "_lendHist"
 )
 
-func getTimeoutCookie(dur time.Duration) *http.Cookie {
+func GetTimeoutCookie(dur time.Duration) *http.Cookie {
 	t := time.Now().Add(dur)
 
 	timeoutCookie := &http.Cookie{
@@ -113,7 +113,7 @@ func SetCacheEmail(sessionId, ip, email string) (*http.Cookie, error) {
 	if err = cache.Set(email, cacheSes, CACHE_TIME_USER_SESSION_MAX); err != nil {
 		return nil, fmt.Errorf("Error setting user [%s] session cache: %s", email, err.Error())
 	}
-	return getTimeoutCookie(cacheSes.Expiry), nil
+	return GetTimeoutCookie(cacheSes.Expiry), nil
 }
 
 func ValidCacheEmail(sessionId, ip, email string) bool {
@@ -152,4 +152,12 @@ func ValidCacheEmail(sessionId, ip, email string) bool {
 	}
 
 	return true
+}
+
+func GetActiveSessions(email string) (*CacheSession, error) {
+	var cacheSes CacheSession
+	if err := cache.Get(email, &cacheSes); err != nil {
+		return nil, err
+	}
+	return &cacheSes, nil
 }
