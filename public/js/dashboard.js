@@ -357,7 +357,7 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log', '$timeo
 				method: 'POST',
 				url: '/dashboard/settings/changeexpiry',
 				data : $.param({
-					sesexp: rangeTimeSliderValue,
+					sesexp: (parseInt(rangeTimeSliderValue)*60000), //must be in milliseconds
 				}),
 				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
 				withCredentials: true
@@ -370,6 +370,24 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log', '$timeo
 				//error
 				$log.error("ChangeExpiry: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
 				dashSettingsUserScope.changeExpiryError = err.data.error;
+			});
+		}
+
+		dashSettingsUserScope.getExpiry = function() {
+			$http(
+			{
+				method: 'GET',
+				url: '/dashboard/settings/getexpiry',
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				withCredentials: true
+			})
+			.then((res) => {
+				//success
+				$log.info("GetExpiry: Success.");
+				dashSettingsUserScope.rangeTimeCur = parseInt(res.data.sesexp)/60000;
+			}, (err) => {
+				//error
+				$log.error("GetExpiry: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
 			});
 		}
 
@@ -421,6 +439,7 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log', '$timeo
 		dashSettingsUserScope.pass = '';
 		dashSettingsUserScope.passNew = '';
 		dashSettingsUserScope.passNew2 = '';
+		dashSettingsUserScope.getExpiry();
 		init_IonRangeSlider();
 		$timeout(() => {
 			init_range_time_slider(dashSettingsUserScope.rangeTimeMin, dashSettingsUserScope.rangeTimeMax, dashSettingsUserScope.rangeTimeCur);

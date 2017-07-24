@@ -15,8 +15,9 @@ import (
 )
 
 var (
-	expTime = 50 * time.Millisecond
-	format  = "2006-01-02 15:04:05.000"
+	expTimeBase = 50
+	expTime     = time.Duration(expTimeBase) * time.Millisecond
+	format      = "2006-01-02 15:04:05.000"
 )
 
 type AppTest struct {
@@ -173,19 +174,19 @@ func (t *AppTest) TestSetAndTimeoutExpiry() {
 	login(t, GetDefaultLoginValues()) //+1 session count, total = 3
 
 	v := url.Values{}
-	v.Set("sesexp", fmt.Sprintf("%d", expTime))
+	v.Set("sesexp", fmt.Sprintf("%d", expTimeBase))
 	t.PostForm("/dashboard/settings/changeexpiry", v)
 	t.AssertOk()
 
 	//validate timeout was changed
 	u, err := getUser(GetDefaultLoginValues().Get("email"))
 	t.AssertEqual(nil, err)
-	t.AssertEqual(u.SessionExpiryTime, expTime)
+	t.AssertEqual((u.SessionExpiryTime.Nanoseconds() / time.Millisecond.Nanoseconds()), expTime.Nanoseconds()/time.Millisecond.Nanoseconds())
 	////check session cache
 	var cacheSes controllers.CacheSession
 	err = cache.Get(GetDefaultLoginValues().Get("email"), &cacheSes)
 	t.AssertEqual(1, len(cacheSes.Sessions))
-	t.AssertEqual(cacheSes.Expiry, expTime)
+	t.AssertEqual(cacheSes.Expiry.Nanoseconds()/time.Millisecond.Nanoseconds(), expTime.Nanoseconds()/time.Millisecond.Nanoseconds())
 
 	//test that under expire time will result in success
 	time.Sleep(expTime / 2)

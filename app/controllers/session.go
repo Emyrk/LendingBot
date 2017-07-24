@@ -50,6 +50,17 @@ func GetTimeoutCookie(dur time.Duration) *http.Cookie {
 	return timeoutCookie
 }
 
+func GetCacheDur(email string) (*time.Duration, error) {
+	var (
+		cacheSes CacheSession
+		err      error
+	)
+	if err = cache.Get(email, &cacheSes); err != nil {
+		return nil, fmt.Errorf("Error finding user[%s] cache session: %s", email, err.Error())
+	}
+	return &cacheSes.Expiry, nil
+}
+
 func SetCacheDurEnd(email string, expiryDur time.Duration) error {
 	var (
 		cacheSes CacheSession

@@ -126,7 +126,7 @@ func (r AppAuthRequired) ChangeExpiry() revel.Result {
 		return r.RenderJSON(data)
 	}
 
-	err = state.SetUserExpiry(r.Session[SESSION_EMAIL], time.Duration(sesExp)*time.Minute)
+	err = state.SetUserExpiry(r.Session[SESSION_EMAIL], time.Duration(sesExp)*time.Millisecond)
 	if err != nil {
 		llog.Errorf("Error setting user[%s] exp: %s", r.Session[SESSION_EMAIL], err.Error())
 		data[JSON_ERROR] = "Internal error. Please contact: support@hodl.zone"
@@ -134,14 +134,30 @@ func (r AppAuthRequired) ChangeExpiry() revel.Result {
 		return r.RenderJSON(data)
 	}
 
-	err = SetCacheDurEnd(r.Session[SESSION_EMAIL], time.Duration(sesExp)*time.Minute)
+	err = SetCacheDurEnd(r.Session[SESSION_EMAIL], time.Duration(sesExp)*time.Millisecond)
 	if err != nil {
 		llog.Errorf("Error setting user[%s] cache session exp: %s", r.Session[SESSION_EMAIL], err.Error())
 		data[JSON_ERROR] = "Internal error. Please contact: support@hodl.zone"
 		r.Response.Status = 500
 		return r.RenderJSON(data)
 	}
-	r.SetCookie(GetTimeoutCookie(time.Duration(sesExp) * time.Minute))
+	r.SetCookie(GetTimeoutCookie(time.Duration(sesExp) * time.Millisecond))
+	return r.RenderJSON(data)
+}
+
+func (r AppAuthRequired) GetExpiry() revel.Result {
+	llog := appAuthrequiredLog.WithField("method", "GetExpiry")
+
+	data := make(map[string]interface{})
+
+	dur, err := GetCacheDur(r.Session[SESSION_EMAIL])
+	if err != nil {
+		llog.Errorf("Error getting user[%s] exp: %s", r.Session[SESSION_EMAIL], err.Error())
+		data[JSON_ERROR] = "Internal error. Please contact: support@hodl.zone"
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+	data["sesexp"] = *dur / time.Millisecond
 	return r.RenderJSON(data)
 }
 

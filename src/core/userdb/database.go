@@ -173,6 +173,8 @@ func (ud *UserDatabase) FetchUser(username string) (*User, error) {
 			return nil, fmt.Errorf("FetchUser: find: %s", err.Error())
 		}
 		result.PoloniexKeys.SetEmptyIfBlank()
+
+		//set the user minimum
 		return &result, nil
 	}
 
