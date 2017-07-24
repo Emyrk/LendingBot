@@ -201,6 +201,11 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 			flog.Error(err)
 			return err
 		}
+
+		// Disable because of Fork
+		if c == "BTC" {
+			continue
+		}
 		o, err := api.NewOffer(lower, avail, frr, 2, "lend")
 		if err != nil {
 			l.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("BitfinexBot encountered an error creating loan: %s", err.Error()))
@@ -216,7 +221,7 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 
 	logentry := fmt.Sprintf("BitfinexBot analyzed your account and found nothing needed to be done")
 	if len(logmsg) > 0 {
-		logentry = fmt.Sprintf("BitfinexBot Lending Actions:\n%s", currLogs)
+		logentry = fmt.Sprintf("BitfinexBot Lending Actions:\n%s", logmsg)
 	}
 
 	l.Bee.AddBotActivityLogEntry(u.U.Username, logentry)

@@ -428,6 +428,10 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 			continue
 		}
 
+		// Disable for potential fork
+		if curr == "BTC" {
+			continue
+		}
 		_, err = l.Polo.PoloniexCreateLoanOffer(curr, amt, rate, 2, false, u.U.AccessKey, u.U.SecretKey)
 		if err != nil { //} && strings.Contains(err.Error(), "Too many requests") {
 			msg := fmt.Sprintf("Error creating loan: %s", shortError(err).Error())
