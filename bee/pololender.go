@@ -130,12 +130,14 @@ func (l *Lender) Runloop() {
 			switch u.U.Exchange {
 			case balancer.PoloniexExchange:
 				err := l.ProcessPoloniexUser(u)
+				u.U.LastTouch = time.Now()
 				if err != nil {
 					poloLogger.WithFields(log.Fields{"func": "ProcessPoloniexUser", "user": u.U.Username,
 						"exchange": balancer.GetExchangeString(u.U.Exchange)}).Errorf("[PoloLending] Error: %s", shortError(err).Error())
 				}
 			case balancer.BitfinexExchange:
 				err := l.ProcessBitfinexUser(u)
+				u.U.LastTouch = time.Now()
 				if err != nil {
 					poloLogger.WithFields(log.Fields{"func": "ProcessBitfinexUser", "user": u.U.Username,
 						"exchange": balancer.GetExchangeString(u.U.Exchange)}).Errorf("[BitfinexLending] Error: %s", shortError(err).Error())
@@ -428,6 +430,10 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 			continue
 		}
 
+		// Disable for potential fork
+		if curr == "BTC" {
+			continue
+		}
 		_, err = l.Polo.PoloniexCreateLoanOffer(curr, amt, rate, 2, false, u.U.AccessKey, u.U.SecretKey)
 		if err != nil { //} && strings.Contains(err.Error(), "Too many requests") {
 			msg := fmt.Sprintf("Error creating loan: %s", shortError(err).Error())
