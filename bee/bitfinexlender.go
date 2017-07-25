@@ -37,6 +37,21 @@ type BitfinexLender struct {
 	quit chan bool
 }
 
+func (bl *BitfinexLender) TickerInfo() string {
+	bl.tickerlock.RLock()
+	str := ""
+	str += "-- Tickers --\n"
+	for k, t := range bl.Ticker {
+		str += fmt.Sprintf(" %s: %f\n", k, t.LastPrice)
+	}
+	str += "-- Funding --\n"
+	for k, t := range bl.FundingTicker {
+		str += fmt.Sprintf(" %s: %f\n", k, t.LastPrice)
+	}
+	bl.tickerlock.RUnlock()
+	return str
+}
+
 func NewBitfinexLender() *BitfinexLender {
 	b := new(BitfinexLender)
 	b.API = bitfinex.New("Public", "Calls")
@@ -120,6 +135,7 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 	err = bl.take()
 	if err != nil {
 		flog.Error(err)
+		l.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("BitfinexBot encountered an error: %s", err.Error()))
 		return err
 	}
 	bals, err := api.WalletBalances()
@@ -132,6 +148,7 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 	err = bl.take()
 	if err != nil {
 		flog.Error(err)
+		l.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("BitfinexBot encountered an error: %s", err.Error()))
 		return err
 	}
 	inactMap := make(map[string]bitfinex.Offers)
@@ -151,6 +168,7 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 	err = bl.take()
 	if err != nil {
 		flog.Error(err)
+		l.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("BitfinexBot encountered an error: %s", err.Error()))
 		return err
 	}
 	activeMap := make(map[string]bitfinex.Credits)
@@ -184,38 +202,46 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 
 		avail := bals[bitfinex.WalletKey{"deposit", lower}].Available
 
-		if avail <= 0 {
-			continue
-		}
-
-		var frr float64 = 0
+		var last float64 = 0
 		bl.tickerlock.RLock()
-		t, ok := bl.FundingTicker[fmt.Sprintf("f%s", lower)]
+		t, ok := bl.FundingTicker[fmt.Sprintf("f%s", correctCurencyString(c))]
 		if ok {
-			frr = t.LastPrice //t.FRR
+			last = t.LastPrice //t.FRR
 		}
 		bl.tickerlock.RUnlock()
 
-		err = bl.take()
-		if err != nil {
-			flog.Error(err)
-			return err
+		for _, l := range inactMap[correctCurencyString(c)] {
+			dif := abs((l.Rate / 365 / 100) - last)
+			if dif > 0.0001 {
+				api.CancelOffer(l.ID)
+				avail += l.RemainingAmount
+			}
+		}
+
+		if avail <= 0 {
+			continue
 		}
 
 		// Disable because of Fork
 		if c == "BTC" {
 			continue
 		}
-		o, err := api.NewOffer(lower, avail, frr, 2, "lend")
+
+		err = bl.take()
 		if err != nil {
-			l.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("BitfinexBot encountered an error creating loan: %s", err.Error()))
-			logmsg += fmt.Sprintf("   Loan made for %f %s at %f\n", avail, c, frr)
+			flog.Error(err)
+			l.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("BitfinexBot encountered an error: %s", err.Error()))
 			return err
+		}
+		o, err := api.NewOffer(lower, avail, last, 2, "lend")
+		if err != nil {
+			//l.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("BitfinexBot encountered an error creating loan: %s", err.Error()))
+			logmsg += fmt.Sprintf("   Loan made for %f %s at %f\n", avail, c, last)
 		}
 		var _ = o
 		var _ = t
 
-		clog.WithFields(log.Fields{"rate": frr, "amount": avail}).Infof("Created Loan")
+		clog.WithFields(log.Fields{"rate": last, "amount": avail}).Infof("Created Loan")
 		var _ = avail
 	}
 

@@ -52,6 +52,8 @@ func main() {
 			fmt.Printf("Using %d users\n", len(be.Users))
 		case "s":
 			fmt.Println(be.Report())
+		case "t":
+			fmt.Println(be.LendingBot.BitfinLender.TickerInfo())
 		}
 	}
 }
