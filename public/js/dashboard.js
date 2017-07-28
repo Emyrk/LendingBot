@@ -385,6 +385,9 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log', '$timeo
 				//success
 				$log.info("GetExpiry: Success.");
 				dashSettingsUserScope.rangeTimeCur = parseInt(res.data.sesexp)/60000;
+				$timeout(() => {
+					init_range_time_slider(dashSettingsUserScope.rangeTimeMin, dashSettingsUserScope.rangeTimeMax, dashSettingsUserScope.rangeTimeCur);
+				});
 			}, (err) => {
 				//error
 				$log.error("GetExpiry: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
@@ -441,9 +444,6 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log', '$timeo
 		dashSettingsUserScope.passNew2 = '';
 		dashSettingsUserScope.getExpiry();
 		init_IonRangeSlider();
-		$timeout(() => {
-			init_range_time_slider(dashSettingsUserScope.rangeTimeMin, dashSettingsUserScope.rangeTimeMax, dashSettingsUserScope.rangeTimeCur);
-		});
 		//----
 	}]);
 
