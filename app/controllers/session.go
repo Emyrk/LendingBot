@@ -26,7 +26,7 @@ type CacheSession struct {
 const (
 	SESSION_EMAIL = "email"
 
-	CACHE_TIME_USER_SESSION_MIN = 5 * time.Minute
+	CACHE_TIME_USER_SESSION_MIN = 5 * time.Minute //should use a const value, should be same as the default in session look at session.go in userdb
 	CACHE_TIME_USER_SESSION_MAX = 5 * time.Hour
 
 	CACHE_TIME_POLONIEX = 15 * time.Minute

@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	DEFAULT_SESSION_DUR = 5 * time.Minute
+	DEFAULT_SESSION_DUR = 5 * time.Minute //should use a const value, should be same as the default in session look at session.go in controllers
 	SESSION_FORMAT      = "2006-01-02 15:04:05.000"
 )
 
