@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Emyrk/LendingBot/src/core/database/mongo"
+	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -16,7 +17,7 @@ type PaymentDatabase struct {
 func NewPaymentDatabase(uri, dbu, dbp string) (*PaymentDatabase, error) {
 	db, err := mongo.CreatePaymentDB(uri, dbu, dbp)
 	if err != nil {
-		return nil, fmt.Errorf("Error creating payment_stat db: %s\n", err.Error())
+		return nil, fmt.Errorf("Error creating payment db: %s\n", err.Error())
 	}
 	return &PaymentDatabase{db}, err
 }
@@ -47,7 +48,43 @@ type StatusReferral struct {
 	ReductionTime time.Time `bson:"reductime"`
 }
 
-func (p *PaymentDatabase) AddUserReferral(username, refereeUsername string) error {
+func (p *PaymentDatabase) SetUserReferee(username, refereeUsername string) error {
+	if username == refereeUsername {
+		return fmt.Errorf("Cannot use referee as referral username")
+	}
+
+	s, c, err := p.db.GetCollection(mongo.C_Status)
+	if err != nil {
+		return fmt.Errorf("SetUserReferee: createSession: %s", err.Error())
+	}
+	defer s.Close()
+
+	st, err := p.getStatusGiven(username, c)
+	if err != nil {
+		return fmt.Errorf("SetUserReferee: getRef: %s", err.Error())
+	}
+
+	if st.Referee != "" {
+		fmt.Errorf("Referee already set for user[%s]", username)
+	}
+
+	//CAN OPTIMIZE LATER
+	upsertKey := bson.M{
+		"_id": username,
+	}
+	upsertAction := bson.M{"$set": refereeUsername}
+	_, err = c.Upsert(upsertKey, upsertAction)
+	if err != nil {
+		return fmt.Errorf("SetUserReferee: upsert: %s", err)
+	}
+	return nil
+}
+
+func (p *PaymentDatabase) AddUserReferral(username, referralUsername string) error {
+	if username == referralUsername {
+		return fmt.Errorf("Cannot use username as referral username")
+	}
+
 	s, c, err := p.db.GetCollection(mongo.C_Status)
 	if err != nil {
 		return fmt.Errorf("AddUserReferral: createSession: %s", err.Error())
@@ -55,16 +92,15 @@ func (p *PaymentDatabase) AddUserReferral(username, refereeUsername string) erro
 	defer s.Close()
 
 	sr, err := p.getUserReferralsGiven(username, c)
-	if err != nil {
+	if err != nil && err.Error() != mgo.ErrNotFound.Error() {
 		return fmt.Errorf("AddUserReferral: getRef: %s", err.Error())
-	}
-
-	for _, o := range sr {
-		if o.Username == username {
-			return fmt.Errorf("Error username[%s] already added as referee[%s]", username, refereeUsername)
+	} else {
+		for _, o := range sr {
+			if o.Username == username {
+				return fmt.Errorf("Error username[%s] already added as referee[%s]", username, referralUsername)
+			}
 		}
 	}
-
 	//CAN OPTIMIZE LATER
 	upsertKey := bson.M{
 		"_id": username,
@@ -72,7 +108,7 @@ func (p *PaymentDatabase) AddUserReferral(username, refereeUsername string) erro
 	upsertAction := bson.M{
 		"$push": bson.M{
 			"referralreducs": &StatusReferral{
-				Username:      username,
+				Username:      referralUsername,
 				ReductionTime: time.Now().UTC(),
 			},
 		},
@@ -83,6 +119,22 @@ func (p *PaymentDatabase) AddUserReferral(username, refereeUsername string) erro
 		return fmt.Errorf("AddUserReferral: upsert: %s", err)
 	}
 	return nil
+}
+
+func (p *PaymentDatabase) GetUserReferralsIfFound(username string) ([]StatusReferral, error) {
+	s, c, err := p.db.GetCollection(mongo.C_Status)
+	if err != nil {
+		var sr []StatusReferral
+		return sr, fmt.Errorf("AddUserReferral: createSession: %s", err.Error())
+	}
+	defer s.Close()
+	ref, err := p.getUserReferralsGiven(username, c)
+	if err != nil && err.Error() == mgo.ErrNotFound.Error() {
+		return ref, nil
+	} else if err != nil {
+		return ref, err
+	}
+	return ref, nil
 }
 
 func (p *PaymentDatabase) GetUserReferrals(username string) ([]StatusReferral, error) {
@@ -100,9 +152,9 @@ func (p *PaymentDatabase) getUserReferralsGiven(username string, c *mgo.Collecti
 		ReferralReductions []StatusReferral `bson:"referralreducs"`
 	}
 
-	find := bson.M{"refusername": username}
-	sel := bson.M{"_id": 0, "refusername": 1}
-	err := c.Find(find).Select(sel).All(result)
+	find := bson.M{"_id": username}
+	sel := bson.M{"_id": 0}
+	err := c.Find(find).Select(sel).One(&result)
 	return result.ReferralReductions, err
 }
 
@@ -112,9 +164,12 @@ func (p *PaymentDatabase) GetStatus(username string) (*Status, error) {
 		return nil, fmt.Errorf("GetStatus: getcol: %s", err)
 	}
 	defer s.Close()
+	return p.getStatusGiven(username, c)
+}
 
+func (p *PaymentDatabase) getStatusGiven(username string, c *mgo.Collection) (*Status, error) {
 	var result Status
-	err = c.Find(bson.M{"_id": username}).One(&result)
+	err := c.Find(bson.M{"_id": username}).One(&result)
 	if err != nil {
 		return nil, fmt.Errorf("GetStatus: one: %s", err.Error())
 	}
@@ -136,19 +191,19 @@ func (p *PaymentDatabase) SetStatus(status Status) error {
 }
 
 type Debt struct {
-	ID                    *bson.ObjectId `bson:"_id,omitempty"`
-	LoanDate              time.Time      `bson:"loandate"`
-	Charge                float64        `bson:"charge"`
-	AmountLoaned          float64        `bson:"amountloaned"`
-	LoanRate              float64        `bson:"loanrate"`
-	GrossAmountEarned     float64        `bson:"gae"`
-	Currency              float64        `bson:"cur"`
-	CurrencyToBTC         float64        `bson:"curBTC"`
-	CurrencyToETH         float64        `bson:"curETH"`
-	Exchange              string         `bson:"exch"`
-	Username              string         `bson:"email"`
-	FullPaid              bool           `bson:"fullpaid"`
-	PaymentPercentageRate float64        `bson:"ppr"`
+	ID                    *bson.ObjectId      `bson:"_id,omitempty"`
+	LoanDate              time.Time           `bson:"loandate"`
+	Charge                float64             `bson:"charge"`
+	AmountLoaned          float64             `bson:"amountloaned"`
+	LoanRate              float64             `bson:"loanrate"`
+	GrossAmountEarned     float64             `bson:"gae"`
+	Currency              string              `bson:"cur"`
+	CurrencyToBTC         float64             `bson:"curBTC"`
+	CurrencyToETH         float64             `bson:"curETH"`
+	Exchange              userdb.UserExchange `bson:"exch"`
+	Username              string              `bson:"email"`
+	FullPaid              bool                `bson:"fullpaid"`
+	PaymentPercentageRate float64             `bson:"ppr"`
 }
 
 func (p *PaymentDatabase) SetMultiDebt(debt []Debt) error {
@@ -210,10 +265,10 @@ type Paid struct {
 	PaymentDate        time.Time      `bson:"paymentdate"`
 	BTCPaid            float64        `bson:"btcpaid"`
 	BTCTransactionDate time.Time      `bson:"btctrandate"`
-	BTCTransactionID   uint64         `bson:"btctranid"`
+	BTCTransactionID   int64          `bson:"btctranid"`
 	ETHPaid            float64        `bson:"ethpaid"`
 	ETHTransactionDate time.Time      `bson:"ethtrandate"`
-	ETHTransactionID   uint64         `bson:"ethtranid"`
+	ETHTransactionID   int64          `bson:"ethtranid"`
 	AddressPaidFrom    string         `bson:"addr"`
 	Username           string         `bson:"email"`
 }
