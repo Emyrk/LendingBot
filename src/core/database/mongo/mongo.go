@@ -17,7 +17,7 @@ const (
 	USER_DB_TEST = "userdb_test"
 
 	C_USER = "user"
-	//USER END
+	//AUDIT END
 
 	//STAT BEGIN
 	STAT_DB      = "statdb"
@@ -38,15 +38,6 @@ const (
 
 	C_Audit = "audit"
 	//AUDIT END
-
-	//PAYMENT BEGIN
-	PAYMENT_DB      = "paymentdb"
-	PAYMENT_DB_TEST = "paymentdb_test"
-
-	C_Status = "status"
-	C_Debt   = "debt"
-	C_Paid   = "paid"
-	//PAYMENT END
 
 	ADMIN_DB = "admin"
 )
@@ -208,43 +199,5 @@ func CreateTestStatDB(uri, dbu, dbp string) (*MongoDB, error) {
 		return nil, err
 	}
 
-	return db, nil
-}
-
-func CreatePaymentDB(uri, dbu, dbp string) (*MongoDB, error) {
-	db := createMongoDB(uri, PAYMENT_DB, dbu, dbp)
-
-	session, err := db.CreateSession()
-	if err != nil {
-		return nil, err
-	}
-	defer session.Close()
-
-	return db, nil
-}
-
-func CreateTestPaymentDB(uri, dbu, dbp string) (*MongoDB, error) {
-	db := createMongoDB(uri, PAYMENT_DB_TEST, dbu, dbp)
-
-	session, err := db.CreateSession()
-	if err != nil {
-		return nil, err
-	}
-	defer session.Close()
-
-	// c := session.DB(USER_DB_TEST).C(C_USER)
-
-	// index := mgo.Index{
-	// 	Key:        []string{"username"},
-	// 	Unique:     true,
-	// 	DropDups:   true,
-	// 	Background: true,
-	// 	Sparse:     true,
-	// }
-
-	// err = c.EnsureIndex(index)
-	// if err != nil {
-	// 	return nil, err
-	// }
 	return db, nil
 }
