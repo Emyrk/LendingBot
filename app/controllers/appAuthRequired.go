@@ -248,6 +248,32 @@ func (r AppAuthRequired) Create2FA() revel.Result {
 	return r.RenderJSON(data)
 }
 
+func (r AppAuthRequired) GenerateReferralCode() revel.Result {
+	data := make(map[string]interface{})
+
+	referralCode, err := state.GenerateUserReferralCode(r.Session[SESSION_EMAIL])
+	if err != nil {
+		llog.Errorf("Error generating referral code: %s\n", err.Error())
+		data[JSON_ERROR] = "Internal Error. Please contact support at: support@hodl.zone"
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+	data["referralcode"] = referralCode
+	return r.RenderJSON(data)
+}
+
+func (r AppAuthRequired) SetReferee() revel.Result {
+	data := make(map[string]interface{})
+	err := state.SetUserReferee(r.Session[SESSION_EMAIL], r.Params.Form.Get("refereecode"))
+	if err != nil {
+		llog.Errorf("Error setting referee code: %s\n", err.Error())
+		data[JSON_ERROR] = "Internal Error. Please contact support at: support@hodl.zone"
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+	return r.RenderJSON(data)
+}
+
 func (r AppAuthRequired) RequestEmailVerification() revel.Result {
 	llog := appAuthrequiredLog.WithField("method", "RequestEmailVerification")
 

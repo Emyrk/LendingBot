@@ -587,12 +587,12 @@ func (s *State) GetActivityLog(email string, timeString string) (*[]userdb.BotAc
 	return botActLogs, nil
 }
 
-func (s *State) SetUserReferee(username, refereeCode string) error {
-	return s.paymentDB.SetUserReferee(username, refereeCode)
-}
-
 func (s *State) GenerateUserReferralCode(username string) (string, error) {
 	return s.paymentDB.GenerateReferralCode(username)
+}
+
+func (s *State) SetUserReferee(username, refereeCode string) error {
+	return s.paymentDB.SetUserReferee(username, refereeCode)
 }
 
 func (s *State) GetUserReferrals(username string) ([]payment.StatusReferral, error) {
