@@ -14,64 +14,21 @@ import (
 	. "github.com/Emyrk/LendingBot/src/core/payment"
 )
 
-func Test_user_referral(t *testing.T) {
-	testUser := "test@hodl.zone"
-	userReferrals := []string{"admin@admin.com", "roger@houston.com"}
-	db, err := getPaymentDBAndClearCollection(mongo.C_Status)
-	if err != nil {
-		t.Error(err)
-	}
-
-	//add user referral, one
-	err = db.AddUserReferral(testUser, userReferrals[0])
-	if err != nil {
-		t.Error(err)
-	}
-	referrals, err := db.GetUserReferralsIfFound(testUser)
-	if err != nil {
-		t.Error(err)
-	}
-	if len(referrals) != 1 {
-		t.Errorf("Should have 1 referral, is %d", len(referrals))
-	} else if referrals[0].Username != userReferrals[0] {
-		t.Errorf("Referral name is not correct [%s]!=[%s]", referrals[0])
-	}
-
-	//add 2nd referral
-	err = db.AddUserReferral(testUser, userReferrals[1])
-	if err != nil {
-		t.Error(err)
-	}
-	referrals, err = db.GetUserReferralsIfFound(testUser)
-	if err != nil {
-		t.Error(err)
-	}
-	if len(referrals) != 2 {
-		t.Errorf("Should have 2 referral, is %d", len(referrals))
-	} else if referrals[0].Username != userReferrals[0] {
-		t.Errorf("Referral name is not correct [%s]!=[%s]", referrals[0])
-	} else if referrals[1].Username != userReferrals[1] {
-		t.Errorf("Referral name is not correct [%s]!=[%s]", referrals[1])
-	}
-
-	//test fail to add yourself as referral
-	err = db.AddUserReferral(testUser, testUser)
-	if err == nil {
-		t.Errorf("Should not be able to add yourself as referee.")
-	}
-	referrals, err = db.GetUserReferralsIfFound(testUser)
-	if err != nil {
-		t.Error(err)
-	}
-	if len(referrals) != 2 {
-		t.Errorf("Should still have 2 referral, is %d", len(referrals))
-	}
-}
-
 func Test_user_referee(t *testing.T) {
 	testUser := "test@hodl.zone"
-	userReferee := "admin@admin.com"
+	userRefereeCode := "yo"
 	db, err := getPaymentDBAndClearCollection(mongo.C_Status)
+	if err != nil {
+		t.Error(err)
+	}
+
+	//set user to referee doesn exist should fail
+	err = db.SetUserReferee(testUser, userRefereeCode)
+	if err == nil {
+		t.Errorf("Should fail to set non existant referee")
+	}
+	status := Status{"yes", 0, 0, 0, 0, "", "", ""}
+	err = db.SetStatus(status)
 	if err != nil {
 		t.Error(err)
 	}
@@ -83,13 +40,13 @@ func Test_user_referee(t *testing.T) {
 	}
 
 	//set user referee
-	err = db.SetUserReferee(testUser, userReferee)
+	err = db.SetUserReferee(testUser, userRefereeCode)
 	if err == nil {
 		t.Error(err)
 	}
 
 	//set again should fail because already set
-	err = db.SetUserReferee(testUser, userReferee)
+	err = db.SetUserReferee(testUser, userRefereeCode)
 	if err == nil {
 		t.Errorf("Should fail to change referee")
 	}

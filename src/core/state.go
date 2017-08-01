@@ -10,11 +10,13 @@ import (
 
 	"github.com/Emyrk/LendingBot/src/core/common/primitives"
 	"github.com/Emyrk/LendingBot/src/core/cryption"
+	"github.com/Emyrk/LendingBot/src/core/payment"
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"github.com/badoux/checkmail"
 	"github.com/revel/revel"
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/mgo.v2"
 )
 
 const (
@@ -31,6 +33,7 @@ type State struct {
 	userDB          *userdb.UserDatabase
 	userStatistic   *userdb.UserStatisticsDB
 	userInviteCodes *userdb.InviteDB
+	paymentDB       *payment.PaymentDatabase
 	PoloniexAPI     poloniex.IPoloniex
 	CipherKey       [32]byte
 	JWTSecret       [32]byte
@@ -582,4 +585,16 @@ func (s *State) GetActivityLog(email string, timeString string) (*[]userdb.BotAc
 		return nil, err
 	}
 	return botActLogs, nil
+}
+
+func (s *State) SetUserReferee(username, refereeCode string) error {
+	return s.paymentDB.SetUserReferee(username, refereeCode)
+}
+
+func (s *State) GenerateUserReferralCode(username string) (string, error) {
+	return s.paymentDB.GenerateReferralCode(username)
+}
+
+func (s *State) GetUserReferrals(username string) ([]payment.StatusReferral, error) {
+	return s.paymentDB.GetUserReferrals(username)
 }

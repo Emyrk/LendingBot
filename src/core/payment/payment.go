@@ -2,6 +2,7 @@ package payment
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/Emyrk/LendingBot/src/core/database/mongo"
@@ -12,6 +13,9 @@ import (
 
 type PaymentDatabase struct {
 	db *mongo.MongoDB
+
+	//mux for generating code
+	referralMux sync.Mutex
 }
 
 func NewPaymentDatabase(uri, dbu, dbp string) (*PaymentDatabase, error) {
@@ -19,11 +23,11 @@ func NewPaymentDatabase(uri, dbu, dbp string) (*PaymentDatabase, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Error creating payment db: %s\n", err.Error())
 	}
-	return &PaymentDatabase{db}, err
+	return &PaymentDatabase{db: db}, err
 }
 
 func NewPaymentDatabaseGiven(db *mongo.MongoDB) *PaymentDatabase {
-	return &PaymentDatabase{db}
+	return &PaymentDatabase{db: db}
 }
 
 func (p *PaymentDatabase) Close() error {
@@ -34,45 +38,46 @@ func (p *PaymentDatabase) Close() error {
 }
 
 type Status struct {
-	Username              string           `bson:"_id"`
-	TotalDebt             float64          `bson:"tdebt"`
-	UnspentCredits        float64          `bson:"unspentcred"`
-	SpentCredits          float64          `bson:"spentcred"`
-	CustomChargeReduction float64          `bson:"customchargereduc"`
-	Referee               string           `bson:"referee"` //(Person who referred you)
-	ReferralReductions    []StatusReferral `bson:"referralreducs"`
+	Username              string  `bson:"_id"`
+	TotalDebt             float64 `bson:"tdebt"`
+	UnspentCredits        float64 `bson:"unspentcred"`
+	SpentCredits          float64 `bson:"spentcred"`
+	CustomChargeReduction float64 `bson:"customchargereduc"`
+	RefereeCode           string  `bson:"referee"` //(Person code who referred you)
+	RefereeTime           string  `bson:"refereetime"`
+	ReferralCode          string  `bson:"referralcode"`
 }
 
-type StatusReferral struct {
-	Username      string    `bson:"email"`
-	ReductionTime time.Time `bson:"reductime"`
-}
-
-func (p *PaymentDatabase) SetUserReferee(username, refereeUsername string) error {
-	if username == refereeUsername {
-		return fmt.Errorf("Cannot use referee as referral username")
-	}
-
+func (p *PaymentDatabase) SetUserReferee(username, refereeCode string) error {
 	s, c, err := p.db.GetCollection(mongo.C_Status)
 	if err != nil {
 		return fmt.Errorf("SetUserReferee: createSession: %s", err.Error())
 	}
 	defer s.Close()
 
-	st, err := p.getStatusGiven(username, c)
+	st, err := p.getStatusRefereeGiven(refereeCode, c)
+	if err != nil {
+		//referee code does not exist
+		return fmt.Errorf("SetUserReferee: getref: %s", err.Error())
+	}
+
+	st, err = p.getStatusGiven(username, c)
 	if err != nil {
 		return fmt.Errorf("SetUserReferee: getRef: %s", err.Error())
 	}
 
-	if st.Referee != "" {
-		fmt.Errorf("Referee already set for user[%s]", username)
+	if st.RefereeCode != "" {
+		return fmt.Errorf("Referee already set for user[%s]", username)
+	} else if st.ReferralCode == refereeCode {
+		return fmt.Errorf("Referee code[%s] is same as users[%s]", st.ReferralCode, refereeCode)
 	}
+	st.RefereeCode = refereeCode
 
 	//CAN OPTIMIZE LATER
 	upsertKey := bson.M{
 		"_id": username,
 	}
-	upsertAction := bson.M{"$set": refereeUsername}
+	upsertAction := bson.M{"$set": st}
 	_, err = c.Upsert(upsertKey, upsertAction)
 	if err != nil {
 		return fmt.Errorf("SetUserReferee: upsert: %s", err)
@@ -80,51 +85,10 @@ func (p *PaymentDatabase) SetUserReferee(username, refereeUsername string) error
 	return nil
 }
 
-func (p *PaymentDatabase) AddUserReferral(username, referralUsername string) error {
-	if username == referralUsername {
-		return fmt.Errorf("Cannot use username as referral username")
-	}
-
+func (p *PaymentDatabase) GetUserReferralsIfFound(username string) ([]Status, error) {
 	s, c, err := p.db.GetCollection(mongo.C_Status)
 	if err != nil {
-		return fmt.Errorf("AddUserReferral: createSession: %s", err.Error())
-	}
-	defer s.Close()
-
-	sr, err := p.getUserReferralsGiven(username, c)
-	if err != nil && err.Error() != mgo.ErrNotFound.Error() {
-		return fmt.Errorf("AddUserReferral: getRef: %s", err.Error())
-	} else {
-		for _, o := range sr {
-			if o.Username == username {
-				return fmt.Errorf("Error username[%s] already added as referee[%s]", username, referralUsername)
-			}
-		}
-	}
-	//CAN OPTIMIZE LATER
-	upsertKey := bson.M{
-		"_id": username,
-	}
-	upsertAction := bson.M{
-		"$push": bson.M{
-			"referralreducs": &StatusReferral{
-				Username:      referralUsername,
-				ReductionTime: time.Now().UTC(),
-			},
-		},
-	}
-
-	_, err = c.Upsert(upsertKey, upsertAction)
-	if err != nil {
-		return fmt.Errorf("AddUserReferral: upsert: %s", err)
-	}
-	return nil
-}
-
-func (p *PaymentDatabase) GetUserReferralsIfFound(username string) ([]StatusReferral, error) {
-	s, c, err := p.db.GetCollection(mongo.C_Status)
-	if err != nil {
-		var sr []StatusReferral
+		var sr []Status
 		return sr, fmt.Errorf("AddUserReferral: createSession: %s", err.Error())
 	}
 	defer s.Close()
@@ -137,25 +101,22 @@ func (p *PaymentDatabase) GetUserReferralsIfFound(username string) ([]StatusRefe
 	return ref, nil
 }
 
-func (p *PaymentDatabase) GetUserReferrals(username string) ([]StatusReferral, error) {
+func (p *PaymentDatabase) GetUserReferrals(username string) ([]Status, error) {
 	s, c, err := p.db.GetCollection(mongo.C_Status)
 	if err != nil {
-		var sr []StatusReferral
+		var sr []Status
 		return sr, fmt.Errorf("AddUserReferral: createSession: %s", err.Error())
 	}
 	defer s.Close()
 	return p.getUserReferralsGiven(username, c)
 }
 
-func (p *PaymentDatabase) getUserReferralsGiven(username string, c *mgo.Collection) ([]StatusReferral, error) {
-	var result struct {
-		ReferralReductions []StatusReferral `bson:"referralreducs"`
-	}
-
+func (p *PaymentDatabase) getUserReferralsGiven(username string, c *mgo.Collection) ([]Status, error) {
+	var result []Status
 	find := bson.M{"_id": username}
-	sel := bson.M{"_id": 0}
-	err := c.Find(find).Select(sel).One(&result)
-	return result.ReferralReductions, err
+	//CAN OPTIMIZE to use less data
+	err := c.Find(find).All(&result)
+	return result, err
 }
 
 func (p *PaymentDatabase) GetStatus(username string) (*Status, error) {
@@ -164,14 +125,10 @@ func (p *PaymentDatabase) GetStatus(username string) (*Status, error) {
 		return nil, fmt.Errorf("GetStatus: getcol: %s", err)
 	}
 	defer s.Close()
-	return p.getStatusGiven(username, c)
-}
-
-func (p *PaymentDatabase) getStatusGiven(username string, c *mgo.Collection) (*Status, error) {
 	var result Status
-	err := c.Find(bson.M{"_id": username}).One(&result)
+	err = c.Find(bson.M{"_id": username}).One(&result)
 	if err != nil {
-		return nil, fmt.Errorf("GetStatus: one: %s", err.Error())
+		return nil, fmt.Errorf("getStatusGiven: one: %s", err.Error())
 	}
 	return &result, nil
 }
@@ -188,6 +145,37 @@ func (p *PaymentDatabase) SetStatus(status Status) error {
 		return fmt.Errorf("SetStatus: upsert: %s", err)
 	}
 	return nil
+}
+
+func (p *PaymentDatabase) ReferralCodeExists(refereeCode string) bool {
+	s, c, err := p.db.GetCollection(mongo.C_Status)
+	if err != nil {
+		return true
+	}
+	defer s.Close()
+	_, err = p.getStatusRefereeGiven(refereeCode, c)
+	if err != nil {
+		return true
+	}
+	return false
+}
+
+func (p *PaymentDatabase) getStatusGiven(username string, c *mgo.Collection) (*Status, error) {
+	var result Status
+	err := c.Find(bson.M{"_id": username}).One(&result)
+	if err != nil {
+		return nil, fmt.Errorf("getStatusGiven: one: %s", err.Error())
+	}
+	return &result, nil
+}
+
+func (p *PaymentDatabase) getStatusRefereeGiven(refereeCode string, c *mgo.Collection) (*Status, error) {
+	var result Status
+	err := c.Find(bson.M{"referee": refereeCode}).One(&result)
+	if err != nil {
+		return nil, fmt.Errorf("getStatusRefereeGiven: one: %s", err.Error())
+	}
+	return &result, nil
 }
 
 type Debt struct {
@@ -323,4 +311,31 @@ func (p *PaymentDatabase) GetAllPaid(username string, dateAfter *time.Time) ([]P
 		return nil, fmt.Errorf("GetAllPaid: all: %s", err.Error())
 	}
 	return results, nil
+}
+
+func (p *PaymentDatabase) GenerateReferralCode(username string) (string, error) {
+	//must lock to avoid conflicts
+	p.referralMux.Lock()
+	defer p.referralMux.Unlock()
+	st, err := p.GetStatus(username)
+	if err != nil {
+		return "", err
+	}
+	if st.ReferralCode != "" {
+		return "", fmt.Errorf("Referral code already set")
+	}
+
+	if len(username) < 5 {
+		return "", fmt.Errorf("Length is less than 5")
+	}
+	base := username[0:5]
+	i := 0
+	for {
+		if p.ReferralCodeExists(st.ReferralCode) == false {
+			break
+		}
+		st.ReferralCode = fmt.Sprintf("%s%d", base, i)
+		i++
+	}
+	return st.ReferralCode, p.SetStatus(*st)
 }
