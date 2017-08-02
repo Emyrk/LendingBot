@@ -166,6 +166,17 @@ func (l *Lender) Runloop() {
 	}
 }
 
+func (l *Lender) FullReport() string {
+	str := ""
+	str += fmt.Sprintf("==== Lender [%s] ====\n", l.Bee.ID)
+	str += fmt.Sprintf("%s\n", l.Report())
+	str += fmt.Sprintf("==== Users [%d] ====\n", len(l.Users))
+	for _, u := range l.Users {
+		str += u.U.String() + "\n"
+	}
+	return str
+}
+
 func (l *Lender) CopyBeeList() {
 	l.Bee.userlock.RLock()
 	l.Users = make([]*LendUser, len(l.Bee.Users))
@@ -430,10 +441,6 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 			continue
 		}
 
-		// Disable for potential fork
-		if curr == "BTC" {
-			continue
-		}
 		_, err = l.Polo.PoloniexCreateLoanOffer(curr, amt, rate, 2, false, u.U.AccessKey, u.U.SecretKey)
 		if err != nil { //} && strings.Contains(err.Error(), "Too many requests") {
 			msg := fmt.Sprintf("Error creating loan: %s", shortError(err).Error())

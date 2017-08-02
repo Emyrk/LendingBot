@@ -105,6 +105,7 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 
 	// Only process once per minute max
 	if time.Since(v) < time.Minute { //time.Minute {
+		flog.Warningf("Too short %v", time.Since(v))
 		return nil
 	}
 
@@ -206,7 +207,7 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 		bl.tickerlock.RLock()
 		t, ok := bl.FundingTicker[fmt.Sprintf("f%s", correctCurencyString(c))]
 		if ok {
-			last = t.LastPrice //t.FRR
+			last = t.FRR //t.FRR
 		}
 		bl.tickerlock.RUnlock()
 
@@ -219,11 +220,6 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 		}
 
 		if avail <= 0 {
-			continue
-		}
-
-		// Disable because of Fork
-		if c == "BTC" {
 			continue
 		}
 
