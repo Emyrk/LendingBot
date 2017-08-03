@@ -1,6 +1,7 @@
 package payment
 
 import (
+	"encoding/json"
 	"fmt"
 	"sync"
 	"time"
@@ -38,14 +39,34 @@ func (p *PaymentDatabase) Close() error {
 }
 
 type Status struct {
-	Username              string  `json:"email" bson:"_id"`
-	TotalDebt             float64 `json:"tdebt" bson:"tdebt"`
-	UnspentCredits        float64 `json:"unspentcred" bson:"unspentcred"`
-	SpentCredits          float64 `json:"spentcred" bson:"spentcred"`
-	CustomChargeReduction float64 `json:"customchargereduc" bson:"customchargereduc"`
-	RefereeCode           string  `json:"refereecode" bson:"refereecode"` //(Person code who referred you)
-	RefereeTime           string  `json:"refereetime" bson:"refereetime"`
-	ReferralCode          string  `json:"referralcode" bson:"referralcode"`
+	Username              string    `json:"email" bson:"_id"`
+	TotalDebt             float64   `json:"tdebt" bson:"tdebt"`
+	UnspentCredits        float64   `json:"unspentcred" bson:"unspentcred"`
+	SpentCredits          float64   `json:"spentcred" bson:"spentcred"`
+	CustomChargeReduction float64   `json:"customchargereduc" bson:"customchargereduc"`
+	RefereeCode           string    `json:"refereecode" bson:"refereecode"` //(Person code who referred you)
+	RefereeTime           time.Time `json:"refereetime" bson:"refereetime"` //NOTE time is set to start of time until refereecode is set
+	ReferralCode          string    `json:"referralcode" bson:"referralcode"`
+}
+
+func (u *Status) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&struct {
+		TotalDebt             float64   `json:"tdebt"`
+		UnspentCredits        float64   `json:"unspentcred"`
+		SpentCredits          float64   `json:"spentcred"`
+		CustomChargeReduction float64   `json:"customchargereduc"`
+		RefereeCode           string    `json:"refereecode"` //(Person code who referred you)
+		RefereeTime           time.Time `json:"refereetime"`
+		ReferralCode          string    `json:"referralcode"`
+	}{
+		u.TotalDebt,
+		u.UnspentCredits,
+		u.SpentCredits,
+		u.CustomChargeReduction,
+		u.RefereeCode,
+		u.RefereeTime,
+		u.ReferralCode,
+	})
 }
 
 func (p *PaymentDatabase) SetUserReferee(username, refereeCode string) error {
@@ -117,6 +138,16 @@ func (p *PaymentDatabase) getUserReferralsGiven(username string, c *mgo.Collecti
 	//CAN OPTIMIZE to use less data
 	err := c.Find(find).All(&result)
 	return result, err
+}
+
+func (p *PaymentDatabase) GetStatusIfFound(username string) (*Status, error) {
+	s, err := p.GetStatus(username)
+	if err != nil && err.Error() == mgo.ErrNotFound.Error() {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+	return s, nil
 }
 
 func (p *PaymentDatabase) GetStatus(username string) (*Status, error) {
@@ -194,6 +225,34 @@ type Debt struct {
 	PaymentPercentageRate float64             `json:"ppr" bson:"ppr"`
 }
 
+func (u *Debt) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&struct {
+		LoanDate              time.Time `json:"loandate"`
+		Charge                float64   `json:"charge"`
+		AmountLoaned          float64   `json:"amountloaned"`
+		LoanRate              float64   `json:"loanrate"`
+		GrossAmountEarned     float64   `json:"gae"`
+		Currency              string    `json:"cur"`
+		CurrencyToBTC         float64   `json:"curBTC"`
+		CurrencyToETH         float64   `json:"curETH"`
+		Exchange              string    `json:"exch"`
+		FullPaid              bool      `json:"fullpaid"`
+		PaymentPercentageRate float64   `json:"ppr"`
+	}{
+		u.LoanDate,
+		u.Charge,
+		u.AmountLoaned,
+		u.LoanRate,
+		u.GrossAmountEarned,
+		u.Currency,
+		u.CurrencyToBTC,
+		u.CurrencyToETH,
+		u.Exchange.ExchangeToFullName(),
+		u.FullPaid,
+		u.PaymentPercentageRate,
+	})
+}
+
 func (p *PaymentDatabase) SetMultiDebt(debt []Debt) error {
 	s, c, err := p.db.GetCollection(mongo.C_Debt)
 	if err != nil {
@@ -248,6 +307,38 @@ func (p *PaymentDatabase) GetAllDebts(username string, paid int) ([]Debt, error)
 	return results, nil
 }
 
+func (p *PaymentDatabase) GetDebtsLimitSortIfFound(username string, paid, limit int) ([]Debt, error) {
+	results, err := p.GetDebtsLimitSort(username, paid, limit)
+	if err != nil && err.Error() == mgo.ErrNotFound.Error() {
+		return results, nil
+	} else if err != nil {
+		return results, err
+	}
+	return results, nil
+}
+
+func (p *PaymentDatabase) GetDebtsLimitSort(username string, paid, limit int) ([]Debt, error) {
+	var results []Debt
+
+	s, c, err := p.db.GetCollection(mongo.C_Debt)
+	if err != nil {
+		return results, fmt.Errorf("GetDebtsLimitSort: getcol: %s", err)
+	}
+	defer s.Close()
+
+	find := bson.M{"_id": username}
+	if paid == 1 {
+		find["fullpaid"] = true
+	} else if paid == 2 {
+		find["fullpaid"] = false
+	}
+	err = c.Find(find).Sort("-loandate").Limit(limit).All(&results)
+	if err != nil {
+		return nil, fmt.Errorf("GetDebtsLimitSort: all: %s", err.Error())
+	}
+	return results, nil
+}
+
 type Paid struct {
 	ID                 *bson.ObjectId `json:"_id,omitempty" bson:"_id,omitempty"`
 	PaymentDate        time.Time      `json:"paymentdate" bson:"paymentdate"`
@@ -259,6 +350,28 @@ type Paid struct {
 	ETHTransactionID   int64          `json:"ethtranid" bson:"ethtranid"`
 	AddressPaidFrom    string         `json:"addr" bson:"addr"`
 	Username           string         `json:"email" bson:"email"`
+}
+
+func (u *Paid) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&struct {
+		PaymentDate        time.Time `json:"paymentdate"`
+		BTCPaid            float64   `json:"btcpaid"`
+		BTCTransactionDate time.Time `json:"btctrandate"`
+		BTCTransactionID   int64     `json:"btctranid"`
+		ETHPaid            float64   `json:"ethpaid"`
+		ETHTransactionDate time.Time `json:"ethtrandate"`
+		ETHTransactionID   int64     `json:"ethtranid"`
+		AddressPaidFrom    string    `json:"addr"`
+	}{
+		u.PaymentDate,
+		u.BTCPaid,
+		u.BTCTransactionDate,
+		u.BTCTransactionID,
+		u.ETHPaid,
+		u.ETHTransactionDate,
+		u.ETHTransactionID,
+		u.AddressPaidFrom,
+	})
 }
 
 func (p *PaymentDatabase) SetMultiPaid(paid []Paid) error {
@@ -317,6 +430,7 @@ func (p *PaymentDatabase) GenerateReferralCode(username string) (string, error) 
 	//must lock to avoid conflicts
 	p.referralMux.Lock()
 	defer p.referralMux.Unlock()
+
 	st, err := p.GetStatus(username)
 	if err != nil {
 		return "", err

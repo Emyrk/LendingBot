@@ -239,8 +239,7 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 				method: 'GET',
 				url: '/dashboard/data/paymenthistory',
 				params: {
-					paidLog: paidTime,
-					debtLog: debTime
+					ptime: paidTime,
 				},
 				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
 				withCredentials: true
@@ -250,28 +249,55 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 				console.log("Retrieved paymentHistory");
 				dashPaymentScope.debtlog = res.data.debt;
 				dashPaymentScope.paidlog = res.data.paid;
+				dashPaymentScope.status = res.data.status;
 				if (dashPaymentScope.logs) {
 					$timeout(() => {
-						if (!$.fn.DataTable.isDataTable('#activityLog')) {
-							activityLog = $('#activityLog').DataTable({
-								filter: true,
+						if (!$.fn.DataTable.isDataTable('#debtlog')) {
+							debtLog = $('#debtlog').DataTable({
+								filter: false,
 								columns: [
-								{data : "t", title: "Time"},
-								{data : "l", title: "Message"},
+								{data : "loandate", title: "Loan Date"},
+								{data : "charge", title: "Charge"},
+								{data : "amountloaned", title: "Amount Loaned"},
+								{data : "loanrate", title: "Loan Rate"},
+								{data : "gae", title: "Gross Amount Earned"},
+								{data : "cur", title: "Currency"},
+								{data : "curBTC", title: "Currency to BTC"},
+								{data : "curETH", title: "Currency to ETH"},
+								{data : "exch", title: "Exchange"},
+								{data : "fullpaid", title: "Fully Paid"},
+								{data : "ppr", title: "Payment Percentage Rate"},
 								],
 								"order": [[ 0, 'desc' ]],
 							});
-							activityLog.rows.add(dashPaymentScope.logs).draw();
-							// activityLog.fnAddData(dashInfoScope.logs, true);
-							// activityLog.draw();
+							debtLog.rows.add(dashPaymentScope.debtLog).draw();
 						} else {
-							var page = angular.copy(activityLog.page());
-							activityLog.rows().remove();
-							activityLog.rows.add(dashPaymentScope.logs).draw(false);
-							activityLog.page(page).draw(false);
-							// activityLog.fnDraw(false)
-							// activityLog.fnAddData(dashInfoScope.logs);
-							// activityLog.draw();
+							var page = angular.copy(debtLog.page());
+							debtLog.rows().remove();
+							debtLog.rows.add(dashPaymentScope.logs).draw(false);
+							debtLog.page(page).draw(false);
+						}
+						if (!$.fn.DataTable.isDataTable('#paidlog')) {
+							paidLog = $('#paidlog').DataTable({
+								filter: false,
+								columns: [
+								{data : "paymentdate", title: "Payment Date"},
+								{data : "btcpaid", title: "BTC Paid"},
+								{data : "btctrandate", title: "BTC Transaction Date"},
+								{data : "btctranid", title: "BTC Transaction ID"},
+								{data : "ethpaid", title: "ETH Paid"},
+								{data : "ethtrandate", title: "ETH Transaction Date"},
+								{data : "ethtranid", title: "ETH Transaction ID"},
+								{data : "addr", title: "Address"},
+								],
+								"order": [[ 0, 'desc' ]],
+							});
+							paidLog.rows.add(dashPaymentScope.paidLog).draw();
+						} else {
+							var page = angular.copy(paidLog.page());
+							paidLog.rows().remove();
+							paidLog.rows.add(dashPaymentScope.logs).draw(false);
+							paidLog.page(page).draw(false);
 						}
 					});
 				}

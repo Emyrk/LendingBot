@@ -417,5 +417,35 @@ func (r App) GetPoloniexStatistics() revel.Result {
 }
 
 func (r AppAuthRequired) PaymentHistory() revel.Result {
-	return r.RenderJSON(state.GetQuickPoloniexStatistics("BTC"))
+	llog := dataCallsLog.WithField("method", "PaymentHistory")
+	username := r.Session[SESSION_EMAIL]
+
+	data := make(map[string]interface{})
+
+	debtHist, err := state.GetPaymentDebtHistory(username, 100)
+	if err != nil {
+		llog.Errorf("Error getting user[%s] debt history: %s", username, err.Error())
+		data[JSON_ERROR] = "Internal error. Please contact: support@hodl.zone"
+		r.Response.Status = 500
+	}
+
+	paidHist, err := state.GetPaymentPaidHistory(username, r.Params.Query.Get("ptime"))
+	if err != nil {
+		llog.Errorf("Error getting user[%s] paid history: %s", username, err.Error())
+		data[JSON_ERROR] = "Internal error. Please contact: support@hodl.zone"
+		r.Response.Status = 500
+	}
+
+	status, err := state.GetPaymentStatus(username)
+	if err != nil {
+		llog.Errorf("Error getting user[%s] payment status: %s", username, err.Error())
+		data[JSON_ERROR] = "Internal error. Please contact: support@hodl.zone"
+		r.Response.Status = 500
+	}
+
+	data["debt"] = debtHist
+	data["paid"] = paidHist
+	data["status"] = status
+
+	return r.RenderJSON(data)
 }
