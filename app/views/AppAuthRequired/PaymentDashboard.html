@@ -1,0 +1,95 @@
+<div class="">
+	<div class="page-title">
+		<!-- Paid -->
+		<div class="row">
+			<div class="title_left">
+				<h1>Payment Info</h1>
+				<h1>
+					{{status.refereecode}}
+					{{status.refereetime}}
+					{{status.referralcode}}
+				</h1>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+				<div class="x_panel">
+					<div class="col-xs-6">
+						<p class="lead">Payment Methods:</p>
+						<p class="text-muted well well-sm no-shadow" style="margin-top: 10px;">
+							Hey there, we only accept Bitcoin and Etherium as payment for debts currently. If you have a problem with the payments please contact us on our <a href="https://hodlzone-slack.herokuapp.com/" target="_blank">hodlzone-slack</a> or email us at <a>support@hodl.zone</a>.
+						</p>
+					</div>
+					<div class="col-xs-6">
+						<p class="lead">Amount Due 2/22/2014</p>
+						<div class="table-responsive">
+							<table class="table">
+								<tbody>
+									<tr>
+										<th style="width:50%">Total Debt:</th>
+										<td>{{status.tdebt}}</td>
+									</tr>
+									<tr>
+										<th>Unspent Credit: </th>
+										<td>{{status.unspentcred}}</td>
+									</tr>
+									<tr>
+										<th>Spent Credit:</th>
+										<td>{{status.spentcred}}</td>
+									</tr>
+									<tr>
+										<th>Custom Charge Reduction:</th>
+										<td>{{status.customchargereduc}}%</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- Paid -->
+		<div class="row">
+			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+				<div class="x_panel">
+					<div class="x_title">
+						<h2>User Payment Logs</small></h2>
+						<div class="clearfix"></div>
+					</div>
+					<div class="x_content">
+						<div ng-show="paidlog">
+							<table id="paidlog" class="table table-striped" cellspacing="0" width="100%">
+							</table>
+						</div>
+						<p ng-show="!paidlog">
+							No payments found.
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- /Paid -->
+		<!-- Debt -->
+		<div class="row">
+			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+				<div class="x_panel">
+					<div class="x_title">
+						<h2>User Debt Logs</small></h2>
+						<div class="clearfix"></div>
+					</div>
+					<div class="x_content">
+						<div ng-show="debtlog">
+							<table id="debtlog" class="table table-striped" cellspacing="0" width="100%">
+							</table>
+						</div>
+						<p ng-show="!debtlog">
+							No debts found.
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- /Debt -->
+	</div>
+</div>
+
