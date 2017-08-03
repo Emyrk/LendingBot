@@ -22,6 +22,11 @@ type BitfinexLender struct {
 	usersDoneLock sync.RWMutex
 	usersDone     map[string]time.Time
 
+	recordMapLock sync.RWMutex
+	recordMap     map[int]map[string]time.Time
+
+	Bee *Bee
+
 	API         *bitfinex.API
 	rateLimiter *rate.RateLimiter
 	spamLimiter *rate.RateLimiter
@@ -33,6 +38,8 @@ type BitfinexLender struct {
 
 	eosLastTime time.Time
 	eosLast     float64
+
+	GS IGlobalServer
 
 	quit chan bool
 }
@@ -52,7 +59,7 @@ func (bl *BitfinexLender) TickerInfo() string {
 	return str
 }
 
-func NewBitfinexLender() *BitfinexLender {
+func NewBitfinexLender(be *Bee, gs IGlobalServer) *BitfinexLender {
 	b := new(BitfinexLender)
 	b.API = bitfinex.New("Public", "Calls")
 	b.Ticker = make(map[string]bitfinex.V2Ticker)
@@ -60,7 +67,12 @@ func NewBitfinexLender() *BitfinexLender {
 	b.rateLimiter = rate.New(90, time.Minute)
 	b.spamLimiter = rate.New(15, time.Second)
 	b.usersDone = make(map[string]time.Time)
+	b.recordMap = make(map[int]map[string]time.Time)
+	b.recordMap[balancer.PoloniexExchange] = make(map[string]time.Time)
+	b.recordMap[balancer.BitfinexExchange] = make(map[string]time.Time)
 	b.quit = make(chan bool)
+	b.Bee = be
+	b.GS = gs
 
 	b.GetTickers()
 	return b
@@ -88,11 +100,10 @@ func (bl *BitfinexLender) take() error {
 	return fmt.Errorf("Don't spam Bitfinex. Have to sleep %s before calling again", remain.Seconds())
 }
 
-func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
+func (bl *BitfinexLender) ProcessBitfinexUser(u *LendUser) error {
 	flog := poloLogger.WithFields(log.Fields{"func": "ProcessBitfinexUser()", "user": u.U.Username, "exchange": balancer.GetExchangeString(u.U.Exchange)})
 
 	historySaved := false
-	bl := l.BitfinLender
 	bl.usersDoneLock.RLock()
 	v, _ := bl.usersDone[u.U.Username]
 	bl.usersDoneLock.RUnlock()
@@ -118,15 +129,15 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 
 	defer func(monthtoo bool, n string) {
 		if monthtoo {
-			l.Bee.updateUser(u.U.Username, u.U.Exchange, n, time.Now(), time.Now())
+			bl.Bee.updateUser(u.U.Username, u.U.Exchange, n, time.Now(), time.Now())
 		} else {
-			l.Bee.updateUser(u.U.Username, u.U.Exchange, n, time.Now(), time.Time{})
+			bl.Bee.updateUser(u.U.Username, u.U.Exchange, n, time.Now(), time.Time{})
 		}
 	}(historySaved, notes)
 
-	dbu, err := l.Bee.FetchUser(u.U.Username)
+	dbu, err := bl.Bee.FetchUser(u.U.Username)
 	if err != nil {
-		l.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("BitfinexBot encountered an error fetching your account"))
+		bl.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("BitfinexBot encountered an error fetching your account"))
 		return err
 	}
 
@@ -136,12 +147,12 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 	err = bl.take()
 	if err != nil {
 		flog.Error(err)
-		l.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("BitfinexBot encountered an error: %s", err.Error()))
+		bl.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("BitfinexBot encountered an error: %s", err.Error()))
 		return err
 	}
 	bals, err := api.WalletBalances()
 	if err != nil {
-		l.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("BitfinexBot encountered an error fetching balances: %s", err.Error()))
+		bl.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("BitfinexBot encountered an error fetching balances: %s", err.Error()))
 		return err
 	}
 
@@ -149,13 +160,13 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 	err = bl.take()
 	if err != nil {
 		flog.Error(err)
-		l.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("BitfinexBot encountered an error: %s", err.Error()))
+		bl.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("BitfinexBot encountered an error: %s", err.Error()))
 		return err
 	}
 	inactMap := make(map[string]bitfinex.Offers)
 	inactiveOffers, err := api.ActiveOffers()
 	if err != nil {
-		l.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("BitfinexBot encountered an error fetching loans: %s", err.Error()))
+		bl.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("BitfinexBot encountered an error fetching loans: %s", err.Error()))
 		return err
 	}
 	for _, o := range inactiveOffers {
@@ -169,20 +180,20 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 	err = bl.take()
 	if err != nil {
 		flog.Error(err)
-		l.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("BitfinexBot encountered an error: %s", err.Error()))
+		bl.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("BitfinexBot encountered an error: %s", err.Error()))
 		return err
 	}
 	activeMap := make(map[string]bitfinex.Credits)
 	activeOffers, err := api.ActiveCredits()
 	if err != nil {
-		l.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("BitfinexBot encountered an error fetching active loans: %s", err.Error()))
+		bl.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("BitfinexBot encountered an error fetching active loans: %s", err.Error()))
 		return err
 	}
 	for _, o := range activeOffers {
 		activeMap[correctCurencyString(o.Currency)] = append(activeMap[correctCurencyString(o.Currency)], o)
 	}
 
-	_, err = l.recordBitfinexStatistics(u.U.Username, bals, inactMap, activeMap)
+	_, err = bl.recordBitfinexStatistics(u.U.Username, bals, inactMap, activeMap)
 	if err != nil {
 		flog.Warningf("Failed to record Bitfinex Statistics: %s", err.Error())
 	}
@@ -226,7 +237,7 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 		err = bl.take()
 		if err != nil {
 			flog.Error(err)
-			l.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("BitfinexBot encountered an error: %s", err.Error()))
+			bl.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("BitfinexBot encountered an error: %s", err.Error()))
 			return err
 		}
 		o, err := api.NewOffer(lower, avail, last, 2, "lend")
@@ -246,9 +257,9 @@ func (l *Lender) ProcessBitfinexUser(u *LendUser) error {
 		logentry = fmt.Sprintf("BitfinexBot Lending Actions:\n%s", logmsg)
 	}
 
-	l.Bee.AddBotActivityLogEntry(u.U.Username, logentry)
+	bl.Bee.AddBotActivityLogEntry(u.U.Username, logentry)
 
-	historySaved = l.HistoryKeeper.SaveBitfinexMonth(u.U.Username, u.U.AccessKey, u.U.SecretKey)
+	historySaved = bl.GS.SaveBitfinexMonth(u.U.Username, u.U.AccessKey, u.U.SecretKey)
 	if historySaved {
 		u.U.LastHistorySaved = time.Now()
 	}
@@ -264,7 +275,7 @@ func correctCurencyString(cur string) string {
 	return c
 }
 
-func (l *Lender) recordBitfinexStatistics(username string,
+func (l *BitfinexLender) recordBitfinexStatistics(username string,
 	bals map[bitfinex.WalletKey]bitfinex.WalletBalance,
 	inact map[string]bitfinex.Offers,
 	activeLoan map[string]bitfinex.Credits) (*userdb.AllUserStatistic, error) {
@@ -284,53 +295,53 @@ func (l *Lender) recordBitfinexStatistics(username string,
 		}
 		var last float64 = 1
 		if uppered != "BTC" {
-			l.tickerlock.RLock()
+			//l.tickerlock.RLock()
 			if uppered == "USD" {
-				lastS, ok := l.ticker["USDT_BTC"]
+				lastS, ok := l.GS.GetPoloniexTicker("USDT_BTC") // l.ticker["USDT_BTC"]
 				if !ok {
-					l.tickerlock.RUnlock()
+					//l.tickerlock.RUnlock()
 					return nil, fmt.Errorf("No ticker found for %s (used USDT)", uppered)
 				}
 				last = 1 / lastS.Last
 			} else if uppered == "IOT" {
-				if time.Since(l.BitfinLender.iotLastTime) > time.Minute*30 || l.BitfinLender.iotLast == 0 {
+				if time.Since(l.iotLastTime) > time.Minute*30 || l.iotLast == 0 {
 					api := bitfinex.New("", "")
 					ti, err := api.Ticker("IOTBTC")
 					if err == nil {
-						l.BitfinLender.iotLastTime = time.Now()
-						l.BitfinLender.iotLast = ti.LastPrice
+						l.iotLastTime = time.Now()
+						l.iotLast = ti.LastPrice
 					}
 				}
 
-				last = l.BitfinLender.iotLast
+				last = l.iotLast
 				if last == 0 {
-					l.tickerlock.RUnlock()
+					//l.tickerlock.RUnlock()
 					return nil, fmt.Errorf("No ticker found for %s", uppered)
 				}
 			} else if uppered == "EOS" {
-				if time.Since(l.BitfinLender.eosLastTime) > time.Minute*30 || l.BitfinLender.eosLast == 0 {
+				if time.Since(l.eosLastTime) > time.Minute*30 || l.eosLast == 0 {
 					api := bitfinex.New("", "")
 					ti, err := api.Ticker("EOSBTC")
 					if err == nil {
-						l.BitfinLender.eosLastTime = time.Now()
-						l.BitfinLender.eosLast = ti.LastPrice
+						l.eosLastTime = time.Now()
+						l.eosLast = ti.LastPrice
 					}
 				}
 
-				last = l.BitfinLender.eosLast
+				last = l.eosLast
 				if last == 0 {
-					l.tickerlock.RUnlock()
+					//l.tickerlock.RUnlock()
 					return nil, fmt.Errorf("No ticker found for %s", uppered)
 				}
 			} else {
-				lastS, ok := l.ticker[fmt.Sprintf("BTC_%s", uppered)]
+				lastS, ok := l.GS.GetPoloniexTicker(fmt.Sprintf("BTC_%s", uppered)) // l.ticker[fmt.Sprintf("BTC_%s", uppered)]
 				if !ok {
-					l.tickerlock.RUnlock()
+					//l.tickerlock.RUnlock()
 					return nil, fmt.Errorf("No ticker found for %s", uppered)
 				}
 				last = lastS.Last
 			}
-			l.tickerlock.RUnlock()
+			//l.tickerlock.RUnlock()
 		}
 		cstat := userdb.NewUserStatistic(v, last)
 		stats.Currencies[v] = cstat
@@ -373,7 +384,7 @@ func (l *Lender) recordBitfinexStatistics(username string,
 					stats.Currencies[cur].LowestRate = loan.Rate
 				}
 			}
-			stats.TotalCurrencyMap[cur] += l.getBTCAmount(loan.Amount, cur)
+			stats.TotalCurrencyMap[cur] += l.GS.GetBTCAmount(loan.Amount, cur)
 		}
 
 		for _, loan := range inact[cur] {
@@ -382,7 +393,7 @@ func (l *Lender) recordBitfinexStatistics(username string,
 			stats.Currencies[cur].AverageActiveRate += loan.Rate
 			activeLentCount[cur] += 1
 
-			stats.TotalCurrencyMap[cur] += l.getBTCAmount(loan.ExecutedAmount, cur)
+			stats.TotalCurrencyMap[cur] += l.GS.GetBTCAmount(loan.ExecutedAmount, cur)
 		}
 	}
 
@@ -401,7 +412,7 @@ func (l *Lender) recordBitfinexStatistics(username string,
 			stats.Currencies[cur].AverageOnOrderRate += loan.Rate
 			inactiveLentCount[cur] += 1
 
-			stats.TotalCurrencyMap[cur] += l.getBTCAmount(loan.RemainingAmount, cur)
+			stats.TotalCurrencyMap[cur] += l.GS.GetBTCAmount(loan.RemainingAmount, cur)
 		}
 	}
 
