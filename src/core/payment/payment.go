@@ -38,14 +38,14 @@ func (p *PaymentDatabase) Close() error {
 }
 
 type Status struct {
-	Username              string  `bson:"_id"`
-	TotalDebt             float64 `bson:"tdebt"`
-	UnspentCredits        float64 `bson:"unspentcred"`
-	SpentCredits          float64 `bson:"spentcred"`
-	CustomChargeReduction float64 `bson:"customchargereduc"`
-	RefereeCode           string  `bson:"referee"` //(Person code who referred you)
-	RefereeTime           string  `bson:"refereetime"`
-	ReferralCode          string  `bson:"referralcode"`
+	Username              string  `json:"email" bson:"_id"`
+	TotalDebt             float64 `json:"tdebt" bson:"tdebt"`
+	UnspentCredits        float64 `json:"unspentcred" bson:"unspentcred"`
+	SpentCredits          float64 `json:"spentcred" bson:"spentcred"`
+	CustomChargeReduction float64 `json:"customchargereduc" bson:"customchargereduc"`
+	RefereeCode           string  `json:"refereecode" bson:"refereecode"` //(Person code who referred you)
+	RefereeTime           string  `json:"refereetime" bson:"refereetime"`
+	ReferralCode          string  `json:"referralcode" bson:"referralcode"`
 }
 
 func (p *PaymentDatabase) SetUserReferee(username, refereeCode string) error {
@@ -179,19 +179,19 @@ func (p *PaymentDatabase) getStatusRefereeGiven(refereeCode string, c *mgo.Colle
 }
 
 type Debt struct {
-	ID                    *bson.ObjectId      `bson:"_id,omitempty"`
-	LoanDate              time.Time           `bson:"loandate"`
-	Charge                float64             `bson:"charge"`
-	AmountLoaned          float64             `bson:"amountloaned"`
-	LoanRate              float64             `bson:"loanrate"`
-	GrossAmountEarned     float64             `bson:"gae"`
-	Currency              string              `bson:"cur"`
-	CurrencyToBTC         float64             `bson:"curBTC"`
-	CurrencyToETH         float64             `bson:"curETH"`
-	Exchange              userdb.UserExchange `bson:"exch"`
-	Username              string              `bson:"email"`
-	FullPaid              bool                `bson:"fullpaid"`
-	PaymentPercentageRate float64             `bson:"ppr"`
+	ID                    *bson.ObjectId      `json:"_id,omitempty" bson:"_id,omitempty"`
+	LoanDate              time.Time           `json:"loandate" bson:"loandate"`
+	Charge                float64             `json:"charge" bson:"charge"`
+	AmountLoaned          float64             `json:"amountloaned" bson:"amountloaned"`
+	LoanRate              float64             `json:"loanrate" bson:"loanrate"`
+	GrossAmountEarned     float64             `json:"gae" bson:"gae"`
+	Currency              string              `json:"cur" bson:"cur"`
+	CurrencyToBTC         float64             `json:"curBTC" bson:"curBTC"`
+	CurrencyToETH         float64             `json:"curETH" bson:"curETH"`
+	Exchange              userdb.UserExchange `json:"exch" bson:"exch"`
+	Username              string              `json:"email" bson:"email"`
+	FullPaid              bool                `json:"fullpaid" bson:"fullpaid"`
+	PaymentPercentageRate float64             `json:"ppr" bson:"ppr"`
 }
 
 func (p *PaymentDatabase) SetMultiDebt(debt []Debt) error {
@@ -249,16 +249,16 @@ func (p *PaymentDatabase) GetAllDebts(username string, paid int) ([]Debt, error)
 }
 
 type Paid struct {
-	ID                 *bson.ObjectId `bson:"_id,omitempty"`
-	PaymentDate        time.Time      `bson:"paymentdate"`
-	BTCPaid            float64        `bson:"btcpaid"`
-	BTCTransactionDate time.Time      `bson:"btctrandate"`
-	BTCTransactionID   int64          `bson:"btctranid"`
-	ETHPaid            float64        `bson:"ethpaid"`
-	ETHTransactionDate time.Time      `bson:"ethtrandate"`
-	ETHTransactionID   int64          `bson:"ethtranid"`
-	AddressPaidFrom    string         `bson:"addr"`
-	Username           string         `bson:"email"`
+	ID                 *bson.ObjectId `json:"_id,omitempty" bson:"_id,omitempty"`
+	PaymentDate        time.Time      `json:"paymentdate" bson:"paymentdate"`
+	BTCPaid            float64        `json:"btcpaid" bson:"btcpaid"`
+	BTCTransactionDate time.Time      `json:"btctrandate" bson:"btctrandate"`
+	BTCTransactionID   int64          `json:"btctranid" bson:"btctranid"`
+	ETHPaid            float64        `json:"ethpaid" bson:"ethpaid"`
+	ETHTransactionDate time.Time      `json:"ethtrandate" bson:"ethtrandate"`
+	ETHTransactionID   int64          `json:"ethtranid" bson:"ethtranid"`
+	AddressPaidFrom    string         `json:"addr" bson:"addr"`
+	Username           string         `json:"email" bson:"email"`
 }
 
 func (p *PaymentDatabase) SetMultiPaid(paid []Paid) error {

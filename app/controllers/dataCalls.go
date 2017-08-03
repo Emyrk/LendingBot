@@ -415,3 +415,7 @@ func (r AppAuthRequired) LendingHistory() revel.Result {
 func (r App) GetPoloniexStatistics() revel.Result {
 	return r.RenderJSON(state.GetQuickPoloniexStatistics("BTC"))
 }
+
+func (r AppAuthRequired) PaymentHistory() revel.Result {
+	return r.RenderJSON(state.GetQuickPoloniexStatistics("BTC"))
+}

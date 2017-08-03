@@ -16,7 +16,6 @@ import (
 	"github.com/badoux/checkmail"
 	"github.com/revel/revel"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/mgo.v2"
 )
 
 const (
@@ -595,6 +594,6 @@ func (s *State) SetUserReferee(username, refereeCode string) error {
 	return s.paymentDB.SetUserReferee(username, refereeCode)
 }
 
-func (s *State) GetUserReferrals(username string) ([]payment.StatusReferral, error) {
+func (s *State) GetUserReferrals(username string) ([]payment.Status, error) {
 	return s.paymentDB.GetUserReferrals(username)
 }

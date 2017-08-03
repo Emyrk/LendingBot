@@ -25,10 +25,6 @@ app.config(['$routeProvider', '$locationProvider', '$httpProvider',
 			templateUrl : "/dashboard/info",
 			controller : "dashInfoController"
 		})
-		.when("/info/:coin",{
-			templateUrl : "/dashboard/info/:id",
-			controller : "dashInfoAdvancedController"
-		})
 		.when("/settings/user",{
 			templateUrl : "/dashboard/settings/user",
 			controller : "dashSettingsUserController"
@@ -36,6 +32,10 @@ app.config(['$routeProvider', '$locationProvider', '$httpProvider',
 		.when("/settings/lending",{
 			templateUrl : "/dashboard/settings/lending",
 			controller : "dashSettingsLendingController"
+		})
+		.when("/payment",{
+			templateUrl : "/dashboard/payment",
+			controller : "dashPaymentController"
 		})
 		.when("/logs",{
 			templateUrl : "/dashboard/logs",
@@ -222,9 +222,68 @@ app.controller('dashInfoController', ['$scope', '$http', '$log', '$interval', '$
 		//----
 	}]);
 
-app.controller('dashInfoAdvancedController', ['$scope', '$http', '$log',
-	function($scope, $http, $log) {
-		var dashInfoAdvScope = $scope;
+app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
+	function($scope, $http, $log, $interval) {
+		var dashPaymentScope = $scope;
+		var paidLog,
+			debtLog,
+			paymentLogsPromise;
+
+		dashPaymentScope.getPaymentHistory = function() {
+			var logTime = null;
+			if (dashPaymentScope.logs > 0) {
+				logTime = dashPaymentScope.logs[0].time;
+			}
+			$http(
+			{
+				method: 'GET',
+				url: '/dashboard/data/paymenthistory',
+				params: {
+					paidLog: paidTime,
+					debtLog: debTime
+				},
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				withCredentials: true
+			})
+			.then((res) => {
+				//success
+				console.log("Retrieved paymentHistory");
+				dashPaymentScope.debtlog = res.data.debt;
+				dashPaymentScope.paidlog = res.data.paid;
+				if (dashPaymentScope.logs) {
+					$timeout(() => {
+						if (!$.fn.DataTable.isDataTable('#activityLog')) {
+							activityLog = $('#activityLog').DataTable({
+								filter: true,
+								columns: [
+								{data : "t", title: "Time"},
+								{data : "l", title: "Message"},
+								],
+								"order": [[ 0, 'desc' ]],
+							});
+							activityLog.rows.add(dashPaymentScope.logs).draw();
+							// activityLog.fnAddData(dashInfoScope.logs, true);
+							// activityLog.draw();
+						} else {
+							var page = angular.copy(activityLog.page());
+							activityLog.rows().remove();
+							activityLog.rows.add(dashPaymentScope.logs).draw(false);
+							activityLog.page(page).draw(false);
+							// activityLog.fnDraw(false)
+							// activityLog.fnAddData(dashInfoScope.logs);
+							// activityLog.draw();
+						}
+					});
+				}
+			}, (err) => {
+				//error
+				$log.error("getPaymentHistory: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+			});
+		}
+
+		//init
+		paymentLogsPromise = $interval(() => {dashPaymentScope.getPaymentHistory();}, 5000)
+		//--
 	}]);
 
 app.controller('dashSettingsUserController', ['$scope', '$http', '$log',

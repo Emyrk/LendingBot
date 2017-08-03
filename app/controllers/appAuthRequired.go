@@ -249,6 +249,7 @@ func (r AppAuthRequired) Create2FA() revel.Result {
 }
 
 func (r AppAuthRequired) GenerateReferralCode() revel.Result {
+	llog := appAuthrequiredLog.WithField("method", "GenerateReferralCode")
 	data := make(map[string]interface{})
 
 	referralCode, err := state.GenerateUserReferralCode(r.Session[SESSION_EMAIL])
@@ -263,6 +264,7 @@ func (r AppAuthRequired) GenerateReferralCode() revel.Result {
 }
 
 func (r AppAuthRequired) SetReferee() revel.Result {
+	llog := appAuthrequiredLog.WithField("method", "SetReferee")
 	data := make(map[string]interface{})
 	err := state.SetUserReferee(r.Session[SESSION_EMAIL], r.Params.Form.Get("refereecode"))
 	if err != nil {
@@ -272,6 +274,10 @@ func (r AppAuthRequired) SetReferee() revel.Result {
 		return r.RenderJSON(data)
 	}
 	return r.RenderJSON(data)
+}
+
+func (r AppAuthRequired) PaymentDashboard() revel.Result {
+	return r.RenderTemplate("AppAuthRequired/PaymentDashboard.html")
 }
 
 func (r AppAuthRequired) RequestEmailVerification() revel.Result {
