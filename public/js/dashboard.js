@@ -147,6 +147,9 @@ app.controller('dashInfoController', ['$scope', '$http', '$log', '$interval', '$
 				console.log("Retrieved activityLog");
 				dashInfoScope.logs = res.data.logs;
 				if (dashInfoScope.logs) {
+					for (i = 0; i < dashInfoScope.logs.length; i++) {
+						dashInfoScope.logs[i].l = "<pre>" + dashInfoScope.logs[i].l + "</pre>";
+					}
 					$timeout(() => {
 						if (!$.fn.DataTable.isDataTable('#activityLog')) {
 							activityLog = $('#activityLog').DataTable({
