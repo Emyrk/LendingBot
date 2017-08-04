@@ -19,6 +19,42 @@ type PaymentDatabase struct {
 	referralMux sync.Mutex
 }
 
+func NewPaymentDatabaseMap(uri, dbu, dbp string) (*PaymentDatabase, error) {
+	db, err := mongo.CreateTestPaymentDB(uri, dbu, dbp)
+	if err != nil {
+		return nil, fmt.Errorf("Error creating payment db: %s\n", err.Error())
+	}
+	s, c, err := db.GetCollection(mongo.C_Status)
+	if err != nil {
+		return nil, fmt.Errorf("NewPaymentDatabaseMap: status: createSession: %s", err)
+	}
+	err = c.Remove(bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	s.Close()
+	s, c, err = db.GetCollection(mongo.C_Debt)
+	if err != nil {
+		return nil, fmt.Errorf("NewPaymentDatabaseMap: debt: createSession: %s", err)
+	}
+	err = c.Remove(bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	s.Close()
+	s, c, err = db.GetCollection(mongo.C_Paid)
+	if err != nil {
+		return nil, fmt.Errorf("NewPaymentDatabaseMap: paid: createSession: %s", err)
+	}
+	err = c.Remove(bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	s.Close()
+
+	return &PaymentDatabase{db: db}, err
+}
+
 func NewPaymentDatabase(uri, dbu, dbp string) (*PaymentDatabase, error) {
 	db, err := mongo.CreatePaymentDB(uri, dbu, dbp)
 	if err != nil {
@@ -141,13 +177,13 @@ func (p *PaymentDatabase) getUserReferralsGiven(username string, c *mgo.Collecti
 }
 
 func (p *PaymentDatabase) GetStatusIfFound(username string) (*Status, error) {
-	s, err := p.GetStatus(username)
+	status, err := p.GetStatus(username)
 	if err != nil && err.Error() == mgo.ErrNotFound.Error() {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
 	}
-	return s, nil
+	return status, nil
 }
 
 func (p *PaymentDatabase) GetStatus(username string) (*Status, error) {
@@ -156,12 +192,7 @@ func (p *PaymentDatabase) GetStatus(username string) (*Status, error) {
 		return nil, fmt.Errorf("GetStatus: getcol: %s", err)
 	}
 	defer s.Close()
-	var result Status
-	err = c.Find(bson.M{"_id": username}).One(&result)
-	if err != nil {
-		return nil, fmt.Errorf("getStatusGiven: one: %s", err.Error())
-	}
-	return &result, nil
+	return p.getStatusGiven(username, c)
 }
 
 func (p *PaymentDatabase) SetStatus(status Status) error {
@@ -178,24 +209,26 @@ func (p *PaymentDatabase) SetStatus(status Status) error {
 	return nil
 }
 
-func (p *PaymentDatabase) ReferralCodeExists(refereeCode string) bool {
+func (p *PaymentDatabase) ReferralCodeExists(refereeCode string) (bool, error) {
 	s, c, err := p.db.GetCollection(mongo.C_Status)
 	if err != nil {
-		return true
+		return false, err
 	}
 	defer s.Close()
 	_, err = p.getStatusRefereeGiven(refereeCode, c)
-	if err != nil {
-		return true
+	if err != nil && err.Error() == mgo.ErrNotFound.Error() {
+		return false, nil
+	} else if err != nil {
+		return false, err
 	}
-	return false
+	return true, nil
 }
 
 func (p *PaymentDatabase) getStatusGiven(username string, c *mgo.Collection) (*Status, error) {
 	var result Status
 	err := c.Find(bson.M{"_id": username}).One(&result)
 	if err != nil {
-		return nil, fmt.Errorf("getStatusGiven: one: %s", err.Error())
+		return nil, err
 	}
 	return &result, nil
 }
@@ -204,7 +237,7 @@ func (p *PaymentDatabase) getStatusRefereeGiven(refereeCode string, c *mgo.Colle
 	var result Status
 	err := c.Find(bson.M{"referee": refereeCode}).One(&result)
 	if err != nil {
-		return nil, fmt.Errorf("getStatusRefereeGiven: one: %s", err.Error())
+		return nil, err
 	}
 	return &result, nil
 }
@@ -426,30 +459,52 @@ func (p *PaymentDatabase) GetAllPaid(username string, dateAfter *time.Time) ([]P
 	return results, nil
 }
 
-func (p *PaymentDatabase) GenerateReferralCode(username string) (string, error) {
+func (p *PaymentDatabase) GenerateReferralCode(username string) (*Status, error) {
 	//must lock to avoid conflicts
 	p.referralMux.Lock()
 	defer p.referralMux.Unlock()
 
+	fmt.Println("OH HEY")
 	st, err := p.GetStatus(username)
-	if err != nil {
-		return "", err
+	if err != nil && err.Error() != mgo.ErrNotFound.Error() {
+		return nil, err
 	}
+	fmt.Println("OH HEY 1")
+	if st == nil {
+		st = &Status{
+			Username:              username,
+			TotalDebt:             0,
+			UnspentCredits:        0,
+			SpentCredits:          0,
+			CustomChargeReduction: 0,
+			RefereeCode:           "",
+			RefereeTime:           time.Unix(0, 0), //Sets unix time to 1970 init time until refereecode set
+			ReferralCode:          "",
+		}
+	}
+	fmt.Println("OH HEY 2")
 	if st.ReferralCode != "" {
-		return "", fmt.Errorf("Referral code already set")
+		return nil, fmt.Errorf("Referral code already set")
 	}
 
+	fmt.Println("OH HEY 3")
 	if len(username) < 5 {
-		return "", fmt.Errorf("Length is less than 5")
+		return nil, fmt.Errorf("Length is less than 5")
 	}
 	base := username[0:5]
+	st.ReferralCode = base
 	i := 0
 	for {
-		if p.ReferralCodeExists(st.ReferralCode) == false {
+		b, err := p.ReferralCodeExists(st.ReferralCode)
+		if err != nil {
+			return nil, fmt.Errorf("Error checking if code exists: %s", err.Error())
+		}
+		if b == false {
 			break
 		}
 		st.ReferralCode = fmt.Sprintf("%s%d", base, i)
 		i++
 	}
-	return st.ReferralCode, p.SetStatus(*st)
+	fmt.Println("OH HEY 4", "ref code:", st.ReferralCode)
+	return st, p.SetStatus(*st)
 }

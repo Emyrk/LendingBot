@@ -141,6 +141,26 @@ func newState(dbType int, fakePolo bool) *State {
 		s.userInviteCodes = userdb.NewInviteDB()
 	}
 
+	switch dbType {
+	case DB_MAP:
+		s.paymentDB, err = payment.NewPaymentDatabaseMap(uri, "revel", mongoRevelPass)
+		if err != nil {
+			panic(fmt.Sprintf("Error connecting to user mongodb: %s\n", err.Error()))
+		}
+	case DB_BOLT:
+		fallthrough
+	case DB_MONGO:
+		s.paymentDB, err = payment.NewPaymentDatabase(uri, "revel", mongoRevelPass)
+		if err != nil {
+			panic(fmt.Sprintf("Error connecting to user mongodb: %s\n", err.Error()))
+		}
+	default:
+		s.paymentDB, err = payment.NewPaymentDatabase(uri, "revel", mongoRevelPass)
+		if err != nil {
+			panic(fmt.Sprintf("Error connecting to user mongodb: %s\n", err.Error()))
+		}
+	}
+
 	// SWITCHED TO BEES
 	// s.Master = NewMaster()
 	// s.Master.Run(6667)
@@ -586,7 +606,7 @@ func (s *State) GetActivityLog(email string, timeString string) (*[]userdb.BotAc
 	return botActLogs, nil
 }
 
-func (s *State) GenerateUserReferralCode(username string) (string, error) {
+func (s *State) GenerateUserReferralCode(username string) (*payment.Status, error) {
 	return s.paymentDB.GenerateReferralCode(username)
 }
 
@@ -624,23 +644,9 @@ func (s *State) GetPaymentStatus(username string) (*payment.Status, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get status: %s", err.Error())
 	} else if status == nil {
-		refCode, err := s.paymentDB.GenerateReferralCode(username)
+		status, err = s.paymentDB.GenerateReferralCode(username)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to generate referral code: %s", err.Error())
-		}
-		status = &payment.Status{
-			Username:              username,
-			TotalDebt:             0,
-			UnspentCredits:        0,
-			SpentCredits:          0,
-			CustomChargeReduction: 0,
-			RefereeCode:           "",
-			RefereeTime:           time.Date(0, 0, 0, 0, 0, 0, 0, nil),
-			ReferralCode:          refCode,
-		}
-		err = s.paymentDB.SetStatus(*status)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to set status: %s", err.Error())
 		}
 	}
 	return status, nil

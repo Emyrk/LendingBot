@@ -11,6 +11,7 @@
 				</h1>
 			</div>
 		</div>
+		<!-- Status -->
 		<div class="row">
 			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 				<div class="x_panel">
@@ -41,6 +42,15 @@
 										<th>Custom Charge Reduction:</th>
 										<td>{{status.customchargereduc}}%</td>
 									</tr>
+									<tr>
+										<th>Referral Code <small>(your code to share)</small>:</th>
+										<td>{{status.referralcode}}</td>
+									</tr>
+									<tr>
+										<th>Referee Code <small>(account who referred you)</small>: </th>
+										<td ng-show="status.referralcode == ''">You can set your referee code in <a href="#/settings/user">User Settings</a>.</td>
+										<td ng-show="status.referralcode != ''">{{status.referralcode}}</td>
+									</tr>
 								</tbody>
 							</table>
 						</div>
@@ -48,6 +58,7 @@
 				</div>
 			</div>
 		</div>
+		<!-- /Status -->
 		<!-- Paid -->
 		<div class="row">
 			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">

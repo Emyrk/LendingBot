@@ -229,10 +229,13 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 			debtLog,
 			paymentLogsPromise;
 
-		dashPaymentScope.getPaymentHistory = function() {
+		dashPaymentScope.getPaymentHistory = function(paidTime) {
 			var logTime = null;
 			if (dashPaymentScope.logs > 0) {
 				logTime = dashPaymentScope.logs[0].time;
+			}
+			if (!paidTime) {
+				paidTime = "";
 			}
 			$http(
 			{
@@ -308,7 +311,8 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 		}
 
 		//init
-		paymentLogsPromise = $interval(() => {dashPaymentScope.getPaymentHistory();}, 5000)
+		dashPaymentScope.getPaymentHistory();
+		// paymentLogsPromise = $interval(() => {dashPaymentScope.getPaymentHistory();}, 5000)
 		//--
 	}]);
 
