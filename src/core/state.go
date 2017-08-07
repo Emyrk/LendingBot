@@ -606,12 +606,34 @@ func (s *State) GetActivityLog(email string, timeString string) (*[]userdb.BotAc
 	return botActLogs, nil
 }
 
-func (s *State) GenerateUserReferralCode(username string) (*payment.Status, error) {
-	return s.paymentDB.GenerateReferralCode(username)
-}
+func (s *State) SetUserReferee(username, refereeCode string) *primitives.ApiError {
+	//calls get payment status to set referral code automatically if status does not exist
+	exists, err := s.paymentDB.ReferralCodeExists(refereeCode)
+	if err != nil {
+		errMes := fmt.Errorf("Error checking referral code exists: %s", err.Error())
+		return primitives.NewAPIErrorInternalError(errMes)
+	}
+	if !exists {
+		return &primitives.ApiError{
+			fmt.Errorf("RefereeCode [%s] does not exist", refereeCode),
+			fmt.Errorf("The referee code entered does not exist."),
+		}
+	}
 
-func (s *State) SetUserReferee(username, refereeCode string) error {
-	return s.paymentDB.SetUserReferee(username, refereeCode)
+	status, err := s.GetPaymentStatus(username)
+	if err != nil {
+		errMes := fmt.Errorf("Error getting payment status: %s", err.Error())
+		return primitives.NewAPIErrorInternalError(errMes)
+	}
+
+	status.RefereeCode = refereeCode
+
+	err = s.paymentDB.SetStatus(*status)
+	if err != nil {
+		errMes := fmt.Errorf("Error setting status: %s", err.Error())
+		return primitives.NewAPIErrorInternalError(errMes)
+	}
+	return nil
 }
 
 func (s *State) GetUserReferrals(username string) ([]payment.Status, error) {
@@ -650,4 +672,13 @@ func (s *State) GetPaymentStatus(username string) (*payment.Status, error) {
 		}
 	}
 	return status, nil
+}
+
+//returns true if referee code has been set
+func (s *State) HasSetReferee(username string) bool {
+	status, err := s.paymentDB.GetStatusIfFound(username)
+	if err != nil || status == nil {
+		return false
+	}
+	return status.RefereeCode != ""
 }

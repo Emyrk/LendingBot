@@ -174,7 +174,14 @@ func (r AppAuthRequired) SetExchangeKeys() revel.Result {
 func (r AppAuthRequired) SettingsDashboardUser() revel.Result {
 	llog := appAuthrequiredLog.WithField("method", "SettingsDashboardUser")
 
-	u, _ := state.FetchUser(r.Session[SESSION_EMAIL])
+	u, err := state.FetchUser(r.Session[SESSION_EMAIL])
+	if err != nil {
+		r.Response.Status = 500
+		return r.RenderError(&revel.Error{
+			Title:       "500 Error.",
+			Description: "Looks like you are lost.",
+		})
+	}
 
 	r.ViewArgs["verified"] = fmt.Sprintf("%t", u.Verified)
 	r.ViewArgs["has2FA"] = fmt.Sprintf("%t", u.Has2FA)
@@ -248,28 +255,13 @@ func (r AppAuthRequired) Create2FA() revel.Result {
 	return r.RenderJSON(data)
 }
 
-func (r AppAuthRequired) GenerateReferralCode() revel.Result {
-	llog := appAuthrequiredLog.WithField("method", "GenerateReferralCode")
-	data := make(map[string]interface{})
-
-	referralCode, err := state.GenerateUserReferralCode(r.Session[SESSION_EMAIL])
-	if err != nil {
-		llog.Errorf("Error generating referral code: %s\n", err.Error())
-		data[JSON_ERROR] = "Internal Error. Please contact support at: support@hodl.zone"
-		r.Response.Status = 500
-		return r.RenderJSON(data)
-	}
-	data["referralcode"] = referralCode
-	return r.RenderJSON(data)
-}
-
 func (r AppAuthRequired) SetReferee() revel.Result {
 	llog := appAuthrequiredLog.WithField("method", "SetReferee")
 	data := make(map[string]interface{})
-	err := state.SetUserReferee(r.Session[SESSION_EMAIL], r.Params.Form.Get("refereecode"))
+	err := state.SetUserReferee(r.Session[SESSION_EMAIL], r.Params.Form.Get("ref"))
 	if err != nil {
-		llog.Errorf("Error setting referee code: %s\n", err.Error())
-		data[JSON_ERROR] = "Internal Error. Please contact support at: support@hodl.zone"
+		llog.Errorf("Error setting referee code: %s\n", err.LogError.Error())
+		data[JSON_ERROR] = err.UserError.Error()
 		r.Response.Status = 500
 		return r.RenderJSON(data)
 	}
@@ -424,6 +416,14 @@ func (r AppAuthRequired) GetActivityLogs() revel.Result {
 		return r.RenderJSON(data)
 	}
 	data["logs"] = logs
+	return r.RenderJSON(data)
+}
+
+func (r AppAuthRequired) HasReferee() revel.Result {
+	data := make(map[string]interface{})
+
+	data["ref"] = !state.HasSetReferee(r.Session[SESSION_EMAIL])
+
 	return r.RenderJSON(data)
 }
 

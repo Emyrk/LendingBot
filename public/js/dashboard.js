@@ -226,8 +226,8 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 	function($scope, $http, $log, $interval) {
 		var dashPaymentScope = $scope;
 		var paidLog,
-			debtLog,
-			paymentLogsPromise;
+		debtLog,
+		paymentLogsPromise;
 
 		dashPaymentScope.getPaymentHistory = function(paidTime) {
 			var logTime = null;
@@ -438,6 +438,47 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log',
 			})
 		}
 
+		dashSettingsUserScope.setReferee = function() {
+			dashSettingsUserScope.setRefereeSuccess = '';
+			dashSettingsUserScope.setRefereeError = '';
+			$http(
+			{
+				method: 'POST',
+				url: '/dashboard/settings/setreferee',
+				data : $.param({
+					ref: dashSettingsUserScope.referee,
+				}),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				withCredentials: true
+			})
+			.then((res) => {
+				//success
+				$log.info("setReferee: Success.");
+				dashSettingsUserScope.setRefereeSuccess = 'Referee Code set successfully!';
+			}, (err) => {
+				//error
+				$log.error("setReferee: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				dashSettingsUserScope.setRefereeError = err.data.error;
+			});
+		}
+
+		dashSettingsUserScope.getHasReferee = function() {
+			$http(
+			{
+				method: 'GET',
+				url: '/dashboard/settings/hasreferee',
+				withCredentials: true
+			})
+			.then((res) => {
+				//success
+				$log.info("getHasReferee: Success.");
+				dashSettingsUserScope.hasReferee = res.data.ref;
+			}, (err) => {
+				//error
+				$log.error("getHasReferee: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+			});
+		}
+
 		//init
 		dashSettingsUserScope.loadingEnable2FA = false;
 		dashSettingsUserScope.loadingCreate2FA = false;
@@ -447,16 +488,21 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log',
 		dashSettingsUserScope.enable2FAError = '';
 		dashSettingsUserScope.verifiedError = '';
 		dashSettingsUserScope.changePassError = '';
+		dashSettingsUserScope.setRefereeError = '';
 
 		dashSettingsUserScope.enable2FASuccess = '';
 		dashSettingsUserScope.verifiedSuccess = '';
 		dashSettingsUserScope.changePassSuccess = '';
+		dashSettingsUserScope.setRefereeSuccess = '';
 
 		dashSettingsUserScope.pass2FA = '';
 		dashSettingsUserScope.token = '';
 		dashSettingsUserScope.pass = '';
 		dashSettingsUserScope.passNew = '';
 		dashSettingsUserScope.passNew2 = '';
+
+		dashSettingsUserScope.hasReferee = false;
+		dashSettingsUserScope.getHasReferee();
 		//----
 	}]);
 

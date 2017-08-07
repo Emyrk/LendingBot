@@ -3,6 +3,7 @@ package payment
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -105,43 +106,6 @@ func (u *Status) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func (p *PaymentDatabase) SetUserReferee(username, refereeCode string) error {
-	s, c, err := p.db.GetCollection(mongo.C_Status)
-	if err != nil {
-		return fmt.Errorf("SetUserReferee: createSession: %s", err.Error())
-	}
-	defer s.Close()
-
-	st, err := p.getStatusRefereeGiven(refereeCode, c)
-	if err != nil {
-		//referee code does not exist
-		return fmt.Errorf("SetUserReferee: getref: %s", err.Error())
-	}
-
-	st, err = p.getStatusGiven(username, c)
-	if err != nil {
-		return fmt.Errorf("SetUserReferee: getRef: %s", err.Error())
-	}
-
-	if st.RefereeCode != "" {
-		return fmt.Errorf("Referee already set for user[%s]", username)
-	} else if st.ReferralCode == refereeCode {
-		return fmt.Errorf("Referee code[%s] is same as users[%s]", st.ReferralCode, refereeCode)
-	}
-	st.RefereeCode = refereeCode
-
-	//CAN OPTIMIZE LATER
-	upsertKey := bson.M{
-		"_id": username,
-	}
-	upsertAction := bson.M{"$set": st}
-	_, err = c.Upsert(upsertKey, upsertAction)
-	if err != nil {
-		return fmt.Errorf("SetUserReferee: upsert: %s", err)
-	}
-	return nil
-}
-
 func (p *PaymentDatabase) GetUserReferralsIfFound(username string) ([]Status, error) {
 	s, c, err := p.db.GetCollection(mongo.C_Status)
 	if err != nil {
@@ -209,13 +173,13 @@ func (p *PaymentDatabase) SetStatus(status Status) error {
 	return nil
 }
 
-func (p *PaymentDatabase) ReferralCodeExists(refereeCode string) (bool, error) {
+func (p *PaymentDatabase) ReferralCodeExists(referralCode string) (bool, error) {
 	s, c, err := p.db.GetCollection(mongo.C_Status)
 	if err != nil {
 		return false, err
 	}
 	defer s.Close()
-	_, err = p.getStatusRefereeGiven(refereeCode, c)
+	_, err = p.getStatusReferralGiven(referralCode, c)
 	if err != nil && err.Error() == mgo.ErrNotFound.Error() {
 		return false, nil
 	} else if err != nil {
@@ -233,9 +197,9 @@ func (p *PaymentDatabase) getStatusGiven(username string, c *mgo.Collection) (*S
 	return &result, nil
 }
 
-func (p *PaymentDatabase) getStatusRefereeGiven(refereeCode string, c *mgo.Collection) (*Status, error) {
+func (p *PaymentDatabase) getStatusReferralGiven(referralCode string, c *mgo.Collection) (*Status, error) {
 	var result Status
-	err := c.Find(bson.M{"referee": refereeCode}).One(&result)
+	err := c.Find(bson.M{"referralcode": referralCode}).One(&result)
 	if err != nil {
 		return nil, err
 	}
@@ -464,12 +428,10 @@ func (p *PaymentDatabase) GenerateReferralCode(username string) (*Status, error)
 	p.referralMux.Lock()
 	defer p.referralMux.Unlock()
 
-	fmt.Println("OH HEY")
 	st, err := p.GetStatus(username)
 	if err != nil && err.Error() != mgo.ErrNotFound.Error() {
 		return nil, err
 	}
-	fmt.Println("OH HEY 1")
 	if st == nil {
 		st = &Status{
 			Username:              username,
@@ -482,16 +444,19 @@ func (p *PaymentDatabase) GenerateReferralCode(username string) (*Status, error)
 			ReferralCode:          "",
 		}
 	}
-	fmt.Println("OH HEY 2")
 	if st.ReferralCode != "" {
 		return nil, fmt.Errorf("Referral code already set")
 	}
 
-	fmt.Println("OH HEY 3")
-	if len(username) < 5 {
-		return nil, fmt.Errorf("Length is less than 5")
+	splitArr := strings.Split(username, "@")
+	if len(splitArr) != 2 {
+		return nil, fmt.Errorf("Error splitting username has more than one @ sign: %s", splitArr)
 	}
-	base := username[0:5]
+
+	base := splitArr[0]
+	if len(base) > 6 {
+		base = base[0:6]
+	}
 	st.ReferralCode = base
 	i := 0
 	for {
@@ -505,6 +470,5 @@ func (p *PaymentDatabase) GenerateReferralCode(username string) (*Status, error)
 		st.ReferralCode = fmt.Sprintf("%s%d", base, i)
 		i++
 	}
-	fmt.Println("OH HEY 4", "ref code:", st.ReferralCode)
 	return st, p.SetStatus(*st)
 }
