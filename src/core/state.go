@@ -626,6 +626,13 @@ func (s *State) SetUserReferee(username, refereeCode string) *primitives.ApiErro
 		return primitives.NewAPIErrorInternalError(errMes)
 	}
 
+	if status.RefereeCode != "" {
+		return &primitives.ApiError{
+			fmt.Errorf("RefereeCode for user[%s] already set", username),
+			fmt.Errorf("Your referee code has already been set."),
+		}
+	}
+
 	status.RefereeCode = refereeCode
 
 	err = s.paymentDB.SetStatus(*status)
