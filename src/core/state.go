@@ -174,14 +174,16 @@ func newState(dbType int, fakePolo bool) *State {
 
 	switch dbType {
 	case DB_MAP:
-		s.paymentDB, err = payment.NewPaymentDatabaseMap(uri, "revel", mongoRevelPass)
+		fallthrough
+	case DB_BOLT:
+		panic(fmt.Sprintf("Mode not supported"))
+	case DB_MONGO:
+		s.paymentDB, err = payment.NewPaymentDatabase(uri, "revel", mongoRevelPass)
 		if err != nil {
 			panic(fmt.Sprintf("Error connecting to user mongodb: %s\n", err.Error()))
 		}
-	case DB_BOLT:
-		fallthrough
-	case DB_MONGO:
-		s.paymentDB, err = payment.NewPaymentDatabase(uri, "revel", mongoRevelPass)
+	case DB_MONGO_EMPTY:
+		s.paymentDB, err = payment.NewPaymentDatabaseEmpty(uri, "revel", mongoRevelPass)
 		if err != nil {
 			panic(fmt.Sprintf("Error connecting to user mongodb: %s\n", err.Error()))
 		}

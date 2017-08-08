@@ -35,6 +35,13 @@ func (s *State) SetUserReferee(username, refereeCode string) *primitives.ApiErro
 		}
 	}
 
+	if status.ReferralCode == refereeCode {
+		return &primitives.ApiError{
+			fmt.Errorf("RefereeCode for user[%s] is same as users [%s]==[%s]", username, status.RefereeCode, refereeCode),
+			fmt.Errorf("You can not set your code as referee code."),
+		}
+	}
+
 	status.RefereeCode = refereeCode
 
 	err = s.paymentDB.SetStatus(*status)

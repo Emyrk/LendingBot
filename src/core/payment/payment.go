@@ -20,7 +20,7 @@ type PaymentDatabase struct {
 	referralMux sync.Mutex
 }
 
-func NewPaymentDatabaseMap(uri, dbu, dbp string) (*PaymentDatabase, error) {
+func NewPaymentDatabaseEmpty(uri, dbu, dbp string) (*PaymentDatabase, error) {
 	db, err := mongo.CreateTestPaymentDB(uri, dbu, dbp)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating payment db: %s\n", err.Error())
@@ -29,8 +29,8 @@ func NewPaymentDatabaseMap(uri, dbu, dbp string) (*PaymentDatabase, error) {
 	if err != nil {
 		return nil, fmt.Errorf("NewPaymentDatabaseMap: status: createSession: %s", err)
 	}
-	err = c.Remove(bson.M{})
-	if err != nil {
+	_, err = c.RemoveAll(bson.M{})
+	if err != nil && err.Error() != mgo.ErrNotFound.Error() {
 		return nil, err
 	}
 	s.Close()
@@ -38,8 +38,8 @@ func NewPaymentDatabaseMap(uri, dbu, dbp string) (*PaymentDatabase, error) {
 	if err != nil {
 		return nil, fmt.Errorf("NewPaymentDatabaseMap: debt: createSession: %s", err)
 	}
-	err = c.Remove(bson.M{})
-	if err != nil {
+	_, err = c.RemoveAll(bson.M{})
+	if err != nil && err.Error() != mgo.ErrNotFound.Error() {
 		return nil, err
 	}
 	s.Close()
@@ -47,13 +47,13 @@ func NewPaymentDatabaseMap(uri, dbu, dbp string) (*PaymentDatabase, error) {
 	if err != nil {
 		return nil, fmt.Errorf("NewPaymentDatabaseMap: paid: createSession: %s", err)
 	}
-	err = c.Remove(bson.M{})
-	if err != nil {
+	_, err = c.RemoveAll(bson.M{})
+	if err != nil && err.Error() != mgo.ErrNotFound.Error() {
 		return nil, err
 	}
 	s.Close()
 
-	return &PaymentDatabase{db: db}, err
+	return &PaymentDatabase{db: db}, nil
 }
 
 func NewPaymentDatabase(uri, dbu, dbp string) (*PaymentDatabase, error) {

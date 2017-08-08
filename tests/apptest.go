@@ -94,6 +94,7 @@ func (t *AppTest) TestRegister() {
 
 	//check that session is at count 1
 	ses, err := getAllUserSessions(GetDefaultLoginValues().Get("email"))
+	t.AssertEqual(nil, err)
 	t.AssertEqual(len(ses), 1)
 	us := getUserSessionWithEmail(ses, GetDefaultLoginValues().Get("email"))
 	t.AssertEqual(len(us.ChangeState), 1)

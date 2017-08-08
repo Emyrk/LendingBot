@@ -318,7 +318,7 @@ func (r AppAuthRequired) SetReferee() revel.Result {
 	data := make(map[string]interface{})
 	err := state.SetUserReferee(r.Session[SESSION_EMAIL], r.Params.Form.Get("ref"))
 	if err != nil {
-		llog.Errorf("Error setting referee code: %s\n", err.LogError.Error())
+		llog.Errorf("Error setting referee code: %s", err.LogError.Error())
 		data[JSON_ERROR] = err.UserError.Error()
 		r.Response.Status = 500
 		return r.RenderJSON(data)
@@ -338,7 +338,7 @@ func (r AppAuthRequired) RequestEmailVerification() revel.Result {
 	data := make(map[string]interface{})
 
 	if u.Verified {
-		llog.Warningf("WARNING: User already verified: %s\n", r.Session[SESSION_EMAIL])
+		llog.Warningf("WARNING: User already verified: %s", r.Session[SESSION_EMAIL])
 		data[JSON_ERROR] = "User already verified. No email sent."
 		r.Response.Status = 400
 		return r.RenderJSON(data)
@@ -480,7 +480,7 @@ func (r AppAuthRequired) GetActivityLogs() revel.Result {
 func (r AppAuthRequired) HasReferee() revel.Result {
 	data := make(map[string]interface{})
 
-	data["ref"] = !state.HasSetReferee(r.Session[SESSION_EMAIL])
+	data["ref"] = state.HasSetReferee(r.Session[SESSION_EMAIL])
 
 	return r.RenderJSON(data)
 }

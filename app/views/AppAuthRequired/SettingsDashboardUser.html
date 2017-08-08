@@ -141,36 +141,6 @@
 				</div>
 			</div>
 			<!-- /Verify Email-->
-
-			<!-- Alter Default Session Wait Time -->
-			<div class="col-sm-12 col-xs-12">
-				<div class="x_panel">
-					<div class="x_title">
-						<h2>Extend Time Waited between Sessions</h2>
-						<div class="clearfix"></div>
-					</div>
-					<div class="x_content">
-						<div class="alert alert-success fade in" role="alert" ng-show="changeExpirySuccess.length > 0">
-							<strong>{{changeExpirySuccess}}</strong>
-						</div>
-						<div class="alert alert-danger fade in" role="alert" ng-show="changeExpiryError.length > 0">
-							<strong>{{changeExpiryError}}</strong>
-						</div>
-						<div>
-							<input type="text" id="range_time_slider" value="" name="range" />
-						</div>
-						<div class="ln_solid"></div>
-						<div class="form-group">
-							<div class="col-md-9 col-md-offset-3">
-								<button class="btn btn-success" ng-click="changeExpiry()" ng-disabled="">Update Session Alive Time
-								</button>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-			<!-- /Alter Default Session Wait Time-->
-
 			<!-- Change Password -->
 			<div class="col-sm-12 col-xs-12">
 				<div class="x_panel">
@@ -218,7 +188,7 @@
 			</div>
 			<!-- /Change Password -->
 			<!-- Referee -->
-			<div class="col-sm-12 col-xs-12" ng-show="hasReferee">
+			<div class="col-sm-12 col-xs-12" ng-hide="hasReferee">
 				<div class="x_panel">
 					<div class="x_title">
 						<h2>Set Referee</h2>
@@ -253,6 +223,34 @@
 				</div>
 			</div>
 			<!-- /Referee -->
+			<!-- Alter Default Session Wait Time -->
+			<div class="col-sm-12 col-xs-12">
+				<div class="x_panel">
+					<div class="x_title">
+						<h2>Extend Time Waited between Sessions</h2>
+						<div class="clearfix"></div>
+					</div>
+					<div class="x_content">
+						<div class="alert alert-success fade in" role="alert" ng-show="changeExpirySuccess.length > 0">
+							<strong>{{changeExpirySuccess}}</strong>
+						</div>
+						<div class="alert alert-danger fade in" role="alert" ng-show="changeExpiryError.length > 0">
+							<strong>{{changeExpiryError}}</strong>
+						</div>
+						<div>
+							<input type="text" id="range_time_slider" value="" name="range" />
+						</div>
+						<div class="ln_solid"></div>
+						<div class="form-group">
+							<div class="col-md-9 col-md-offset-3">
+								<button class="btn btn-success" ng-click="changeExpiry()" ng-disabled="">Update Session Alive Time
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- /Alter Default Session Wait Time-->
 			<!-- CheckSessions -->
 			<div class="col-sm-12 col-xs-12" ng-init='userSessions = [[.sessions]];'>
 				<div class="x_panel">
@@ -297,7 +295,6 @@
 				</div>
 			</div>
 			<!-- /CheckSessions -->
->>>>>>> smartSessionCache
 		</div>
 	</div>
 </div>
