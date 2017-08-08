@@ -39,7 +39,7 @@ const (
 	C_Audit = "audit"
 	//AUDIT END
 
-	//PAYMENT BEGIN
+	//PAYMENT BEGIN DB
 	PAYMENT_DB      = "paymentdb"
 	PAYMENT_DB_TEST = "paymentdb_test"
 
