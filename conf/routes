@@ -37,6 +37,9 @@ POST	/dashboard/settings/setexchangekeys		AppAuthRequired.SetExchangeKeys
 Get 	/dashboard/settings/enableuserlending	AppAuthRequired.GetEnableUserLending
 POST	/dashboard/settings/enableuserlending	AppAuthRequired.SetEnableUserLending
 POST	/dashboard/settings/changepass			AppAuthRequired.ChangePassword
+POST	/dashboard/settings/changeexpiry		AppAuthRequired.ChangeExpiry
+GET		/dashboard/settings/getexpiry			AppAuthRequired.GetExpiry
+POST	/dashboard/settings/deletesession		AppAuthRequired.DeleteSession
 
 GET		/validauth								App.ValidAuth
 

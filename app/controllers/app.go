@@ -2,11 +2,11 @@ package controllers
 
 import (
 	"encoding/json"
+	"net/url"
 
 	"github.com/Emyrk/LendingBot/src/core"
 	"github.com/Emyrk/LendingBot/src/core/email"
 	"github.com/revel/revel"
-	"net/url"
 
 	// Init logger
 	_ "github.com/Emyrk/LendingBot/src/log"
@@ -121,9 +121,12 @@ func (c App) Login() revel.Result {
 
 	c.Session[SESSION_EMAIL] = email
 
-	SetCacheEmail(c.Session.ID(), email)
-
-	c.SetCookie(GetTimeoutCookie())
+	httpCookie, err := SetCacheEmail(c.Session.ID(), c.ClientIP, email)
+	if err != nil {
+		llog.Errorf("Error setting email cache: %s", err.Error())
+	} else {
+		c.SetCookie(httpCookie)
+	}
 
 	AppPageHitLogin.Inc()
 
@@ -164,12 +167,17 @@ func (c App) Register() revel.Result {
 
 	c.Session[SESSION_EMAIL] = e
 
-	SetCacheEmail(c.Session.ID(), e)
-
 	u, err := state.FetchUser(e)
 	if err != nil {
 		llog.Errorf("Error fetching new user: %s", err)
 	} else {
+		httpCookie, err := SetCacheEmail(c.Session.ID(), c.ClientIP, u.Username)
+		if err != nil {
+			llog.Errorf("Error setting email cache: %s", err.Error())
+		} else {
+			c.SetCookie(httpCookie)
+		}
+
 		link := MakeURL("verifyemail/" + url.QueryEscape(u.Username) + "/" + url.QueryEscape(u.VerifyString))
 
 		emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_NO_REPLY, []string{
@@ -297,7 +305,8 @@ func (c App) ValidAuth() revel.Result {
 
 //called before any auth required function
 func (c App) AppAuthUser() revel.Result {
-	if !ValidCacheEmail(c.Session.ID(), c.Session[SESSION_EMAIL]) {
+	email := c.Session[SESSION_EMAIL]
+	if email != "" && !ValidCacheEmail(c.Session.ID(), c.ClientIP, email) {
 		c.Session[SESSION_EMAIL] = ""
 	}
 

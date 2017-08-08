@@ -3,16 +3,21 @@ package mongo_test
 import (
 	. "github.com/Emyrk/LendingBot/src/core/database/mongo"
 
-	"fmt"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"gopkg.in/mgo.v2"
-	// "gopkg.in/mgo.v2/bson"
+	"gopkg.in/mgo.v2/bson"
+
+	"bytes"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"net"
+	"os"
 	"testing"
 	"time"
-
-	"os"
 )
 
+var _ = bson.M{}
 var _ = fmt.Sprintf
 var db *MongoDB
 var session *mgo.Session
@@ -103,77 +108,82 @@ var err error
 // 	}
 // }
 
-// func Test_user_userdb(t *testing.T) {
-// 	s, c, err := db.GetCollection(C_USER)
-// 	if err != nil {
-// 		t.Errorf("Error getting collection: %s", err.Error())
-// 	}
-// 	err = c.DropCollection()
-// 	if err != nil {
-// 		t.Errorf("Error dropping collection: %s", err.Error())
-// 	}
-// 	s.Close()
+func Test_user_userdb(t *testing.T) {
+	db, err = CreateTestUserDB("mongodb://localhost:27017", "", "")
+	if err != nil {
+		t.Errorf("Error creating test db: %s\n", err.Error())
+		t.FailNow()
+	}
+	s, c, err := db.GetCollection(C_USER)
+	if err != nil {
+		t.Errorf("Error getting collection: %s", err.Error())
+	}
+	err = c.DropCollection()
+	if err != nil {
+		t.Errorf("Error dropping collection: %s", err.Error())
+	}
+	s.Close()
 
-// 	db, err = CreateTestUserDB("mongodb://localhost:27017", "", "")
-// 	if err != nil {
-// 		t.Errorf("Error creating userdb: %s\n", err.Error())
-// 		t.FailNow()
-// 	}
-// 	udb := userdb.NewMongoUserDatabaseGiven(db)
+	db, err = CreateTestUserDB("mongodb://localhost:27017", "", "")
+	if err != nil {
+		t.Errorf("Error creating userdb: %s\n", err.Error())
+		t.FailNow()
+	}
+	udb := userdb.NewMongoUserDatabaseGiven(db)
 
-// 	//add user
-// 	u, err := userdb.NewUser("t1", "t1")
-// 	if err != nil {
-// 		t.Errorf("Error creating new user: %s\n", err.Error())
-// 	}
+	//add user
+	u, err := userdb.NewUser("t1", "t1")
+	if err != nil {
+		t.Errorf("Error creating new user: %s\n", err.Error())
+	}
 
-// 	err = udb.PutUser(u)
-// 	if err != nil {
-// 		t.Errorf("Error putting user: %s\n", err.Error())
-// 	}
+	err = udb.PutUser(u)
+	if err != nil {
+		t.Errorf("Error putting user: %s\n", err.Error())
+	}
 
-// 	var tempU *userdb.User
-// 	if tempU, err = udb.FetchUser("t1"); err != nil {
-// 		t.Errorf("Error grabbing user t1: %s\n", err.Error())
-// 	}
-// 	if !u.IsSameAs(tempU) {
-// 		t.Errorf("Error comparing users: %s\n", err.Error())
-// 	}
+	var tempU *userdb.User
+	if tempU, err = udb.FetchUser("t1"); err != nil {
+		t.Errorf("Error grabbing user t1: %s\n", err.Error())
+	}
+	if !u.IsSameAs(tempU) {
+		t.Errorf("Error comparing users: %s\n", err.Error())
+	}
 
-// 	//update user
-// 	err = udb.SetUserLevel("t1", userdb.Moderator)
-// 	if err != nil {
-// 		t.Errorf("Error changing user level: %s\n", err.Error())
-// 	}
-// 	if tempU, err = udb.FetchUser("t1"); err != nil {
-// 		t.Errorf("Error grabbing updated t1: %s\n", err.Error())
-// 	}
-// 	u.Level = userdb.Moderator
-// 	if !u.IsSameAs(tempU) {
-// 		t.Errorf("Error comparing users: %s\n", err.Error())
-// 	}
+	//update user
+	err = udb.SetUserLevel("t1", userdb.Moderator)
+	if err != nil {
+		t.Errorf("Error changing user level: %s\n", err.Error())
+	}
+	if tempU, err = udb.FetchUser("t1"); err != nil {
+		t.Errorf("Error grabbing updated t1: %s\n", err.Error())
+	}
+	u.Level = userdb.Moderator
+	if !u.IsSameAs(tempU) {
+		t.Errorf("Error comparing users: %s\n", err.Error())
+	}
 
-// 	//fetch all users
-// 	u2, err := userdb.NewUser("t2", "t2")
-// 	if err != nil {
-// 		t.Errorf("Error creating new user t2: %s\n", err.Error())
-// 	}
-// 	err = udb.PutUser(u2)
-// 	if err != nil {
-// 		t.Errorf("Error putting user t2: %s\n", err.Error())
-// 	}
-// 	all, err := udb.FetchAllUsers()
-// 	if err != nil {
-// 		t.Errorf("Error fetchign all users: %s\n", err.Error())
-// 	}
-// 	if len(all) != 2 {
-// 		t.Errorf("Error wrong length of all users: %d\n", len(all))
-// 	}
-// 	//NOT sorted, try both cases
-// 	if (!u.IsSameAs(&all[0]) && u2.IsSameAs(&all[1])) || (!u2.IsSameAs(&all[1]) && u.IsSameAs(&all[0])) {
-// 		t.Errorf("Error all users do not match :(\n")
-// 	}
-// }
+	//fetch all users
+	u2, err := userdb.NewUser("t2", "t2")
+	if err != nil {
+		t.Errorf("Error creating new user t2: %s\n", err.Error())
+	}
+	err = udb.PutUser(u2)
+	if err != nil {
+		t.Errorf("Error putting user t2: %s\n", err.Error())
+	}
+	all, err := udb.FetchAllUsers()
+	if err != nil {
+		t.Errorf("Error fetchign all users: %s\n", err.Error())
+	}
+	if len(all) != 2 {
+		t.Errorf("Error wrong length of all users: %d\n", len(all))
+	}
+	//NOT sorted, try both cases
+	if (!u.IsSameAs(&all[0]) && u2.IsSameAs(&all[1])) || (!u2.IsSameAs(&all[1]) && u.IsSameAs(&all[0])) {
+		t.Errorf("Error all users do not match :(\n")
+	}
+}
 
 // func Test_user_close_session(t *testing.T) {
 // 	session.Close()
@@ -625,13 +635,15 @@ var err error
 // }
 
 func Test_botactivity(t *testing.T) {
+	nsNotFoundErr := errors.New("ns not found")
+
 	givenUa, err := CreateTestStatDB("127.0.0.1:27017", "revel", os.Getenv("MONGO_REVEL_PASS"))
 	if err != nil {
 		t.Error(err.Error())
 		t.FailNow()
 	}
 	s, c, err := givenUa.GetCollection(C_BotActivity)
-	if err != nil {
+	if err != nil && err.Error() != nsNotFoundErr.Error() {
 		t.Errorf("createSession: %s", err.Error())
 		t.FailNow()
 	}
@@ -719,4 +731,155 @@ func Test_botactivity(t *testing.T) {
 	if (*balsV2)[1].Log != "new 0" {
 		t.Errorf("GetBoatActivityTimeGreater error with log='%s' time='%s'\n", (*balsV2)[0].Log, (*balsV2)[0].Time)
 	}
+}
+
+var _ = errors.New
+
+func Test_user_session(t *testing.T) {
+	nsNotFoundErr := errors.New("ns not found")
+	db, err = CreateTestUserDB("127.0.0.1:27017", "revel", os.Getenv("MONGO_REVEL_PASS"))
+	if err != nil {
+		t.Error(err.Error())
+		t.FailNow()
+	}
+	s, c, err := db.GetCollection(C_Session)
+	if err != nil {
+		t.Errorf("createSession: %s", err.Error())
+		t.FailNow()
+	}
+	err = c.DropCollection()
+	if err != nil && err.Error() != nsNotFoundErr.Error() {
+		t.Errorf("Error dropping collection: %s", err.Error())
+	}
+	s.Close()
+
+	db, err = CreateTestUserDB("127.0.0.1:27017", "revel", os.Getenv("MONGO_REVEL_PASS"))
+	if err != nil {
+		t.Error(err.Error())
+		t.FailNow()
+	}
+	usdb := userdb.NewMongoUserDatabaseGiven(db)
+
+	testSessionId := "apples"
+	testEmail := "test"
+	testIp := net.ParseIP("216.14.49.184")
+	testTime := time.Now().UTC()
+	err = usdb.UpdateUserSession(testSessionId, testEmail, testTime, testIp, true)
+	if err != nil {
+		t.Errorf("Error updating user session: %s", err.Error())
+	}
+
+	//get one session that is open
+	allSessions, err := usdb.GetAllUserSessions(testEmail, 0, 100)
+	if err != nil {
+		t.Errorf("Error getting all user sessions: %s", err.Error())
+	}
+	if len(*allSessions) != 1 {
+		t.Errorf("Error with length of all sessions should be 1 is %d", len(*allSessions))
+		t.FailNow()
+	}
+
+	sessionIP := userdb.SessionIP{testIp, testTime}
+	sesRetArr := []userdb.SessionIP{sessionIP}
+	sessionSt := userdb.SessionState{userdb.OPENED, testTime}
+	sesStateRetArr := []userdb.SessionState{sessionSt}
+	sesRet := userdb.Session{testSessionId, testEmail, testTime, testIp, true, sesRetArr, sesStateRetArr}
+	if (*allSessions)[0].IsSameAs(&sesRet) == false {
+		t.Error("Error sessions not equal: ", JsonPrettyHelper((*allSessions)[0]), JsonPrettyHelper(sesRet))
+	}
+
+	//add another open session
+	test2SessionId := "pears"
+	test2Email := "test"
+	test2Ip := net.ParseIP("216.14.49.185")
+	test2Time := time.Now().UTC()
+	err = usdb.UpdateUserSession(test2SessionId, test2Email, test2Time, test2Ip, true)
+	if err != nil {
+		t.Errorf("Error updating user2 session: %s", err.Error())
+	}
+	allSessions, err = usdb.GetAllUserSessions(testEmail, 0, 100)
+	if err != nil {
+		t.Errorf("Error getting all user sessions2: %s", err.Error())
+	}
+	if len(*allSessions) != 2 {
+		t.Errorf("Error with length of all sessions should be 2 is %d", len(*allSessions))
+		t.FailNow()
+	}
+
+	sessionIP = userdb.SessionIP{test2Ip, test2Time}
+	sesRetArr2 := []userdb.SessionIP{sessionIP}
+	sessionSt = userdb.SessionState{userdb.OPENED, test2Time}
+	sesStateRetArr2 := []userdb.SessionState{sessionSt}
+	sesRet2 := userdb.Session{test2SessionId, test2Email, test2Time, test2Ip, true, sesRetArr2, sesStateRetArr2}
+	if (*allSessions)[1].IsSameAs(&sesRet) == false {
+		t.Error("Error sessions 2 not equal: ", JsonPrettyHelper((*allSessions)[1]), JsonPrettyHelper(sesRet))
+	}
+	if (*allSessions)[0].IsSameAs(&sesRet2) == false {
+		t.Error("Error sessions 3 not equal: ", "\n", JsonPrettyHelper((*allSessions)[0]), "\n", JsonPrettyHelper(sesRet2))
+	}
+
+	//increment one and set to off
+	err = usdb.UpdateUserSession(testSessionId, testEmail, testTime, testIp, false)
+	if err != nil {
+		t.Errorf("Error updating user3 session: %s", err.Error())
+	}
+
+	allSessions, err = usdb.GetAllUserSessions(testEmail, 2, 100)
+	if err != nil {
+		t.Errorf("Error getting all user sessions3: %s", err.Error())
+	}
+	if len(*allSessions) != 1 {
+		t.Errorf("Error with length of all sessions 1 should be 1 is %d", len(*allSessions))
+		t.FailNow()
+	}
+	sesRet.Open = false
+	sesRet.ChangeState = append(sesRet.ChangeState, userdb.SessionState{userdb.CLOSED, testTime})
+	if (*allSessions)[0].IsSameAs(&sesRet) == false {
+		t.Error("Error sessions 4 not equal: ", "\n", JsonPrettyHelper((*allSessions)[0]), "\n", JsonPrettyHelper(sesRet))
+	}
+
+	allSessions, err = usdb.GetAllUserSessions(testEmail, 1, 100)
+	if err != nil {
+		t.Errorf("Error getting all user sessions3: %s", err.Error())
+	}
+	if len(*allSessions) != 1 {
+		t.Errorf("Error with length of all sessions 2 should be 1 is %d", len(*allSessions))
+		t.FailNow()
+	}
+	if (*allSessions)[0].IsSameAs(&sesRet2) == false {
+		t.Error("Error sessions 5 not equal: ", JsonPrettyHelper((*allSessions)[0]), JsonPrettyHelper(sesRet2))
+	}
+
+	rTime := time.Now().UTC()
+	//test update renewal time
+	err = usdb.UpdateUserSession(test2SessionId, test2Email, rTime, test2Ip, true)
+	if err != nil {
+		t.Errorf("Error updating user4 session: %s", err.Error())
+	}
+	allSessions, err = usdb.GetAllUserSessions(testEmail, 1, 100)
+	if err != nil {
+		t.Errorf("Error getting all user sessions4: %s", err.Error())
+	}
+	if len(*allSessions) != 1 {
+		t.Errorf("Error with length of all sessions 3 should be 1 is %d", len(*allSessions))
+		t.FailNow()
+	}
+	sesRet2.LastRenewalTime = rTime
+	if (*allSessions)[0].IsSameAs(&sesRet2) == false {
+		t.Error("Error sessions 6 not equal: ", "\n", JsonPrettyHelper((*allSessions)[0]), "\n", JsonPrettyHelper(sesRet2))
+	}
+}
+
+func JsonPrettyHelper(i userdb.Session) string {
+	b, _ := json.Marshal(i)
+	var out bytes.Buffer
+	json.Indent(&out, b, "", "  ")
+	return string(out.Bytes())
+}
+
+func JsonPrettyHelperArr(i []userdb.Session) string {
+	b, _ := json.Marshal(i)
+	var out bytes.Buffer
+	json.Indent(&out, b, "", "  ")
+	return string(out.Bytes())
 }

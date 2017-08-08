@@ -130,6 +130,8 @@ type User struct {
 	BitfinexMiniumumLend BitfinexMiniumumLendStruct
 	BitfinexEnabled      BitfinexEnabledStruct
 	BitfinexKeys         *ExchangeKeys
+
+	SessionExpiryTime time.Duration `bson:"sesexpdur"`
 }
 
 func (u *User) SafeUnmarshal(data []byte) error {
@@ -212,6 +214,8 @@ func NewUser(username string, password string) (*User, error) {
 
 	u.Verified = false
 	u.VerifyString = hex.EncodeToString(verifyBytes)
+
+	u.SessionExpiryTime = DEFAULT_SESSION_DUR
 
 	return u, nil
 }
