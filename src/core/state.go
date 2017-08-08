@@ -5,11 +5,13 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"net"
 	"os"
 	"time"
 
 	"github.com/Emyrk/LendingBot/src/core/common/primitives"
 	"github.com/Emyrk/LendingBot/src/core/cryption"
+	"github.com/Emyrk/LendingBot/src/core/database/mongo"
 	"github.com/Emyrk/LendingBot/src/core/payment"
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
@@ -18,10 +20,16 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var stateLog = log.WithFields(log.Fields{
+	"package": "core",
+	"file":    "state",
+})
+
 const (
-	DB_MAP   = iota
-	DB_BOLT  = iota
-	DB_MONGO = iota
+	DB_MAP = iota
+	DB_BOLT
+	DB_MONGO
+	DB_MONGO_EMPTY
 )
 
 func init() {
@@ -41,6 +49,7 @@ type State struct {
 
 	// Poloniex Cache
 	poloniexCache *PoloniexAccessCache
+	sessionWriter *SessionWriter
 }
 
 func NewFakePoloniexState() *State {
@@ -53,6 +62,10 @@ func NewState() *State {
 
 func NewStateWithMap() *State {
 	return newState(DB_MAP, false)
+}
+
+func NewStateWithMongoEmpty() *State {
+	return newState(DB_MONGO_EMPTY, false)
 }
 
 func NewStateWithMongo() *State {
@@ -74,7 +87,10 @@ func newState(dbType int, fakePolo bool) *State {
 		panic("Running in prod, but no revel pass given in env var 'MONGO_REVEL_PASS'")
 	}
 
-	var err error
+	var (
+		err     error
+		dbGiven *mongo.MongoDB
+	)
 	s := new(State)
 	switch dbType {
 	case DB_MAP:
@@ -90,6 +106,12 @@ func newState(dbType int, fakePolo bool) *State {
 		if err != nil {
 			panic(fmt.Sprintf("Error connecting to user mongodb: %s\n", err.Error()))
 		}
+	case DB_MONGO_EMPTY:
+		dbGiven, err = mongo.CreateBlankTestUserDB(uri, "", "")
+		if err != nil {
+			panic(fmt.Sprintf("Error connecting to user mongodb: %s\n", err.Error()))
+		}
+		s.userDB = userdb.NewMongoUserDatabaseGiven(dbGiven)
 	default:
 		v := os.Getenv("USER_DB")
 		if len(v) == 0 {
@@ -122,6 +144,12 @@ func newState(dbType int, fakePolo bool) *State {
 		s.userStatistic, err = userdb.NewUserStatisticsDB()
 	case DB_MONGO:
 		s.userStatistic, err = userdb.NewUserStatisticsMongoDB(uri, "revel", mongoRevelPass)
+	case DB_MONGO_EMPTY:
+		dbGiven, err = mongo.CreateBlankTestStatDB(uri, "", "")
+		if err != nil {
+			break
+		}
+		s.userStatistic, err = userdb.NewUserStatisticsMongoDBGiven(dbGiven)
 	}
 	if err != nil {
 		panic(fmt.Sprintf("Could not create user statistic database %s", err.Error()))
@@ -135,6 +163,9 @@ func newState(dbType int, fakePolo bool) *State {
 	case DB_BOLT:
 		s.userInviteCodes = userdb.NewInviteDB()
 	case DB_MONGO:
+		//todo
+		fallthrough
+	case DB_MONGO_EMPTY:
 		//todo
 		fallthrough
 	default:
@@ -164,6 +195,12 @@ func newState(dbType int, fakePolo bool) *State {
 	// SWITCHED TO BEES
 	// s.Master = NewMaster()
 	// s.Master.Run(6667)
+
+	//Start Session Writing
+
+	sesChan := make(chan *ChannelSession, 1000)
+	s.sessionWriter = &SessionWriter{channel: sesChan}
+	go s.sessionWriter.Run(s.userDB)
 
 	return s
 }
@@ -604,4 +641,79 @@ func (s *State) GetActivityLog(email string, timeString string) (*[]userdb.BotAc
 		return nil, err
 	}
 	return botActLogs, nil
+}
+
+func (s *State) SetUserExpiry(email string, dur time.Duration) error {
+	u, err := s.userDB.FetchUserIfFound(email)
+	if err != nil {
+		return err
+	}
+
+	u.SessionExpiryTime = dur
+	return s.userDB.PutUser(u)
+}
+
+type ChannelSession struct {
+	SessionId string
+	Email     string
+	Time      time.Time
+	CurrentIP net.IP
+	Open      bool
+}
+
+type SessionWriter struct {
+	channel chan *ChannelSession
+}
+
+func (c *SessionWriter) AddSession(cs *ChannelSession) {
+	c.channel <- cs
+}
+
+//go routine should NEVER be called besides start
+func (c *SessionWriter) Run(userDB *userdb.UserDatabase) {
+	llog := stateLog.WithField("method", "Run")
+	err := userDB.CloseAllSessions()
+	if err != nil {
+		llog.Errorf("Failed to terminate all user sessions on start: %s", err.Error())
+	}
+	for {
+		select {
+		case cs, ok := <-c.channel:
+			if ok {
+				//CAN OPTIMIZE LATER
+				//should make it one session for writing
+				err = userDB.UpdateUserSession(cs.SessionId, cs.Email, cs.Time, cs.CurrentIP, cs.Open)
+				if err != nil {
+					llog.Errorf("Error updating user session: %s", err.Error())
+				}
+			} else {
+				llog.Infof("No value ready, moving on")
+			}
+		}
+	}
+}
+
+func (s *State) WriteSession(sessionId, email string, recordTime time.Time, ip net.IP, open bool) {
+	s.sessionWriter.AddSession(&ChannelSession{
+		SessionId: sessionId,
+		Email:     email,
+		Time:      recordTime,
+		CurrentIP: ip,
+		Open:      open,
+	})
+}
+
+//returns all sessions but not including this one
+func (s *State) GetActiveSessions(email string, sessions map[string]time.Time, currentSessionId string) ([]userdb.Session, error) {
+	var uss []userdb.Session
+	tempUss, err := s.userDB.GetAllUserSessions(email, 1, 100)
+	if err != nil {
+		return uss, err
+	}
+	for _, o := range *tempUss {
+		if _, ok := sessions[o.SessionId]; ok && currentSessionId != o.SessionId {
+			uss = append(uss, o)
+		}
+	}
+	return uss, nil
 }

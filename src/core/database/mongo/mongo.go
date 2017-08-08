@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 var _ = fmt.Println
@@ -16,8 +17,9 @@ const (
 	USER_DB      = "userdb"
 	USER_DB_TEST = "userdb_test"
 
-	C_USER = "user"
-	//USER END
+	C_USER    = "user"
+	C_Session = "session"
+	//AUDIT END
 
 	//STAT BEGIN
 	STAT_DB      = "statdb"
@@ -183,6 +185,46 @@ func CreateTestUserDB(uri, dbu, dbp string) (*MongoDB, error) {
 	return db, nil
 }
 
+func CreateBlankTestUserDB(uri, dbu, dbp string) (*MongoDB, error) {
+	db := createMongoDB(uri, USER_DB_TEST, dbu, dbp)
+
+	session, err := db.CreateSession()
+	if err != nil {
+		return nil, err
+	}
+	defer session.Close()
+
+	c := session.DB(USER_DB_TEST).C(C_USER)
+
+	index := mgo.Index{
+		Key:        []string{"username"},
+		Unique:     true,
+		DropDups:   true,
+		Background: true,
+		Sparse:     true,
+	}
+
+	err = c.EnsureIndex(index)
+	if err != nil {
+		return nil, err
+	}
+
+	//remove all but admin user
+	_, err = c.RemoveAll(bson.M{"_id": bson.M{"$ne": "admin@admin.com"}})
+	if err != nil {
+		return nil, err
+	}
+
+	c = session.DB(USER_DB_TEST).C(C_Session)
+
+	_, err = c.RemoveAll(bson.M{})
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
+}
+
 func CreateTestStatDB(uri, dbu, dbp string) (*MongoDB, error) {
 	db := createMongoDB(uri, STAT_DB_TEST, dbu, dbp)
 
@@ -192,7 +234,40 @@ func CreateTestStatDB(uri, dbu, dbp string) (*MongoDB, error) {
 	}
 	defer session.Close()
 
-	c := session.DB(STAT_DB_TEST).C(C_UserStat)
+	c := session.DB(STAT_DB_TEST).C(C_Session)
+
+	var index mgo.Index
+	index = mgo.Index{
+		Key:        []string{"email"},
+		Unique:     false,
+		DropDups:   false,
+		Background: true,
+		Sparse:     true,
+	}
+
+	err = c.EnsureIndex(index)
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
+}
+
+func CreateBlankTestStatDB(uri, dbu, dbp string) (*MongoDB, error) {
+	db := createMongoDB(uri, STAT_DB_TEST, dbu, dbp)
+
+	session, err := db.CreateSession()
+	if err != nil {
+		return nil, err
+	}
+	defer session.Close()
+
+	err = session.DB(STAT_DB_TEST).DropDatabase()
+	if err != nil {
+		return nil, err
+	}
+
+	c := session.DB(STAT_DB_TEST).C(C_Session)
 
 	var index mgo.Index
 	index = mgo.Index{
