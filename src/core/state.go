@@ -689,3 +689,15 @@ func (s *State) HasSetReferee(username string) bool {
 	}
 	return status.RefereeCode != ""
 }
+
+func (s *State) MakePayment(username string, paid payment.Paid) error {
+	err := s.paymentDB.AddPaid(paid)
+	if err != nil {
+		return fmt.Errorf("Error adding pay debt: %s", err.Error())
+	}
+	err = s.paymentDB.PayDebts(username, paid)
+	if err != nil {
+		return fmt.Errorf("Error paying debts: %s", err.Error())
+	}
+	return nil
+}

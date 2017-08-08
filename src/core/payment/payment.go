@@ -207,6 +207,7 @@ func (p *PaymentDatabase) getStatusReferralGiven(referralCode string, c *mgo.Col
 }
 
 type Debt struct {
+	//ID is set by database and is unique
 	ID                    *bson.ObjectId      `json:"_id,omitempty" bson:"_id,omitempty"`
 	LoanDate              time.Time           `json:"loandate" bson:"loandate"`
 	Charge                float64             `json:"charge" bson:"charge"`
@@ -248,6 +249,10 @@ func (u *Debt) MarshalJSON() ([]byte, error) {
 		u.FullPaid,
 		u.PaymentPercentageRate,
 	})
+}
+
+func (p *PaymentDatabase) SetDebt(debt Debt) error {
+	return p.SetMultiDebt([]Debt{debt})
 }
 
 func (p *PaymentDatabase) SetMultiDebt(debt []Debt) error {
@@ -314,6 +319,12 @@ func (p *PaymentDatabase) GetDebtsLimitSortIfFound(username string, paid, limit 
 	return results, nil
 }
 
+// LIMIT
+//   <= 0 will return all
+// PAID
+// 0 - Both paid and unpaid
+// 1 - paid
+// 2 - not paid
 func (p *PaymentDatabase) GetDebtsLimitSort(username string, paid, limit int) ([]Debt, error) {
 	var results []Debt
 
@@ -329,7 +340,11 @@ func (p *PaymentDatabase) GetDebtsLimitSort(username string, paid, limit int) ([
 	} else if paid == 2 {
 		find["fullpaid"] = false
 	}
-	err = c.Find(find).Sort("-loandate").Limit(limit).All(&results)
+	if limit <= 0 {
+		err = c.Find(find).Sort("-loandate").All(&results)
+	} else {
+		err = c.Find(find).Sort("-loandate").Limit(limit).All(&results)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("GetDebtsLimitSort: all: %s", err.Error())
 	}
@@ -369,6 +384,10 @@ func (u *Paid) MarshalJSON() ([]byte, error) {
 		u.ETHTransactionID,
 		u.AddressPaidFrom,
 	})
+}
+
+func (p *PaymentDatabase) AddPaid(paid Paid) error {
+	return p.SetMultiPaid([]Paid{paid})
 }
 
 func (p *PaymentDatabase) SetMultiPaid(paid []Paid) error {
@@ -416,7 +435,7 @@ func (p *PaymentDatabase) GetAllPaid(username string, dateAfter *time.Time) ([]P
 	if dateAfter != nil {
 		find["paymentdate"] = bson.M{"$gt": dateAfter}
 	}
-	err = c.Find(find).All(&results)
+	err = c.Find(find).Sort("-paymentdate").All(&results)
 	if err != nil {
 		return nil, fmt.Errorf("GetAllPaid: all: %s", err.Error())
 	}
@@ -471,4 +490,96 @@ func (p *PaymentDatabase) GenerateReferralCode(username string) (*Status, error)
 		i++
 	}
 	return st, p.SetStatus(*st)
+}
+
+func (p *PaymentDatabase) PayDebts(username string, paid Paid) error {
+	//only grab non-paid debts
+	debts, err := p.GetDebtsLimitSort(username, 2, -1)
+	if err != nil {
+		return fmt.Errorf("Error getting all debts: %s", err.Error())
+	}
+
+	//pay off debts one at a time
+	btcLeft := paid.BTCPaid
+	for i := len(debts) - 1; i >= 0; i++ {
+		alreadyPaidBTC := debts[i].PaymentPercentageRate * debts[i].Charge
+		if btcLeft >= debts[i].Charge-alreadyPaidBTC {
+			//if btcPaid is greater then this one debt
+			debts[i].PaymentPercentageRate = 1.0
+			debts[i].FullPaid = true
+			btcLeft = btcLeft - (debts[i].Charge - alreadyPaidBTC)
+		} else {
+			//if btcPaid is less than this debt
+			debts[i].PaymentPercentageRate = (alreadyPaidBTC + btcLeft) / debts[i].Charge
+			debts[i].FullPaid = false
+			btcLeft = 0.0
+			break
+		}
+	}
+	//save all debts back
+	err = p.SetMultiDebt(debts)
+	if err != nil {
+		return fmt.Errorf("Error setting debts: %s", err.Error())
+	}
+
+	return p.updateStatusCredits(username, paid.BTCPaid-btcLeft, btcLeft)
+}
+
+func (p *PaymentDatabase) updateStatusCredits(username string, usedBTC, leftoverBTC float64) error {
+	s, c, err := p.db.GetCollection(mongo.C_Status)
+	if err != nil {
+		return fmt.Errorf("updateStatusCredits: getcol: %s", err)
+	}
+	defer s.Close()
+
+	update := bson.M{
+		"$inc": bson.M{
+			"spentcred": usedBTC,
+		},
+		"$set": bson.M{
+			"unspentcred": leftoverBTC,
+		},
+	}
+	return c.UpdateId(username, update)
+}
+
+//pass in debt that has the following set fields:
+//		LoanDate
+//		AmountLoaned
+//		LoanRate
+//		GrossAmountEarned
+//		Currency
+//		CurrencyToBTC
+//		CurrencyToETH
+//		Exchange
+//		Username
+// Method will set:
+//		Charge
+//		FullPaid
+//		PaymentPercentageRate
+func (p *PaymentDatabase) InsertNewDebt(debt Debt) error {
+	//STEVE CALL THIS TO ADD NEW DEBT
+	userStatus, err := p.GetStatusIfFound(debt.Username)
+	if err != nil {
+		return fmt.Errorf("Error finding user referrals: %s", err)
+	}
+
+	refs, err := p.GetUserReferralsIfFound(debt.Username)
+	if err != nil {
+		return fmt.Errorf("Error finding user referrals: %s", err)
+	}
+
+	referralReduc := 0.0
+	for _, r := range refs {
+		if r.SpentCredits+r.UnspentCredits >= 0.025 {
+			referralReduc += 0.005
+		}
+	}
+
+	debt.Charge = debt.CurrencyToBTC * (0.01 - userStatus.CustomChargeReduction - referralReduc)
+	debt.FullPaid = false
+	debt.PaymentPercentageRate = 0.0
+	debt.ID = nil
+
+	return p.SetDebt(debt)
 }
