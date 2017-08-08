@@ -438,6 +438,29 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log',
 			})
 		}
 
+		//init
+		dashSettingsUserScope.loadingEnable2FA = false;
+		dashSettingsUserScope.loadingCreate2FA = false;
+		dashSettingsUserScope.loadingVerified = false;
+
+		dashSettingsUserScope.create2FAError = '';
+		dashSettingsUserScope.enable2FAError = '';
+		dashSettingsUserScope.verifiedError = '';
+		dashSettingsUserScope.changePassError = '';
+		dashSettingsUserScope.setRefereeError = '';
+
+		dashSettingsUserScope.enable2FASuccess = '';
+		dashSettingsUserScope.verifiedSuccess = '';
+		dashSettingsUserScope.changePassSuccess = '';
+		dashSettingsUserScope.setRefereeSuccess = '';
+
+		dashSettingsUserScope.pass2FA = '';
+		dashSettingsUserScope.token = '';
+		dashSettingsUserScope.pass = '';
+		dashSettingsUserScope.passNew = '';
+		dashSettingsUserScope.passNew2 = '';
+
+
 		dashSettingsUserScope.setReferee = function() {
 			dashSettingsUserScope.setRefereeSuccess = '';
 			dashSettingsUserScope.setRefereeError = '';
@@ -478,29 +501,6 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log',
 				$log.error("getHasReferee: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
 			});
 		}
-
-		//init
-		dashSettingsUserScope.loadingEnable2FA = false;
-		dashSettingsUserScope.loadingCreate2FA = false;
-		dashSettingsUserScope.loadingVerified = false;
-
-		dashSettingsUserScope.create2FAError = '';
-		dashSettingsUserScope.enable2FAError = '';
-		dashSettingsUserScope.verifiedError = '';
-		dashSettingsUserScope.changePassError = '';
-		dashSettingsUserScope.setRefereeError = '';
-
-		dashSettingsUserScope.enable2FASuccess = '';
-		dashSettingsUserScope.verifiedSuccess = '';
-		dashSettingsUserScope.changePassSuccess = '';
-		dashSettingsUserScope.setRefereeSuccess = '';
-
-		dashSettingsUserScope.pass2FA = '';
-		dashSettingsUserScope.token = '';
-		dashSettingsUserScope.pass = '';
-		dashSettingsUserScope.passNew = '';
-		dashSettingsUserScope.passNew2 = '';
-
 		dashSettingsUserScope.hasReferee = false;
 		dashSettingsUserScope.getHasReferee();
 		//----
