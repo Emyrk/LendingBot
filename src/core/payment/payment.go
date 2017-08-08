@@ -571,12 +571,17 @@ func (p *PaymentDatabase) InsertNewDebt(debt Debt) error {
 
 	referralReduc := 0.0
 	for _, r := range refs {
-		if r.SpentCredits+r.UnspentCredits >= 0.025 {
-			referralReduc += 0.005
-		}
+		referralReduc += 0.005 * ((r.SpentCredits + r.UnspentCredits) / 0.025)
 	}
 
-	debt.Charge = debt.CurrencyToBTC * (0.01 - userStatus.CustomChargeReduction - referralReduc)
+	paidUsReduc := ((userStatus.SpentCredits + userStatus.UnspentCredits) / 0.01) * 0.001
+	discount := referralReduc + paidUsReduc
+	if discount > 0.035 {
+		discount = 0.035
+	}
+	finalPercentage := 0.10 - userStatus.CustomChargeReduction - discount
+
+	debt.Charge = debt.CurrencyToBTC * finalPercentage
 	debt.FullPaid = false
 	debt.PaymentPercentageRate = 0.0
 	debt.ID = nil
