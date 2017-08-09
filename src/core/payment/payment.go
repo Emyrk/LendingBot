@@ -251,10 +251,12 @@ func (u *Debt) MarshalJSON() ([]byte, error) {
 	})
 }
 
+//DO NOT CALL THIS FOR NEW DEBTS!!! USE InsertNewDebt
 func (p *PaymentDatabase) SetDebt(debt Debt) error {
 	return p.SetMultiDebt([]Debt{debt})
 }
 
+//DO NOT CALL THIS FOR NEW DEBTS!!! USE InsertNewDebt
 func (p *PaymentDatabase) SetMultiDebt(debt []Debt) error {
 	s, c, err := p.db.GetCollection(mongo.C_Debt)
 	if err != nil {
@@ -386,7 +388,7 @@ func (u *Paid) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func (p *PaymentDatabase) AddPaid(paid Paid) error {
+func (p *PaymentDatabase) SetPaid(paid Paid) error {
 	return p.SetMultiPaid([]Paid{paid})
 }
 

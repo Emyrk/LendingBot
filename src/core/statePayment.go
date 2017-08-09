@@ -100,7 +100,7 @@ func (s *State) HasSetReferee(username string) bool {
 }
 
 func (s *State) MakePayment(username string, paid payment.Paid) error {
-	err := s.paymentDB.AddPaid(paid)
+	err := s.paymentDB.SetPaid(paid)
 	if err != nil {
 		return fmt.Errorf("Error adding pay debt: %s", err.Error())
 	}
