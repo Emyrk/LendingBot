@@ -298,7 +298,7 @@ func (p *PaymentDatabase) GetAllDebts(username string, paid int) ([]Debt, error)
 	}
 	defer s.Close()
 
-	find := bson.M{"_id": username}
+	find := bson.M{"email": username}
 	if paid == 1 {
 		find["fullpaid"] = true
 	} else if paid == 2 {
@@ -306,7 +306,7 @@ func (p *PaymentDatabase) GetAllDebts(username string, paid int) ([]Debt, error)
 	}
 	err = c.Find(find).All(&results)
 	if err != nil {
-		return nil, fmt.Errorf("GetAllDebts: all: %s", err.Error())
+		return results, fmt.Errorf("GetAllDebts: all: %s", err.Error())
 	}
 	return results, nil
 }
@@ -564,6 +564,11 @@ func (p *PaymentDatabase) InsertNewDebt(debt Debt) error {
 	userStatus, err := p.GetStatusIfFound(debt.Username)
 	if err != nil {
 		return fmt.Errorf("Error finding user referrals: %s", err)
+	} else if userStatus == nil {
+		userStatus, err = p.GenerateReferralCode(debt.Username)
+		if err != nil {
+			return fmt.Errorf("Failed to create status and new referral code for user[%s]: %s", debt.Username, err.Error())
+		}
 	}
 
 	refs, err := p.GetUserReferralsIfFound(debt.Username)

@@ -81,7 +81,10 @@ func (s *State) VerifyState() error {
 }
 
 func newState(dbType int, fakePolo bool) *State {
-	uri := revel.Config.StringDefault("database.uri", "mongodb://localhost:27017")
+	uri := "mongodb://localhost:27017"
+	if revel.Config != nil {
+		uri = revel.Config.StringDefault("database.uri", "mongodb://localhost:27017")
+	}
 	mongoRevelPass := os.Getenv("MONGO_REVEL_PASS")
 	if mongoRevelPass == "" && revel.RunMode == "prod" {
 		panic("Running in prod, but no revel pass given in env var 'MONGO_REVEL_PASS'")
@@ -126,7 +129,7 @@ func newState(dbType int, fakePolo bool) *State {
 		s.PoloniexAPI = poloniex.StartPoloniex()
 	}
 
-	if !revel.DevMode {
+	if !revel.DevMode && revel.RunMode != "" {
 		s.CipherKey = getCipherKey()
 	}
 
