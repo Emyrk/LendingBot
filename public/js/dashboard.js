@@ -272,7 +272,7 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 								{data : "curETH", title: "Currency to ETH"},
 								{data : "exch", title: "Exchange"},
 								{data : "fullpaid", title: "Fully Paid"},
-								{data : "ppr", title: "Payment Percentage Rate"},
+								{data : "ppa", title: "Payment Paid Amount"},
 								],
 								"order": [[ 0, 'desc' ]],
 							});

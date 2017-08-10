@@ -77,10 +77,10 @@ func (p *PaymentDatabase) Close() error {
 
 type Status struct {
 	Username              string    `json:"email" bson:"_id"`
-	TotalDebt             float64   `json:"tdebt" bson:"tdebt"`
-	UnspentCredits        float64   `json:"unspentcred" bson:"unspentcred"`
-	SpentCredits          float64   `json:"spentcred" bson:"spentcred"`
-	CustomChargeReduction float64   `json:"customchargereduc" bson:"customchargereduc"`
+	TotalDebt             int64     `json:"tdebt" bson:"tdebt"`
+	UnspentCredits        int64     `json:"unspentcred" bson:"unspentcred"`
+	SpentCredits          int64     `json:"spentcred" bson:"spentcred"`
+	CustomChargeReduction int64     `json:"customchargereduc" bson:"customchargereduc"`
 	RefereeCode           string    `json:"refereecode" bson:"refereecode"` //(Person code who referred you)
 	RefereeTime           time.Time `json:"refereetime" bson:"refereetime"` //NOTE time is set to start of time until refereecode is set
 	ReferralCode          string    `json:"referralcode" bson:"referralcode"`
@@ -88,10 +88,10 @@ type Status struct {
 
 func (u *Status) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
-		TotalDebt             float64   `json:"tdebt"`
-		UnspentCredits        float64   `json:"unspentcred"`
-		SpentCredits          float64   `json:"spentcred"`
-		CustomChargeReduction float64   `json:"customchargereduc"`
+		TotalDebt             int64     `json:"tdebt"`
+		UnspentCredits        int64     `json:"unspentcred"`
+		SpentCredits          int64     `json:"spentcred"`
+		CustomChargeReduction int64     `json:"customchargereduc"`
 		RefereeCode           string    `json:"refereecode"` //(Person code who referred you)
 		RefereeTime           time.Time `json:"refereetime"`
 		ReferralCode          string    `json:"referralcode"`
@@ -106,14 +106,14 @@ func (u *Status) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func (p *PaymentDatabase) GetUserReferralsIfFound(username string) ([]Status, error) {
+func (p *PaymentDatabase) GetUserReferralsIfFound(refereeCode string) ([]Status, error) {
 	s, c, err := p.db.GetCollection(mongo.C_Status)
 	if err != nil {
 		var sr []Status
 		return sr, fmt.Errorf("AddUserReferral: createSession: %s", err.Error())
 	}
 	defer s.Close()
-	ref, err := p.getUserReferralsGiven(username, c)
+	ref, err := p.getUserReferralsGiven(refereeCode, c)
 	if err != nil && err.Error() == mgo.ErrNotFound.Error() {
 		return ref, nil
 	} else if err != nil {
@@ -122,19 +122,19 @@ func (p *PaymentDatabase) GetUserReferralsIfFound(username string) ([]Status, er
 	return ref, nil
 }
 
-func (p *PaymentDatabase) GetUserReferrals(username string) ([]Status, error) {
+func (p *PaymentDatabase) GetUserReferrals(refereeCode string) ([]Status, error) {
 	s, c, err := p.db.GetCollection(mongo.C_Status)
 	if err != nil {
 		var sr []Status
 		return sr, fmt.Errorf("AddUserReferral: createSession: %s", err.Error())
 	}
 	defer s.Close()
-	return p.getUserReferralsGiven(username, c)
+	return p.getUserReferralsGiven(refereeCode, c)
 }
 
-func (p *PaymentDatabase) getUserReferralsGiven(username string, c *mgo.Collection) ([]Status, error) {
+func (p *PaymentDatabase) getUserReferralsGiven(refereeCode string, c *mgo.Collection) ([]Status, error) {
 	var result []Status
-	find := bson.M{"_id": username}
+	find := bson.M{"refereecode": refereeCode}
 	//CAN OPTIMIZE to use less data
 	err := c.Find(find).All(&result)
 	return result, err
@@ -208,34 +208,34 @@ func (p *PaymentDatabase) getStatusReferralGiven(referralCode string, c *mgo.Col
 
 type Debt struct {
 	//ID is set by database and is unique
-	ID                    *bson.ObjectId      `json:"_id,omitempty" bson:"_id,omitempty"`
-	LoanDate              time.Time           `json:"loandate" bson:"loandate"`
-	Charge                float64             `json:"charge" bson:"charge"`
-	AmountLoaned          float64             `json:"amountloaned" bson:"amountloaned"`
-	LoanRate              float64             `json:"loanrate" bson:"loanrate"`
-	GrossAmountEarned     float64             `json:"gae" bson:"gae"`
-	Currency              string              `json:"cur" bson:"cur"`
-	CurrencyToBTC         float64             `json:"curBTC" bson:"curBTC"`
-	CurrencyToETH         float64             `json:"curETH" bson:"curETH"`
-	Exchange              userdb.UserExchange `json:"exch" bson:"exch"`
-	Username              string              `json:"email" bson:"email"`
-	FullPaid              bool                `json:"fullpaid" bson:"fullpaid"`
-	PaymentPercentageRate float64             `json:"ppr" bson:"ppr"`
+	ID                *bson.ObjectId      `json:"_id,omitempty" bson:"_id,omitempty"`
+	LoanDate          time.Time           `json:"loandate" bson:"loandate"`
+	Charge            int64               `json:"charge" bson:"charge"`
+	AmountLoaned      int64               `json:"amountloaned" bson:"amountloaned"`
+	LoanRate          float64             `json:"loanrate" bson:"loanrate"`
+	GrossAmountEarned int64               `json:"gae" bson:"gae"`
+	Currency          string              `json:"cur" bson:"cur"`
+	CurrencyToBTC     int64               `json:"curBTC" bson:"curBTC"`
+	CurrencyToETH     int64               `json:"curETH" bson:"curETH"`
+	Exchange          userdb.UserExchange `json:"exch" bson:"exch"`
+	Username          string              `json:"email" bson:"email"`
+	FullPaid          bool                `json:"fullpaid" bson:"fullpaid"`
+	PaymentPaidAmount int64               `json:"ppa" bson:"ppa"`
 }
 
 func (u *Debt) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
-		LoanDate              time.Time `json:"loandate"`
-		Charge                float64   `json:"charge"`
-		AmountLoaned          float64   `json:"amountloaned"`
-		LoanRate              float64   `json:"loanrate"`
-		GrossAmountEarned     float64   `json:"gae"`
-		Currency              string    `json:"cur"`
-		CurrencyToBTC         float64   `json:"curBTC"`
-		CurrencyToETH         float64   `json:"curETH"`
-		Exchange              string    `json:"exch"`
-		FullPaid              bool      `json:"fullpaid"`
-		PaymentPercentageRate float64   `json:"ppr"`
+		LoanDate          time.Time `json:"loandate"`
+		Charge            int64     `json:"charge"`
+		AmountLoaned      int64     `json:"amountloaned"`
+		LoanRate          float64   `json:"loanrate"`
+		GrossAmountEarned int64     `json:"gae"`
+		Currency          string    `json:"cur"`
+		CurrencyToBTC     int64     `json:"curBTC"`
+		CurrencyToETH     int64     `json:"curETH"`
+		Exchange          string    `json:"exch"`
+		FullPaid          bool      `json:"fullpaid"`
+		PaymentPaidAmount int64     `json:"ppa"`
 	}{
 		u.LoanDate,
 		u.Charge,
@@ -247,7 +247,7 @@ func (u *Debt) MarshalJSON() ([]byte, error) {
 		u.CurrencyToETH,
 		u.Exchange.ExchangeToFullName(),
 		u.FullPaid,
-		u.PaymentPercentageRate,
+		u.PaymentPaidAmount,
 	})
 }
 
@@ -336,7 +336,7 @@ func (p *PaymentDatabase) GetDebtsLimitSort(username string, paid, limit int) ([
 	}
 	defer s.Close()
 
-	find := bson.M{"_id": username}
+	find := bson.M{"email": username}
 	if paid == 1 {
 		find["fullpaid"] = true
 	} else if paid == 2 {
@@ -356,10 +356,10 @@ func (p *PaymentDatabase) GetDebtsLimitSort(username string, paid, limit int) ([
 type Paid struct {
 	ID                 *bson.ObjectId `json:"_id,omitempty" bson:"_id,omitempty"`
 	PaymentDate        time.Time      `json:"paymentdate" bson:"paymentdate"`
-	BTCPaid            float64        `json:"btcpaid" bson:"btcpaid"`
+	BTCPaid            int64          `json:"btcpaid" bson:"btcpaid"`
 	BTCTransactionDate time.Time      `json:"btctrandate" bson:"btctrandate"`
 	BTCTransactionID   int64          `json:"btctranid" bson:"btctranid"`
-	ETHPaid            float64        `json:"ethpaid" bson:"ethpaid"`
+	ETHPaid            int64          `json:"ethpaid" bson:"ethpaid"`
 	ETHTransactionDate time.Time      `json:"ethtrandate" bson:"ethtrandate"`
 	ETHTransactionID   int64          `json:"ethtranid" bson:"ethtranid"`
 	AddressPaidFrom    string         `json:"addr" bson:"addr"`
@@ -369,10 +369,10 @@ type Paid struct {
 func (u *Paid) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
 		PaymentDate        time.Time `json:"paymentdate"`
-		BTCPaid            float64   `json:"btcpaid"`
+		BTCPaid            int64     `json:"btcpaid"`
 		BTCTransactionDate time.Time `json:"btctrandate"`
 		BTCTransactionID   int64     `json:"btctranid"`
-		ETHPaid            float64   `json:"ethpaid"`
+		ETHPaid            int64     `json:"ethpaid"`
 		ETHTransactionDate time.Time `json:"ethtrandate"`
 		ETHTransactionID   int64     `json:"ethtranid"`
 		AddressPaidFrom    string    `json:"addr"`
@@ -496,23 +496,22 @@ func (p *PaymentDatabase) GenerateReferralCode(username string) (*Status, error)
 
 func (p *PaymentDatabase) PayDebts(username string, paid Paid) error {
 	//only grab non-paid debts
-	debts, err := p.GetDebtsLimitSort(username, 2, -1)
+	debts, err := p.GetDebtsLimitSortIfFound(username, 2, -1)
 	if err != nil {
 		return fmt.Errorf("Error getting all debts: %s", err.Error())
 	}
 
 	//pay off debts one at a time
 	btcLeft := paid.BTCPaid
-	for i := len(debts) - 1; i >= 0; i++ {
-		alreadyPaidBTC := debts[i].PaymentPercentageRate * debts[i].Charge
-		if btcLeft >= debts[i].Charge-alreadyPaidBTC {
+	for i := len(debts) - 1; i >= 0; i-- {
+		if btcLeft >= debts[i].Charge-debts[i].PaymentPaidAmount {
 			//if btcPaid is greater then this one debt
-			debts[i].PaymentPercentageRate = 1.0
+			btcLeft = btcLeft - (debts[i].Charge - debts[i].PaymentPaidAmount)
+			debts[i].PaymentPaidAmount = debts[i].Charge
 			debts[i].FullPaid = true
-			btcLeft = btcLeft - (debts[i].Charge - alreadyPaidBTC)
 		} else {
 			//if btcPaid is less than this debt
-			debts[i].PaymentPercentageRate = (alreadyPaidBTC + btcLeft) / debts[i].Charge
+			debts[i].PaymentPaidAmount = btcLeft
 			debts[i].FullPaid = false
 			btcLeft = 0.0
 			break
@@ -527,7 +526,7 @@ func (p *PaymentDatabase) PayDebts(username string, paid Paid) error {
 	return p.updateStatusCredits(username, paid.BTCPaid-btcLeft, btcLeft)
 }
 
-func (p *PaymentDatabase) updateStatusCredits(username string, usedBTC, leftoverBTC float64) error {
+func (p *PaymentDatabase) updateStatusCredits(username string, usedBTC, leftoverBTC int64) error {
 	s, c, err := p.db.GetCollection(mongo.C_Status)
 	if err != nil {
 		return fmt.Errorf("updateStatusCredits: getcol: %s", err)
@@ -545,6 +544,17 @@ func (p *PaymentDatabase) updateStatusCredits(username string, usedBTC, leftover
 	return c.UpdateId(username, update)
 }
 
+const (
+	SATOSHI_FLOAT      float64 = float64(100000000)
+	SATOSHI_INT        int64   = int64(100000000)
+	REDUCTION_CREDIT   int64   = int64(SATOSHI_FLOAT * 0.025)
+	REDUCTION_REFERRAL int64   = int64(SATOSHI_FLOAT * 0.005)
+	REDUCTION_PAID_01  int64   = int64(SATOSHI_FLOAT * 0.01)
+	REDUCTION_PAID_001 int64   = int64(SATOSHI_FLOAT * 0.001)
+	MAX_DISCOUNT       int64   = 3500000 //int64(SATOSHI_FLOAT * 0.035) DIDNT LIKE MATH?
+	STARTING_CHARGE    int64   = int64(SATOSHI_FLOAT * 0.10)
+)
+
 //pass in debt that has the following set fields:
 //		LoanDate
 //		AmountLoaned
@@ -558,7 +568,7 @@ func (p *PaymentDatabase) updateStatusCredits(username string, usedBTC, leftover
 // Method will set:
 //		Charge
 //		FullPaid
-//		PaymentPercentageRate
+//		PaymentPaidAmount
 func (p *PaymentDatabase) InsertNewDebt(debt Debt) error {
 	//STEVE CALL THIS TO ADD NEW DEBT
 	userStatus, err := p.GetStatusIfFound(debt.Username)
@@ -571,26 +581,29 @@ func (p *PaymentDatabase) InsertNewDebt(debt Debt) error {
 		}
 	}
 
-	refs, err := p.GetUserReferralsIfFound(debt.Username)
+	refs, err := p.GetUserReferralsIfFound(userStatus.ReferralCode)
 	if err != nil {
 		return fmt.Errorf("Error finding user referrals: %s", err)
 	}
 
-	referralReduc := 0.0
+	referralReduc := int64(0)
 	for _, r := range refs {
-		referralReduc += 0.005 * ((r.SpentCredits + r.UnspentCredits) / 0.025)
+		if r.SpentCredits+r.UnspentCredits > REDUCTION_CREDIT {
+			referralReduc += REDUCTION_REFERRAL
+		}
 	}
 
-	paidUsReduc := ((userStatus.SpentCredits + userStatus.UnspentCredits) / 0.01) * 0.001
+	paidUsReduc := ((userStatus.SpentCredits + userStatus.UnspentCredits) / REDUCTION_PAID_01) * REDUCTION_PAID_001
 	discount := referralReduc + paidUsReduc
-	if discount > 0.035 {
-		discount = 0.035
+	if discount > MAX_DISCOUNT {
+		discount = MAX_DISCOUNT
 	}
-	finalPercentage := 0.10 - userStatus.CustomChargeReduction - discount
+	var final int64
+	final = STARTING_CHARGE - userStatus.CustomChargeReduction - discount
 
-	debt.Charge = debt.CurrencyToBTC * finalPercentage
+	debt.Charge = (debt.GrossAmountEarned * final) / SATOSHI_INT
 	debt.FullPaid = false
-	debt.PaymentPercentageRate = 0.0
+	debt.PaymentPaidAmount = 0
 	debt.ID = nil
 
 	return p.SetDebt(debt)

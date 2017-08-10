@@ -126,6 +126,21 @@ func (r AppAuthRequired) ChangeExpiry() revel.Result {
 		return r.RenderJSON(data)
 	}
 
+	//TODO: FIX test for setting minimum
+	//	add in test for to long
+	if time.Duration(sesExp)*time.Millisecond > CACHE_TIME_USER_SESSION_MAX {
+		llog.Errorf("Error user[%s] attempting to set expiry larger than max: %d", r.Session[SESSION_EMAIL], time.Duration(sesExp)*time.Millisecond)
+		data[JSON_ERROR] = "Session time to large."
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+	// } else if time.Duration(sesExp)*time.Millisecond < CACHE_TIME_USER_SESSION_MIN {
+	// 	llog.Errorf("Error user[%s] attempting to set expiry smaller than max: %d", r.Session[SESSION_EMAIL], time.Duration(sesExp)*time.Millisecond)
+	// 	data[JSON_ERROR] = "Session time to small."
+	// 	r.Response.Status = 500
+	// 	return r.RenderJSON(data)
+	// }
+
 	err = state.SetUserExpiry(r.Session[SESSION_EMAIL], time.Duration(sesExp)*time.Millisecond)
 	if err != nil {
 		llog.Errorf("Error setting user[%s] exp: %s", r.Session[SESSION_EMAIL], err.Error())
