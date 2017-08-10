@@ -175,7 +175,7 @@ func (t *AppTest) TestSetAndTimeoutExpiry() {
 	login(t, GetDefaultLoginValues()) //+1 session count, total = 3
 
 	v := url.Values{}
-	v.Set("sesexp", fmt.Sprintf("%d", controllers.CACHE_TIME_USER_SESSION_MAX+1))
+	v.Set("sesexp", fmt.Sprintf("%d", 2000*time.Hour))
 	t.PostForm("/dashboard/settings/changeexpiry", v)
 	t.AssertStatus(500)
 
