@@ -1,7 +1,10 @@
 package bee
 
 import (
+	"time"
+
 	"github.com/Emyrk/LendingBot/src/core/database/mongo"
+	"github.com/Emyrk/LendingBot/src/core/payment"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -24,4 +27,8 @@ func (b *Bee) FetchUser(username string) (*userdb.User, error) {
 		"bitfinexkeys":         1,
 	}
 	return b.userDB.FetchUserWithSelector(username, selector)
+}
+
+func (b *Bee) InsertNewDebt(debt payment.Debt) error {
+	return b.paymentDB.InsertNewDebt(debt)
 }

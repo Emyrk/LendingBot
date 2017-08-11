@@ -14,6 +14,7 @@ import (
 	"github.com/Emyrk/LendingBot/balancer"
 	"github.com/Emyrk/LendingBot/slack"
 	"github.com/Emyrk/LendingBot/src/core/database/mongo"
+	"github.com/Emyrk/LendingBot/src/core/payment"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 
 	"github.com/Emyrk/LendingBot/balancer/security"
@@ -69,6 +70,7 @@ type Bee struct {
 	//db
 	userStatDB *userdb.UserStatisticsDB
 	userDB     *userdb.UserDatabase
+	paymentDB  *payment.PaymentDatabase
 }
 
 func NewBee(hiveAddress string, dba string, dbu string, dbp string, test bool) *Bee {
@@ -110,6 +112,16 @@ func NewBee(hiveAddress string, dba string, dbu string, dbp string, test bool) *
 			slack.SendMessage(":rage:", b.ID, "alerts", fmt.Sprintf("@channel Bee %s: Oy!.. failed to connect to the user mongodb, I am panicing! Error: %s", b.ID, err.Error()))
 		}
 		panic(fmt.Sprintf("Failed to connect to user db: %s", err.Error()))
+	}
+
+	b.paymentDB, err = payment.NewPaymentDatabase(dba, dbu, dbp)
+	if err != nil {
+		if test {
+			slack.SendMessage(":rage:", b.ID, "test", fmt.Sprintf("@channel Bee %s: Oy!.. failed to connect to the payment mongodb, I am panicing! Error: %s", b.ID, err.Error()))
+		} else {
+			slack.SendMessage(":rage:", b.ID, "alerts", fmt.Sprintf("@channel Bee %s: Oy!.. failed to connect to the payment mongodb, I am panicing! Error: %s", b.ID, err.Error()))
+		}
+		panic(fmt.Sprintf("Failed to connect to payment db: %s", err.Error()))
 	}
 
 	return b
