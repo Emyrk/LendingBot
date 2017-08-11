@@ -311,8 +311,9 @@ func (p *PaymentDatabase) GetAllDebts(username string, paid int) ([]Debt, error)
 	return results, nil
 }
 
-func (p *PaymentDatabase) GetDebtsLimitSortIfFound(username string, paid, limit int) ([]Debt, error) {
-	results, err := p.GetDebtsLimitSort(username, paid, limit)
+//refer to GetDebtsLimitSort for args info
+func (p *PaymentDatabase) GetDebtsLimitSortIfFound(username string, paid, limit, sort int) ([]Debt, error) {
+	results, err := p.GetDebtsLimitSort(username, paid, limit, sort)
 	if err != nil && err.Error() == mgo.ErrNotFound.Error() {
 		return results, nil
 	} else if err != nil {
@@ -321,13 +322,16 @@ func (p *PaymentDatabase) GetDebtsLimitSortIfFound(username string, paid, limit 
 	return results, nil
 }
 
-// LIMIT
-//   <= 0 will return all
 // PAID
 // 0 - Both paid and unpaid
 // 1 - paid
 // 2 - not paid
-func (p *PaymentDatabase) GetDebtsLimitSort(username string, paid, limit int) ([]Debt, error) {
+// LIMIT
+//   <= 0 will return all
+// SORT
+//   <= 0 will return "-loandate" (Descending order, largest to smallest)
+//   > 0 will return "loandate" (Ascending order, smallest to largest)
+func (p *PaymentDatabase) GetDebtsLimitSort(username string, paid, limit, sort int) ([]Debt, error) {
 	var results []Debt
 
 	s, c, err := p.db.GetCollection(mongo.C_Debt)
@@ -342,10 +346,14 @@ func (p *PaymentDatabase) GetDebtsLimitSort(username string, paid, limit int) ([
 	} else if paid == 2 {
 		find["fullpaid"] = false
 	}
+	sortOrder := "-loandate"
+	if sort > 0 {
+		sortOrder = "loandate"
+	}
 	if limit <= 0 {
-		err = c.Find(find).Sort("-loandate").All(&results)
+		err = c.Find(find).Sort(sortOrder).All(&results)
 	} else {
-		err = c.Find(find).Sort("-loandate").Limit(limit).All(&results)
+		err = c.Find(find).Sort(sortOrder).Limit(limit).All(&results)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("GetDebtsLimitSort: all: %s", err.Error())
@@ -496,7 +504,7 @@ func (p *PaymentDatabase) GenerateReferralCode(username string) (*Status, error)
 
 func (p *PaymentDatabase) PayDebts(username string, paid Paid) error {
 	//only grab non-paid debts
-	debts, err := p.GetDebtsLimitSortIfFound(username, 2, -1)
+	debts, err := p.GetDebtsLimitSortIfFound(username, 2, -1, -1)
 	if err != nil {
 		return fmt.Errorf("Error getting all debts: %s", err.Error())
 	}

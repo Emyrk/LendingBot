@@ -32,3 +32,20 @@ func (b *Bee) FetchUser(username string) (*userdb.User, error) {
 func (b *Bee) InsertNewDebt(debt payment.Debt) error {
 	return b.paymentDB.InsertNewDebt(debt)
 }
+
+// --NOTE: Uses Loan Date to calculate time--
+//pass in duration of time since oldest debt
+//used for telling if should stop lending
+func (b *Bee) IsDebtOverTimeLimit(username string, dur time.Duration) (bool, error) {
+	debts, err := b.paymentDB.GetDebtsLimitSortIfFound(username, 2, 1, 1)
+	if err != nil {
+		return false, err
+	}
+	if len(debts) == 0 {
+		return false, nil
+	}
+	if debts[0].LoanDate.UTC().Add(dur).UnixNano() > time.Now().UnixNano() {
+		return true, nil
+	}
+	return false, nil
+}
