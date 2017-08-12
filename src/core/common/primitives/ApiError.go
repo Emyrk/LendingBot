@@ -1,6 +1,8 @@
 package primitives
 
-import ()
+import (
+	"fmt"
+)
 
 type ApiError struct {
 	LogError  error
@@ -22,5 +24,12 @@ func NewAPIErrorFromOne(err error) *ApiError {
 	apiError := new(ApiError)
 	apiError.LogError = err
 	apiError.UserError = err
+	return apiError
+}
+
+func NewAPIErrorInternalError(err error) *ApiError {
+	apiError := new(ApiError)
+	apiError.LogError = err
+	apiError.UserError = fmt.Errorf("Internal Error. Please contact support at: support@hodl.zone")
 	return apiError
 }

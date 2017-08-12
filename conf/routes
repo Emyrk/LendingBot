@@ -40,6 +40,11 @@ POST	/dashboard/settings/setexchangekeys		AppAuthRequired.SetExchangeKeys
 Get 	/dashboard/settings/enableuserlending	AppAuthRequired.GetEnableUserLending
 POST	/dashboard/settings/enableuserlending	AppAuthRequired.SetEnableUserLending
 POST	/dashboard/settings/changepass			AppAuthRequired.ChangePassword
+GET		/dashboard/settings/hasreferee			AppAuthRequired.HasReferee
+POST	/dashboard/settings/setreferee			AppAuthRequired.SetReferee
+POST	/dashboard/settings/changeexpiry		AppAuthRequired.ChangeExpiry
+GET		/dashboard/settings/getexpiry			AppAuthRequired.GetExpiry
+POST	/dashboard/settings/deletesession		AppAuthRequired.DeleteSession
 
 # Check for 403 error
 GET		/validauth								App.ValidAuth
@@ -64,8 +69,6 @@ POST 	/dashboard/admin/conductAudit			AppAdmin.ConductAudit
 
 # Dash Payment 
 GET	 	/dashboard/payment 						AppAuthRequired.PaymentDashboard
-GET	 	/dashboard/genreferralcode				AppAuthRequired.GenerateReferralCode
-POST	/dashboard/setreferee					AppAuthRequired.SetReferee
 
 # Dash DataCalls
 GET 	/dashboard/data/currentuserstats		AppAuthRequired.CurrentUserStats

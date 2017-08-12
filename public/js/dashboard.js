@@ -147,6 +147,9 @@ app.controller('dashInfoController', ['$scope', '$http', '$log', '$interval', '$
 				console.log("Retrieved activityLog");
 				dashInfoScope.logs = res.data.logs;
 				if (dashInfoScope.logs) {
+					for (i = 0; i < dashInfoScope.logs.length; i++) {
+						dashInfoScope.logs[i].l = "<pre>" + dashInfoScope.logs[i].l + "</pre>";
+					}
 					$timeout(() => {
 						if (!$.fn.DataTable.isDataTable('#activityLog')) {
 							activityLog = $('#activityLog').DataTable({
@@ -226,21 +229,23 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 	function($scope, $http, $log, $interval) {
 		var dashPaymentScope = $scope;
 		var paidLog,
-			debtLog,
-			paymentLogsPromise;
+		debtLog,
+		paymentLogsPromise;
 
-		dashPaymentScope.getPaymentHistory = function() {
+		dashPaymentScope.getPaymentHistory = function(paidTime) {
 			var logTime = null;
 			if (dashPaymentScope.logs > 0) {
 				logTime = dashPaymentScope.logs[0].time;
+			}
+			if (!paidTime) {
+				paidTime = "";
 			}
 			$http(
 			{
 				method: 'GET',
 				url: '/dashboard/data/paymenthistory',
 				params: {
-					paidLog: paidTime,
-					debtLog: debTime
+					ptime: paidTime,
 				},
 				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
 				withCredentials: true
@@ -250,28 +255,55 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 				console.log("Retrieved paymentHistory");
 				dashPaymentScope.debtlog = res.data.debt;
 				dashPaymentScope.paidlog = res.data.paid;
+				dashPaymentScope.status = res.data.status;
 				if (dashPaymentScope.logs) {
 					$timeout(() => {
-						if (!$.fn.DataTable.isDataTable('#activityLog')) {
-							activityLog = $('#activityLog').DataTable({
-								filter: true,
+						if (!$.fn.DataTable.isDataTable('#debtlog')) {
+							debtLog = $('#debtlog').DataTable({
+								filter: false,
 								columns: [
-								{data : "t", title: "Time"},
-								{data : "l", title: "Message"},
+								{data : "loandate", title: "Loan Date"},
+								{data : "charge", title: "Charge"},
+								{data : "amountloaned", title: "Amount Loaned"},
+								{data : "loanrate", title: "Loan Rate"},
+								{data : "gae", title: "Gross Amount Earned"},
+								{data : "cur", title: "Currency"},
+								{data : "curBTC", title: "Currency to BTC"},
+								{data : "curETH", title: "Currency to ETH"},
+								{data : "exch", title: "Exchange"},
+								{data : "fullpaid", title: "Fully Paid"},
+								{data : "ppa", title: "Payment Paid Amount"},
 								],
 								"order": [[ 0, 'desc' ]],
 							});
-							activityLog.rows.add(dashPaymentScope.logs).draw();
-							// activityLog.fnAddData(dashInfoScope.logs, true);
-							// activityLog.draw();
+							debtLog.rows.add(dashPaymentScope.debtLog).draw();
 						} else {
-							var page = angular.copy(activityLog.page());
-							activityLog.rows().remove();
-							activityLog.rows.add(dashPaymentScope.logs).draw(false);
-							activityLog.page(page).draw(false);
-							// activityLog.fnDraw(false)
-							// activityLog.fnAddData(dashInfoScope.logs);
-							// activityLog.draw();
+							var page = angular.copy(debtLog.page());
+							debtLog.rows().remove();
+							debtLog.rows.add(dashPaymentScope.logs).draw(false);
+							debtLog.page(page).draw(false);
+						}
+						if (!$.fn.DataTable.isDataTable('#paidlog')) {
+							paidLog = $('#paidlog').DataTable({
+								filter: false,
+								columns: [
+								{data : "paymentdate", title: "Payment Date"},
+								{data : "btcpaid", title: "BTC Paid"},
+								{data : "btctrandate", title: "BTC Transaction Date"},
+								{data : "btctranid", title: "BTC Transaction ID"},
+								{data : "ethpaid", title: "ETH Paid"},
+								{data : "ethtrandate", title: "ETH Transaction Date"},
+								{data : "ethtranid", title: "ETH Transaction ID"},
+								{data : "addr", title: "Address"},
+								],
+								"order": [[ 0, 'desc' ]],
+							});
+							paidLog.rows.add(dashPaymentScope.paidLog).draw();
+						} else {
+							var page = angular.copy(paidLog.page());
+							paidLog.rows().remove();
+							paidLog.rows.add(dashPaymentScope.logs).draw(false);
+							paidLog.page(page).draw(false);
 						}
 					});
 				}
@@ -282,12 +314,13 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 		}
 
 		//init
-		paymentLogsPromise = $interval(() => {dashPaymentScope.getPaymentHistory();}, 5000)
+		dashPaymentScope.getPaymentHistory();
+		// paymentLogsPromise = $interval(() => {dashPaymentScope.getPaymentHistory();}, 5000)
 		//--
 	}]);
 
-app.controller('dashSettingsUserController', ['$scope', '$http', '$log',
-	function($scope, $http, $log) {
+app.controller('dashSettingsUserController', ['$scope', '$http', '$log', '$timeout',
+	function($scope, $http, $log, $timeout) {
 		var dashSettingsUserScope = $scope;
 
 		dashSettingsUserScope.create2FA = function() {
@@ -408,6 +441,117 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log',
 			})
 		}
 
+		dashSettingsUserScope.changeExpiry = function() {
+			dashSettingsUserScope.changeExpirySuccess = '';
+			dashSettingsUserScope.changeExpiryError = '';
+			$http(
+			{
+				method: 'POST',
+				url: '/dashboard/settings/changeexpiry',
+				data : $.param({
+					sesexp: (parseInt(rangeTimeSliderValue)*60000), //must be in milliseconds
+				}),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				withCredentials: true
+			})
+			.then((res) => {
+				//success
+				$log.info("ChangeExpiry: Success.");
+				dashSettingsUserScope.changeExpirySuccess = 'Change Expiry Time was Successful!';
+			}, (err) => {
+				//error
+				$log.error("ChangeExpiry: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				dashSettingsUserScope.changeExpiryError = err.data.error;
+			});
+		}
+
+		dashSettingsUserScope.getExpiry = function() {
+			$http(
+			{
+				method: 'GET',
+				url: '/dashboard/settings/getexpiry',
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				withCredentials: true
+			})
+			.then((res) => {
+				//success
+				$log.info("GetExpiry: Success.");
+				dashSettingsUserScope.rangeTimeCur = parseInt(res.data.sesexp)/60000;
+				$timeout(() => {
+					init_range_time_slider(dashSettingsUserScope.rangeTimeMin, dashSettingsUserScope.rangeTimeMax, dashSettingsUserScope.rangeTimeCur);
+				});
+			}, (err) => {
+				//error
+				$log.error("GetExpiry: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+			});
+		}
+
+		dashSettingsUserScope.deleteSession = function(sessionId) {
+			dashSettingsUserScope.deleteSessionSuccess = '';
+			dashSettingsUserScope.deleteSessionError = '';
+			$http(
+			{
+				method: 'POST',
+				url: '/dashboard/settings/deletesession',
+				data : $.param({
+					sesid: sessionId,
+				}),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				withCredentials: true
+			})
+			.then((res) => {
+				//success
+				$log.info("DeleteSession: Success.");
+				dashSettingsUserScope.deleteSessionSuccess = 'Delete Session Successful!';
+				dashSettingsUserScope.userSessions = res.data.ses;
+			}, (err) => {
+				//error
+				$log.error("DeleteSession: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				dashSettingsUserScope.deleteSessionError = err.data.error;
+			});
+		}
+		
+		dashSettingsUserScope.setReferee = function() {
+			dashSettingsUserScope.setRefereeSuccess = '';
+			dashSettingsUserScope.setRefereeError = '';
+			$http(
+			{
+				method: 'POST',
+				url: '/dashboard/settings/setreferee',
+				data : $.param({
+					ref: dashSettingsUserScope.referee,
+				}),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				withCredentials: true
+			})
+			.then((res) => {
+				//success
+				$log.info("setReferee: Success.");
+				dashSettingsUserScope.setRefereeSuccess = 'Referee Code set successfully!';
+			}, (err) => {
+				//error
+				$log.error("setReferee: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				dashSettingsUserScope.setRefereeError = err.data.error;
+			});
+		}
+
+		dashSettingsUserScope.getHasReferee = function() {
+			$http(
+			{
+				method: 'GET',
+				url: '/dashboard/settings/hasreferee',
+				withCredentials: true
+			})
+			.then((res) => {
+				//success
+				$log.info("getHasReferee: Success.");
+				dashSettingsUserScope.hasReferee = res.data.ref;
+			}, (err) => {
+				//error
+				$log.error("getHasReferee: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+			});
+		}
+
 		//init
 		dashSettingsUserScope.loadingEnable2FA = false;
 		dashSettingsUserScope.loadingCreate2FA = false;
@@ -417,16 +561,27 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log',
 		dashSettingsUserScope.enable2FAError = '';
 		dashSettingsUserScope.verifiedError = '';
 		dashSettingsUserScope.changePassError = '';
+		dashSettingsUserScope.setRefereeError = '';
+		dashSettingsUserScope.changeExpiryError = '';
+		dashSettingsUserScope.deleteSessionError = '';
 
 		dashSettingsUserScope.enable2FASuccess = '';
 		dashSettingsUserScope.verifiedSuccess = '';
 		dashSettingsUserScope.changePassSuccess = '';
+		dashSettingsUserScope.setRefereeSuccess = '';
+		dashSettingsUserScope.changeExpirySuccess = '';
+		dashSettingsUserScope.deleteSessionSuccess = '';
 
 		dashSettingsUserScope.pass2FA = '';
 		dashSettingsUserScope.token = '';
 		dashSettingsUserScope.pass = '';
 		dashSettingsUserScope.passNew = '';
 		dashSettingsUserScope.passNew2 = '';
+
+		dashSettingsUserScope.hasReferee = false;
+		dashSettingsUserScope.getHasReferee();
+		dashSettingsUserScope.getExpiry();
+		init_IonRangeSlider();
 		//----
 	}]);
 
@@ -656,6 +811,99 @@ function init_InputMask() {
 	console.log('init_InputMask');
 	$(":input").inputmask();
 };
+
+var rangeTimeSliderValue = 0;
+
+/* ION RANGE SLIDER */
+
+function init_IonRangeSlider() {
+
+	if( typeof ($.fn.ionRangeSlider) === 'undefined'){ return; }
+	console.log('init_IonRangeSlider');
+
+	$("#range_27").ionRangeSlider({
+		type: "double",
+		min: 1000000,
+		max: 2000000,
+		grid: true,
+		force_edges: true
+	});
+	$("#range").ionRangeSlider({
+		hide_min_max: true,
+		keyboard: true,
+		min: 0,
+		max: 5000,
+		from: 1000,
+		to: 4000,
+		type: 'double',
+		step: 1,
+		prefix: "$",
+		grid: true
+	});
+	$("#range_25").ionRangeSlider({
+		type: "double",
+		min: 1000000,
+		max: 2000000,
+		grid: true
+	});
+	$("#range_26").ionRangeSlider({
+		type: "double",
+		min: 0,
+		max: 10000,
+		step: 500,
+		grid: true,
+		grid_snap: true
+	});
+	$("#range_31").ionRangeSlider({
+		type: "double",
+		min: 0,
+		max: 100,
+		from: 30,
+		to: 70,
+		from_fixed: true
+	});
+	$(".range_min_max").ionRangeSlider({
+		type: "double",
+		min: 0,
+		max: 100,
+		from: 30,
+		to: 70,
+		max_interval: 50
+	});
+	$(".range_time24").ionRangeSlider({
+		min: +moment().subtract(12, "hours").format("X"),
+		max: +moment().format("X"),
+		from: +moment().subtract(6, "hours").format("X"),
+		grid: true,
+		force_edges: true,
+		prettify: function(num) {
+			var m = moment(num, "X");
+			return m.format("Do MMMM, HH:mm");
+		}
+	});
+};
+
+function init_range_time_slider(min, max, cur) {
+	$("#range_time_slider").ionRangeSlider({
+		type: "single",
+		min: min,
+		max: max,
+		from: cur,
+		prettify: function(num) {
+			rangeTimeSliderValue = num;
+			if (num < 60) {
+				return num + " Minutes"
+			}
+			var n = parseInt(num/60), h = " Hour ";
+			if (n > 1) {
+				h = " Hours "
+			}
+			return n + h + num%60 + " Minutes";
+		}
+	});
+}
+
+
 
 var backgroundColor =[
 "#00BFFF",
