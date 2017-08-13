@@ -29,10 +29,6 @@ func (b *Bee) FetchUser(username string) (*userdb.User, error) {
 	return b.userDB.FetchUserWithSelector(username, selector)
 }
 
-func (b *Bee) InsertNewDebt(debt payment.Debt) error {
-	return b.paymentDB.InsertNewDebt(debt)
-}
-
 // --NOTE: Uses Loan Date to calculate time--
 //pass in duration of time since oldest debt
 //used for telling if should stop lending

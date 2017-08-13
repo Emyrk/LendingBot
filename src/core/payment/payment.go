@@ -208,8 +208,8 @@ func (p *PaymentDatabase) getStatusReferralGiven(referralCode string, c *mgo.Col
 
 type Debt struct {
 	//ID is set by database and is unique
-	ID                   *bson.ObjectId `json:"_id,omitempty" bson:"_id,omitempty"`
-	ExchangeID           int
+	ID                   *bson.ObjectId      `json:"_id,omitempty" bson:"_id,omitempty"`
+	ExchangeID           int                 `json:"exchid" bson:"exchid"`
 	LoanDate             time.Time           `json:"loandate" bson:"loandate"`
 	Charge               int64               `json:"charge" bson:"charge"`
 	AmountLoaned         int64               `json:"amountloaned" bson:"amountloaned"`
