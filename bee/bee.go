@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"strconv"
 	"sync"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/Emyrk/LendingBot/slack"
 	"github.com/Emyrk/LendingBot/src/core/database/mongo"
 	"github.com/Emyrk/LendingBot/src/core/payment"
+	"github.com/Emyrk/LendingBot/src/core/poloniex"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 
 	"github.com/Emyrk/LendingBot/balancer/security"
@@ -484,4 +486,57 @@ func (b *Bee) NewParcel() *balancer.Parcel {
 	p := new(balancer.Parcel)
 	p.ID = b.ID
 	return p
+}
+
+/*
+//		>LoanDate
+//		>AmountLoaned
+//		>LoanRate
+//		>GrossAmountEarned
+//		>Currency
+//		CurrencyToBTC
+//		CurrencyToETH
+//		>Exchange
+//		>Username
+*/
+
+func (b *Bee) AddPoloniexDebt(username string, loan poloniex.PoloniexAuthentictedLendingHistory) error {
+	var d payment.Debt
+	dt, err := time.Parse("2006-01-02 15:04:05", loan.Close)
+	if err != nil {
+		return err
+	}
+
+	d.LoanDate = dt
+	d.ExchangeID = loan.ID
+	amt, err := strconv.ParseFloat(loan.Amount, 64)
+	if err != nil {
+		return err
+	}
+
+	d.AmountLoaned = int64(amt * 1e8)
+
+	rate, err := strconv.ParseFloat(loan.Rate, 64)
+	if err != nil {
+		return err
+	}
+	d.LoanRate = rate
+
+	fee, err := strconv.ParseFloat(loan.Fee, 64)
+	if err != nil {
+		return err
+	}
+	earned, err := strconv.ParseFloat(loan.Earned, 64)
+	if err != nil {
+		return err
+	}
+	grossAmt := earned + (-1 * fee)
+	d.GrossAmountEarned = int64(grossAmt * 1e8)
+
+	d.GrossBTCAmountEarned = int64(b.LendingBot.GetBTCAmount(grossAmt, loan.Currency) * 1e8)
+	d.Currency = loan.Currency
+	d.Exchange = userdb.PoloniexExchange
+	d.Username = username
+
+	return b.paymentDB.InsertNewDebt(d)
 }

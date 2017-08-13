@@ -208,19 +208,21 @@ func (p *PaymentDatabase) getStatusReferralGiven(referralCode string, c *mgo.Col
 
 type Debt struct {
 	//ID is set by database and is unique
-	ID                *bson.ObjectId      `json:"_id,omitempty" bson:"_id,omitempty"`
-	LoanDate          time.Time           `json:"loandate" bson:"loandate"`
-	Charge            int64               `json:"charge" bson:"charge"`
-	AmountLoaned      int64               `json:"amountloaned" bson:"amountloaned"`
-	LoanRate          float64             `json:"loanrate" bson:"loanrate"`
-	GrossAmountEarned int64               `json:"gae" bson:"gae"`
-	Currency          string              `json:"cur" bson:"cur"`
-	CurrencyToBTC     int64               `json:"curBTC" bson:"curBTC"`
-	CurrencyToETH     int64               `json:"curETH" bson:"curETH"`
-	Exchange          userdb.UserExchange `json:"exch" bson:"exch"`
-	Username          string              `json:"email" bson:"email"`
-	FullPaid          bool                `json:"fullpaid" bson:"fullpaid"`
-	PaymentPaidAmount int64               `json:"ppa" bson:"ppa"`
+	ID                   *bson.ObjectId `json:"_id,omitempty" bson:"_id,omitempty"`
+	ExchangeID           int
+	LoanDate             time.Time           `json:"loandate" bson:"loandate"`
+	Charge               int64               `json:"charge" bson:"charge"`
+	AmountLoaned         int64               `json:"amountloaned" bson:"amountloaned"`
+	LoanRate             float64             `json:"loanrate" bson:"loanrate"`
+	GrossAmountEarned    int64               `json:"gae" bson:"gae"`
+	GrossBTCAmountEarned int64               `json:"gaebtc" bson:"gaebtc"`
+	Currency             string              `json:"cur" bson:"cur"`
+	CurrencyToBTC        int64               `json:"curBTC" bson:"curBTC"`
+	CurrencyToETH        int64               `json:"curETH" bson:"curETH"`
+	Exchange             userdb.UserExchange `json:"exch" bson:"exch"`
+	Username             string              `json:"email" bson:"email"`
+	FullPaid             bool                `json:"fullpaid" bson:"fullpaid"`
+	PaymentPaidAmount    int64               `json:"ppa" bson:"ppa"`
 }
 
 func (u *Debt) MarshalJSON() ([]byte, error) {

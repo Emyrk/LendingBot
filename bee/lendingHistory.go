@@ -137,6 +137,15 @@ func (l *LendingHistoryKeeper) SavePoloniexMonth(username, accesskey, secretkey 
 					if err != nil {
 						flog.WithFields(log.Fields{"time": top.String()}).Errorf("Error saving Lending history: %s", err.Error())
 						break
+					} else {
+						// l.MyBee.
+						for _, loan := range resp.Data {
+							err := l.MyBee.AddPoloniexDebt(username, loan)
+							if err != nil {
+								// This person was not charged
+								flog.WithFields(log.Fields{"time": top.String()}).Errorf("Error charging user: %s", err.Error())
+							}
+						}
 					}
 				}
 			}
