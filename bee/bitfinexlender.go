@@ -240,7 +240,7 @@ func (bl *BitfinexLender) ProcessBitfinexUser(u *LendUser) error {
 			bl.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("BitfinexBot encountered an error: %s", err.Error()))
 			return err
 		}
-		o, err := api.NewOffer(lower, avail, last, 2, "lend")
+		o, err := api.NewOffer(lower, avail, 0, 2, "lend")
 		if err != nil {
 			//l.Bee.AddBotActivityLogEntry(u.U.Username, fmt.Sprintf("BitfinexBot encountered an error creating loan: %s", err.Error()))
 			logmsg += fmt.Sprintf("   Loan made for %f %s at %f\n", avail, c, last)
