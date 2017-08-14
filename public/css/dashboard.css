@@ -38,10 +38,47 @@
 	max-width: 100%;
 }
 
+.greenClass .big-icon {
+	color: green;
+}
+
+.redClass .big-icon {
+	color: red;
+}
+
+.big-icon {
+	font-size: 32px;
+}
+
 .nav-sm .dashboard-logo-big {
 	display: none;
 }
 
 .nav-md .dashboard-logo-small {
 	display: none;
+}
+
+.greenClass {
+	background-color: #d8f9d2;
+}
+
+.greenClass.odd {
+	background-color: #cae8c4 !important;
+}
+
+.yellowClass {
+	background-color: #f9f2d2;
+}
+
+.yellowClass.odd {
+	background-color: #e6e0c3 !important;
+}
+
+
+.redClass {
+	background-color: #f9d2d2;
+}
+
+.redClass.odd {
+	background-color: #e6c6c6 !important;
 }

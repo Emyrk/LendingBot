@@ -407,12 +407,26 @@ func (s *State) EnableUserLending(username string, c string, exchange userdb.Use
 	if err != nil {
 		return err
 	}
+
+	// Ensure no nils
+	if u.PoloniexEnabledTime == nil {
+		u.PoloniexEnabledTime = make(map[string]time.Time)
+	}
+
 	switch exchange {
 	case userdb.PoloniexExchange:
 		var coins userdb.PoloniexEnabledStruct
 		err := json.Unmarshal([]byte(c), &coins)
 		if err != nil {
 			return err
+		}
+		before := u.PoloniexEnabled.GetAll()
+		after := coins.GetAll()
+		for i := range before {
+			// Set to true
+			if after[i].Enabled && !before[i].Enabled {
+				u.PoloniexEnabledTime[after[i].Currency] = time.Now()
+			}
 		}
 		u.PoloniexEnabled.Enable(coins)
 		break

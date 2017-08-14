@@ -716,6 +716,36 @@ type EnabledStruct struct {
 	Enabled  bool   `json:"enabled"`
 }
 
+func (m *PoloniexEnabledStruct) Get(currency string) bool {
+	switch currency {
+	case "BTC":
+		return m.BTC
+	case "BTS":
+		return m.BTS
+	case "CLAM":
+		return m.CLAM
+	case "DOGE":
+		return m.DOGE
+	case "DASH":
+		return m.DASH
+	case "LTC":
+		return m.LTC
+	case "MAID":
+		return m.MAID
+	case "STR":
+		return m.STR
+	case "XMR":
+		return m.XMR
+	case "XRP":
+		return m.XRP
+	case "ETH":
+		return m.ETH
+	case "FCT":
+		return m.FCT
+	}
+	return false
+}
+
 func (pe *PoloniexEnabledStruct) GetAll() []EnabledStruct {
 	var arr []EnabledStruct
 	arr = append(arr, EnabledStruct{"BTC", pe.BTC})

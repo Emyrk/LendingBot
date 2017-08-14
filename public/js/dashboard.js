@@ -263,17 +263,27 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 								filter: false,
 								columns: [
 								{data : "loandate", title: "Loan Date"},
+								{data : "gae", title: "Gross Amount Earned"},
+								{data : "gaebtc", title: "Gross BTC Amount Earned"},
 								{data : "charge", title: "Charge"},
 								{data : "amountloaned", title: "Amount Loaned"},
 								{data : "loanrate", title: "Loan Rate"},
-								{data : "gae", title: "Gross Amount Earned"},
 								{data : "cur", title: "Currency"},
-								{data : "curBTC", title: "Currency to BTC"},
-								{data : "curETH", title: "Currency to ETH"},
 								{data : "exch", title: "Exchange"},
 								{data : "fullpaid", title: "Fully Paid"},
 								{data : "ppa", title: "Payment Paid Amount"},
 								],
+								"createdRow": function( row, data, dataIndex){
+									if( data[8] ==  true ){
+					                	$(row).addClass('greenClass');
+					                } else {
+					                	if( data[9] >  0 ){
+					                		$(row).addClass('yellowClass');
+					               		} else {
+					               			$(row).addClass('redClass');
+					               		}
+					                }
+								},
 								"order": [[ 0, 'desc' ]],
 							});
 							debtLog.rows.add(dashPaymentScope.debtlog).draw();
