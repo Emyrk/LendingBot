@@ -256,7 +256,7 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 				dashPaymentScope.debtlog = res.data.debt;
 				dashPaymentScope.paidlog = res.data.paid;
 				dashPaymentScope.status = res.data.status;
-				if (dashPaymentScope.logs) {
+				if (res.data) {
 					$timeout(() => {
 						if (!$.fn.DataTable.isDataTable('#debtlog')) {
 							debtLog = $('#debtlog').DataTable({

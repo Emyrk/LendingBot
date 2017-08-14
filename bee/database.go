@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/Emyrk/LendingBot/src/core/database/mongo"
-	"github.com/Emyrk/LendingBot/src/core/payment"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"gopkg.in/mgo.v2/bson"
 )
