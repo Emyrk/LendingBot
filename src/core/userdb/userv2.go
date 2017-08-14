@@ -123,9 +123,10 @@ type User struct {
 	Verified     bool   `json:"verified"`
 	VerifyString string `json:"verifystring"`
 
-	PoloniexMiniumLend PoloniexMiniumumLendStruct `json:"polominlend"`
-	PoloniexEnabled    PoloniexEnabledStruct      `json:"poloenabled"`
-	PoloniexKeys       *ExchangeKeys              `json:"polokeys"`
+	PoloniexMiniumLend  PoloniexMiniumumLendStruct `json:"polominlend"`
+	PoloniexEnabled     PoloniexEnabledStruct      `json:"poloenabled"`
+	PoloniexEnabledTime map[string]time.Time       `json:"poloenabledtime"` // When activated
+	PoloniexKeys        *ExchangeKeys              `json:"polokeys"`
 
 	BitfinexMiniumumLend BitfinexMiniumumLendStruct
 	BitfinexEnabled      BitfinexEnabledStruct
@@ -180,6 +181,7 @@ func NewBlankUser() *User {
 	u.User2FA = new(primitives.Totp)
 	u.PoloniexKeys = NewBlankExchangeKeys()
 	u.BitfinexKeys = NewBlankExchangeKeys()
+	u.PoloniexEnabledTime = make(map[string]time.Time)
 	return u
 }
 

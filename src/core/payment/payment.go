@@ -283,30 +283,36 @@ type Debt struct {
 }
 
 func (u *Debt) MarshalJSON() ([]byte, error) {
+	formatFloat := func(f float64) string {
+		return fmt.Sprintf("%.8f", f)
+	}
+
 	return json.Marshal(&struct {
-		LoanDate          time.Time `json:"loandate"`
-		Charge            int64     `json:"charge"`
-		AmountLoaned      int64     `json:"amountloaned"`
-		LoanRate          float64   `json:"loanrate"`
-		GrossAmountEarned int64     `json:"gae"`
-		Currency          string    `json:"cur"`
-		CurrencyToBTC     int64     `json:"curBTC"`
-		CurrencyToETH     int64     `json:"curETH"`
-		Exchange          string    `json:"exch"`
-		FullPaid          bool      `json:"fullpaid"`
-		PaymentPaidAmount int64     `json:"ppa"`
+		LoanDate             string `json:"loandate"`
+		Charge               string `json:"charge"`
+		AmountLoaned         string `json:"amountloaned"`
+		LoanRate             string `json:"loanrate"`
+		GrossAmountEarned    string `json:"gae"`
+		GrossBTCAmountEarned string `json:"gaebtc"`
+		Currency             string `json:"cur"`
+		CurrencyToBTC        int64  `json:"curBTC"`
+		CurrencyToETH        int64  `json:"curETH"`
+		Exchange             string `json:"exch"`
+		FullPaid             bool   `json:"fullpaid"`
+		PaymentPaidAmount    string `json:"ppa"`
 	}{
-		u.LoanDate,
-		u.Charge,
-		u.AmountLoaned,
-		u.LoanRate,
-		u.GrossAmountEarned,
+		u.LoanDate.Format("2006-01-02 15:04:05"),
+		formatFloat(float64(u.Charge)/1e8) + " BTC",
+		formatFloat(float64(u.AmountLoaned) / 1e8),
+		fmt.Sprintf("%.4f%%", u.LoanRate*100),
+		formatFloat(float64(u.GrossAmountEarned) / 1e8),
+		formatFloat(float64(u.GrossBTCAmountEarned) / 1e8),
 		u.Currency,
 		u.CurrencyToBTC,
 		u.CurrencyToETH,
 		u.Exchange.ExchangeToFullName(),
 		u.FullPaid,
-		u.PaymentPaidAmount,
+		formatFloat(float64(u.PaymentPaidAmount) / 1e8),
 	})
 }
 

@@ -80,8 +80,9 @@ func (l *LendingHistoryKeeper) FindStart(username string, startTime time.Time, e
 	return start
 }
 
-func (l *LendingHistoryKeeper) SavePoloniexMonth(username, accesskey, secretkey string) bool {
+func (l *LendingHistoryKeeper) SavePoloniexMonth(user *userdb.User, accesskey, secretkey string) bool {
 	flog := llog.WithField("func", "SavePoloniexMonth").WithField("exch", "Poloniex")
+	username := user.Username
 	l.WorkOnLockPolo.RLock()
 	v, ok := l.WorkingOnPolo[username]
 	l.WorkOnLockPolo.RUnlock()
@@ -140,10 +141,12 @@ func (l *LendingHistoryKeeper) SavePoloniexMonth(username, accesskey, secretkey 
 					} else {
 						// l.MyBee.
 						for _, loan := range resp.Data {
-							err := l.MyBee.AddPoloniexDebt(username, loan)
-							if err != nil {
-								// This person was not charged
-								flog.WithFields(log.Fields{"time": top.String()}).Errorf("Error charging user: %s", err.Error())
+							if user.PoloniexEnabled.Get(loan.Currency) && user.PoloniexEnabledTime != nil && user.PoloniexEnabledTime[loan.Currency].Before(time.Now()) {
+								err := l.MyBee.AddPoloniexDebt(username, loan)
+								if err != nil {
+									// This person was not charged
+									flog.WithFields(log.Fields{"time": top.String()}).Errorf("Error charging user: %s", err.Error())
+								}
 							}
 						}
 					}
