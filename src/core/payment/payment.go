@@ -611,7 +611,7 @@ func (p *PaymentDatabase) InsertNewDebt(debt Debt) error {
 	var final int64
 	final = STARTING_CHARGE - userStatus.CustomChargeReduction - discount
 
-	debt.Charge = (debt.GrossAmountEarned * final) / SATOSHI_INT
+	debt.Charge = (debt.GrossBTCAmountEarned * final) / SATOSHI_INT
 	debt.FullPaid = false
 	debt.PaymentPaidAmount = 0
 	debt.ID = nil
