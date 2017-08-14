@@ -104,8 +104,12 @@ func (s *State) MakePayment(username string, paid payment.Paid) error {
 	if err != nil {
 		return fmt.Errorf("Error adding pay debt: %s", err.Error())
 	}
-	err = s.paymentDB.PayDebts(username, paid)
-	if err != nil {
+
+	if err = s.paymentDB.RecalcAllStatusCredits(username); err != nil {
+		return fmt.Errorf("Error recalcing: %s", err.Error())
+	}
+
+	if err = s.paymentDB.PayDebts(username, paid); err != nil {
 		return fmt.Errorf("Error paying debts: %s", err.Error())
 	}
 	return nil

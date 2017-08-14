@@ -78,7 +78,6 @@ func (p *PaymentDatabase) Close() error {
 
 type Status struct {
 	Username              string    `json:"email" bson:"_id"`
-	TotalDebt             int64     `json:"tdebt" bson:"tdebt"`
 	UnspentCredits        int64     `json:"unspentcred" bson:"unspentcred"`
 	SpentCredits          int64     `json:"spentcred" bson:"spentcred"`
 	CustomChargeReduction float64   `json:"customchargereduc" bson:"customchargereduc"`
@@ -89,7 +88,6 @@ type Status struct {
 
 func (u *Status) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
-		TotalDebt             int64     `json:"tdebt"`
 		UnspentCredits        int64     `json:"unspentcred"`
 		SpentCredits          int64     `json:"spentcred"`
 		CustomChargeReduction float64   `json:"customchargereduc"`
@@ -97,7 +95,6 @@ func (u *Status) MarshalJSON() ([]byte, error) {
 		RefereeTime           time.Time `json:"refereetime"`
 		ReferralCode          string    `json:"referralcode"`
 	}{
-		u.TotalDebt,
 		u.UnspentCredits,
 		u.SpentCredits,
 		u.CustomChargeReduction,
@@ -205,6 +202,65 @@ func (p *PaymentDatabase) getStatusReferralGiven(referralCode string, c *mgo.Col
 		return nil, err
 	}
 	return &result, nil
+}
+
+func (p *PaymentDatabase) RecalcAllStatusCredits(username string) error {
+	var (
+		debt int64
+		paid int64
+	)
+
+	s, c, err := p.db.GetCollection(mongo.C_Debt)
+	if err != nil {
+		return fmt.Errorf("GetAllDebts: getcol: %s", err)
+	}
+	defer s.Close()
+
+	o1 := bson.D{{"$match", bson.M{"_id": username}}}
+	o2 := bson.D{{
+		"$group", bson.M{
+			"_id":   nil,
+			"total": bson.M{"$sum": "$charge"},
+		},
+	}}
+	ops := []bson.D{o1, o2}
+
+	var result bson.M
+	err = c.Pipe(ops).All(result)
+	if err != nil {
+		return fmt.Errorf("Error total debt: %s", err.Error())
+	}
+
+	debt = result["total"].(int64)
+
+	o1 = bson.D{{"$match", bson.M{"_id": username}}}
+	o2 = bson.D{{
+		"$group", bson.M{
+			"_id":   nil,
+			"total": bson.M{"$sum": "$btcpaid"},
+		},
+	}}
+	ops = []bson.D{o1, o2}
+
+	err = s.DB(p.db.DbName).C(mongo.C_Paid).Pipe(ops).All(result)
+	if err != nil {
+		return fmt.Errorf("Error total paid: %s", err.Error())
+	}
+
+	paid = result["total"].(int64)
+
+	update := bson.M{
+		"$set": bson.M{
+			"unspentcred": paid - debt,
+			"spentcred":   paid,
+		},
+	}
+
+	err = s.DB(p.db.DbName).C(mongo.C_Status).UpdateId(username, update)
+	if err != nil {
+		return fmt.Errorf("Error setting status: %s", err.Error())
+	}
+	return nil
 }
 
 type Debt struct {
@@ -467,7 +523,6 @@ func (p *PaymentDatabase) GenerateReferralCode(username string) (*Status, error)
 	if st == nil {
 		st = &Status{
 			Username:              username,
-			TotalDebt:             0,
 			UnspentCredits:        0,
 			SpentCredits:          0,
 			CustomChargeReduction: 0,
@@ -506,6 +561,11 @@ func (p *PaymentDatabase) GenerateReferralCode(username string) (*Status, error)
 }
 
 func (p *PaymentDatabase) PayDebts(username string, paid Paid) error {
+	status, err := p.GetStatusIfFound(username)
+	if err != nil {
+		return fmt.Errorf("Error grabbing user stats: %s", err.Error())
+	}
+
 	//only grab non-paid debts
 	debts, err := p.GetDebtsLimitSortIfFound(username, 2, -1, -1)
 	if err != nil {
@@ -513,7 +573,7 @@ func (p *PaymentDatabase) PayDebts(username string, paid Paid) error {
 	}
 
 	//pay off debts one at a time
-	btcLeft := paid.BTCPaid
+	btcLeft := paid.BTCPaid + status.UnspentCredits
 	for i := len(debts) - 1; i >= 0; i-- {
 		if btcLeft >= debts[i].Charge-debts[i].PaymentPaidAmount {
 			//if btcPaid is greater then this one debt
