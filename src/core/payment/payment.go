@@ -205,6 +205,10 @@ func (p *PaymentDatabase) getStatusReferralGiven(referralCode string, c *mgo.Col
 }
 
 func (p *PaymentDatabase) RecalcAllStatusCredits(username string) error {
+	return p.RecalcMultiAllStatusCredits([]string{username})
+}
+
+func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error {
 	var (
 		debt int64
 		paid int64
@@ -215,50 +219,51 @@ func (p *PaymentDatabase) RecalcAllStatusCredits(username string) error {
 		return fmt.Errorf("GetAllDebts: getcol: %s", err)
 	}
 	defer s.Close()
+	for _, username := range usernames {
+		o1 := bson.D{{"$match", bson.M{"_id": username}}}
+		o2 := bson.D{{
+			"$group", bson.M{
+				"_id":   nil,
+				"total": bson.M{"$sum": "$charge"},
+			},
+		}}
+		ops := []bson.D{o1, o2}
 
-	o1 := bson.D{{"$match", bson.M{"_id": username}}}
-	o2 := bson.D{{
-		"$group", bson.M{
-			"_id":   nil,
-			"total": bson.M{"$sum": "$charge"},
-		},
-	}}
-	ops := []bson.D{o1, o2}
+		var result bson.M
+		err = c.Pipe(ops).All(result)
+		if err != nil {
+			return fmt.Errorf("Error total debt: %s", err.Error())
+		}
 
-	var result bson.M
-	err = c.Pipe(ops).All(result)
-	if err != nil {
-		return fmt.Errorf("Error total debt: %s", err.Error())
-	}
+		debt = result["total"].(int64)
 
-	debt = result["total"].(int64)
+		o1 = bson.D{{"$match", bson.M{"_id": username}}}
+		o2 = bson.D{{
+			"$group", bson.M{
+				"_id":   nil,
+				"total": bson.M{"$sum": "$btcpaid"},
+			},
+		}}
+		ops = []bson.D{o1, o2}
 
-	o1 = bson.D{{"$match", bson.M{"_id": username}}}
-	o2 = bson.D{{
-		"$group", bson.M{
-			"_id":   nil,
-			"total": bson.M{"$sum": "$btcpaid"},
-		},
-	}}
-	ops = []bson.D{o1, o2}
+		err = s.DB(p.db.DbName).C(mongo.C_Paid).Pipe(ops).All(result)
+		if err != nil {
+			return fmt.Errorf("Error total paid: %s", err.Error())
+		}
 
-	err = s.DB(p.db.DbName).C(mongo.C_Paid).Pipe(ops).All(result)
-	if err != nil {
-		return fmt.Errorf("Error total paid: %s", err.Error())
-	}
+		paid = result["total"].(int64)
 
-	paid = result["total"].(int64)
+		update := bson.M{
+			"$set": bson.M{
+				"unspentcred": paid - debt,
+				"spentcred":   paid,
+			},
+		}
 
-	update := bson.M{
-		"$set": bson.M{
-			"unspentcred": paid - debt,
-			"spentcred":   paid,
-		},
-	}
-
-	err = s.DB(p.db.DbName).C(mongo.C_Status).UpdateId(username, update)
-	if err != nil {
-		return fmt.Errorf("Error setting status: %s", err.Error())
+		err = s.DB(p.db.DbName).C(mongo.C_Status).UpdateId(username, update)
+		if err != nil {
+			return fmt.Errorf("Error setting status: %s", err.Error())
+		}
 	}
 	return nil
 }
