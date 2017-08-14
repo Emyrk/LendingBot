@@ -19,6 +19,9 @@ type PaymentDatabase struct {
 
 	//mux for generating code
 	referralMux sync.Mutex
+
+	//mux for status updating. May need to optimize
+	recalcMux sync.Mutex
 }
 
 func NewPaymentDatabaseEmpty(uri, dbu, dbp string) (*PaymentDatabase, error) {
@@ -209,6 +212,10 @@ func (p *PaymentDatabase) RecalcAllStatusCredits(username string) error {
 }
 
 func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error {
+	//MAY NEED OPTIMIZE TO LOCK ONLY USERNAME LATER ON
+	p.recalcMux.Lock()
+	defer p.recalcMux.Unlock()
+
 	var (
 		debt int64
 		paid int64
@@ -219,7 +226,7 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 		return fmt.Errorf("GetAllDebts: getcol: %s", err)
 	}
 	defer s.Close()
-	for _, username := range usernames {
+	for _, usernameZ := range usernames {
 		o1 := bson.D{{"$match", bson.M{"_id": username}}}
 		o2 := bson.D{{
 			"$group", bson.M{
