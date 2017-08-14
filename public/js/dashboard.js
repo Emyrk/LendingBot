@@ -256,8 +256,8 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 				dashPaymentScope.debtlog = res.data.debt;
 				dashPaymentScope.paidlog = res.data.paid;
 				dashPaymentScope.status = res.data.status;
-				if (res.data) {
-					$timeout(() => {
+				$timeout(() => {
+					if (dashPaymentScope.debtlog) {
 						if (!$.fn.DataTable.isDataTable('#debtlog')) {
 							debtLog = $('#debtlog').DataTable({
 								filter: false,
@@ -283,6 +283,8 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 							debtLog.rows.add(dashPaymentScope.debtlog).draw(false);
 							debtLog.page(page).draw(false);
 						}
+					}
+					if (dashPaymentScope.paidlog) {
 						if (!$.fn.DataTable.isDataTable('#paidlog')) {
 							paidLog = $('#paidlog').DataTable({
 								filter: false,
@@ -305,8 +307,8 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 							paidLog.rows.add(dashPaymentScope.paidlog).draw(false);
 							paidLog.page(page).draw(false);
 						}
-					});
-				}
+					}
+				});
 			}, (err) => {
 				//error
 				$log.error("getPaymentHistory: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
