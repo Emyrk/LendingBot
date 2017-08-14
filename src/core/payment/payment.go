@@ -3,6 +3,7 @@ package payment
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -605,6 +606,10 @@ func (p *PaymentDatabase) InsertNewDebt(debt Debt) error {
 
 	paidUsReduc := float64(float64((userStatus.SpentCredits+userStatus.UnspentCredits)/REDUCTION_PAID_01) * 0.001)
 	discount := float64(referralReduc + paidUsReduc)
+	discount, err = strconv.ParseFloat(fmt.Sprintf("%.3f", discount), 64)
+	if err != nil {
+		return err
+	}
 	if discount > 0.035 {
 		discount = 0.035
 	}
