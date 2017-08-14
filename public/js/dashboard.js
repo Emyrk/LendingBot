@@ -276,11 +276,11 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 								],
 								"order": [[ 0, 'desc' ]],
 							});
-							debtLog.rows.add(dashPaymentScope.debtLog).draw();
+							debtLog.rows.add(dashPaymentScope.debtlog).draw();
 						} else {
 							var page = angular.copy(debtLog.page());
 							debtLog.rows().remove();
-							debtLog.rows.add(dashPaymentScope.logs).draw(false);
+							debtLog.rows.add(dashPaymentScope.debtlog).draw(false);
 							debtLog.page(page).draw(false);
 						}
 						if (!$.fn.DataTable.isDataTable('#paidlog')) {
@@ -298,11 +298,11 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 								],
 								"order": [[ 0, 'desc' ]],
 							});
-							paidLog.rows.add(dashPaymentScope.paidLog).draw();
+							paidLog.rows.add(dashPaymentScope.paidlog).draw();
 						} else {
 							var page = angular.copy(paidLog.page());
 							paidLog.rows().remove();
-							paidLog.rows.add(dashPaymentScope.logs).draw(false);
+							paidLog.rows.add(dashPaymentScope.paidlog).draw(false);
 							paidLog.page(page).draw(false);
 						}
 					});
