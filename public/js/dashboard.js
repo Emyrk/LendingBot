@@ -225,8 +225,8 @@ app.controller('dashInfoController', ['$scope', '$http', '$log', '$interval', '$
 		//----
 	}]);
 
-app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
-	function($scope, $http, $log, $interval) {
+app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval', '$timeout',
+	function($scope, $http, $log, $interval, $timeout) {
 		var dashPaymentScope = $scope;
 		var paidLog,
 		debtLog,
