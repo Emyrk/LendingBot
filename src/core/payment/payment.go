@@ -80,7 +80,7 @@ type Status struct {
 	TotalDebt             int64     `json:"tdebt" bson:"tdebt"`
 	UnspentCredits        int64     `json:"unspentcred" bson:"unspentcred"`
 	SpentCredits          int64     `json:"spentcred" bson:"spentcred"`
-	CustomChargeReduction int64     `json:"customchargereduc" bson:"customchargereduc"`
+	CustomChargeReduction float64   `json:"customchargereduc" bson:"customchargereduc"`
 	RefereeCode           string    `json:"refereecode" bson:"refereecode"` //(Person code who referred you)
 	RefereeTime           time.Time `json:"refereetime" bson:"refereetime"` //NOTE time is set to start of time until refereecode is set
 	ReferralCode          string    `json:"referralcode" bson:"referralcode"`
@@ -91,7 +91,7 @@ func (u *Status) MarshalJSON() ([]byte, error) {
 		TotalDebt             int64     `json:"tdebt"`
 		UnspentCredits        int64     `json:"unspentcred"`
 		SpentCredits          int64     `json:"spentcred"`
-		CustomChargeReduction int64     `json:"customchargereduc"`
+		CustomChargeReduction float64   `json:"customchargereduc"`
 		RefereeCode           string    `json:"refereecode"` //(Person code who referred you)
 		RefereeTime           time.Time `json:"refereetime"`
 		ReferralCode          string    `json:"referralcode"`
@@ -596,22 +596,21 @@ func (p *PaymentDatabase) InsertNewDebt(debt Debt) error {
 		return fmt.Errorf("Error finding user referrals: %s", err)
 	}
 
-	referralReduc := int64(0)
+	referralReduc := float64(0.0)
 	for _, r := range refs {
 		if r.SpentCredits+r.UnspentCredits > REDUCTION_CREDIT {
-			referralReduc += REDUCTION_REFERRAL
+			referralReduc += 0.005
 		}
 	}
 
-	paidUsReduc := ((userStatus.SpentCredits + userStatus.UnspentCredits) / REDUCTION_PAID_01) * REDUCTION_PAID_001
-	discount := referralReduc + paidUsReduc
-	if discount > MAX_DISCOUNT {
-		discount = MAX_DISCOUNT
+	paidUsReduc := float64(float64((userStatus.SpentCredits+userStatus.UnspentCredits)/REDUCTION_PAID_01) * 0.001)
+	discount := float64(referralReduc + paidUsReduc)
+	if discount > 0.035 {
+		discount = 0.035
 	}
-	var final int64
-	final = STARTING_CHARGE - userStatus.CustomChargeReduction - discount
+	final := float64(0.10 - userStatus.CustomChargeReduction - discount)
 
-	debt.Charge = (debt.GrossBTCAmountEarned * final) / SATOSHI_INT
+	debt.Charge = int64(float64(debt.GrossBTCAmountEarned) * final)
 	debt.FullPaid = false
 	debt.PaymentPaidAmount = 0
 	debt.ID = nil
