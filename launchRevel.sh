@@ -12,7 +12,7 @@ if [ "$1" = "prod" ] ; then
 	export MONGO_BAL_PASS=$4
 elif [ "$1" = "prodDev" ]; then
 	#Setting is used for testing in prod mode on dev server
-	export HODLZONE_KEY="0766f805c375d84f45554b835377744d92228708ac65b84284cf"
+	export HODLZONE_KEY="0766f805c375d84f45554b835377744d92228708ac65b84284cfcb34901846355"
 	export MONGO_REVEL_PASS="MadeUpPass"
 	export MONGO_BAL_PASS="MadeUpPass"
 else
