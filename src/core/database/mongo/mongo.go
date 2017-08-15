@@ -80,7 +80,7 @@ func (c *MongoDB) CreateSession() (*mgo.Session, error) {
 	var err error
 	if c.baseSession == nil {
 		var session *mgo.Session
-		if len(c.dbusername) > 0 && len(c.dbpass) > 0 {
+		if len(c.dbusername) > 0 && len(c.dbpass) > 0 && c.dbpass != "MadeUpPass" {
 			dialInfo := &mgo.DialInfo{
 				Addrs:    []string{c.uri},
 				Database: ADMIN_DB,
