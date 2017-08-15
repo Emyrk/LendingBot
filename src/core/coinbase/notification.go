@@ -1,4 +1,4 @@
-package payment
+package coinbase
 
 import (
 	"encoding/json"
