@@ -10,10 +10,10 @@
     </div>
     <div class="collapse navbar-collapse">
       <ul class="nav navbar-nav navbar-right">
-        <li><a href="/faq"></span> FAQ</a></li>
-        <li><a ng-show="!isLoggedIn" data-toggle="modal" data-target=".login-modal"></span> Login</a></li>
-        <li><a ng-show="!isLoggedIn" data-toggle="modal" data-target=".register-modal"></span> Signup</a></li>
-        <li><a ng-show="isLoggedIn" href="/dashboard"></span> Dashboard</a></li>
+        <li><a href="/faq"></span> [[msg . "index.header.faq"]]</a></li>
+        <li><a ng-show="!isLoggedIn" data-toggle="modal" data-target=".login-modal"></span> [[msg . "index.header.login"]]</a></li>
+        <li><a ng-show="!isLoggedIn" data-toggle="modal" data-target=".register-modal"></span> [[msg . "index.header.signup"]]</a></li>
+        <li><a ng-show="isLoggedIn" href="/dashboard"></span> [[msg . "index.header.dash"]]</a></li>
       </ul>
     </div><!--/.nav-collapse -->
   </div>
@@ -24,7 +24,7 @@
   <div class="modal-dialog modal-lg user-modal-shit">
     <div class="modal-content">
       <div class="modal-header">
-        <h4 class="modal-title">Login</h4>
+        <h4 class="modal-title">[[msg . "index.header.login"]]</h4>
       </div>
       <div class="modal-body">
         <div class="right_col" role="main">
@@ -36,29 +36,29 @@
                     <form target="temp" class="form-horizontal form-label-left loginRegisterForm" name="loginForm" novalidate="" autocomplete="on" id="loginForm" method="POST" action="/dashboard">
                       <div class="item form-group" ng-show="loginError.length > 0">
                         <div class="col-md-9 col-sm-9 col-xs-9 col-md-offset-3 col-sm-offset-3 col-xs-offset-3" style="color:red;">
-                          <strong>Error!</strong> {{loginError}}
+                          <strong>[[msg . "index.header.modal.error"]]</strong> {{loginError}}
                         </div>
                       </div>
                       <div class="item form-group">
-                        <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-xs-2 col-sm-offset-0" for="email">Email
+                        <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-xs-2 col-sm-offset-0" for="email">[[msg . "index.header.modal.email"]]
                         </label>
                         <div class="col-md-3 col-sm-3 col-xs-7">
                           <input tabindex=1 type="email" id="email" ng-model="login.email" name="username" required="required" class="form-control col-md-7 col-xs-12" ng-disabled="attemptingLogin" class="login-field" autocomplete="on">
                         </div>
                       </div>
                       <div class="item form-group">
-                        <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-sm-offset-0" for="password">Password
+                        <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-sm-offset-0" for="password">[[msg . "index.header.modal.pass"]]
                         </label>
                         <div class="col-md-3 col-sm-3 col-xs-7">
                           <input tabindex=2 id="passwordLogin" type="password" name="password" data-validate-length="6,100" class="form-control col-md-7 col-xs-12" required="required" ng-model="login.pass" ng-disabled="attemptingLogin" class="login-field" autocomplete="on">
                         </div>
                       </div>
                       <div class="item form-group">
-                        <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-sm-offset-0" for="twofa">2FA
+                        <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-sm-offset-0" for="twofa">[[msg . "index.header.modal.twofa"]]
                         </label>
                         <div class="col-md-3 col-sm-3 col-xs-7">
-                          <input id="twofa" type="text" name="twofa" data-validate-length="6,6" class="form-control col-md-7 col-xs-12" ng-model="login.twofa" ng-disabled="attemptingLogin" placeholder="Optional..." class="login-field" tabindex=3>
-                          <sub>Only required if you have activated with your account.</sub>
+                          <input id="twofa" type="text" name="twofa" data-validate-length="6,6" class="form-control col-md-7 col-xs-12" ng-model="login.twofa" ng-disabled="attemptingLogin" placeholder='[[msg . "index.header.modal.optional"]]' class="login-field" tabindex=3>
+                          <sub>[[msg . "index.header.modal.required"]]</sub>
                         </div>
                       </div>
                     </form>
@@ -72,9 +72,9 @@
       <div class="modal-footer">
         <div class="row">
           <div class="col-md-6 col-sm-8 col-xs-8">
-            <a href="/newpass/request" tabindex=6>Forgot Password?</a>
-            <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="cancelLogin()" tabindex=5>Cancel</button>
-            <button type="button" class="btn btn-success" ng-disabled="attemptingLogin || !loginForm.$valid" ng-click="login()" tabindex=4><span ng-show="attemptingLogin"><i class="fa fa-spinner fa-spin"></i></span>Login</button>
+            <a href="/newpass/request" tabindex=6>[[msg . "index.header.modal.forgotpass"]]</a>
+            <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="cancelLogin()" tabindex=5>[[msg . "index.header.modal.cancel"]]</button>
+            <button type="button" class="btn btn-success" ng-disabled="attemptingLogin || !loginForm.$valid" ng-click="login()" tabindex=4><span ng-show="attemptingLogin"><i class="fa fa-spinner fa-spin"></i></span>[[msg . "index.header.login"]]</button>
           </div>
         </div>
       </div>
@@ -88,7 +88,7 @@
   <div class="modal-dialog modal-lg user-modal-shit">
     <div class="modal-content">
       <div class="modal-header">
-        <h4 class="modal-title">Register a new account</h4>
+        <h4 class="modal-title">[[msg . "index.header.modal.registernew"]]</h4>
       </div>
       <div class="modal-body">
         <div class="right_col" role="main">
@@ -100,32 +100,32 @@
                     <form target="temp" class="form-horizontal form-label-left loginRegisterForm" name="registerForm" novalidate="" id="registerForm">
                       <div class="item form-group" ng-show="registerError.length > 0">
                         <div class="col-md-9 col-sm-9 col-xs-9 col-md-offset-3 col-sm-offset-3 col-xs-offset-3" style="color:red;">
-                          <strong>Error!</strong> {{registerError}}
+                          <strong>[[msg . "index.header.modal.error"]]</strong> {{registerError}}
                         </div>
                       </div>
                       <div class="item form-group">
-                        <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-xs-2 col-sm-offset-0" for="email">Email
+                        <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-xs-2 col-sm-offset-0" for="email">[[msg . "index.header.modal.email"]]
                         </label>
                         <div class="col-md-3 col-sm-3 col-xs-7">
                           <input type="email" id="email" ng-model="register.email" name="username" required="required" class="form-control col-md-7 col-xs-12" ng-disabled="attemptingRegister" class="login-field">
                         </div>
                       </div>
                       <div class="item form-group">
-                        <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-sm-offset-0" for="password">Password
+                        <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-sm-offset-0" for="password">[[msg . "index.header.modal.pass"]]
                         </label>
                         <div class="col-md-3 col-sm-3 col-xs-7">
                           <input id="regPassword" type="password" name="regPassword" data-validate-length="6,100" class="form-control col-md-7 col-xs-12" required="required" ng-model="register.pass" ng-disabled="attemptingRegister" class="login-field">
                         </div>
                       </div>
                       <div class="item form-group">
-                        <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-sm-offset-0" for="password2">Confirm Password
+                        <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-sm-offset-0" for="password2">[[msg . "index.header.modal.confirmpass"]]
                         </label>
                         <div class="col-md-3 col-sm-3 col-xs-7">
                           <input id="regPassword2" type="password" name="regPassword2" data-validate-length="6,100" class="form-control col-md-7 col-xs-12" ng-model="register.pass2" ng-disabled="attemptingRegister" required="required" data-validate-linked="regPassword" class="login-field">
                         </div>
                       </div>
                       <div class="item form-group">
-                        <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-sm-offset-0" for="invitecode">Invite Code
+                        <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-sm-offset-0" for="invitecode">[[msg . "index.header.modal.invitecode"]]
                         </label>
                         <div class="col-md-3 col-sm-3 col-xs-7">
                           <input id="invitecode" type="text" name="invitecode" data-validate-length="0,100" class="form-control col-md-7 col-xs-12" ng-model="register.invitecode" ng-disabled="attemptingRegister" class="login-field" required="required">
@@ -142,8 +142,8 @@
       <div class="modal-footer">
         <div class="row">
           <div class="col-md-6 col-sm-8 col-xs-8">
-            <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="cancelRegister()">Cancel</button>
-            <button type="button" class="btn btn-success" ng-disabled="attemptingRegister || !registerForm.$valid" ng-click="register()">Register</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="cancelRegister()">[[msg . "index.header.modal.cancel"]]</button>
+            <button type="button" class="btn btn-success" ng-disabled="attemptingRegister || !registerForm.$valid" ng-click="register()">[[msg . "index.header.modal.register"]]</button>
           </div>
         </div>
       </div>
