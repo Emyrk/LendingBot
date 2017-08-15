@@ -17,6 +17,7 @@ GET		/faq									App.FAQ
 GET		/contact								App.Contact
 GET		/information							App.Information
 GET		/donate									App.Donate
+GET		/termsandprivacy						App.TermsAndPrivacy
 
 GET		/verifyemail/:email/:hash				App.VerifyEmail
 GET		/verify/request                         AppAuthRequired.RequestEmailVerification
@@ -72,6 +73,9 @@ POST 	/dashboard/admin/conductAudit			AppAdmin.ConductAudit
 
 # Dash Payment 
 GET	 	/dashboard/payment 						AppAuthRequired.PaymentDashboard
+GET	 	/dashboard/deposit 						AppAuthRequired.DespositDashboard
+GET	 	/dashboard/prediction 					AppAuthRequired.PredictionDashboard
+
 
 # Dash DataCalls
 GET 	/dashboard/data/currentuserstats		AppAuthRequired.CurrentUserStats

@@ -37,6 +37,14 @@ app.config(['$routeProvider', '$locationProvider', '$httpProvider',
 			templateUrl : "/dashboard/payment",
 			controller : "dashPaymentController"
 		})
+		.when("/deposit",{
+			templateUrl : "/dashboard/deposit",
+			controller : "dashDepositController"
+		})
+		.when("/prediction",{
+			templateUrl : "/dashboard/prediction",
+			controller : "dashPredictionController"
+		})
 		.when("/logs",{
 			templateUrl : "/dashboard/logs",
 			controller : "dashLogsController"
@@ -597,6 +605,30 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log', '$timeo
 		//----
 	}]);
 
+app.controller('dashDepositController', ['$scope', '$http', '$log', '$timeout',
+	function($scope, $http, $log, $timeout) {
+		var dashSettingsLendingScope = $scope;
+		console.log("deposit")
+		$('#accept-deposit-box').on('change', function() { 
+			// From the other examples
+			if (this.checked) {
+				$("#deposit-coinbase-button").removeClass("disabled")
+			} else {
+				$("#deposit-coinbase-button").addClass("disabled")
+			}
+		});
+		//------
+
+	}]);
+
+app.controller('dashPredictionController', ['$scope', '$http', '$log', '$timeout',
+	function($scope, $http, $log, $timeout) {
+		var dashSettingsLendingScope = $scope;
+
+		//------
+
+	}]);
+
 app.controller('dashSettingsLendingController', ['$scope', '$http', '$log', '$timeout',
 	function($scope, $http, $log, $timeout) {
 		var dashSettingsLendingScope = $scope;
@@ -931,3 +963,8 @@ var backgroundColor =[
 "#FF6347"
 ]
 var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+// Disabling hrefs
+ $('.disabled').click(function(e){
+     e.preventDefault();
+  })

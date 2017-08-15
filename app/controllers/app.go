@@ -82,6 +82,12 @@ func (c App) Donate() revel.Result {
 	return c.RenderTemplate("App/Donate.html")
 }
 
+func (c App) TermsAndPrivacy() revel.Result {
+	c.ViewArgs["Inverse"] = true
+	AppPageHitDonate.Inc()
+	return c.RenderTemplate("App/TermsAndPrivacy.html")
+}
+
 func (c App) Information() revel.Result {
 	c.ViewArgs["Inverse"] = true
 	AppPageHitInformation.Inc()

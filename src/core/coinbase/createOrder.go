@@ -71,7 +71,13 @@ func CreatePayment(username string) ([]byte, error) {
 		return nil, err
 	}
 
-	// TODO: Authentication
+	// TODO: TEST AUTHENTICATION
+	api := apiKeyAuth("KEY", "SECRET")
+
+	err = api.authenticate(req, CheckoutAPIURL, data)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := client.Do(req)
 	if err != nil {

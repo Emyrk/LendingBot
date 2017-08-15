@@ -345,6 +345,15 @@ func (r AppAuthRequired) PaymentDashboard() revel.Result {
 	return r.RenderTemplate("AppAuthRequired/PaymentDashboard.html")
 }
 
+func (r AppAuthRequired) DespositDashboard() revel.Result {
+	fmt.Println("HITDEPSOIT")
+	return r.RenderTemplate("AppAuthRequired/DepositDashboard.html")
+}
+
+func (r AppAuthRequired) PredictionDashboard() revel.Result {
+	return r.RenderTemplate("AppAuthRequired/PredictionDashboard.html")
+}
+
 func (r AppAuthRequired) RequestEmailVerification() revel.Result {
 	llog := appAuthrequiredLog.WithField("method", "RequestEmailVerification")
 

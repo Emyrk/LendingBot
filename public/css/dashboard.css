@@ -82,3 +82,7 @@
 .redClass.odd {
 	background-color: #e6c6c6 !important;
 }
+
+.disabled {
+	cursor: not-allowed !important;
+}
