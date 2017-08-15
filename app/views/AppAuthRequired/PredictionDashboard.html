@@ -3,12 +3,7 @@
     <!-- Paid -->
     <div class="row">
       <div class="title_left">
-        <h1>Predictions</h1>
-        <h1>
-          {{status.refereecode}}
-          {{status.refereetime}}
-          {{status.referralcode}}
-        </h1>
+        <h1>Profit Projections</h1>
       </div>
     </div>
     <div class="row">
@@ -20,16 +15,16 @@
           </div>
           <div class="x_content">
 
-            <p>This page is designed to assist the user in predicting their potential earnings from lending. All predictions are based off the average lending rates over the last 30 days. This is by no means 100% accurate, as market trends can swing up or down, drastically changing the predictions. This is merely a tool to help users get a general sense of their potential earnings.</p>
+            <p>This page is designed to assist the user in predicting their potential earnings from lending. All projections are based off the average lending rates over the last 30 days. This is by no means 100% accurate, as market trends can swing up or down, drastically changing the projection. This is merely a tool to help users get a general sense of their potential earnings.</p>
           </div>
         </div>
       </div>
       <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
         <div class="x_panel">
           <div class="x_title">
-            <h2> Predictions for Token <small>Float left</small></h2>
+            <h2> Projections for Token <small>Float left</small></h2>
             <div class="clearfix"></div>
-            <p>All predictions will be made for lending rates on the Poloniex Exchange, and assume 100% lending uptime.</p>
+            <p>All predictions will be made for lending rates on the Poloniex Exchange.</p>
             <div class="clearfix"></div>
           </div>
           <div class="x_content">
@@ -37,9 +32,11 @@
               <div class="col-xs-offset-2">
                 <table class="prediction-input-table">
                   <tr>
-                    <td class="tooltip"><label>Token: </label> <span class="tooltiptext">Tooltip text</span></td>
+                  <!-- <span tooltip="Slide to the left" flow="left">Left</span> -->
+                    <td tooltip="Crypto currency to be lent" flow="left"><i class="fa fa-info-circle" aria-hidden="true"></i></td>
+                    <td>Token:</td>
                     <td>
-                      <select>
+                      <select id="prediction-token-selection">
                         <option value="BTC">BTC</option>
                         <option value="BTS">BTS</option>
                         <option value="CLAM">CLAM</option>
@@ -56,13 +53,79 @@
                     </td>
                   </tr>
                   <tr>
-                    <td><label>Quantity: </label></td>
-                    <td><input type="number" id="number" name="number"></td>
+                    <td tooltip="Amount of crypto currency to be lent" flow="left"><i class="fa fa-info-circle" aria-hidden="true"></i></td>
+                    <td>Quantity:</td>
+                    <td><input id="prediction-quanitity-input" type="number" id="number" name="number" value="1"> <span id="quantity-suffix">BTC</span></td>
+                  </tr>
+                  <tr>
+                    <td tooltip="Percentage of total being lent at all times" flow="left"><i class="fa fa-info-circle" aria-hidden="true"></i></td>
+                    <td>Uptime:</td>
+                    <td><input id="prediction-uptime-input" type="number" id="number" name="number" value="100"> %</td>
                   </tr>
                 </table>
                 <div class="clearfix"></div>
               </div>
             </div>
+
+            <p>Lending rates are represented in the interest per day. Interest rates are listed below are an average across the time duration specified. All predictions will use the average in the last 30 days. </p>
+            <div class="buffer"></div>
+            <h4 class="panel-title" style="width: 100%; text-align: center;">Lending Rates</h4>
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Last 30 Days</th>
+                  <th>Last 7 Days</th>
+                  <th>Last Day</th>
+                  <th>Current</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row" id="30-day">0.00%</th>
+                  <th id="7-day">0.00%</th>
+                  <th id="1-day">0.00%</th>
+                  <th id="0-day">0.00%</th>
+                </tr>
+              </tbody>
+            </table>
+            <div class="buffer"></div>
+            <h4 class="panel-title" style="width: 100%; text-align: center;">Projected Profits</h4>
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th tooltip="Amount of time to lend" flow="up"><i class="fa fa-info-circle" aria-hidden="true"></i> Time</th>
+                  <th tooltip="Amount of token earned" flow="up"><i class="fa fa-info-circle" aria-hidden="true"></i> Gross Profit</th>
+                  <th tooltip="Using current value of token to btc" flow="up"><i class="fa fa-info-circle" aria-hidden="true"></i> Gross Profit (BTC)</th>
+                  <th tooltip="Maximum fee used. Actual is lower" flow="up"><i class="fa fa-info-circle" aria-hidden="true"></i> Credits consumed (MAX)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr id="daily">
+                  <th scope="row">Daily</th>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+                <tr id="weekly">
+                  <th scope="row">Weekly</th>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+                <tr id="monthly">
+                  <th scope="row">Monthy</th>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+                <tr id="yearly">
+                  <th scope="row">Yearly</th>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

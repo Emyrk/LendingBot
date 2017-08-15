@@ -607,7 +607,7 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log', '$timeo
 
 app.controller('dashDepositController', ['$scope', '$http', '$log', '$timeout',
 	function($scope, $http, $log, $timeout) {
-		var dashSettingsLendingScope = $scope;
+		var dashDepositScope = $scope;
 		console.log("deposit")
 		$('#accept-deposit-box').on('change', function() { 
 			// From the other examples
@@ -623,11 +623,111 @@ app.controller('dashDepositController', ['$scope', '$http', '$log', '$timeout',
 
 app.controller('dashPredictionController', ['$scope', '$http', '$log', '$timeout',
 	function($scope, $http, $log, $timeout) {
-		var dashSettingsLendingScope = $scope;
+		var dashPredictionScope = $scope;
+
+		$("#prediction-token-selection").on('change', function() {
+			var token = $("#prediction-token-selection").val()
+			$("#quantity-suffix").text(token)
+			dashPredictionScope.currentToken = token
+			dashPredictionScope.getTokenValues()
+		})
+
+		$("#prediction-quanitity-input").on('input', function() {
+			dashPredictionScope.getTokenValues()
+		})
+
+		$("#prediction-uptime-input").on('input', function() {
+			dashPredictionScope.getTokenValues()
+		})
+
+		dashPredictionScope.getTokenValues = function() {
+			if(dashPredictionScope.cachedMap.get(dashPredictionScope.currentToken) === undefined) {
+				$http(
+				{
+					method: 'GET',
+					url: '/polostats',
+					params: {
+						token: dashPredictionScope.currentToken,
+					},
+					headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+					withCredentials: true
+				})
+				.then((res) => {
+				//success
+				$log.info("getTokenValues: Success.");
+				dashPredictionScope.cachedMap.set(dashPredictionScope.currentToken, res.data)
+				dashPredictionScope.updatePage()
+			}, (err) => {
+				//error
+				$log.error("getTokenValues: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+			})
+				.then(() => {
+				// ???? 
+			});
+			} else {
+				dashPredictionScope.updatePage()
+			}
+		}
+
+		dashPredictionScope.updatePage = function () {
+			var raw = dashPredictionScope.cachedMap.get(dashPredictionScope.currentToken)
+			rates = raw.token
+			btcrate = raw.rate
+			$("#30-day").text(makePercent(rates.monthavg))
+			$("#7-day").text(makePercent(rates.weekavg))
+			$("#1-day").text(makePercent(rates.dayavg))
+			$("#0-day").text(makePercent(rates.fiveminavg))
+
+			var ur = rates.monthavg
+
+			var amt = $("#prediction-quanitity-input").val() * ($("#prediction-uptime-input").val() / 100)
+			
+			var dprof = dashPredictionScope.getProfit(1, amt, ur)
+			var dbtcprof = (dprof * btcrate).toFixed(8)
+			$('#daily td:nth-child(2)').html(dprof + " " + dashPredictionScope.currentToken);
+			$('#daily td:nth-child(3)').html(dbtcprof + " BTC");
+			$('#daily td:nth-child(4)').html((dprof * dashPredictionScope.feeRate).toFixed(8) + " BTC");
+
+			var wprof = dashPredictionScope.getProfit(7, amt, ur)
+			var wbtcprof = (wprof * btcrate).toFixed(8)
+			$('#weekly td:nth-child(2)').html(wprof + " " + dashPredictionScope.currentToken);
+			$('#weekly td:nth-child(3)').html(wbtcprof + " BTC");
+			$('#weekly td:nth-child(4)').html((wprof * dashPredictionScope.feeRate).toFixed(8) + " BTC");
+
+			var mprof = dashPredictionScope.getProfit(30, amt, ur)
+			var mbtcprof = (mprof * btcrate).toFixed(8)
+			$('#monthly td:nth-child(2)').html(mprof + " " + dashPredictionScope.currentToken);
+			$('#monthly td:nth-child(3)').html(mbtcprof + " BTC");
+			$('#monthly td:nth-child(4)').html((mprof * dashPredictionScope.feeRate).toFixed(8) + " BTC");
+
+			var yprof = dashPredictionScope.getProfit(365, amt, ur)
+			var ybtcprof = (yprof * btcrate).toFixed(8)
+			$('#yearly td:nth-child(2)').html(yprof + " " + dashPredictionScope.currentToken);
+			$('#yearly td:nth-child(3)').html(ybtcprof + " BTC");
+			$('#yearly td:nth-child(4)').html((yprof * dashPredictionScope.feeRate).toFixed(8) + " BTC");
+		}
+
+		dashPredictionScope.getProfit = function(days, amount, rate) {
+			weeks = days / 7
+			var center = 1 + rate
+			var exp = 365 * (weeks/52)
+			var total = amount * Math.pow(center,exp)
+			var gains = total - amount
+
+			return gains.toFixed(8)
+		}
 
 		//------
+		dashPredictionScope.feeRate = .1
+		dashPredictionScope.currentToken = "BTC"
+		dashPredictionScope.cachedMap = new Map();
+		dashPredictionScope.getTokenValues()
 
 	}]);
+
+function makePercent(val) {
+	return (val * 100).toFixed(4) + "%"
+}
 
 app.controller('dashSettingsLendingController', ['$scope', '$http', '$log', '$timeout',
 	function($scope, $http, $log, $timeout) {

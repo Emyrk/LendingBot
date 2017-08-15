@@ -130,6 +130,15 @@ func Launch() {
 	go launchPrometheus(9911)
 	go Balancer.Run(9200)
 	go StartProfiler()
+	go initPoloStats()
+
+}
+
+func initPoloStats() {
+	time.Sleep(1 * time.Second)
+	for _, c := range balancer.Currencies[balancer.PoloniexExchange] {
+		state.GetPoloniexStatistics(c)
+	}
 }
 
 func Shutdown() {

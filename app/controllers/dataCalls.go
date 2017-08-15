@@ -411,9 +411,16 @@ func (r AppAuthRequired) LendingHistory() revel.Result {
 	return r.RenderJSON(data)
 }
 
-// TODO: Cache this response
 func (r App) GetPoloniexStatistics() revel.Result {
 	return r.RenderJSON(state.GetQuickPoloniexStatistics("BTC"))
+}
+
+func (r App) GetPoloniexStatisticsForToken() revel.Result {
+	token := r.Params.Get("token")
+	data := make(map[string]interface{})
+	data["token"] = state.GetQuickPoloniexStatistics(token)
+	data["rate"] = Balancer.RateCalculator.GetBTCRate(token)
+	return r.RenderJSON(data)
 }
 
 func (r AppAuthRequired) PaymentHistory() revel.Result {

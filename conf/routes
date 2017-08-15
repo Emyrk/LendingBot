@@ -84,6 +84,7 @@ GET 	/dashboard/data/lendinghistory/:coin	AppAuthRequired.LendingHistory
 GET 	/dashboard/data/detstats 				AppAuthRequired.GetDetailedUserStats
 GET 	/dashboard/data/lendinghistorysummary	AppAuthRequired.LendingHistorySummary
 GET 	/dashboard/data/paymenthistory			AppAuthRequired.PaymentHistory
+GET     /polostats								App.GetPoloniexStatisticsForToken
 
 # Dash Coin
 Get 	/dashboard/coin           				AppAuthRequired.CoinDashboard
