@@ -93,12 +93,12 @@ func (c *MongoDB) CreateSession() (*mgo.Session, error) {
 			}
 			session, err = mgo.DialWithInfo(dialInfo)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("Error making TLS connection to server[%s]: %s", c.uri, err.Error())
 			}
 		} else {
 			session, err = mgo.Dial(c.uri)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("Error making UNSECURE connection to server[%s]: %s", c.uri, err.Error())
 			}
 		}
 		c.baseSession = session
