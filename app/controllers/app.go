@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/url"
 
 	"github.com/Emyrk/LendingBot/src/core"
@@ -225,6 +227,20 @@ func (c App) NewPassRequestGET() revel.Result {
 	c.ViewArgs["get"] = true
 	c.ViewArgs["Inverse"] = true
 	return c.RenderTemplate("App/NewPassRequest.html")
+}
+
+func (c App) PaymentNotification() revel.Result {
+	llog := appLog.WithField("method", "PaymentNotification")
+	fmt.Println("PAYUUU")
+
+	data, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		c.Response.Status = 500
+		return c.Render()
+	}
+	llog.Infof(string(data))
+
+	return c.Render()
 }
 
 func (c App) NewPassRequestPOST() revel.Result {

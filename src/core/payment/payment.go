@@ -226,7 +226,7 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 		return fmt.Errorf("GetAllDebts: getcol: %s", err)
 	}
 	defer s.Close()
-	for _, usernameZ := range usernames {
+	for _, username := range usernames {
 		o1 := bson.D{{"$match", bson.M{"_id": username}}}
 		o2 := bson.D{{
 			"$group", bson.M{

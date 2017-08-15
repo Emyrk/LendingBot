@@ -26,6 +26,9 @@ POST	/newpass/request	                    App.NewPassRequestPOST
 GET		/newpass/response/:jwt	          		App.NewPassResponseGet
 POST	/newpass/response/:jwt	          		App.NewPassResponsePost
 
+# Payments
+POST 	/paymentnotification					App.PaymentNotification
+
 # Dash Info
 GET		/dashboard								AppAuthRequired.Dashboard
 GET		/dashboard/info							AppAuthRequired.InfoDashboard
