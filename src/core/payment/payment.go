@@ -590,7 +590,7 @@ func (p *PaymentDatabase) PayDebts(username string) error {
 		return fmt.Errorf("Error grabbing user stats: %s", err.Error())
 	}
 
-	//pay off debts one at a time
+	//if unspent is negative, then they owe money
 	btcLeft := status.UnspentCredits
 	if btcLeft <= 0 {
 		return nil
@@ -601,6 +601,7 @@ func (p *PaymentDatabase) PayDebts(username string) error {
 	if err != nil {
 		return fmt.Errorf("Error getting all debts: %s", err.Error())
 	}
+	//pay off debts one at a time
 	for i := len(debts) - 1; i >= 0; i-- {
 		if btcLeft >= debts[i].Charge-debts[i].PaymentPaidAmount {
 			//if btcPaid is greater then this one debt
