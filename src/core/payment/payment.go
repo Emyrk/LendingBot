@@ -239,8 +239,7 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 		var result bson.M
 		err = c.Pipe(ops).All(result)
 		if err != nil {
-			lock.Unlock()
-			p.paidlock.Set(username, lock)
+			p.paidlock.UnlockPayment(username, lock)
 			return fmt.Errorf("Error total debt: %s", err.Error())
 		}
 
@@ -257,8 +256,7 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 
 		err = s.DB(p.db.DbName).C(mongo.C_Paid).Pipe(ops).All(result)
 		if err != nil {
-			lock.Unlock()
-			p.paidlock.Set(username, lock)
+			p.paidlock.UnlockPayment(username, lock)
 			return fmt.Errorf("Error total paid: %s", err.Error())
 		}
 
@@ -273,14 +271,12 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 
 		err = s.DB(p.db.DbName).C(mongo.C_Status).UpdateId(username, update)
 		if err != nil {
-			lock.Unlock()
-			p.paidlock.Set(username, lock)
+			p.paidlock.UnlockPayment(username, lock)
 			return fmt.Errorf("Error setting status: %s", err.Error())
 		}
 
 		//unlock
-		lock.Unlock()
-		p.paidlock.Set(username, lock)
+		p.paidlock.UnlockPayment(username, lock)
 	}
 	return nil
 }
@@ -588,10 +584,16 @@ func (p *PaymentDatabase) GenerateReferralCode(username string) (*Status, error)
 	return st, p.SetStatus(*st)
 }
 
-func (p *PaymentDatabase) PayDebts(username string, paid Paid) error {
+func (p *PaymentDatabase) PayDebts(username string) error {
 	status, err := p.GetStatusIfFound(username)
 	if err != nil {
 		return fmt.Errorf("Error grabbing user stats: %s", err.Error())
+	}
+
+	//pay off debts one at a time
+	btcLeft := status.UnspentCredits
+	if btcLeft <= 0 {
+		return status, nil
 	}
 
 	//only grab non-paid debts
@@ -599,9 +601,6 @@ func (p *PaymentDatabase) PayDebts(username string, paid Paid) error {
 	if err != nil {
 		return fmt.Errorf("Error getting all debts: %s", err.Error())
 	}
-
-	//pay off debts one at a time
-	btcLeft := paid.BTCPaid + status.UnspentCredits
 	for i := len(debts) - 1; i >= 0; i-- {
 		if btcLeft >= debts[i].Charge-debts[i].PaymentPaidAmount {
 			//if btcPaid is greater then this one debt
@@ -610,7 +609,7 @@ func (p *PaymentDatabase) PayDebts(username string, paid Paid) error {
 			debts[i].FullPaid = true
 		} else {
 			//if btcPaid is less than this debt
-			debts[i].PaymentPaidAmount = btcLeft
+			debts[i].PaymentPaidAmount += btcLeft
 			debts[i].FullPaid = false
 			btcLeft = 0.0
 			break
@@ -622,10 +621,13 @@ func (p *PaymentDatabase) PayDebts(username string, paid Paid) error {
 		return fmt.Errorf("Error setting debts: %s", err.Error())
 	}
 
-	return p.updateStatusCredits(username, paid.BTCPaid-btcLeft, btcLeft)
+	return p.updateStatusCredits(username, status.UnspentCredits-btcLeft, btcLeft)
 }
 
 func (p *PaymentDatabase) updateStatusCredits(username string, usedBTC, leftoverBTC int64) error {
+	lock, _ := p.paidlock.Get(username)
+	defer p.paidlock.UnlockPayment(username, lock)
+
 	s, c, err := p.db.GetCollection(mongo.C_Status)
 	if err != nil {
 		return fmt.Errorf("updateStatusCredits: getcol: %s", err)
