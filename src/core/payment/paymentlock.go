@@ -8,13 +8,13 @@ import (
 // Need to lock when deleting or adding
 
 type MapLock struct {
-	sync.RWMutex
+	lock  sync.RWMutex
 	locks map[string]*PaymentLock
 }
 
 func (l *MapLock) Set(key string, pl *PaymentLock) {
-	l.Lock()
-	defer l.Unlock()
+	l.lock.Lock()
+	defer l.lock.Unlock()
 
 	pl.LastUpdated = time.Now().UTC()
 
@@ -22,8 +22,8 @@ func (l *MapLock) Set(key string, pl *PaymentLock) {
 }
 
 func (l *MapLock) Get(key string) (*PaymentLock, bool) {
-	l.RLock()
-	defer l.RUnlock()
+	l.lock.RLock()
+	defer l.lock.RUnlock()
 
 	pl, ok := l.locks[key]
 	if !ok {
@@ -32,6 +32,11 @@ func (l *MapLock) Get(key string) (*PaymentLock, bool) {
 
 	pl.LastAccessed = time.Now().UTC()
 	return pl, ok
+}
+
+func (l *MapLock) UnlockPayment(username string, pl *PaymentLock) {
+	pl.Unlock()
+	l.Set(username, pl)
 }
 
 type PaymentLock struct {
