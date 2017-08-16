@@ -1,8 +1,14 @@
-package coinbase
+package balancer
 
 import (
 	"encoding/json"
 	"time"
+	//"github.com/Emyrk/LendingBot/src/core/coinbase"
+)
+
+// Coinbase Notification Types
+const (
+	OrderPaid = "wallet:orders:paid"
 )
 
 type CoinbaseNotification struct {
@@ -66,7 +72,10 @@ type CoinbasePaymentNotification struct {
 	} `json:"resource"`
 }
 
-func (h *NotificationHandler) IncomingNotification(data []byte) (*CoinbaseNotification, error) {
+type CoinbaseWatcher struct {
+}
+
+func (h *CoinbaseWatcher) IncomingNotification(data []byte) (*CoinbaseNotification, error) {
 	n := new(CoinbaseNotification)
 	// LOG RAW
 	err := json.Unmarshal(data, n)
@@ -81,8 +90,10 @@ func (h *NotificationHandler) IncomingNotification(data []byte) (*CoinbaseNotifi
 		if err != nil {
 			return nil, err
 		}
+		// TODO HandlePayment
 
 	}
+
 	// LOG MARSHALED
 	return n, nil
 }
