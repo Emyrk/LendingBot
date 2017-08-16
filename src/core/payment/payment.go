@@ -593,7 +593,7 @@ func (p *PaymentDatabase) PayDebts(username string) error {
 	//pay off debts one at a time
 	btcLeft := status.UnspentCredits
 	if btcLeft <= 0 {
-		return status, nil
+		return nil
 	}
 
 	//only grab non-paid debts
