@@ -20,8 +20,8 @@ type PaymentDatabase struct {
 	//mux for generating code
 	referralMux sync.Mutex
 
-	//mux for status updating. May need to optimize
-	recalcMux sync.Mutex
+	//mux for status updating
+	paidlock *MapLock
 }
 
 func NewPaymentDatabaseEmpty(uri, dbu, dbp string) (*PaymentDatabase, error) {
@@ -212,10 +212,6 @@ func (p *PaymentDatabase) RecalcAllStatusCredits(username string) error {
 }
 
 func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error {
-	//MAY NEED OPTIMIZE TO LOCK ONLY USERNAME LATER ON
-	p.recalcMux.Lock()
-	defer p.recalcMux.Unlock()
-
 	var (
 		debt int64
 		paid int64
@@ -227,6 +223,10 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 	}
 	defer s.Close()
 	for _, username := range usernames {
+		//lock
+		lock := p.paidlock.Get(username)
+		lock.Lock()
+
 		o1 := bson.D{{"$match", bson.M{"_id": username}}}
 		o2 := bson.D{{
 			"$group", bson.M{
@@ -239,6 +239,7 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 		var result bson.M
 		err = c.Pipe(ops).All(result)
 		if err != nil {
+			p.paidlock.Set(username, lock.Unlock())
 			return fmt.Errorf("Error total debt: %s", err.Error())
 		}
 
@@ -255,6 +256,7 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 
 		err = s.DB(p.db.DbName).C(mongo.C_Paid).Pipe(ops).All(result)
 		if err != nil {
+			p.paidlock.Set(username, lock.Unlock())
 			return fmt.Errorf("Error total paid: %s", err.Error())
 		}
 
@@ -269,8 +271,12 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 
 		err = s.DB(p.db.DbName).C(mongo.C_Status).UpdateId(username, update)
 		if err != nil {
+			p.paidlock.Set(username, lock.Unlock())
 			return fmt.Errorf("Error setting status: %s", err.Error())
 		}
+
+		//unlock
+		p.paidlock.Set(username, lock.Unlock())
 	}
 	return nil
 }
