@@ -25,9 +25,13 @@ func (l *MapLock) Get(key string) (*PaymentLock, bool) {
 	l.RLock()
 	defer l.RUnlock()
 
-	pl.LastAccessed = time.Now().UTC()
+	pl, ok := l.locks[key]
+	if !ok {
+		pl = &PaymentLock{}
+	}
 
-	return l.locks[key]
+	pl.LastAccessed = time.Now().UTC()
+	return pl, ok
 }
 
 type PaymentLock struct {
