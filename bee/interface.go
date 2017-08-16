@@ -3,6 +3,7 @@ package bee
 import (
 	"github.com/Emyrk/LendingBot/balancer"
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
+	"github.com/Emyrk/LendingBot/src/core/userdb"
 )
 
 type IGlobalServer interface {
@@ -12,6 +13,6 @@ type IGlobalServer interface {
 	GetAmtForBTCValue(amount float64, currency string) float64
 	GetBTCAmount(amount float64, currency string) float64
 	GetLoanRate(exch int, currency string) (balancer.LoanRates, bool)
-	SavePoloniexMonth(username, accesskey, secretkey string) bool
+	SavePoloniexMonth(username *userdb.User, accesskey, secretkey string) bool
 	SaveBitfinexMonth(username, accesskey, secretkey string) bool
 }

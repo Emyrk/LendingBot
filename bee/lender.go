@@ -10,7 +10,7 @@ import (
 
 	"github.com/Emyrk/LendingBot/balancer"
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
-	//"github.com/Emyrk/LendingBot/src/core/userdb"
+	"github.com/Emyrk/LendingBot/src/core/userdb"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -46,7 +46,7 @@ type Lender struct {
 	HistoryKeeper *LendingHistoryKeeper
 }
 
-func (l *Lender) SavePoloniexMonth(username, accesskey, secretkey string) bool {
+func (l *Lender) SavePoloniexMonth(username *userdb.User, accesskey, secretkey string) bool {
 	return l.HistoryKeeper.SavePoloniexMonth(username, accesskey, secretkey)
 }
 
