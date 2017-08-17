@@ -42,7 +42,7 @@ type CheckoutOptions struct {
 	Description            string      `json:"description"`
 	Type                   string      `json:"type"`
 	Style                  string      `json:"style"`
-	CustomerDefinedAmount  bool        `json:"customer_defined_amount"`
+	CustomerDefinedAmount  string      `json:"customer_defined_amount"`
 	AmountPresets          []string    `json:"amount_presets"`
 	SuccessURL             string      `json:"success_url"`
 	CancelURL              string      `json:"cancel_url"`
@@ -171,7 +171,7 @@ func NewDefaultCheckoutOptions() *CheckoutOptions {
 	options.Description = "Purchasing credits will enable the lending bot to start making loans on your behalf. It will do so until the bot runs out of credits. These credits are non-refundable."
 	options.Type = "order"
 	options.Style = "buy_now_small"
-	options.CustomerDefinedAmount = true
+	options.CustomerDefinedAmount = "true"
 	options.AmountPresets = []string{"0.005", "0.01", "0.02"}
 	options.SuccessURL = ""
 	options.CancelURL = ""
