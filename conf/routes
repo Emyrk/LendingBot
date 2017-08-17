@@ -75,6 +75,7 @@ POST 	/dashboard/admin/conductAudit			AppAdmin.ConductAudit
 GET	 	/dashboard/payment 						AppAuthRequired.PaymentDashboard
 GET	 	/dashboard/deposit 						AppAuthRequired.DespositDashboard
 GET	 	/dashboard/prediction 					AppAuthRequired.PredictionDashboard
+GET	 	/dashboard/paymentbutton				AppAuthRequired.GetPaymentButton
 
 
 # Dash DataCalls

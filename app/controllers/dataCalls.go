@@ -467,7 +467,7 @@ func (r AppAuthRequired) GetPaymentButton() revel.Result {
 	paymentButton, err := coinbase.CreatePayment(username)
 	if err != nil {
 		llog.Errorf("%s", err.Error())
-		data["error"] = username
+		data["error"] = "Internal error. Please contact: support@hodl.zone"
 		return r.RenderJSON(data)
 	}
 

@@ -608,6 +608,7 @@ app.controller('dashSettingsUserController', ['$scope', '$http', '$log', '$timeo
 app.controller('dashDepositController', ['$scope', '$http', '$log', '$timeout',
 	function($scope, $http, $log, $timeout) {
 		var dashDepositScope = $scope;
+
 		console.log("deposit")
 		$('#accept-deposit-box').on('change', function() { 
 			// From the other examples
@@ -617,8 +618,38 @@ app.controller('dashDepositController', ['$scope', '$http', '$log', '$timeout',
 				$("#deposit-coinbase-button").addClass("disabled")
 			}
 		});
-		//------
 
+		dashDepositScope.getPaymentButton = function() {
+			dashDepositScope.paybtnLoading = true;
+			dashDepositScope.paybtnError = '';
+			$http(
+			{
+				method: 'GET',
+				url: '/dashboard/paymentbutton',
+				params: {},
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				withCredentials: true
+			})
+			.then((res) => {
+				//success
+				$log.info("getPaymentButton: Success.");
+				dashDepositScope.debt = res.data.debt;
+				dashDepositScope.code = res.data.code;
+			}, (err) => {
+				//error
+				$log.error("getPaymentButton: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				dashDepositScope.paybtnError = err.data.error;
+			})
+			.then(() => {
+				dashDepositScope.paybtnLoading = false;
+			});
+		}
+
+		// init
+		dashDepositScope.paybtnLoading = true;
+		dashDepositScope.paybtnError = '';
+		dashDepositScope.getPaymentButton();
+		//-----
 	}]);
 
 app.controller('dashPredictionController', ['$scope', '$http', '$log', '$timeout',
