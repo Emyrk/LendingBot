@@ -633,7 +633,7 @@ app.controller('dashDepositController', ['$scope', '$http', '$log', '$timeout',
 			.then((res) => {
 				//success
 				$log.info("getPaymentButton: Success.");
-				dashDepositScope.debt = res.data.debt;
+				dashDepositScope.username = res.data.username;
 				dashDepositScope.code = res.data.code;
 			}, (err) => {
 				//error
