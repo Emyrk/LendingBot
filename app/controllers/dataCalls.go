@@ -471,7 +471,7 @@ func (r AppAuthRequired) GetPaymentButton() revel.Result {
 		return r.RenderJSON(data)
 	}
 
-	data["debt"] = username
+	data["username"] = username
 	data["code"] = paymentButton.Data.EmbedCode
 
 	return r.RenderJSON(data)
