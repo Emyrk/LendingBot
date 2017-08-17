@@ -27,8 +27,9 @@ func (l *MapLock) Get(key string) (*PaymentLock, bool) {
 
 	pl, ok := l.locks[key]
 	if !ok {
-		pl = &PaymentLock{}
+		pl = NewPaymentLock(key)
 	}
+	l.locks[key] = pl
 
 	pl.LastAccessed = time.Now().UTC()
 	return pl, ok
@@ -47,6 +48,14 @@ func (l *MapLock) UnlockPayment(username string, pl *PaymentLock) {
 
 type PaymentLock struct {
 	sync.RWMutex
+	Username     string
 	LastAccessed time.Time
 	LastUpdated  time.Time
+}
+
+func NewPaymentLock(username string) *PaymentLock {
+	p := new(PaymentLock)
+	p.Username = username
+
+	return p
 }
