@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Emyrk/LendingBot/src/core/coinbase"
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"github.com/revel/revel"
@@ -453,6 +454,25 @@ func (r AppAuthRequired) PaymentHistory() revel.Result {
 	data["debt"] = debtHist
 	data["paid"] = paidHist
 	data["status"] = status
+
+	return r.RenderJSON(data)
+}
+
+func (r AppAuthRequired) GetPaymentButton() revel.Result {
+	llog := dataCallsLog.WithField("method", "GetPaymentButton")
+	username := r.Session[SESSION_EMAIL]
+
+	data := make(map[string]interface{})
+
+	paymentButton, err := coinbase.CreatePayment(username)
+	if err != nil {
+		llog.Errorf("%s", err.Error())
+		data["error"] = username
+		return r.RenderJSON(data)
+	}
+
+	data["debt"] = username
+	data["code"] = paymentButton.Data.EmbedCode
 
 	return r.RenderJSON(data)
 }

@@ -346,7 +346,6 @@ func (r AppAuthRequired) PaymentDashboard() revel.Result {
 }
 
 func (r AppAuthRequired) DespositDashboard() revel.Result {
-	fmt.Println("HITDEPSOIT")
 	return r.RenderTemplate("AppAuthRequired/DepositDashboard.html")
 }
 
