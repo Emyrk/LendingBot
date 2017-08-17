@@ -253,7 +253,11 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 		}
 
 		fmt.Println("RECALC debt:", result)
-		debt = result["total"].(int64)
+		if err == err != mgo.ErrNotFound {
+			debt = 0
+		} else {
+			debt = result["total"].(int64)
+		}
 
 		o1 = bson.D{{"$match", bson.M{"_id": username}}}
 		o2 = bson.D{{
