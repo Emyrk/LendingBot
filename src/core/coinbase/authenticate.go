@@ -4,12 +4,17 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"net"
 	"net/http"
 	"strconv"
 	"time"
 	// "github.com/fabioberger/coinbase-go/config"
 )
+
+var _ = hex.DecodeString
+
+var _ = fmt.Println
 
 const BaseURL = "https://api.coinbase.com/v2/"
 
@@ -39,20 +44,20 @@ func apiKeyAuth(key string, secret string) *apiKeyAuthentication {
 
 // API Key + Secret authentication requires a request header of the HMAC SHA-256
 // signature of the "message" as well as an incrementing nonce and the API key
-func (a apiKeyAuthentication) authenticate(req *http.Request, endpoint string, params []byte) error {
+func (a apiKeyAuthentication) authenticate(req *http.Request, body []byte) error {
+	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
+	message := timestamp + req.Method + req.URL.Path
 
-	nonce := strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
-	message := nonce + endpoint + string(params) //As per Coinbase Documentation
+	sha := sha256.New
+	h := hmac.New(sha, []byte(a.Secret))
+	h.Write(append([]byte(message), body...))
 
-	req.Header.Set("ACCESS_KEY", a.Key)
+	signature := fmt.Sprintf("%x", h.Sum(nil))
 
-	h := hmac.New(sha256.New, []byte(a.Secret))
-	h.Write([]byte(message))
-
-	signature := hex.EncodeToString(h.Sum(nil))
-
-	req.Header.Set("ACCESS_SIGNATURE", signature)
-	req.Header.Set("ACCESS_NONCE", nonce)
+	req.Header.Set("CB-ACCESS-KEY", a.Key)
+	req.Header.Set("CB-ACCESS-SIGN", signature)
+	req.Header.Set("CB-ACCESS-TIMESTAMP", timestamp)
+	req.Header.Set("CB-VERSION", "2017-04-08")
 
 	return nil
 }

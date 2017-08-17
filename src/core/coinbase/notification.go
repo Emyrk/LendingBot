@@ -102,7 +102,10 @@ func NotificationPairToPaid(parent *CoinbaseNotification, pay *CoinbasePaymentNo
 	if pay.TotalAmountReceived.Currency != "BTC" {
 		return nil, fmt.Errorf("payment currency found is not BTC, but %s", pay.TotalAmountReceived.Currency)
 	}
-	p.BTCPaid = pay.TotalAmountReceived.Amount
+	p.BTCPaid, err = payment.StringSatoshiFloatToInt64(pay.TotalAmountReceived.Amount)
+	if err != nil {
+		return nil, err
+	}
 
 	p.CoinbaseNotificationID = parent.ID
 	p.CoinbaseUserID = parent.User.ID

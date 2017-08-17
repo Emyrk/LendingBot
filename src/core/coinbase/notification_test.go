@@ -1,5 +1,23 @@
 package coinbase_test
 
+import (
+	"fmt"
+	"testing"
+
+	. "github.com/Emyrk/LendingBot/src/core/coinbase"
+)
+
+var _ = fmt.Println
+
+func TestCreatePayment(t *testing.T) {
+	data, err := CreatePayment("hello@gmail.com")
+	if err != nil {
+		t.Error(err)
+	}
+
+	fmt.Println(string(data))
+}
+
 var exResp = `
 {  
    "id":"bd43bcfa-84bd-5f67-a1a9-7994697dedfe",

@@ -33,13 +33,13 @@ type CheckoutOptions struct {
 
 type MetaDataField struct {
 	Username string `json:"username"`
+	Version  int    `json:"version"`
 }
 
-type CheckoutResponse struct {
+type PaymentButton struct {
 	Data struct {
 		ID          string `json:"id"`
-		Code        string `json:"code"`
-		Status      string `json:"status"`
+		EmbedCode   string `json:"embed_code"`
 		Type        string `json:"type"`
 		Name        string `json:"name"`
 		Description string `json:"description"`
@@ -47,16 +47,39 @@ type CheckoutResponse struct {
 			Amount   string `json:"amount"`
 			Currency string `json:"currency"`
 		} `json:"amount"`
-		Metadata *MetaDataField `json:"metadata"`
+		Style                 string `json:"style"`
+		CustomerDefinedAmount bool   `json:"customer_defined_amount"`
+		AmountPresets         []struct {
+			Amount   string `json:"amount"`
+			Currency string `json:"currency"`
+		} `json:"amount_presets"`
+		CallbackURL            interface{} `json:"callback_url"`
+		SuccessURL             string      `json:"success_url"`
+		CancelURL              string      `json:"cancel_url"`
+		AutoRedirect           bool        `json:"auto_redirect"`
+		NotificationsURL       interface{} `json:"notifications_url"`
+		CollectShippingAddress bool        `json:"collect_shipping_address"`
+		CollectEmail           bool        `json:"collect_email"`
+		CollectPhoneNumber     bool        `json:"collect_phone_number"`
+		CollectCountry         bool        `json:"collect_country"`
+		Metadata               struct {
+			Username string `json:"username"`
+			Version  int    `json:"version"`
+		} `json:"metadata"`
+		CreatedAt    time.Time `json:"created_at"`
+		UpdatedAt    time.Time `json:"updated_at"`
+		Resource     string    `json:"resource"`
+		ResourcePath string    `json:"resource_path"`
 	} `json:"data"`
 }
 
-func CreatePayment(username string) ([]byte, error) {
+func CreatePayment(username string) (*PaymentButton, error) {
 	// https://api.coinbase.com/v2/checkouts
 	client := http.Client{}
 
 	meta := new(MetaDataField)
 	meta.Username = username
+	meta.Version = 1
 	o := NewDefaultCheckoutOptions()
 	o.Metadata = meta
 
@@ -72,9 +95,9 @@ func CreatePayment(username string) ([]byte, error) {
 	}
 
 	// TODO: TEST AUTHENTICATION
-	api := apiKeyAuth("KEY", "SECRET")
+	api := apiKeyAuth("API_KEY", "SECRET")
 
-	err = api.authenticate(req, CheckoutAPIURL, data)
+	err = api.authenticate(req, data)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +111,13 @@ func CreatePayment(username string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return respData, nil
+
+	button := new(PaymentButton)
+	err = json.Unmarshal(respData, button)
+	if err != nil {
+		return nil, err
+	}
+	return buton, nil
 }
 
 /*
