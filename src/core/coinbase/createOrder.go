@@ -44,6 +44,7 @@ type CheckoutOptions struct {
 	Style                  string      `json:"style"`
 	CustomerDefinedAmount  string      `json:"customer_defined_amount"`
 	AmountPresets          []string    `json:"amount_presets"`
+	NotificationsURL       string      `json:"notifications_url"`
 	SuccessURL             string      `json:"success_url"`
 	CancelURL              string      `json:"cancel_url"`
 	AutoRedirect           bool        `json:"auto_redirect"`
@@ -173,6 +174,7 @@ func NewDefaultCheckoutOptions() *CheckoutOptions {
 	options.Style = "buy_now_small"
 	options.CustomerDefinedAmount = "true"
 	options.AmountPresets = []string{"0.005", "0.01", "0.02"}
+	options.NotificationsURL = "https://dev.hodl.zone/paymentnotification"
 	options.SuccessURL = ""
 	options.CancelURL = ""
 	options.AutoRedirect = false
