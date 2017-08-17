@@ -70,11 +70,16 @@ func NewPaymentDatabase(uri, dbu, dbp string) (*PaymentDatabase, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Error creating payment db: %s\n", err.Error())
 	}
-	return &PaymentDatabase{db: db}, err
+
+	pb := &PaymentDatabase{db: db}
+	pb.paidlock = NewMapLock()
+	return pb, err
 }
 
 func NewPaymentDatabaseGiven(db *mongo.MongoDB) *PaymentDatabase {
-	return &PaymentDatabase{db: db}
+	pb := &PaymentDatabase{db: db}
+	pb.paidlock = NewMapLock()
+	return pb
 }
 
 func (p *PaymentDatabase) Close() error {
