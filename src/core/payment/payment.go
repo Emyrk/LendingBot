@@ -226,7 +226,7 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 	defer s.Close()
 	for _, username := range usernames {
 		//lock
-		lock, _ := p.paidlock.Get(username)
+		lock, _ := p.paidlock.GetLocked(username)
 		lock.Lock()
 
 		o1 := bson.D{{"$match", bson.M{"_id": username}}}
@@ -646,7 +646,7 @@ func (p *PaymentDatabase) PayDebts(username string) error {
 }
 
 func (p *PaymentDatabase) updateStatusCredits(username string, usedBTC, leftoverBTC int64) error {
-	lock, _ := p.paidlock.Get(username)
+	lock, _ := p.paidlock.GetLocked(username)
 	defer p.paidlock.UnlockPayment(username, lock)
 
 	s, c, err := p.db.GetCollection(mongo.C_Status)

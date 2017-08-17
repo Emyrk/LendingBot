@@ -34,6 +34,12 @@ func (l *MapLock) Get(key string) (*PaymentLock, bool) {
 	return pl, ok
 }
 
+func (l *MapLock) GetLocked(key string) (*PaymentLock, bool) {
+	pl, ok := l.Get(key)
+	pl.Lock()
+	return pl, ok
+}
+
 func (l *MapLock) UnlockPayment(username string, pl *PaymentLock) {
 	pl.Unlock()
 	l.Set(username, pl)
