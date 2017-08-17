@@ -23,12 +23,11 @@ func (l *MapLock) Set(key string, pl *PaymentLock) {
 
 func (l *MapLock) Get(key string) (*PaymentLock, bool) {
 	l.lock.RLock()
-	defer l.lock.RUnlock()
 
 	pl, ok := l.locks[key]
+	l.lock.RUnlock()
 	if !ok {
 		pl = NewPaymentLock(key)
-		l.lock.RUnlock()
 		l.lock.Lock()
 		l.locks[key] = pl
 		l.lock.Unlock()
