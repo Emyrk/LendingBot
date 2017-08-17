@@ -247,7 +247,7 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 
 		var result bson.M
 		err = c.Pipe(ops).One(&result)
-		if err != nil {
+		if err != nil && err != mgo.ErrNotFound {
 			p.paidlock.UnlockPayment(username, lock)
 			return fmt.Errorf("Error total debt: %s", err.Error())
 		}
