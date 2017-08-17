@@ -59,7 +59,10 @@ func NewPaymentDatabaseEmpty(uri, dbu, dbp string) (*PaymentDatabase, error) {
 	}
 	s.Close()
 
-	return &PaymentDatabase{db: db}, nil
+	pb := &PaymentDatabase{db: db}
+	pb.paidlock = NewMapLock()
+
+	return pb, nil
 }
 
 func NewPaymentDatabase(uri, dbu, dbp string) (*PaymentDatabase, error) {

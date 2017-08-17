@@ -12,6 +12,13 @@ type MapLock struct {
 	locks map[string]*PaymentLock
 }
 
+func NewMapLock() *MapLock {
+	m := new(MapLock)
+	m.locks = make(map[string]*PaymentLock)
+
+	return m
+}
+
 func (l *MapLock) Set(key string, pl *PaymentLock) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
