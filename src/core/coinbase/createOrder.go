@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 const (
@@ -117,7 +118,7 @@ func CreatePayment(username string) (*PaymentButton, error) {
 	if err != nil {
 		return nil, err
 	}
-	return buton, nil
+	return button, nil
 }
 
 /*
