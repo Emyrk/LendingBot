@@ -468,6 +468,14 @@ func (r AppAuthRequired) GetPaymentButton() revel.Result {
 	if err != nil {
 		llog.Errorf("%s", err.Error())
 		data["error"] = "Internal error. Please contact: support@hodl.zone"
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+
+	if paymentButton.Data.EmbedCode == "" {
+		llog.Errorf("EmbedCode is empty for user[%s]", username)
+		data["error"] = "Internal error. Please contact: support@hodl.zone"
+		r.Response.Status = 500
 		return r.RenderJSON(data)
 	}
 
