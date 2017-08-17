@@ -482,27 +482,27 @@ type Paid struct {
 	RawData json.RawMessage `json:"rawdata" bson:"rawdata"`
 }
 
-// func (u *Paid) MarshalJSON() ([]byte, error) {
-// 	return json.Marshal(&struct {
-// 		PaymentDate        time.Time `json:"paymentdate"`
-// 		BTCPaid            int64     `json:"btcpaid"`
-// 		BTCTransactionDate time.Time `json:"btctrandate"`
-// 		BTCTransactionID   int64     `json:"btctranid"`
-// 		ETHPaid            int64     `json:"ethpaid"`
-// 		ETHTransactionDate time.Time `json:"ethtrandate"`
-// 		ETHTransactionID   int64     `json:"ethtranid"`
-// 		AddressPaidFrom    string    `json:"addr"`
-// 	}{
-// 		u.PaymentDate,
-// 		u.BTCPaid,
-// 		u.BTCTransactionDate,
-// 		u.BTCTransactionID,
-// 		u.ETHPaid,
-// 		u.ETHTransactionDate,
-// 		u.ETHTransactionID,
-// 		u.AddressPaidFrom,
-// 	})
-// }
+func (u *Paid) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&struct {
+		Username              string    `json:"email" bson:"email"`
+		ContactUsername       string    `json:"contactemail" bson:"contactemail"`
+		PaymentDate           time.Time `json:"paymentdate" bson:"paymentdate"`
+		BTCPaid               int64     `json:"btcpaid" bson:"btcpaid"`
+		BTCTransactionID      string    `json:"btctranid" bson:"btctranid"`
+		BTCTransactionDate    time.Time `json:"btctrandate" bson:"btctrandate"`
+		NotificationDelivedAt time.Time `json:"notificationdelivertime" bson:"notificationdelivertime"`
+		ReceiptUrl            string    `json:"receipt" bson:"receipt"`
+	}{
+		u.Username,
+		u.ContactUsername,
+		u.PaymentDate,
+		u.BTCPaid,
+		u.BTCTransactionID,
+		u.BTCTransactionDate,
+		u.NotificationDelivedAt,
+		u.ReceiptUrl,
+	})
+}
 
 func (p *PaymentDatabase) SetPaid(paid Paid) error {
 	return p.SetMultiPaid([]Paid{paid})

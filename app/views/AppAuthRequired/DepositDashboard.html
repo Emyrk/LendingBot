@@ -25,7 +25,7 @@
 							HODL.ZONE will count any loan closing after the lending is enabled as a loan created by HODL.ZONE. Any loans created by the user while the bot is enabled, will still accrue debt. This means, if you plan to do manual lending, disable the bot immediately, or you will be charged.
 						</p>
 						<p>
-							In the event you disagree with the debts being accumulated, disable lending immediatly and contact support@hodl.zone. In the event unfair debt was accrued, HODL.ZONE may issue credits to our discretion, but at no point will issue any refunds.
+							In the event you disagree with the debts being accumulated, disable lending immediatly and contact support@hodl.zone. In the event unfair debt was accrued	, HODL.ZONE may issue credits to our discretion, but at no point will issue any refunds.
 						</p>
 						<h1>Payment Processing</h1>
 						<p>
@@ -36,14 +36,22 @@
 						</p>
 					</div>
 					<div class="col-xs-12" style="text-align: center;padding-top: 15px;">
-						<input id="accept-deposit-box" type="checkbox" name="vehicle" value="Bike"> By checking this box you accept to the Refund Policy and Disclaimer
-						<br />
-						<br />
-						<a id="deposit-coinbase-button" href="https://www.coinbase.com/checkouts/{{code}}" class="btn btn-primary  coinbase-button2 disabled" style="" data-code="{{code}}" data-custom="{{username}}" >
-							<i class="icon-basket"></i> Pay Through Coinbase
-						</a>
-						<div class="clearfix"></div>
-						<small><i>{{username}}</i> is the account to be credited</small>
+						<div class="alert alert-danger fade in" role="alert" ng-show="paybtnLoading.length > 0">
+							<strong>Loading...</strong>
+						</div>
+						<div class="alert alert-danger fade in" role="alert" ng-show="paybtnError.length > 0">
+							<strong>{{paybtnError}}</strong>
+						</div>
+						<div ng-hide="paybtnError.length > 0">
+							<input id="accept-deposit-box" type="checkbox" name="vehicle" value="Bike"> By checking this box you accept to the Refund Policy and Disclaimer
+							<br />
+							<br />
+							<a id="deposit-coinbase-button" href="https://www.coinbase.com/checkouts/{{code}}" class="btn btn-primary  coinbase-button2 disabled" style="" data-code="{{code}}" data-custom="{{username}}" >
+								<i class="icon-basket"></i> Pay Through Coinbase
+							</a>
+							<div class="clearfix"></div>
+							<small><i>{{username}}</i> is the account to be credited</small>
+						</div>
 					</div>
 				</div>
 			</div>
