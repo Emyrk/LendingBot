@@ -8,6 +8,7 @@ import (
 
 	"github.com/Emyrk/LendingBot/balancer"
 	"github.com/Emyrk/LendingBot/src/core"
+	"github.com/Emyrk/LendingBot/src/core/coinbase"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 
 	// For Prometheus
@@ -131,6 +132,7 @@ func Launch() {
 	go Balancer.Run(9200)
 	go StartProfiler()
 	go initPoloStats()
+	coinbase.InitCoinbaseAPI()
 
 }
 

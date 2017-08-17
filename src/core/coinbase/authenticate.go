@@ -3,7 +3,6 @@ package coinbase
 import (
 	"crypto/hmac"
 	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"net"
 	"net/http"
@@ -11,10 +10,6 @@ import (
 	"time"
 	// "github.com/fabioberger/coinbase-go/config"
 )
-
-var _ = hex.DecodeString
-
-var _ = fmt.Println
 
 const BaseURL = "https://api.coinbase.com/v2/"
 

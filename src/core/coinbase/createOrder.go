@@ -3,14 +3,36 @@ package coinbase
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"time"
+
+	"github.com/revel/revel"
 )
+
+var _ = fmt.Println
 
 const (
 	CheckoutAPIURL = "https://api.coinbase.com/v2/checkouts"
 )
+
+func InitCoinbaseAPI() {
+	time.Sleep(1 * time.Second)
+	if revel.DevMode {
+		return
+	}
+	coinbase_access_key = os.Getenv("COINBASE_ACCESS_KEY")
+	coinbase_secret_key = os.Getenv("COINBASE_SECRET_KEY")
+
+	if coinbase_access_key == "" || coinbase_secret_key == "" {
+		panic("No coinbase API keys given")
+	}
+}
+
+var coinbase_access_key string
+var coinbase_secret_key string
 
 // https://developers.coinbase.com/api/v2?shell#create-checkout
 type CheckoutOptions struct {
@@ -96,7 +118,7 @@ func CreatePayment(username string) (*PaymentButton, error) {
 	}
 
 	// TODO: TEST AUTHENTICATION
-	api := apiKeyAuth("API_KEY", "SECRET")
+	api := apiKeyAuth(coinbase_access_key, coinbase_secret_key)
 
 	err = api.authenticate(req, data)
 	if err != nil {
