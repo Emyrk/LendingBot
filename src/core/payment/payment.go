@@ -445,39 +445,60 @@ func (p *PaymentDatabase) GetDebtsLimitSort(username string, paid, limit, sort i
 }
 
 type Paid struct {
-	ID                 *bson.ObjectId `json:"_id,omitempty" bson:"_id,omitempty"`
-	PaymentDate        time.Time      `json:"paymentdate" bson:"paymentdate"`
-	BTCPaid            int64          `json:"btcpaid" bson:"btcpaid"`
-	BTCTransactionDate time.Time      `json:"btctrandate" bson:"btctrandate"`
-	BTCTransactionID   int64          `json:"btctranid" bson:"btctranid"`
-	ETHPaid            int64          `json:"ethpaid" bson:"ethpaid"`
-	ETHTransactionDate time.Time      `json:"ethtrandate" bson:"ethtrandate"`
-	ETHTransactionID   int64          `json:"ethtranid" bson:"ethtranid"`
-	AddressPaidFrom    string         `json:"addr" bson:"addr"`
-	Username           string         `json:"email" bson:"email"`
+	ID              *bson.ObjectId `json:"_id,omitempty" bson:"_id,omitempty"`
+	Username        string         `json:"email" bson:"email"`
+	ContactUsername string         `json:"contactemail" bson:"contactemail"`
+
+	// Payment Data
+	PaymentDate      time.Time `json:"paymentdate" bson:"paymentdate"`
+	PaymentCreatedAt time.Time `json:"paymentcreatedat" bson:"paymentcreatedat"`
+	PaymentExpiresAt time.Time `json:"paymentexpiresat" bson:"paymentexpiresat"`
+
+	// Transaction Data
+	BTCPaid            int64     `json:"btcpaid" bson:"btcpaid"`
+	BTCTransactionID   string    `json:"btctranid" bson:"btctranid"`
+	BTCTransactionDate time.Time `json:"btctrandate" bson:"btctrandate"`
+
+	// CoinbaseData
+	//		Notification
+	CoinbaseNotificationID string    `json:"noteid" bson:"noteid"`
+	CoinbaseUserID         string    `json:"userid" bson:"userid"`
+	CoinbaseAccountID      string    `json:"accountid" bson:"accountid"`
+	NotificationCreatedAt  time.Time `json:"notificationcreatetime" bson:"notificationcreatetime"`
+	NotificationDelivedAt  time.Time `json:"notificationdelivertime" bson:"notificationdelivertime"`
+	DeliveryAttempts       int       `json:"deliveryattempts" bson:"deliveryattempts"`
+
+	//		Payment
+	CoinbasePaymentID string `json:"paymentid" bson:"paymentid"`
+	ReceiptUrl        string `json:"receipt" bson:"receipt"`
+	Code              string `json:"code" bson:"code"`
+	BTCAddress        string `json:"btcaddr" bson:"btcaddr"`
+	RefundAddress     string `json:"refundaddr" bson:"refundaddr"`
+
+	RawData json.RawMessage `json:"rawdata" bson:"rawdata"`
 }
 
-func (u *Paid) MarshalJSON() ([]byte, error) {
-	return json.Marshal(&struct {
-		PaymentDate        time.Time `json:"paymentdate"`
-		BTCPaid            int64     `json:"btcpaid"`
-		BTCTransactionDate time.Time `json:"btctrandate"`
-		BTCTransactionID   int64     `json:"btctranid"`
-		ETHPaid            int64     `json:"ethpaid"`
-		ETHTransactionDate time.Time `json:"ethtrandate"`
-		ETHTransactionID   int64     `json:"ethtranid"`
-		AddressPaidFrom    string    `json:"addr"`
-	}{
-		u.PaymentDate,
-		u.BTCPaid,
-		u.BTCTransactionDate,
-		u.BTCTransactionID,
-		u.ETHPaid,
-		u.ETHTransactionDate,
-		u.ETHTransactionID,
-		u.AddressPaidFrom,
-	})
-}
+// func (u *Paid) MarshalJSON() ([]byte, error) {
+// 	return json.Marshal(&struct {
+// 		PaymentDate        time.Time `json:"paymentdate"`
+// 		BTCPaid            int64     `json:"btcpaid"`
+// 		BTCTransactionDate time.Time `json:"btctrandate"`
+// 		BTCTransactionID   int64     `json:"btctranid"`
+// 		ETHPaid            int64     `json:"ethpaid"`
+// 		ETHTransactionDate time.Time `json:"ethtrandate"`
+// 		ETHTransactionID   int64     `json:"ethtranid"`
+// 		AddressPaidFrom    string    `json:"addr"`
+// 	}{
+// 		u.PaymentDate,
+// 		u.BTCPaid,
+// 		u.BTCTransactionDate,
+// 		u.BTCTransactionID,
+// 		u.ETHPaid,
+// 		u.ETHTransactionDate,
+// 		u.ETHTransactionID,
+// 		u.AddressPaidFrom,
+// 	})
+// }
 
 func (p *PaymentDatabase) SetPaid(paid Paid) error {
 	return p.SetMultiPaid([]Paid{paid})
