@@ -253,7 +253,7 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 		}
 
 		fmt.Println("RECALC debt:", result)
-		if err == err != mgo.ErrNotFound {
+		if err == mgo.ErrNotFound {
 			debt = 0
 		} else {
 			debt = result["total"].(int64)
