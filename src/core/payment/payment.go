@@ -227,7 +227,6 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 	for _, username := range usernames {
 		//lock
 		lock, _ := p.paidlock.GetLocked(username)
-		lock.Lock()
 
 		o1 := bson.D{{"$match", bson.M{"_id": username}}}
 		o2 := bson.D{{
