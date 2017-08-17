@@ -244,19 +244,36 @@ func (c App) PaymentNotification() revel.Result {
 	if err != nil {
 		llog.Errorf(err.Error())
 		c.Response.Status = 500
-		return c.Render()
+		return c.RenderJSON(struct {
+			Error string
+			Spot  int
+		}{
+			err.Error(),
+			1,
+		})
 	}
+	llog.Infof(string(data))
 
 	err = CoinbaseWatcher.IncomingNotification(data)
 	if err != nil {
 		llog.Errorf(err.Error())
 		c.Response.Status = 500
-		return c.Render()
+		return c.RenderJSON(struct {
+			Error string
+			Spot  int
+		}{
+			err.Error(),
+			2,
+		})
 	}
 
 	llog.Infof(string(data))
 
-	return c.Render()
+	return c.RenderJSON(struct {
+		Success string
+	}{
+		"success",
+	})
 }
 
 func (c App) NewPassRequestPOST() revel.Result {
