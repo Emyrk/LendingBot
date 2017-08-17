@@ -28,8 +28,11 @@ func (l *MapLock) Get(key string) (*PaymentLock, bool) {
 	pl, ok := l.locks[key]
 	if !ok {
 		pl = NewPaymentLock(key)
+		l.lock.RUnlock()
+		l.lock.Lock()
+		l.locks[key] = pl
+		l.lock.Unlock()
 	}
-	l.locks[key] = pl
 
 	pl.LastAccessed = time.Now().UTC()
 	return pl, ok
