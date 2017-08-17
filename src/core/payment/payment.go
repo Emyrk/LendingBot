@@ -1,6 +1,8 @@
 package payment
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -580,15 +582,10 @@ func (p *PaymentDatabase) GenerateReferralCode(username string) (*Status, error)
 		return nil, fmt.Errorf("Referral code already set")
 	}
 
-	splitArr := strings.Split(username, "@")
-	if len(splitArr) != 2 {
-		return nil, fmt.Errorf("Error splitting username has more than one @ sign: %s", splitArr)
-	}
+	baseBytes := sha256.Sum256([]byte(username))
+	base := hex.EncodeToString(baseBytes[:])
+	base = "REF" + strings.ToUpper(base[:10])
 
-	base := splitArr[0]
-	if len(base) > 6 {
-		base = base[0:6]
-	}
 	st.ReferralCode = base
 	i := 0
 	for {
