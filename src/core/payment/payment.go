@@ -447,22 +447,24 @@ func (p *PaymentDatabase) GetDebtsLimitSort(username string, paid, limit, sort i
 }
 
 type Paid struct {
-	ID              *bson.ObjectId `json:"_id,omitempty" bson:"_id,omitempty"`
-	Username        string         `json:"email" bson:"email"`
-	ContactUsername string         `json:"contactemail" bson:"contactemail"`
+	ID *bson.ObjectId `json:"_id,omitempty" bson:"_id,omitempty"`
+	// Email of account to be credited
+	Username string `json:"email" bson:"email"`
+	// Email given by user (Where receipt is sent)
+	ContactUsername string `json:"contactemail" bson:"contactemail"`
 
-	// Payment Data
+	// Payment Data -- Data about coinbase transaction
 	PaymentDate      time.Time `json:"paymentdate" bson:"paymentdate"`
 	PaymentCreatedAt time.Time `json:"paymentcreatedat" bson:"paymentcreatedat"`
 	PaymentExpiresAt time.Time `json:"paymentexpiresat" bson:"paymentexpiresat"`
 
-	// Transaction Data
+	// Transaction Data -- Data about bitcoin transaction
 	BTCPaid            int64     `json:"btcpaid" bson:"btcpaid"`
 	BTCTransactionID   string    `json:"btctranid" bson:"btctranid"`
 	BTCTransactionDate time.Time `json:"btctrandate" bson:"btctrandate"`
 
 	// CoinbaseData
-	//		Notification
+	//		Notification -- When we hear about the payment
 	CoinbaseNotificationID string    `json:"noteid" bson:"noteid"`
 	CoinbaseUserID         string    `json:"userid" bson:"userid"`
 	CoinbaseAccountID      string    `json:"accountid" bson:"accountid"`

@@ -127,6 +127,13 @@ type CoinbaseWatcher struct {
 	State *core.State
 }
 
+func NewCoinbaseWatcher(s *core.State) *CoinbaseWatcher {
+	c := new(CoinbaseWatcher)
+	c.State = s
+
+	return c
+}
+
 func (h *CoinbaseWatcher) IncomingNotification(data []byte) error {
 	n := new(CoinbaseNotification)
 	// LOG RAW

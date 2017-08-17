@@ -15,6 +15,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var _ = fmt.Println
+
 var state *core.State
 var appLog = log.WithFields(log.Fields{
 	"package": "controllers",
@@ -237,13 +239,21 @@ func (c App) NewPassRequestGET() revel.Result {
 
 func (c App) PaymentNotification() revel.Result {
 	llog := appLog.WithField("method", "PaymentNotification")
-	fmt.Println("PAYUUU")
 
 	data, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
+		llog.Errorf(err.Error())
 		c.Response.Status = 500
 		return c.Render()
 	}
+
+	err = CoinbaseWatcher.IncomingNotification(data)
+	if err != nil {
+		llog.Errorf(err.Error())
+		c.Response.Status = 500
+		return c.Render()
+	}
+
 	llog.Infof(string(data))
 
 	return c.Render()

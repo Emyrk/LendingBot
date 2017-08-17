@@ -38,6 +38,7 @@ var _ = revel.Equal
 //var Queuer *queuer.Queuer
 //var Lender *lender.Lender
 var Balancer *balancer.Balancer
+var CoinbaseWatcher *coinbase.CoinbaseWatcher
 
 func Launch() {
 	// Prometheus
@@ -133,7 +134,7 @@ func Launch() {
 	go StartProfiler()
 	go initPoloStats()
 	coinbase.InitCoinbaseAPI()
-
+	CoinbaseWatcher = coinbase.NewCoinbaseWatcher(state)
 }
 
 func initPoloStats() {
