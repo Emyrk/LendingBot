@@ -8,8 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-
-	"github.com/fabioberger/coinbase-go/config"
+	// "github.com/fabioberger/coinbase-go/config"
 )
 
 const BaseURL = "https://api.coinbase.com/v2/"

@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+
+	"github.com/Emyrk/LendingBot/src/core"
+	"github.com/Emyrk/LendingBot/src/core/payment"
 )
 
 var _ = fmt.Println
@@ -65,7 +68,9 @@ type CoinbasePaymentNotification struct {
 	MispaidAt        time.Time       `json:"mispaid_at"`
 	ExpiresAt        time.Time       `json:"expires_at"`
 	Metadata         struct {
-		Custom string `json:"custom"`
+		Custom   string `json:"custom"`
+		Username string `json:"username"`
+		Version  int    `json:"version"`
 	} `json:"metadata"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
@@ -83,31 +88,67 @@ type CoinbasePaymentNotification struct {
 	Refunds     []interface{} `json:"refunds"`
 }
 
-type CoinbaseWatcher struct {
+func NotificationPairToPaid(parent *CoinbaseNotification, pay *CoinbasePaymentNotification) (*payment.Paid, error) {
+	var err error
+
+	p := new(payment.Paid)
+	p.Username = pay.Metadata.Username
+	p.ContactUsername = pay.CustomerInfo.Email
+
+	p.PaymentDate = pay.PaidAt
+	p.PaymentCreatedAt = pay.CreatedAt
+	p.PaymentExpiresAt = pay.ExpiresAt
+
+	if pay.TotalAmountReceived.Currency != "BTC" {
+		return nil, fmt.Errorf("payment currency found is not BTC, but %s", pay.TotalAmountReceived.Currency)
+	}
+	p.BTCPaid = pay.TotalAmountReceived.Amount
+
+	p.CoinbaseNotificationID = parent.ID
+	p.CoinbaseUserID = parent.User.ID
+	p.CoinbaseAccountID = parent.Account.ID
+	p.NotificationCreatedAt = parent.CreatedAt
+	p.NotificationDelivedAt = time.Now()
+	p.DeliveryAttempts = parent.DeliveryAttempts
+
+	p.CoinbasePaymentID = pay.ID
+	p.ReceiptUrl = pay.ReceiptURL
+	p.Code = pay.Code
+	p.BTCAddress = pay.BitcoinAddress
+	p.RefundAddress = pay.RefundAddress
+
+	return p, nil
 }
 
-func (h *CoinbaseWatcher) IncomingNotification(data []byte) (*CoinbaseNotification, error) {
+type CoinbaseWatcher struct {
+	State *core.State
+}
+
+func (h *CoinbaseWatcher) IncomingNotification(data []byte) error {
 	n := new(CoinbaseNotification)
 	// LOG RAW
 	err := json.Unmarshal(data, n)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	switch n.Type {
 	case OrderPaid:
-		payment := new(CoinbasePaymentNotification)
-		err := json.Unmarshal(n.Data, payment)
+		pay := new(CoinbasePaymentNotification)
+		err := json.Unmarshal(n.Data, pay)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		// TODO: Handle Payment
 
+		paid, err := NotificationPairToPaid(n, pay)
+		if err != nil {
+			return err
+		}
+
+		paid.RawData = n.Data
+
+		return h.State.MakePayment(paid.Username, *paid)
+		// payment.TotalAmountReceived.Currency
 	}
-	// LOG MARSHALED
-	return n, nil
-}
-
-func (h *CoinbaseWatcher) HandlePayment(parent *CoinbaseNotification, payment *CoinbasePaymentNotification) {
-
+	return nil
 }
