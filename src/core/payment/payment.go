@@ -246,12 +246,13 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 		ops := []bson.D{o1, o2}
 
 		var result bson.M
-		err = c.Pipe(ops).All(result)
+		err = c.Pipe(ops).One(&result)
 		if err != nil {
 			p.paidlock.UnlockPayment(username, lock)
 			return fmt.Errorf("Error total debt: %s", err.Error())
 		}
 
+		fmt.Println("RECALC debt:", result)
 		debt = result["total"].(int64)
 
 		o1 = bson.D{{"$match", bson.M{"_id": username}}}
@@ -263,12 +264,13 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 		}}
 		ops = []bson.D{o1, o2}
 
-		err = s.DB(p.db.DbName).C(mongo.C_Paid).Pipe(ops).All(result)
+		err = s.DB(p.db.DbName).C(mongo.C_Paid).Pipe(ops).One(&result)
 		if err != nil {
 			p.paidlock.UnlockPayment(username, lock)
 			return fmt.Errorf("Error total paid: %s", err.Error())
 		}
 
+		fmt.Println("RECALC paid	:", result)
 		paid = result["total"].(int64)
 
 		update := bson.M{
