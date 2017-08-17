@@ -44,8 +44,8 @@ func (l *MapLock) GetLocked(key string) (*PaymentLock, bool) {
 }
 
 func (l *MapLock) UnlockPayment(username string, pl *PaymentLock) {
+	pl.LastUpdated = time.Now().UTC()
 	pl.Unlock()
-	l.Set(username, pl)
 }
 
 type PaymentLock struct {
