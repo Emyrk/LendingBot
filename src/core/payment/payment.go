@@ -280,7 +280,7 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 			},
 		}
 
-		err = s.DB(p.db.DbName).C(mongo.C_Status).UpdateId(username, update)
+		err = s.DB(p.db.DbName).C(mongo.C_Status).UpsertId(username, update)
 		if err != nil {
 			p.paidlock.UnlockPayment(username, lock)
 			return fmt.Errorf("Error setting status: %s", err.Error())
