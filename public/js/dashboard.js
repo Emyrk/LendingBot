@@ -307,16 +307,18 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 							paidLog = $('#paidlog').DataTable({
 								filter: false,
 								columns: [
-								{data : "email", title: "Payment Date"},
-								{data : "contactemail", title: "BTC Paid"},
+								// {data : "email", title: "Payment Date"},
+								// {data : "contactemail", title: "BTC Paid"},
+								{data : "code", title: "Code"},
 								{data : "paymentdate", title: "BTC Transaction Date"},
-								{data : "btcpaid", title: "BTC Transaction ID"},
-								{data : "btctranid", title: "ETH Paid"},
-								{data : "btctrandate", title: "ETH Transaction Date"},
-								{data : "notificationdelivertime", title: "ETH Transaction ID"},
-								{data : "receipt", title: "Address"},
+								{data : "btcpaid", title: "BTC Paid"},
+								{data : "view", title: "View", defaultContent: "view"},
+								// {data : "btctranid", title: "ETH Paid"},
+								// {data : "btctrandate", title: "ETH Transaction Date"},
+								// {data : "notificationdelivertime", title: "ETH Transaction ID"},
+								// {data : "receipt", title: "Address"},
 								],
-								"order": [[ 2, 'desc' ]],
+								"order": [[ 1, 'desc' ]],
 							});
 							paidLog.rows.add(dashPaymentScope.paidlog).draw();
 						} else {
