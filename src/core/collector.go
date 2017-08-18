@@ -26,22 +26,27 @@ func (dc *DebtCollector) Go() {
 
 // PaymentRoutine checks debts every hour and makes payments
 func (dc *DebtCollector) PaymentRoutine() {
-	flog := filog.WithFields(log.Fields{"func": "PaymentRoutine"})
 	ticker := time.NewTicker(time.Hour)
+	dc.payDebts()
 	for _ = range ticker.C {
-		flog.Infof("Payment Routine Running...")
-		users, err := dc.S.FetchAllUsers()
+		dc.payDebts()
+	}
+}
+
+func (dc *DebtCollector) payDebts() {
+	flog := filog.WithFields(log.Fields{"func": "PaymentRoutine"})
+	flog.Infof("Payment Routine Running...")
+	users, err := dc.S.FetchAllUsers()
+	if err != nil {
+		flog.Errorf("%s", err.Error())
+		continue
+	}
+
+	for _, u := range users {
+		err := dc.S.RecalcStatus(u.Username)
 		if err != nil {
 			flog.Errorf("%s", err.Error())
 			continue
-		}
-
-		for _, u := range users {
-			err := dc.S.RecalcStatus(u.Username)
-			if err != nil {
-				flog.Errorf("%s", err.Error())
-				continue
-			}
 		}
 	}
 }
