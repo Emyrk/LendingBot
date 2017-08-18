@@ -615,7 +615,7 @@ func (p *PaymentDatabase) GetAllPaid(username string, dateAfter *time.Time) ([]P
 	}
 	defer s.Close()
 
-	find := bson.M{"_id": username}
+	find := bson.M{"email": username}
 	if dateAfter != nil {
 		find["paymentdate"] = bson.M{"$gt": dateAfter}
 	}
