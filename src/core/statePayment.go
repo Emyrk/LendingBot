@@ -57,7 +57,7 @@ func (s *State) GetUserReferrals(username string) ([]payment.Status, error) {
 }
 
 func (s *State) GetPaymentDebtHistory(username string, limit int) ([]payment.Debt, error) {
-	return s.paymentDB.GetDebtsLimitSortIfFound(username, 2, limit, -1)
+	return s.paymentDB.GetDebtsLimitSortIfFound(username, 0, limit, -1)
 }
 
 func (s *State) GetPaymentPaidHistory(username, dateAfterStr string) ([]payment.Paid, error) {
