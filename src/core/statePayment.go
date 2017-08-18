@@ -62,6 +62,7 @@ func (s *State) GetPaymentDebtHistory(username string, limit int) ([]payment.Deb
 
 func (s *State) GetPaymentPaidHistory(username, dateAfterStr string) ([]payment.Paid, error) {
 	var p []payment.Paid
+
 	if dateAfterStr == "" {
 		//get all payments
 		return s.paymentDB.GetAllPaid(username, nil)
