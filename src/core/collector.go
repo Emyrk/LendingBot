@@ -29,6 +29,7 @@ func (dc *DebtCollector) PaymentRoutine() {
 	flog := filog.WithFields(log.Fields{"func": "PaymentRoutine"})
 	ticker := time.NewTicker(time.Hour)
 	for _ = range ticker.C {
+		flog.Infof("Payment Routine Running...")
 		users, err := dc.S.FetchAllUsers()
 		if err != nil {
 			flog.Errorf("%s", err.Error())
