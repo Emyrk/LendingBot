@@ -125,6 +125,8 @@ func NotificationPairToPaid(parent *CoinbaseNotification, pay *CoinbasePaymentNo
 
 type CoinbaseWatcher struct {
 	State *core.State
+
+	Cache map[string]bool
 }
 
 func NewCoinbaseWatcher(s *core.State) *CoinbaseWatcher {
@@ -132,6 +134,18 @@ func NewCoinbaseWatcher(s *core.State) *CoinbaseWatcher {
 	c.State = s
 
 	return c
+}
+
+func (h *CoinbaseWatcher) setCodeAsUsed(code string) {
+	h.Cache[code] = true
+	// TODO: MONGODB ADD
+}
+
+// alreadyBeenUsed indicates if the payment has already been accepted
+func (h *CoinbaseWatcher) alreadyBeenUsed(code string) bool {
+	_, ok := h.Cache[code]
+	// TODO: MONGODB CHECK
+	return ok
 }
 
 func (h *CoinbaseWatcher) IncomingNotification(data []byte) error {
@@ -156,7 +170,11 @@ func (h *CoinbaseWatcher) IncomingNotification(data []byte) error {
 
 		paid.RawData = n.Data
 
-		fmt.Println(paid)
+		if h.alreadyBeenUsed(paid.Code) {
+			return nil
+		}
+		h.setCodeAsUsed(paid.Code)
+
 		return h.State.MakePayment(paid.Username, *paid)
 	}
 	return fmt.Errorf("Type is not supported: %s", n.Type)
