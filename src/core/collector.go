@@ -39,7 +39,7 @@ func (dc *DebtCollector) payDebts() {
 	users, err := dc.S.FetchAllUsers()
 	if err != nil {
 		flog.Errorf("%s", err.Error())
-		continue
+		return
 	}
 
 	for _, u := range users {
