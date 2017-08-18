@@ -148,6 +148,7 @@ func (l *LendingHistoryKeeper) SavePoloniexMonth(user *userdb.User, accesskey, s
 									flog.WithFields(log.Fields{"time": top.String()}).Errorf("Error charging user: %s", err.Error())
 								}
 							} else {
+								flog.Infof(user.PoloniexEnabledTime)
 								flog.Infof("%s NOPE: %t %t %t", username, user.PoloniexEnabled.Get(loan.Currency), user.PoloniexEnabledTime != nil, user.PoloniexEnabledTime[loan.Currency].Before(time.Now()))
 							}
 						}
