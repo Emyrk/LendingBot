@@ -514,6 +514,7 @@ func (u *Paid) MarshalJSON() ([]byte, error) {
 		BTCTransactionDate    time.Time `json:"btctrandate" bson:"btctrandate"`
 		NotificationDelivedAt time.Time `json:"notificationdelivertime" bson:"notificationdelivertime"`
 		ReceiptUrl            string    `json:"receipt" bson:"receipt"`
+		Code                  string    `json:"code" bson:"code"`
 	}{
 		u.Username,
 		u.ContactUsername,
@@ -523,6 +524,7 @@ func (u *Paid) MarshalJSON() ([]byte, error) {
 		u.BTCTransactionDate,
 		u.NotificationDelivedAt,
 		u.ReceiptUrl,
+		u.Code,
 	})
 }
 

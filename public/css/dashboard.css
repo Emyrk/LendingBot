@@ -87,6 +87,10 @@
 	cursor: not-allowed !important;
 }
 
+.pointer {
+  cursor: pointer;
+}
+
 .prediction-input-table tr td {
 	padding: 5px;
 }
