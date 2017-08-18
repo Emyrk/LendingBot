@@ -225,6 +225,7 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 	var (
 		debtPaid   int64
 		debtUnpaid int64
+		paid       int64
 	)
 
 	s, c, err := p.db.GetCollection(mongo.C_Debt)
@@ -285,8 +286,8 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 				"_id": nil,
 				"total": bson.M{
 					"$sum": bson.M{
-						"$subtract": []bson.M{
-							"$charge": "$ppa",
+						"$subtract": []string{
+							"$charge", "$ppa",
 						},
 					},
 				},
@@ -328,8 +329,8 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 		fmt.Println("RECALC paid:", result)
 		paid = result["total"].(int64)
 
-		if debtPaid != Paid {
-			fmt.Println("Error for user[%s] has not consistent paid and debt paid: [%d][%d]", debtPaid, Paid)
+		if debtPaid != paid {
+			fmt.Println("Error for user[%s] has not consistent paid and debt paid: debtPaid[%d] paid[%d]", debtPaid, paid)
 		}
 
 		////
