@@ -223,8 +223,8 @@ func (p *PaymentDatabase) RecalcAllStatusCredits(username string) error {
 
 func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error {
 	var (
-		debt int64
-		paid int64
+		debtPaid   int64
+		debtUnpaid int64
 	)
 
 	s, c, err := p.db.GetCollection(mongo.C_Debt)
@@ -236,11 +236,21 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 		//lock
 		lock, _ := p.paidlock.GetLocked(username)
 
-		o1 := bson.D{{"$match", bson.M{"email": username}}}
+		////
+		//DEBT PAID
+		/////
+		o1 := bson.D{{
+			"$match", bson.M{
+				"$and": []bson.M{
+					bson.M{"email": username},
+					bson.M{"ppa": bson.M{"$gt": 0}},
+				},
+			},
+		}}
 		o2 := bson.D{{
 			"$group", bson.M{
 				"_id":   nil,
-				"total": bson.M{"$sum": "$charge"},
+				"total": bson.M{"$sum": "$ppa"},
 			},
 		}}
 		ops := []bson.D{o1, o2}
@@ -249,16 +259,57 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 		err = c.Pipe(ops).One(&result)
 		if err != nil && err != mgo.ErrNotFound {
 			p.paidlock.UnlockPayment(username, lock)
-			return fmt.Errorf("Error total debt: %s", err.Error())
+			return fmt.Errorf("Error debtPaid: %s", err.Error())
 		}
 
-		fmt.Println("RECALC debt:", result)
+		fmt.Println("RECALC debtPaid:", result)
 		if err == mgo.ErrNotFound {
-			debt = 0
+			debtPaid = 0
 		} else {
-			debt = result["total"].(int64)
+			debtPaid = result["total"].(int64)
 		}
 
+		////
+		//DEBT UNPAID
+		/////
+		o1 = bson.D{{
+			"$match", bson.M{
+				"$and": []bson.M{
+					bson.M{"email": username},
+					bson.M{"fullpaid": false},
+				},
+			},
+		}}
+		o2 = bson.D{{
+			"$group", bson.M{
+				"_id": nil,
+				"total": bson.M{
+					"$sum": bson.M{
+						"$subtract": []bson.M{
+							"$charge": "$ppa",
+						},
+					},
+				},
+			},
+		}}
+		ops = []bson.D{o1, o2}
+
+		err = c.Pipe(ops).One(&result)
+		if err != nil && err != mgo.ErrNotFound {
+			p.paidlock.UnlockPayment(username, lock)
+			return fmt.Errorf("Error debtUnpaid: %s", err.Error())
+		}
+
+		fmt.Println("RECALC debtUnpaid:", result)
+		if err == mgo.ErrNotFound {
+			debtUnpaid = 0
+		} else {
+			debtUnpaid = result["total"].(int64)
+		}
+
+		////
+		//PAID
+		/////
 		o1 = bson.D{{"$match", bson.M{"email": username}}}
 		o2 = bson.D{{
 			"$group", bson.M{
@@ -269,22 +320,25 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 		ops = []bson.D{o1, o2}
 
 		err = s.DB(p.db.DbName).C(mongo.C_Paid).Pipe(ops).One(&result)
-		if err != nil && err != mgo.ErrNotFound {
+		if err != nil {
 			p.paidlock.UnlockPayment(username, lock)
 			return fmt.Errorf("Error total paid: %s", err.Error())
 		}
 
-		fmt.Println("RECALC paid	:", result)
-		if err == mgo.ErrNotFound {
-			paid = 0
-		} else {
-			paid = result["total"].(int64)
+		fmt.Println("RECALC paid:", result)
+		paid = result["total"].(int64)
+
+		if debtPaid != Paid {
+			fmt.Println("Error for user[%s] has not consistent paid and debt paid: [%d][%d]", debtPaid, Paid)
 		}
 
+		////
+		//UPSERT
+		/////
 		update := bson.M{
 			"$set": bson.M{
-				"unspentcred": paid - debt,
-				"spentcred":   paid,
+				"unspentcred": paid - debtUnpaid,
+				"spentcred":   debtPaid,
 			},
 		}
 
