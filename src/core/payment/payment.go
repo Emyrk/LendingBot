@@ -274,7 +274,7 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 		//DEBT TOTAL
 		/////
 		o1 = bson.D{{
-			"$match", bson.M{bson.M{"email": username}},
+			"$match", bson.M{"email": username},
 		}}
 		o2 = bson.D{{
 			"$group", bson.M{
