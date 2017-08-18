@@ -553,24 +553,22 @@ func (u *Paid) MarshalJSON() ([]byte, error) {
 		Username              string    `json:"email" bson:"email"`
 		ContactUsername       string    `json:"contactemail" bson:"contactemail"`
 		PaymentDate           time.Time `json:"paymentdate" bson:"paymentdate"`
-		BTCPaid               int64     `json:"btcpaid" bson:"btcpaid"`
+		BTCPaid               string    `json:"btcpaid" bson:"btcpaid"`
 		BTCTransactionID      string    `json:"btctranid" bson:"btctranid"`
 		BTCTransactionDate    time.Time `json:"btctrandate" bson:"btctrandate"`
 		NotificationDelivedAt time.Time `json:"notificationdelivertime" bson:"notificationdelivertime"`
 		ReceiptUrl            string    `json:"receipt" bson:"receipt"`
 		Code                  string    `json:"code" bson:"code"`
-		ReciptATag            string    `json:"receipt-a-tag" bson:"receipt-a-tag"`
 	}{
 		u.Username,
 		u.ContactUsername,
 		u.PaymentDate,
-		u.BTCPaid,
+		Int64SatoshiToString(u.BTCPaid),
 		u.BTCTransactionID,
 		u.BTCTransactionDate,
 		u.NotificationDelivedAt,
 		u.ReceiptUrl,
 		u.Code,
-		fmt.Sprintf(`<a href="%s">view</a>`, u.ReceiptUrl),
 	})
 }
 

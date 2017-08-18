@@ -311,8 +311,12 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 								// {data : "contactemail", title: "BTC Paid"},
 								{data : "code", title: "Code"},
 								{data : "paymentdate", title: "BTC Transaction Date"},
-								{data : "btcpaid", title: "BTC Paid"},
-								{data : "receipt-a-tag", title: "View", defaultContent: `no-receipt`},
+								{data : "btcpaid", title: "BTC Paid", render: function ( data, type, row ) {
+									return data + " BTC";
+								}},
+								{data : "receipt", title: "View", defaultContent: `no-receipt`, render: function ( data, type, row ) {
+									return `<a href="` + data + `">view</a>`;
+								}},
 								// {data : "btctranid", title: "ETH Paid"},
 								// {data : "btctrandate", title: "ETH Transaction Date"},
 								// {data : "notificationdelivertime", title: "ETH Transaction ID"},
