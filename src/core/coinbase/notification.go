@@ -160,5 +160,5 @@ func (h *CoinbaseWatcher) IncomingNotification(data []byte) error {
 		return h.State.MakePayment(paid.Username, *paid)
 		// payment.TotalAmountReceived.Currency
 	}
-	return nil
+	return fmt.Errorf("Type is not supported: %s", n.Type)
 }

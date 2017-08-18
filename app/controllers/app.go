@@ -252,7 +252,6 @@ func (c App) PaymentNotification() revel.Result {
 			1,
 		})
 	}
-	llog.Infof(string(data))
 
 	err = CoinbaseWatcher.IncomingNotification(data)
 	if err != nil {
