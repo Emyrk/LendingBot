@@ -282,9 +282,9 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 								{data : "gae", title: "Gross Amount Earned", render: function ( data, type, row ) {
 									return data + " " + row["cur"];
 								}},
-								{data : "gaebtc", title: "Gross BTC Amount Earned"}, render: function ( data, type, row ) {
+								{data : "gaebtc", title: "Gross BTC Amount Earned", render: function ( data, type, row ) {
 									return data + " BTC";
-								},
+								}},
 								{data : "charge", title: "Charge", render: function ( data, type, row ) {
 									return data + " BTC";
 								}},
