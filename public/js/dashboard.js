@@ -282,10 +282,10 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 								{data : "ppa", title: "Payment Paid Amount"},
 								],
 								"createdRow": function( row, data, dataIndex){
-									if( data[8] ==  true ){
+									if( data[fullpaid] ==  true ){
 					                	$(row).addClass('greenClass');
 					                } else {
-					                	if( data[9] >  0 ){
+					                	if( data[ppa] >  0 ){
 					                		$(row).addClass('yellowClass');
 					               		} else {
 					               			$(row).addClass('redClass');
