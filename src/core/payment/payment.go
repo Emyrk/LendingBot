@@ -383,7 +383,7 @@ func (u *Debt) MarshalJSON() ([]byte, error) {
 		PaymentPaidAmount    string `json:"ppa"`
 	}{
 		u.LoanDate.Format("2006-01-02 15:04:05"),
-		formatFloat(float64(u.Charge)/1e8) + " BTC",
+		formatFloat(float64(u.Charge) / 1e8),
 		formatFloat(float64(u.AmountLoaned) / 1e8),
 		fmt.Sprintf("%.4f%%", u.LoanRate*100),
 		formatFloat(float64(u.GrossAmountEarned) / 1e8),
