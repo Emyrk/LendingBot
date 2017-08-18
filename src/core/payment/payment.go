@@ -288,7 +288,7 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 			},
 		}
 
-		err = s.DB(p.db.DbName).C(mongo.C_Status).UpsertId(username, update)
+		_, err = s.DB(p.db.DbName).C(mongo.C_Status).UpsertId(username, update)
 		if err != nil {
 			p.paidlock.UnlockPayment(username, lock)
 			return fmt.Errorf("Error setting status: %s", err.Error())
@@ -497,6 +497,11 @@ type Paid struct {
 	RefundAddress     string `json:"refundaddr" bson:"refundaddr"`
 
 	RawData json.RawMessage `json:"rawdata" bson:"rawdata"`
+}
+
+func (u *Paid) String() string {
+	d, _ := json.Marshal(u)
+	return string(d)
 }
 
 func (u *Paid) MarshalJSON() ([]byte, error) {
