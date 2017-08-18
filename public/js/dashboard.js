@@ -271,10 +271,18 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 								filter: false,
 								columns: [
 								{data : "loandate", title: "Loan Date"},
-								{data : "gae", title: "Gross Amount Earned"},
-								{data : "gaebtc", title: "Gross BTC Amount Earned"},
-								{data : "charge", title: "Charge"},
-								{data : "amountloaned", title: "Amount Loaned"},
+								{data : "gae", title: "Gross Amount Earned", render: function ( data, type, row ) {
+									return data + " " + row["cur"];
+								}},
+								{data : "gaebtc", title: "Gross BTC Amount Earned"}, render: function ( data, type, row ) {
+									return data + " BTC";
+								},
+								{data : "charge", title: "Charge", render: function ( data, type, row ) {
+									return data + " BTC";
+								}},
+								{data : "amountloaned", title: "Amount Loaned", render: function ( data, type, row ) {
+									return data + " " + row["cur"];
+								}},
 								{data : "loanrate", title: "Loan Rate"},
 								{data : "cur", title: "Currency"},
 								{data : "exch", title: "Exchange"},
