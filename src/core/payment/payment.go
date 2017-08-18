@@ -236,7 +236,7 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 		//lock
 		lock, _ := p.paidlock.GetLocked(username)
 
-		o1 := bson.D{{"$match", bson.M{"_id": username}}}
+		o1 := bson.D{{"$match", bson.M{"email": username}}}
 		o2 := bson.D{{
 			"$group", bson.M{
 				"_id":   nil,
@@ -259,7 +259,7 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 			debt = result["total"].(int64)
 		}
 
-		o1 = bson.D{{"$match", bson.M{"_id": username}}}
+		o1 = bson.D{{"$match", bson.M{"email": username}}}
 		o2 = bson.D{{
 			"$group", bson.M{
 				"_id":   nil,
