@@ -136,7 +136,6 @@ func NewCoinbaseWatcher(s *core.State) *CoinbaseWatcher {
 
 func (h *CoinbaseWatcher) IncomingNotification(data []byte) error {
 	n := new(CoinbaseNotification)
-	// LOG RAW
 	err := json.Unmarshal(data, n)
 	if err != nil {
 		return err
@@ -159,7 +158,6 @@ func (h *CoinbaseWatcher) IncomingNotification(data []byte) error {
 
 		fmt.Println(paid)
 		return h.State.MakePayment(paid.Username, *paid)
-		// payment.TotalAmountReceived.Currency
 	}
 	return fmt.Errorf("Type is not supported: %s", n.Type)
 }

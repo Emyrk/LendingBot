@@ -101,15 +101,15 @@ type Status struct {
 
 func (u *Status) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
-		UnspentCredits        int64     `json:"unspentcred"`
-		SpentCredits          int64     `json:"spentcred"`
+		UnspentCredits        string    `json:"unspentcred"`
+		SpentCredits          string    `json:"spentcred"`
 		CustomChargeReduction float64   `json:"customchargereduc"`
 		RefereeCode           string    `json:"refereecode"` //(Person code who referred you)
 		RefereeTime           time.Time `json:"refereetime"`
 		ReferralCode          string    `json:"referralcode"`
 	}{
-		u.UnspentCredits,
-		u.SpentCredits,
+		Int64SatoshiToString(u.UnspentCredits),
+		Int64SatoshiToString(u.SpentCredits),
 		u.CustomChargeReduction,
 		u.RefereeCode,
 		u.RefereeTime,
