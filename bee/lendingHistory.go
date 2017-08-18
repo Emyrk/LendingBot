@@ -141,14 +141,14 @@ func (l *LendingHistoryKeeper) SavePoloniexMonth(user *userdb.User, accesskey, s
 					} else {
 						// l.MyBee.
 						for _, loan := range resp.Data {
-							if user.PoloniexEnabled.Get(loan.Currency) && user.PoloniexEnabledTime != nil && user.PoloniexEnabledTime[loan.Currency].Before(time.Now()) {
+							if user.PoloniexEnabled.Get(loan.Currency) && user.PoloniexEnabledTime[loan.Currency].Before(time.Now()) {
 								err := l.MyBee.AddPoloniexDebt(username, loan)
 								if err != nil {
 									// This person was not charged
 									flog.WithFields(log.Fields{"time": top.String()}).Errorf("Error charging user: %s", err.Error())
 								}
 							} else {
-								flog.Infof(user.PoloniexEnabledTime)
+								flog.Infof("%v %s", user.PoloniexEnabledTime, user.PoloniexEnabledTime[loan.Currency])
 								flog.Infof("%s NOPE: %t %t %t", username, user.PoloniexEnabled.Get(loan.Currency), user.PoloniexEnabledTime != nil, user.PoloniexEnabledTime[loan.Currency].Before(time.Now()))
 							}
 						}
