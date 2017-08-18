@@ -499,6 +499,11 @@ type Paid struct {
 	RawData json.RawMessage `json:"rawdata" bson:"rawdata"`
 }
 
+func (u *Paid) String() string {
+	d, _ := json.Marshal(u)
+	return string(d)
+}
+
 func (u *Paid) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
 		Username              string    `json:"email" bson:"email"`

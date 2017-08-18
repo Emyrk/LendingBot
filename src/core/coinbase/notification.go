@@ -157,6 +157,7 @@ func (h *CoinbaseWatcher) IncomingNotification(data []byte) error {
 
 		paid.RawData = n.Data
 
+		fmt.Println(paid)
 		return h.State.MakePayment(paid.Username, *paid)
 		// payment.TotalAmountReceived.Currency
 	}
