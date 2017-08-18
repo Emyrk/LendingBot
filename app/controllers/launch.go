@@ -39,6 +39,7 @@ var _ = revel.Equal
 //var Lender *lender.Lender
 var Balancer *balancer.Balancer
 var CoinbaseWatcher *coinbase.CoinbaseWatcher
+var DebtAgent *core.DebtCollector
 
 func Launch() {
 	// Prometheus
@@ -120,6 +121,8 @@ func Launch() {
 		panic(err)
 	}
 
+	DebtAgent = core.NewDebtCollector(state)
+
 	//lenderBot := lender.NewLender(state)
 	//queuerBot := queuer.NewQueuer(state, lenderBot)
 
@@ -133,6 +136,7 @@ func Launch() {
 	go Balancer.Run(9200)
 	go StartProfiler()
 	go initPoloStats()
+	DebtAgent.Go()
 	coinbase.InitCoinbaseAPI()
 	CoinbaseWatcher = coinbase.NewCoinbaseWatcher(state)
 }
