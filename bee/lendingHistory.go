@@ -146,6 +146,7 @@ func (l *LendingHistoryKeeper) SavePoloniexMonth(user *userdb.User, accesskey, s
 								continue
 							}
 							dt, err := time.Parse("2006-01-02 15:04:05", loan.Close)
+							flog.Infof("%s %s %s %t %v", username, dt, user.PoloniexEnabledTime[loan.Currency], user.PoloniexEnabledTime[loan.Currency].Before(dt), err)
 							if err == nil && user.PoloniexEnabled.Get(loan.Currency) && user.PoloniexEnabledTime[loan.Currency].Before(dt) {
 								err := l.MyBee.AddPoloniexDebt(username, loan)
 								if err != nil {
