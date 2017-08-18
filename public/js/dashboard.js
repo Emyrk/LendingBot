@@ -725,6 +725,9 @@ app.controller('dashPredictionController', ['$scope', '$http', '$log', '$timeout
 			var raw = dashPredictionScope.cachedMap.get(dashPredictionScope.currentToken)
 			rates = raw.token
 			btcrate = raw.rate
+			if(rates == undefined) {
+				return
+			}
 			$("#30-day").text(makePercent(rates.monthavg))
 			$("#7-day").text(makePercent(rates.weekavg))
 			$("#1-day").text(makePercent(rates.dayavg))
