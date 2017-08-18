@@ -559,6 +559,7 @@ func (u *Paid) MarshalJSON() ([]byte, error) {
 		NotificationDelivedAt time.Time `json:"notificationdelivertime" bson:"notificationdelivertime"`
 		ReceiptUrl            string    `json:"receipt" bson:"receipt"`
 		Code                  string    `json:"code" bson:"code"`
+		ReciptATag            string    `json:"receipt-a-tag" bson:"receipt-a-tag"`
 	}{
 		u.Username,
 		u.ContactUsername,
@@ -569,6 +570,7 @@ func (u *Paid) MarshalJSON() ([]byte, error) {
 		u.NotificationDelivedAt,
 		u.ReceiptUrl,
 		u.Code,
+		fmt.Sprintf(`<a href="%s">view</a>`, u.ReceiptUrl),
 	})
 }
 
