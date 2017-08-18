@@ -143,18 +143,21 @@ func (l *LendingHistoryKeeper) SavePoloniexMonth(user *userdb.User, accesskey, s
 						for _, loan := range resp.Data {
 							v, ok := user.PoloniexEnabledTime[loan.Currency]
 							if !ok { // Not initialized
+								// Do not add debt to a non-initialized
 								continue
 							}
 
+							// Time of loan close
 							dt, err := time.Parse("2006-01-02 15:04:05", loan.Close)
 							if err != nil {
 								continue
 							}
 
+							// Skip if the loan did not close on the day we are analyzing
 							if dt.Day() != top.Day() {
 								continue
 							}
-							flog.Infof("%s %s %s %t %v", username, dt, user.PoloniexEnabledTime[loan.Currency], user.PoloniexEnabledTime[loan.Currency].Before(dt), err)
+							// If we made this loan, charge em
 							if user.PoloniexEnabled.Get(loan.Currency) && user.PoloniexEnabledTime[loan.Currency].Before(dt) {
 								err := l.MyBee.AddPoloniexDebt(username, loan)
 								if err != nil {
