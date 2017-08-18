@@ -270,6 +270,14 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 							debtLog = $('#debtlog').DataTable({
 								filter: false,
 								columns: [
+								// <i class="fa fa-check" aria-hidden="true"></i>
+								{data : "fullpaid", title: "Fully Paid", render: function ( data, type, row ) {
+									if(data) {
+										return `<i class="fa fa-check" aria-hidden="true"></i>`
+									} else {
+										return `<i class="fa fa-times" aria-hidden="true"></i>`
+									}
+								}},
 								{data : "loandate", title: "Loan Date"},
 								{data : "gae", title: "Gross Amount Earned", render: function ( data, type, row ) {
 									return data + " " + row["cur"];
@@ -286,7 +294,6 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 								{data : "loanrate", title: "Loan Rate"},
 								{data : "cur", title: "Currency"},
 								{data : "exch", title: "Exchange"},
-								{data : "fullpaid", title: "Fully Paid"},
 								{data : "ppa", title: "Payment Paid Amount"},
 								],
 								"createdRow": function( row, data, dataIndex){
