@@ -115,3 +115,38 @@ func (s *State) MakePayment(username string, paid payment.Paid) error {
 	}
 	return nil
 }
+
+//also sets if user should halt
+func (s *State) RecalcStatus(username string) error {
+
+	//recalcing
+	err := s.paymentDB.RecalcAllStatusCredits(username)
+	if err != nil {
+		return fmt.Errorf("Error recalcing: %s", err.Error())
+	}
+
+	if err = s.paymentDB.PayDebts(username); err != nil {
+		return fmt.Errorf("Error paying debts: %s", err.Error())
+	}
+	// /recalcing
+
+	//update user
+	status, err := s.paymentDB.GetStatusIfFound(username)
+	if err != nil {
+		return fmt.Errorf("Error grabbing status: %s", err.Error())
+	}
+
+	user, err := s.userDB.FetchUserIfFound(username)
+	if err != nil {
+		return fmt.Errorf("Error fetching user: %s", err.Error())
+	}
+
+	if status.UnspentCredits < 0 {
+		user.LendingHalted.Reason = "Credits owed."
+		user.LendingHalted.Time = time.Now().UTC()
+		user.LendingHalted.Halt = true
+	} else {
+		user.LendingHalted.Halt = false
+	}
+	return s.userDB.PutUser(user)
+}

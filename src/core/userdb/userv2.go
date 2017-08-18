@@ -101,9 +101,9 @@ const UsernameMaxLength int = 100
 const SaltLength int = 5
 
 type LendingHalt struct {
-	Halt   bool   `json:"halt" bson:"halt"` //true = halt payments
-	Reason string `json:"reason" bson:"reason"`
-	Date   string `json:"date" bson:"date"`
+	Halt   bool      `json:"halt" bson:"halt"` //true = halt payments
+	Reason string    `json:"reason" bson:"reason"`
+	Time   time.Time `json:"time" bson:"time"`
 }
 
 type User struct {
