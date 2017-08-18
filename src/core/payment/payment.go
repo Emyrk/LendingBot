@@ -801,3 +801,14 @@ func (p *PaymentDatabase) InsertNewDebt(debt Debt) error {
 
 	return p.SetDebt(debt)
 }
+
+func (p *PaymentDatabase) RecalcStatus(username string) error {
+	if err = s.paymentDB.RecalcAllStatusCredits(username); err != nil {
+		return fmt.Errorf("Error recalcing: %s", err.Error())
+	}
+
+	if err = s.paymentDB.PayDebts(username); err != nil {
+		return fmt.Errorf("Error paying debts: %s", err.Error())
+	}
+	return nil
+}

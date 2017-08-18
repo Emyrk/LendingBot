@@ -100,6 +100,12 @@ const VerifyLength int = 64
 const UsernameMaxLength int = 100
 const SaltLength int = 5
 
+type LendingHalt struct {
+	Halt   bool   `json:"halt" bson:"halt"` //true = halt payments
+	Reason string `json:"reason" bson:"reason"`
+	Date   string `json:"date" bson:"date"`
+}
+
 type User struct {
 	Username     string   `bson:"_id" json:"username"` // Not case sensitive
 	PasswordHash [32]byte `json:"passhash"`
@@ -133,6 +139,8 @@ type User struct {
 	BitfinexKeys         *ExchangeKeys
 
 	SessionExpiryTime time.Duration `bson:"sesexpdur"`
+
+	LendingHalted LendingHalt `json:"lendhalt" bson:"lendhalt"`
 }
 
 func (u *User) SafeUnmarshal(data []byte) error {
