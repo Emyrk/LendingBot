@@ -507,7 +507,15 @@ func (b *Bee) AddPoloniexDebt(username string, loan poloniex.PoloniexAuthenticte
 		return err
 	}
 
-	d.LoanDate = dt
+	d.LoanCloseDate = dt
+
+	ot, err := time.Parse("2006-01-02 15:04:05", loan.Open)
+	if err != nil {
+		return err
+	}
+
+	d.LoanOpenDate = ot
+
 	d.ExchangeID = loan.ID
 	amt, err := strconv.ParseFloat(loan.Amount, 64)
 	if err != nil {

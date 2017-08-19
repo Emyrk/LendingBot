@@ -107,10 +107,10 @@
 	</div>
 </div>
 
-<button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bs-example-modal-lg">Large modal</button>
+<!-- <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bs-example-modal-lg">Large modal</button> -->
 
 <!-- Modal for paid -->
-<div class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+<div class="modal fade bs-paid-modal-lg" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
 	<div class="modal-dialog modal-lg">
 		<div class="modal-content">
 
@@ -165,6 +165,79 @@
 	</div>
 </div>
 <!-- /Paid Modal -->
+
+<!-- Modal for Debt -->
+<div class="modal fade bs-debt-modal-lg" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span>
+				</button>
+				<h4 class="modal-title" id="myModalLabel">Detailed Debt Information</h4>
+			</div>
+			<div class="modal-body">
+				<div class="row">
+				<!-- <div class="col-md-offset-3"></div> -->
+				<div class="col-md-8 col-md-offset-2">
+						<table class="table table-striped">
+							<tbody>
+								<tr>
+									<td>Exchange</td>
+									<td>{{debtModalVals.exch}}</td>
+								</tr>
+								<tr>
+									<td>Loan Opened</td>
+									<td>{{debtModalVals.loanopendate}}</td>
+								</tr>
+								<tr>
+									<td>Loan Closed</td>
+									<td>{{debtModalVals.loandate}}</td>
+								</tr>
+								<tr>
+									<td>Currency</td>
+									<td>{{debtModalVals.cur}}</td>
+								</tr>
+								<tr>
+									<td>Amount Loaned</td>
+									<td>{{debtModalVals.amountloaned}} {{debtModalVals.cur}}</td>
+								</tr>
+								<tr>
+									<td>Daily Interest Rate</td>
+									<td>{{debtModalVals.loanrate}}</td>
+								</tr>
+								<tr>
+									<td>Gross Amount Earned</td>
+									<td>{{debtModalVals.gae}} {{debtModalVals.cur}}</td>
+								</tr>
+								<tr>
+									<td>Gross BTC Amount Earned</td>
+									<td>{{debtModalVals.gaebtc}} BTC</td>
+								</tr>
+								<tr>
+									<td>HODL.ZONE Charge</td>
+									<td>{{debtModalVals.charge}} BTC</td>
+								</tr>
+								<tr>
+									<td>Amount Paid</td>
+									<td>{{debtModalVals.ppa}} BTC</td>
+								</tr>
+								<tr>
+									<td>Fully Paid</td>
+									<td>{{debtModalVals.fullpaid}}</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- /Debt Modal -->
 
 <!-- <div class="col-sm-6 invoice-col">
                           From

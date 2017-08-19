@@ -158,7 +158,7 @@ func (l *LendingHistoryKeeper) SavePoloniexMonth(user *userdb.User, accesskey, s
 								continue
 							}
 							// If we made this loan, charge em
-							if user.PoloniexEnabled.Get(loan.Currency) && user.PoloniexEnabledTime[loan.Currency].Before(dt) {
+							if user.PoloniexEnabled.Get(loan.Currency) && v.Before(dt) {
 								err := l.MyBee.AddPoloniexDebt(username, loan)
 								if err != nil {
 									// This person was not charged

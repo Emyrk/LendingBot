@@ -355,7 +355,8 @@ type Debt struct {
 	//ID is set by database and is unique
 	ID                   *bson.ObjectId      `json:"_id,omitempty" bson:"_id,omitempty"`
 	ExchangeID           int                 `json:"exchid" bson:"exchid"`
-	LoanDate             time.Time           `json:"loandate" bson:"loandate"`
+	LoanOpenDate         time.Time           `json:"loanopendate" bson:"loanopendate"`
+	LoanCloseDate        time.Time           `json:"loandate" bson:"loandate"`
 	Charge               int64               `json:"charge" bson:"charge"`
 	AmountLoaned         int64               `json:"amountloaned" bson:"amountloaned"`
 	LoanRate             float64             `json:"loanrate" bson:"loanrate"`
@@ -376,7 +377,8 @@ func (u *Debt) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(&struct {
-		LoanDate             string `json:"loandate"`
+		LoanCloseDate        string `json:"loandate"`
+		LoanOpenDate         string `json:"loanopendate"`
 		Charge               string `json:"charge"`
 		AmountLoaned         string `json:"amountloaned"`
 		LoanRate             string `json:"loanrate"`
@@ -389,7 +391,8 @@ func (u *Debt) MarshalJSON() ([]byte, error) {
 		FullPaid             bool   `json:"fullpaid"`
 		PaymentPaidAmount    string `json:"ppa"`
 	}{
-		u.LoanDate.Format("2006-01-02 15:04:05"),
+		u.LoanCloseDate.Format("2006-01-02 15:04:05"),
+		u.LoanOpenDate.Format("2006-01-02 15:04:05"),
 		formatFloat(float64(u.Charge) / 1e8),
 		formatFloat(float64(u.AmountLoaned) / 1e8),
 		fmt.Sprintf("%.4f%%", u.LoanRate*100),

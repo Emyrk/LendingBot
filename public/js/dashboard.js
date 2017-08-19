@@ -295,6 +295,12 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 								{data : "cur", title: "Currency"},
 								{data : "exch", title: "Exchange"},
 								{data : "ppa", title: "Payment Paid Amount"},
+								{data : "fullpaid", title: "View", defaultContent: `no-receipt`, render: function ( data, type, row, meta ) {
+									var a =  `<button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bs-debt-modal-lg" ng-click="loadDebtModal('` + 
+										meta.row + `')">View More</button>`;
+									//tempB.push(a)
+									return a
+								}},
 								],
 								"createdRow": function( row, data, dataIndex){
 									if( data["fullpaid"] ==  true ){
@@ -319,7 +325,7 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 					}
 					if (dashPaymentScope.paidlog) {
 						if (!$.fn.DataTable.isDataTable('#paidlog')) {
-							var tempB = [];
+							//var tempB = [];
 							paidLog = $('#paidlog').DataTable({
 								filter: false,
 								columns: [
@@ -331,9 +337,9 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 									return data + " BTC";
 								}},
 								{data : "receipt", title: "View", defaultContent: `no-receipt`, render: function ( data, type, row, meta ) {
-									var a =  `<button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bs-example-modal-lg" ng-click="loadPaidModal('` + 
+									var a =  `<button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bs-paid-modal-lg" ng-click="loadPaidModal('` + 
 										meta.row + `')">View More</button>`;
-									tempB.push(a)
+									//tempB.push(a)
 									return a
 								}},
 								// {data : "btctranid", title: "ETH Paid"},
@@ -365,7 +371,12 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 			dashPaymentScope.paidModalVals = dashPaymentScope.paidlog[rowNum];
 		}
 
+		dashPaymentScope.loadDebtModal = function(rowNum) {
+			dashPaymentScope.debtModalVals = dashPaymentScope.debtlog[rowNum];
+		}
+
 		//init
+		dashPaymentScope.debtModalVals = {};
 		dashPaymentScope.paidModalVals = {};
 		dashPaymentScope.getPaymentHistory();
 		// paymentLogsPromise = $interval(() => {dashPaymentScope.getPaymentHistory();}, 5000)

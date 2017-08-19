@@ -40,7 +40,7 @@ func (b *Bee) IsDebtOverTimeLimit(username string, dur time.Duration) (bool, err
 	if len(debts) == 0 {
 		return false, nil
 	}
-	if debts[0].LoanDate.UTC().Add(dur).UnixNano() > time.Now().UnixNano() {
+	if debts[0].LoanCloseDate.UTC().Add(dur).UnixNano() > time.Now().UnixNano() {
 		return true, nil
 	}
 	return false, nil
