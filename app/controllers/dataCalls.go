@@ -466,7 +466,7 @@ func (r AppAuthRequired) GetPaymentButton() revel.Result {
 
 	code, err := state.GenerateHODLZONECode()
 	if err != nil {
-		llog.Errorf("HODLZONE code generation failed: %s", err.String())
+		llog.Errorf("HODLZONE code generation failed: %s", err.Error())
 		data["error"] = "Internal error. Please contact: support@hodl.zone"
 		r.Response.Status = 500
 		return r.RenderJSON(data)
