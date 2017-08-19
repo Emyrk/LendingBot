@@ -56,8 +56,9 @@ type CheckoutOptions struct {
 }
 
 type MetaDataField struct {
-	Username string `json:"username"`
-	Version  int    `json:"version"`
+	Username     string `json:"username"`
+	Version      int    `json:"version"`
+	HodlzoneCode string `json:"hodlzone_code"`
 }
 
 type PaymentButton struct {
@@ -77,33 +78,31 @@ type PaymentButton struct {
 			Amount   string `json:"amount"`
 			Currency string `json:"currency"`
 		} `json:"amount_presets"`
-		CallbackURL            interface{} `json:"callback_url"`
-		SuccessURL             string      `json:"success_url"`
-		CancelURL              string      `json:"cancel_url"`
-		AutoRedirect           bool        `json:"auto_redirect"`
-		NotificationsURL       interface{} `json:"notifications_url"`
-		CollectShippingAddress bool        `json:"collect_shipping_address"`
-		CollectEmail           bool        `json:"collect_email"`
-		CollectPhoneNumber     bool        `json:"collect_phone_number"`
-		CollectCountry         bool        `json:"collect_country"`
-		Metadata               struct {
-			Username string `json:"username"`
-			Version  int    `json:"version"`
-		} `json:"metadata"`
-		CreatedAt    time.Time `json:"created_at"`
-		UpdatedAt    time.Time `json:"updated_at"`
-		Resource     string    `json:"resource"`
-		ResourcePath string    `json:"resource_path"`
+		CallbackURL            interface{}   `json:"callback_url"`
+		SuccessURL             string        `json:"success_url"`
+		CancelURL              string        `json:"cancel_url"`
+		AutoRedirect           bool          `json:"auto_redirect"`
+		NotificationsURL       interface{}   `json:"notifications_url"`
+		CollectShippingAddress bool          `json:"collect_shipping_address"`
+		CollectEmail           bool          `json:"collect_email"`
+		CollectPhoneNumber     bool          `json:"collect_phone_number"`
+		CollectCountry         bool          `json:"collect_country"`
+		Metadata               MetaDataField `json:"metadata"`
+		CreatedAt              time.Time     `json:"created_at"`
+		UpdatedAt              time.Time     `json:"updated_at"`
+		Resource               string        `json:"resource"`
+		ResourcePath           string        `json:"resource_path"`
 	} `json:"data"`
 }
 
-func CreatePayment(username string) (*PaymentButton, error) {
+func CreatePayment(username string, hodlzoneCode string) (*PaymentButton, error) {
 	// https://api.coinbase.com/v2/checkouts
 	client := http.Client{}
 
 	meta := new(MetaDataField)
 	meta.Username = username
 	meta.Version = 1
+	meta.HodlzoneCode = hodlzoneCode
 	o := NewDefaultCheckoutOptions()
 	o.Metadata = meta
 

@@ -67,14 +67,10 @@ type CoinbasePaymentNotification struct {
 	PaidAt           time.Time       `json:"paid_at"`
 	MispaidAt        time.Time       `json:"mispaid_at"`
 	ExpiresAt        time.Time       `json:"expires_at"`
-	Metadata         struct {
-		Custom   string `json:"custom"`
-		Username string `json:"username"`
-		Version  int    `json:"version"`
-	} `json:"metadata"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
-	CustomerInfo struct {
+	Metadata         MetaDataField   `json:"metadata"`
+	CreatedAt        time.Time       `json:"created_at"`
+	UpdatedAt        time.Time       `json:"updated_at"`
+	CustomerInfo     struct {
 		Name        interface{} `json:"name"`
 		Email       string      `json:"email"`
 		PhoneNumber interface{} `json:"phone_number"`
@@ -136,16 +132,22 @@ func NewCoinbaseWatcher(s *core.State) *CoinbaseWatcher {
 	return c
 }
 
-func (h *CoinbaseWatcher) setCodeAsUsed(code string) {
+func (h *CoinbaseWatcher) setCoinbaseCodeAsUsed(code string) error {
 	h.Cache[code] = true
-	// TODO: MONGODB ADD
+	return h.State.InsertCoinbaseCode(code)
 }
 
 // alreadyBeenUsed indicates if the payment has already been accepted
-func (h *CoinbaseWatcher) alreadyBeenUsed(code string) bool {
+func (h *CoinbaseWatcher) coinbaseAlreadyBeenUsed(code string) (bool, error) {
 	_, ok := h.Cache[code]
-	// TODO: MONGODB CHECK
-	return ok
+	if ok {
+		return ok, nil
+	}
+	return h.State.CoinbaseCodeExists
+}
+
+func (h *CoinbaseWatcher) ValidHODLZONECode(code string) (bool, error) {
+	return h.HODLZONECodeExists(code)
 }
 
 func (h *CoinbaseWatcher) IncomingNotification(data []byte) error {
@@ -170,10 +172,25 @@ func (h *CoinbaseWatcher) IncomingNotification(data []byte) error {
 
 		paid.RawData = n.Data
 
-		if h.alreadyBeenUsed(paid.Code) {
+		if ok, err := h.coinbaseAlreadyBeenUsed(paid.Code); err == nil && ok {
+			return nil
+		} else {
+			if err != nil {
+				return err
+			}
+		}
+		err = h.setCoinbaseCodeAsUsed(paid.Code)
+		if err != nil {
+			return err
+		}
+
+		exists, err := h.ValidHODLZONECode(pay.Metadata.HodlzoneCode)
+		if err != nil {
+			return err
+		}
+		if !exists {
 			return nil
 		}
-		h.setCodeAsUsed(paid.Code)
 
 		return h.State.MakePayment(paid.Username, *paid)
 	}

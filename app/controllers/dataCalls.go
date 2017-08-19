@@ -464,7 +464,15 @@ func (r AppAuthRequired) GetPaymentButton() revel.Result {
 
 	data := make(map[string]interface{})
 
-	paymentButton, err := coinbase.CreatePayment(username)
+	code, err := state.GenerateHODLZONECode()
+	if err != nil {
+		llog.Errorf("HODLZONE code generation failed: %s", err.String())
+		data["error"] = "Internal error. Please contact: support@hodl.zone"
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+
+	paymentButton, err := coinbase.CreatePayment(username, code)
 	if err != nil {
 		llog.Errorf("%s", err.Error())
 		data["error"] = "Internal error. Please contact: support@hodl.zone"
