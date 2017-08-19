@@ -316,6 +316,7 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 								"order": [[ 0, 'desc' ]],
 							});
 							debtLog.rows.add(dashPaymentScope.debtlog).draw();
+							$compile(debtlog)(dashPaymentScope);
 						} else {
 							var page = angular.copy(debtLog.page());
 							debtLog.rows().remove();
