@@ -358,6 +358,7 @@ type Debt struct {
 	LoanOpenDate         time.Time           `json:"loanopendate" bson:"loanopendate"`
 	LoanCloseDate        time.Time           `json:"loandate" bson:"loandate"`
 	Charge               int64               `json:"charge" bson:"charge"`
+	ChargeRate           float64             `json:"chargerate" bson:"chargerate"`
 	AmountLoaned         int64               `json:"amountloaned" bson:"amountloaned"`
 	LoanRate             float64             `json:"loanrate" bson:"loanrate"`
 	GrossAmountEarned    int64               `json:"gae" bson:"gae"`
@@ -380,6 +381,7 @@ func (u *Debt) MarshalJSON() ([]byte, error) {
 		LoanCloseDate        string `json:"loandate"`
 		LoanOpenDate         string `json:"loanopendate"`
 		Charge               string `json:"charge"`
+		ChargeRate           string `json:"chargerate" bson:"chargerate"`
 		AmountLoaned         string `json:"amountloaned"`
 		LoanRate             string `json:"loanrate"`
 		GrossAmountEarned    string `json:"gae"`
@@ -394,6 +396,7 @@ func (u *Debt) MarshalJSON() ([]byte, error) {
 		u.LoanCloseDate.Format("2006-01-02 15:04:05"),
 		u.LoanOpenDate.Format("2006-01-02 15:04:05"),
 		formatFloat(float64(u.Charge) / 1e8),
+		fmt.Sprintf("%.4f%%", u.ChargeRate*100),
 		formatFloat(float64(u.AmountLoaned) / 1e8),
 		fmt.Sprintf("%.4f%%", u.LoanRate*100),
 		formatFloat(float64(u.GrossAmountEarned) / 1e8),
@@ -804,6 +807,7 @@ func (p *PaymentDatabase) InsertNewDebt(debt Debt) error {
 	}
 	final := float64(0.10 - userStatus.CustomChargeReduction - discount)
 
+	debt.ChargeRate = final
 	debt.Charge = int64(float64(debt.GrossBTCAmountEarned) * final)
 	debt.FullPaid = false
 	debt.PaymentPaidAmount = 0
