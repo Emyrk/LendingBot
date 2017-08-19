@@ -147,11 +147,11 @@ func (h *CoinbaseWatcher) coinbaseAlreadyBeenUsed(code string) (bool, error) {
 	if ok {
 		return ok, nil
 	}
-	return h.State.CoinbaseCodeExists
+	return h.State.CoinbaseCodeExists(code)
 }
 
 func (h *CoinbaseWatcher) ValidHODLZONECode(code string) (bool, error) {
-	return h.HODLZONECodeExists(code)
+	return h.State.HODLZONECodeExists(code)
 }
 
 func (h *CoinbaseWatcher) IncomingNotification(data []byte) error {
