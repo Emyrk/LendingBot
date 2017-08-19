@@ -233,8 +233,8 @@ app.controller('dashInfoController', ['$scope', '$http', '$log', '$interval', '$
 		//----
 	}]);
 
-app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval', '$timeout',
-	function($scope, $http, $log, $interval, $timeout) {
+app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval', '$timeout', '$compile',
+	function($scope, $http, $log, $interval, $timeout, $compile) {
 		var dashPaymentScope = $scope;
 		var paidLog,
 		debtLog,
@@ -319,6 +319,7 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 					}
 					if (dashPaymentScope.paidlog) {
 						if (!$.fn.DataTable.isDataTable('#paidlog')) {
+							var tempB = [];
 							paidLog = $('#paidlog').DataTable({
 								filter: false,
 								columns: [
@@ -329,8 +330,11 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 								{data : "btcpaid", title: "BTC Paid", render: function ( data, type, row ) {
 									return data + " BTC";
 								}},
-								{data : "receipt", title: "View", defaultContent: `no-receipt`, render: function ( data, type, row ) {
-									return `<a href="` + data + `">view</a>`;
+								{data : "receipt", title: "View", defaultContent: `no-receipt`, render: function ( data, type, row, meta ) {
+									var a =  `<button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bs-example-modal-lg" ng-click="loadPaidModal('` + 
+										meta.row + `')">View More</button>`;
+									tempB.push(a)
+									return a
 								}},
 								// {data : "btctranid", title: "ETH Paid"},
 								// {data : "btctrandate", title: "ETH Transaction Date"},
@@ -340,6 +344,9 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 								"order": [[ 1, 'desc' ]],
 							});
 							paidLog.rows.add(dashPaymentScope.paidlog).draw();
+							// for (i = 0; i < tempB.length; i++) {
+								$compile(paidlog)(dashPaymentScope);
+							// }
 						} else {
 							var page = angular.copy(paidLog.page());
 							paidLog.rows().remove();
@@ -354,7 +361,12 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 			});
 		}
 
+		dashPaymentScope.loadPaidModal = function(rowNum) {
+			dashPaymentScope.paidModalVals = dashPaymentScope.paidlog[rowNum];
+		}
+
 		//init
+		dashPaymentScope.paidModalVals = {};
 		dashPaymentScope.getPaymentHistory();
 		// paymentLogsPromise = $interval(() => {dashPaymentScope.getPaymentHistory();}, 5000)
 		//--
