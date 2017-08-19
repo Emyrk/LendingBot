@@ -560,23 +560,23 @@ func (u *Paid) String() string {
 
 func (u *Paid) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
-		Username              string    `json:"email" bson:"email"`
-		ContactUsername       string    `json:"contactemail" bson:"contactemail"`
-		PaymentDate           time.Time `json:"paymentdate" bson:"paymentdate"`
-		BTCPaid               string    `json:"btcpaid" bson:"btcpaid"`
-		BTCTransactionID      string    `json:"btctranid" bson:"btctranid"`
-		BTCTransactionDate    time.Time `json:"btctrandate" bson:"btctrandate"`
-		NotificationDelivedAt time.Time `json:"notificationdelivertime" bson:"notificationdelivertime"`
-		ReceiptUrl            string    `json:"receipt" bson:"receipt"`
-		Code                  string    `json:"code" bson:"code"`
+		Username              string `json:"email" bson:"email"`
+		ContactUsername       string `json:"contactemail" bson:"contactemail"`
+		PaymentDate           string `json:"paymentdate" bson:"paymentdate"`
+		BTCPaid               string `json:"btcpaid" bson:"btcpaid"`
+		BTCTransactionID      string `json:"btctranid" bson:"btctranid"`
+		BTCTransactionDate    string `json:"btctrandate" bson:"btctrandate"`
+		NotificationDelivedAt string `json:"notificationdelivertime" bson:"notificationdelivertime"`
+		ReceiptUrl            string `json:"receipt" bson:"receipt"`
+		Code                  string `json:"code" bson:"code"`
 	}{
 		u.Username,
 		u.ContactUsername,
-		u.PaymentDate,
+		u.PaymentDate.Format("2006-01-02 15:04:05"),
 		Int64SatoshiToString(u.BTCPaid),
 		u.BTCTransactionID,
-		u.BTCTransactionDate,
-		u.NotificationDelivedAt,
+		u.BTCTransactionDate.Format("2006-01-02 15:04:05"),
+		u.NotificationDelivedAt.Format("2006-01-02 15:04:05"),
 		u.ReceiptUrl,
 		u.Code,
 	})

@@ -278,7 +278,7 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 										return `<i class="fa fa-times" aria-hidden="true"></i>`
 									}
 								}},
-								{data : "loandate", title: "Loan Date"},
+								{data : "loandate", title: "Loan Close Date"},
 								{data : "gae", title: "Gross Amount Earned", render: function ( data, type, row ) {
 									return data + " " + row["cur"];
 								}},
@@ -288,13 +288,13 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 								{data : "charge", title: "Charge", render: function ( data, type, row ) {
 									return data + " BTC";
 								}},
-								{data : "amountloaned", title: "Amount Loaned", render: function ( data, type, row ) {
-									return data + " " + row["cur"];
-								}},
-								{data : "loanrate", title: "Loan Rate"},
+								// {data : "amountloaned", title: "Amount Loaned", render: function ( data, type, row ) {
+								// 	return data + " " + row["cur"];
+								// }},
+								// {data : "loanrate", title: "Loan Rate"},
 								{data : "cur", title: "Currency"},
-								{data : "exch", title: "Exchange"},
-								{data : "ppa", title: "Payment Paid Amount"},
+								// {data : "exch", title: "Exchange"},
+								// {data : "ppa", title: "Payment Paid Amount"},
 								{data : "fullpaid", title: "View", defaultContent: `no-receipt`, render: function ( data, type, row, meta ) {
 									var a =  `<button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bs-debt-modal-lg" ng-click="loadDebtModal('` + 
 										meta.row + `')">View More</button>`;
