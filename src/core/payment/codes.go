@@ -1,7 +1,11 @@
 package payment
 
 import (
+	"fmt"
+
+	"github.com/Emyrk/LendingBot/src/core/database/mongo"
 	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 type CoinbasePaymentCode struct {
@@ -14,7 +18,7 @@ func (p *PaymentDatabase) InsertCoinbasePaymentCode(code string) error {
 
 	s, c, err := p.db.GetCollection(mongo.C_CoinbaseCode)
 	if err != nil {
-		return results, fmt.Errorf("InsertCoinbasePaymentCode: getcol: %s", err)
+		return fmt.Errorf("InsertCoinbasePaymentCode: getcol: %s", err)
 	}
 	defer s.Close()
 
@@ -23,34 +27,35 @@ func (p *PaymentDatabase) InsertCoinbasePaymentCode(code string) error {
 	})
 }
 
-func (p *PaymentDatabase) PaymentCoinbaseCodeExists(code string) bool {
+func (p *PaymentDatabase) PaymentCoinbaseCodeExists(code string) (bool, error) {
 	// Does code exists?
 	// use CoinbasePaymentCode
 
 	s, c, err := p.db.GetCollection(mongo.C_CoinbaseCode)
 	if err != nil {
-		return results, fmt.Errorf("PaymentCoinbaseCodeExists: getcol: %s", err)
+		return false, fmt.Errorf("PaymentCoinbaseCodeExists: getcol: %s", err)
 	}
 	defer s.Close()
 
-	err = c.FindId(code)
+	var result bson.M
+	err = c.FindId(code).Limit(1).One(&result)
 	if err != nil && err.Error() == mgo.ErrNotFound.Error() {
-		return true
+		return true, nil
 	}
-	return false
+	return false, nil
 }
 
 type HODLZONEPaymentCode struct {
 	Code string `json:"code" bson:"_id"`
 }
 
-func (p *PaymentDatabase) InsertHODLZONEPaymentCode(code string) {
+func (p *PaymentDatabase) InsertHODLZONEPaymentCode(code string) error {
 	// Insert PaymentCode to DB
 	// use CoinbasePaymentCode
 
 	s, c, err := p.db.GetCollection(mongo.C_HODLZONECode)
 	if err != nil {
-		return results, fmt.Errorf("InsertHODLZONEPaymentCode: getcol: %s", err)
+		return fmt.Errorf("InsertHODLZONEPaymentCode: getcol: %s", err)
 	}
 	defer s.Close()
 
@@ -59,19 +64,20 @@ func (p *PaymentDatabase) InsertHODLZONEPaymentCode(code string) {
 	})
 }
 
-func (p *PaymentDatabase) PaymentHODLZONECodeExists(code string) bool {
+func (p *PaymentDatabase) PaymentHODLZONECodeExists(code string) (bool, error) {
 	// Does code exists?
 	// use CoinbasePaymentCode
 
 	s, c, err := p.db.GetCollection(mongo.C_HODLZONECode)
 	if err != nil {
-		return results, fmt.Errorf("PaymentHODLZONECodeExists: getcol: %s", err)
+		return false, fmt.Errorf("PaymentHODLZONECodeExists: getcol: %s", err)
 	}
 	defer s.Close()
 
-	err = c.FindId(code)
+	var result bson.M
+	err = c.FindId(code).Limit(1).One(&result)
 	if err != nil && err.Error() == mgo.ErrNotFound.Error() {
-		return true
+		return true, nil
 	}
-	return false
+	return false, nil
 }
