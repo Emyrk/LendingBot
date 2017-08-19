@@ -90,13 +90,19 @@ func (p *PaymentDatabase) Close() error {
 }
 
 type Status struct {
-	Username              string    `json:"email" bson:"_id"`
-	UnspentCredits        int64     `json:"unspentcred" bson:"unspentcred"`
-	SpentCredits          int64     `json:"spentcred" bson:"spentcred"`
-	CustomChargeReduction float64   `json:"customchargereduc" bson:"customchargereduc"`
-	RefereeCode           string    `json:"refereecode" bson:"refereecode"` //(Person code who referred you)
-	RefereeTime           time.Time `json:"refereetime" bson:"refereetime"` //NOTE time is set to start of time until refereecode is set
-	ReferralCode          string    `json:"referralcode" bson:"referralcode"`
+	Username                     string             `json:"email" bson:"_id"`
+	UnspentCredits               int64              `json:"unspentcred" bson:"unspentcred"`
+	SpentCredits                 int64              `json:"spentcred" bson:"spentcred"`
+	CustomChargeReduction        float64            `json:"customchargereduc" bson:"customchargereduc"`
+	RefereeCode                  string             `json:"refereecode" bson:"refereecode"` //(Person code who referred you)
+	RefereeTime                  time.Time          `json:"refereetime" bson:"refereetime"` //NOTE time is set to start of time until refereecode is set
+	ReferralCode                 string             `json:"referralcode" bson:"referralcode"`
+	CustomChargeReductionReasons []ReductionReasons `json:"customchargereducreasons" bson:"customchargereducreasons"`
+}
+
+type ReductionReasons struct {
+	Discount float64 `json:"discount" bson:"discount"`
+	Reason   string  `json:"reason" bson:"reason"`
 }
 
 func (u *Status) MarshalJSON() ([]byte, error) {
