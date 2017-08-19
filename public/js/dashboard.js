@@ -296,7 +296,7 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 								// {data : "exch", title: "Exchange"},
 								// {data : "ppa", title: "Payment Paid Amount"},
 								{data : "fullpaid", title: "View", defaultContent: `no-receipt`, render: function ( data, type, row, meta ) {
-									var a =  `<button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target=".bs-debt-modal-lg" ng-click="loadDebtModal('` + 
+									var a =  `<button type="button" class="btn btn-info btn-xs" data-toggle="modal" data-target=".bs-debt-modal-lg" ng-click="loadDebtModal('` + 
 										meta.row + `')">View More</button>`;
 									//tempB.push(a)
 									return a
@@ -338,7 +338,7 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 									return data + " BTC";
 								}},
 								{data : "receipt", title: "View", defaultContent: `no-receipt`, render: function ( data, type, row, meta ) {
-									var a =  `<button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target=".bs-paid-modal-lg" ng-click="loadPaidModal('` + 
+									var a =  `<button type="button" class="btn btn-info btn-xs" data-toggle="modal" data-target=".bs-paid-modal-lg" ng-click="loadPaidModal('` + 
 										meta.row + `')">View More</button>`;
 									//tempB.push(a)
 									return a
