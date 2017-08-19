@@ -45,9 +45,11 @@ const (
 	PAYMENT_DB      = "paymentdb"
 	PAYMENT_DB_TEST = "paymentdb_test"
 
-	C_Status = "status"
-	C_Debt   = "debt"
-	C_Paid   = "paid"
+	C_Status       = "status"
+	C_Debt         = "debt"
+	C_Paid         = "paid"
+	C_CoinbaseCode = "coinbasecode"
+	C_HODLZONECode = "hodlzonecode"
 	//PAYMENT END
 
 	ADMIN_DB = "admin"
