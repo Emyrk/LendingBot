@@ -101,8 +101,9 @@ type Status struct {
 }
 
 type ReductionReasons struct {
-	Discount float64 `json:"discount" bson:"discount"`
-	Reason   string  `json:"reason" bson:"reason"`
+	Discount float64   `json:"discount" bson:"discount"`
+	Reason   string    `json:"reason" bson:"reason"`
+	Time     time.Time `json:"time" bson:"time"`
 }
 
 func (u *Status) MarshalJSON() ([]byte, error) {
