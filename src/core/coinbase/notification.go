@@ -7,7 +7,11 @@ import (
 
 	"github.com/Emyrk/LendingBot/src/core"
 	"github.com/Emyrk/LendingBot/src/core/payment"
+
+	log "github.com/sirupsen/logrus"
 )
+
+var plog = log.WithField("package", "coinbase")
 
 var _ = fmt.Println
 
@@ -171,8 +175,10 @@ func (h *CoinbaseWatcher) IncomingNotification(data []byte) error {
 		}
 
 		paid.RawData = n.Data
+		flog := plog.WithFields(log.Fields{"func": "IncomingNotification", "user": paid.Username})
 
 		if ok, err := h.coinbaseAlreadyBeenUsed(paid.Code); err == nil && ok {
+			flog.WithField("code", paid.Code).Errorf("CoinbaseCode already used")
 			return nil
 		} else {
 			if err != nil {
@@ -189,6 +195,7 @@ func (h *CoinbaseWatcher) IncomingNotification(data []byte) error {
 			return err
 		}
 		if !exists {
+			flog.WithField("code", pay.Metadata.HodlzoneCode).Errorf("Not a valid hodlzone code")
 			return nil
 		}
 
