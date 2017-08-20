@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/Emyrk/LendingBot/src/core/common/primitives"
@@ -154,7 +155,7 @@ func (s *State) updateUserLendingHalt(username string) error {
 	}
 
 	if status.UnspentCredits < 0 {
-		user.LendingHalted.Reason = status.UnspentCredits + " credits owed. Will not lend until credits are paid."
+		user.LendingHalted.Reason = "Credits owed. Will not lend until credits are paid. More info in Payment -> Payment Information."
 		user.LendingHalted.Time = time.Now().UTC()
 		user.LendingHalted.Halt = true
 	} else {
@@ -174,4 +175,28 @@ func (s *State) updateUserLendingHalt(username string) error {
 	}
 
 	return s.userDB.PutUser(user)
+}
+
+func (s *State) AddCustomChargeReduction(username string, percentageAmount, reason string) (*payment.Status, *primitives.ApiError) {
+	discount, err := strconv.ParseFloat(percentageAmount, 64)
+	if err != nil {
+		return nil, &primitives.ApiError{
+			LogError:  fmt.Errorf("Error parsing percentageAmount: %.8f", percentageAmount),
+			UserError: fmt.Errorf("Percentage amount invalid: %.8f", percentageAmount),
+		}
+	}
+
+	status, err := s.paymentDB.AddReferralReduction(username, payment.ReductionReason{
+		Discount: discount,
+		Reason:   reason,
+		Time:     time.Now().UTC(),
+	})
+	if err != nil {
+		return nil, &primitives.ApiError{
+			LogError:  fmt.Errorf("Error adding referral reduc: %s", err.Error()),
+			UserError: fmt.Errorf("Error adding referral: %s", err.Error()),
+		}
+	}
+
+	return status, nil
 }

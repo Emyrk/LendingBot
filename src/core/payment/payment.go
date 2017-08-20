@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -18,6 +17,7 @@ import (
 
 const (
 	DEFAULT_EMAIL_HALT_TIME = time.Duration(20) * time.Hour
+	DEFAULT_REDUCTION_ROUND = 3 //when calculating reduction, default place to round float to
 )
 
 type PaymentDatabase struct {
@@ -98,17 +98,17 @@ func (p *PaymentDatabase) Close() error {
 }
 
 type Status struct {
-	Username                     string             `json:"email" bson:"_id"`
-	UnspentCredits               int64              `json:"unspentcred" bson:"unspentcred"`
-	SpentCredits                 int64              `json:"spentcred" bson:"spentcred"`
-	CustomChargeReduction        float64            `json:"customchargereduc" bson:"customchargereduc"`
-	RefereeCode                  string             `json:"refereecode" bson:"refereecode"` //(Person code who referred you)
-	RefereeTime                  time.Time          `json:"refereetime" bson:"refereetime"` //NOTE time is set to start of time until refereecode is set
-	ReferralCode                 string             `json:"referralcode" bson:"referralcode"`
-	CustomChargeReductionReasons []ReductionReasons `json:"customchargereducreasons" bson:"customchargereducreasons"`
+	Username                     string            `json:"email" bson:"_id"`
+	UnspentCredits               int64             `json:"unspentcred" bson:"unspentcred"`
+	SpentCredits                 int64             `json:"spentcred" bson:"spentcred"`
+	CustomChargeReduction        float64           `json:"customchargereduc" bson:"customchargereduc"`
+	RefereeCode                  string            `json:"refereecode" bson:"refereecode"` //(Person code who referred you)
+	RefereeTime                  time.Time         `json:"refereetime" bson:"refereetime"` //NOTE time is set to start of time until refereecode is set
+	ReferralCode                 string            `json:"referralcode" bson:"referralcode"`
+	CustomChargeReductionReasons []ReductionReason `json:"customchargereducreasons" bson:"customchargereducreasons"`
 }
 
-type ReductionReasons struct {
+type ReductionReason struct {
 	Discount float64   `json:"discount" bson:"discount"`
 	Reason   string    `json:"reason" bson:"reason"`
 	Time     time.Time `json:"time" bson:"time"`
@@ -755,6 +755,44 @@ func (p *PaymentDatabase) updateStatusCredits(username string, usedBTC, leftover
 	return c.UpdateId(username, update)
 }
 
+func (p *PaymentDatabase) AddReferralReduction(username string, reducReason ReductionReason) (*Status, error) {
+	lock, _ := p.paidlock.GetLocked(username)
+	defer p.paidlock.UnlockPayment(username, lock)
+
+	s, c, err := p.db.GetCollection(mongo.C_Status)
+	if err != nil {
+		return nil, fmt.Errorf("AddReferralReduction: getcol: %s", err)
+	}
+	defer s.Close()
+
+	upsertKey := bson.M{
+		"_id": username,
+	}
+	upsertAction := bson.M{
+		"$inc": bson.M{
+			"customchargereduc": reducReason.Discount,
+		},
+		"$push": bson.M{
+			"customchargereducreasons": bson.M{
+				"$each": []ReductionReason{reducReason},
+				"$sort": bson.M{"time": -1},
+			},
+		},
+	}
+
+	_, err = c.Upsert(upsertKey, upsertAction)
+	if err != nil {
+		return nil, fmt.Errorf("AddReferralReduction: upsert: %s", err)
+	}
+
+	var result Status
+	err = c.FindId(username).One(&result)
+	if err != nil {
+		return nil, fmt.Errorf("Error setting status: %s", err.Error())
+	}
+	return &result, nil
+}
+
 const (
 	SATOSHI_FLOAT      float64 = float64(100000000)
 	SATOSHI_INT        int64   = int64(100000000)
@@ -806,7 +844,7 @@ func (p *PaymentDatabase) InsertNewDebt(debt Debt) error {
 
 	paidUsReduc := float64(float64((userStatus.SpentCredits+userStatus.UnspentCredits)/REDUCTION_PAID_01) * 0.001)
 	discount := float64(referralReduc + paidUsReduc)
-	discount, err = strconv.ParseFloat(fmt.Sprintf("%.3f", discount), 64)
+	discount, err = RoundFloat(discount, DEFAULT_REDUCTION_ROUND)
 	if err != nil {
 		return err
 	}
@@ -814,6 +852,10 @@ func (p *PaymentDatabase) InsertNewDebt(debt Debt) error {
 		discount = 0.035
 	}
 	final := float64(0.10 - userStatus.CustomChargeReduction - discount)
+
+	if final < 0.0 {
+		final = 0.0
+	}
 
 	debt.ChargeRate = final
 	debt.Charge = int64(float64(debt.GrossBTCAmountEarned) * final)

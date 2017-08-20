@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -156,6 +157,24 @@ func (s AppSysAdmin) ChangeUserPrivilege() revel.Result {
 	}
 
 	data[JSON_DATA] = priv
+
+	return s.Render(data)
+}
+
+func (s AppSysAdmin) AddCustomChargeReduction() revel.Result {
+	llog := appSysAdminLog.WithField("method", "ChangeUserPrivilege")
+
+	data := make(map[string]interface{})
+
+	status, err := state.AddCustomChargeReduction(s.Session[SESSION_EMAIL], s.Params.Form.Get("percAmount"), s.Params.Form.Get("reason"))
+	if err != nil {
+		llog.Errorf("Error adding custom charge reduction for user [%s] error: %s", s.Session[SESSION_EMAIL], err.Error())
+		data[JSON_ERROR] = fmt.Sprintf("Failed to update user status, error: %s", err.Error())
+		s.Response.Status = 500
+		return s.RenderJSON(data)
+	}
+
+	data[JSON_DATA] = status
 
 	return s.Render(data)
 }

@@ -36,3 +36,12 @@ func Int64SatoshiToString(val int64) string {
 	}
 	return neg + "0." + str
 }
+
+func RoundFloat(f float64, sigFigs int32) (float64, error) {
+	roundTo := fmt.Sprintf("%%.%df", DEFAULT_REDUCTION_ROUND)
+	rf, err := strconv.ParseFloat(fmt.Sprintf(roundTo, f), 64)
+	if err != nil {
+		return 0.0, err
+	}
+	return rf, nil
+}
