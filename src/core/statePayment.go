@@ -154,7 +154,7 @@ func (s *State) updateUserLendingHalt(username string) error {
 	}
 
 	if status.UnspentCredits < 0 {
-		user.LendingHalted.Reason = "Credits owed."
+		user.LendingHalted.Reason = status.UnspentCredits + " credits owed. Will not lend until credits are paid."
 		user.LendingHalted.Time = time.Now().UTC()
 		user.LendingHalted.Halt = true
 	} else {
