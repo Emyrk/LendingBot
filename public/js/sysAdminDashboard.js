@@ -167,6 +167,30 @@ app.controller('sysAdminController', ['$scope', '$http', '$log', '$timeout',
 			});
 		}
 
+		sysAdminScope.addCustomChargeReduction = function(percAmount, reason) {
+			$http(
+			{
+				method: 'POST',
+				url: '/dashboard/sysadmin/addcustomreduc',
+				data : $.param({
+					percAmount: percAmount,
+					reason: reason,
+				}),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				withCredentials: true
+			})
+			.then((res) => {
+				//success
+				console.log("AddedCustomChargeReduction");
+				sysAdminScope.status = res.data.status
+				sysAdminScope.percAmount = 0.0;
+				sysAdminScope.reason = "";
+			}, (err) => {
+				//error
+				$log.error("addCustomChargeReduction: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+			});
+		}
+
 		//--init
 		sysAdminScope.getUsers();
 		sysAdminScope.adminPass = "";

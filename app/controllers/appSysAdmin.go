@@ -174,7 +174,7 @@ func (s AppSysAdmin) AddCustomChargeReduction() revel.Result {
 		return s.RenderJSON(data)
 	}
 
-	data[JSON_DATA] = status
+	data["status"] = status
 
 	return s.Render(data)
 }
