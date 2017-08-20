@@ -154,7 +154,7 @@ func (s *State) updateUserLendingHalt(username string) error {
 	}
 
 	if status.UnspentCredits < 0 {
-		user.LendingHalted.Reason = status.UnspentCredits + " credits owed. Will not lend until credits are paid."
+		user.LendingHalted.Reason = fmt.Sprintf("%d %s", status.UnspentCredits, " credits owed. Will not lend until credits are paid.")
 		user.LendingHalted.Time = time.Now().UTC()
 		user.LendingHalted.Halt = true
 	} else {
