@@ -5,8 +5,16 @@ import (
 	"time"
 
 	"github.com/Emyrk/LendingBot/src/core/common/primitives"
+	"github.com/Emyrk/LendingBot/src/core/email"
 	"github.com/Emyrk/LendingBot/src/core/payment"
+	// "github.com/Emyrk/LendingBot/src/core/userdb"
+	log "github.com/sirupsen/logrus"
 )
+
+var statePaymentLog = log.WithFields(log.Fields{
+	"package": "core",
+	"file":    "statePayment",
+})
 
 func (s *State) SetUserReferee(username, refereeCode string) *primitives.ApiError {
 	//calls get payment status to set referral code automatically if status does not exist
@@ -113,12 +121,12 @@ func (s *State) MakePayment(username string, paid payment.Paid) error {
 	if err = s.paymentDB.PayDebts(username); err != nil {
 		return fmt.Errorf("Error paying debts: %s", err.Error())
 	}
-	return nil
+
+	return s.updateUserLendingHalt(username)
 }
 
 //also sets if user should halt
 func (s *State) RecalcStatus(username string) error {
-
 	//recalcing
 	err := s.paymentDB.RecalcAllStatusCredits(username)
 	if err != nil {
@@ -129,7 +137,11 @@ func (s *State) RecalcStatus(username string) error {
 		return fmt.Errorf("Error paying debts: %s", err.Error())
 	}
 	// /recalcing
+	return s.updateUserLendingHalt(username)
+}
 
+func (s *State) updateUserLendingHalt(username string) error {
+	llog := statePaymentLog.WithField("method", "updateUserLendingHalt")
 	//update user
 	status, err := s.paymentDB.GetStatusIfFound(username)
 	if err != nil {
@@ -148,5 +160,18 @@ func (s *State) RecalcStatus(username string) error {
 	} else {
 		user.LendingHalted.Halt = false
 	}
+
+	//if the the lending rate is halt and the last time email sent was greater than 18 hours
+	// then send a new email
+	if user.LendingHalted.Halt == false && user.LendingHalted.TimeEmail.UTC().UnixNano() <= time.Now().UTC().Add(s.paymentDB.EmailHaltTime).UnixNano() {
+		emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_NO_REPLY, []string{username}, "Payment Needed")
+		if err = emailRequest.SendEmail(); err != nil {
+			llog.Errorf("Sending email: %s", err.Error())
+		} else {
+			// if no error update last time email was sent
+			user.LendingHalted.TimeEmail = time.Now().UTC()
+		}
+	}
+
 	return s.userDB.PutUser(user)
 }

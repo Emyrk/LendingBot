@@ -126,8 +126,9 @@ app.controller('dashInfoController', ['$scope', '$http', '$log', '$interval', '$
 			.then((res) => {
 				//success
 				console.log(res.data)
-				dashInfoScope.currentUserStats = res.data.CurrentUserStats;
-				dashInfoScope.balances = res.data.Balances;
+				dashInfoScope.currentUserStats = res.data.currentUserStats;
+				dashInfoScope.balances = res.data.balances;
+				dashInfoScope.lendHalt = res.data.lendHalt;
 				init_chart_doughnut(dashInfoScope.balances)
 			}, (err) => {
 				//error

@@ -237,8 +237,9 @@ func (r AppAuthRequired) CurrentUserStats() revel.Result {
 	stats.scrub()
 	balanceBreakdown.scrub()
 
-	data["CurrentUserStats"] = stats
-	data["Balances"] = balanceBreakdown
+	data["currentUserStats"] = stats
+	data["balances"] = balanceBreakdown
+	data["lendHalt"] = u.LendingHalted
 	return r.RenderJSON(data)
 }
 

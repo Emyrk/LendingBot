@@ -25,6 +25,7 @@ func (b *Bee) FetchUser(username string) (*userdb.User, error) {
 		"bitfinexenabled":      1,
 		"bitfinexkeys":         1,
 		"poloniexenabledtime":  1,
+		"lendhalt":             1,
 	}
 	return b.userDB.FetchUserWithSelector(username, selector)
 }

@@ -9,7 +9,7 @@ import (
 	"net/smtp"
 	"text/template"
 
-	// "github.com/Emyrk/LendingBot/slack"
+	"github.com/Emyrk/LendingBot/slack"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -73,6 +73,9 @@ func (r *Request) SendEmail() error {
 		r.to,
 		[]byte(message),
 	)
+	if err != nil {
+		slack.SendMessage(":rage:", "email", "alerts", fmt.Sprintf("Error sending email with subject[%s] to user[%v] error: %s", r.subject, r.to, err.Error()))
+	}
 	return err
 }
 

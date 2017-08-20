@@ -16,8 +16,13 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+const (
+	DEFAULT_EMAIL_HALT_TIME = time.Duration(20) * time.Hour
+)
+
 type PaymentDatabase struct {
-	db *mongo.MongoDB
+	db            *mongo.MongoDB
+	EmailHaltTime time.Duration // time to wait between sending emails
 
 	//mux for generating code
 	referralMux sync.Mutex
@@ -61,6 +66,7 @@ func NewPaymentDatabaseEmpty(uri, dbu, dbp string) (*PaymentDatabase, error) {
 
 	pb := &PaymentDatabase{db: db}
 	pb.paidlock = NewMapLock()
+	pb.EmailHaltTime = DEFAULT_EMAIL_HALT_TIME
 
 	return pb, nil
 }
@@ -73,12 +79,14 @@ func NewPaymentDatabase(uri, dbu, dbp string) (*PaymentDatabase, error) {
 
 	pb := &PaymentDatabase{db: db}
 	pb.paidlock = NewMapLock()
+	pb.EmailHaltTime = DEFAULT_EMAIL_HALT_TIME
 	return pb, err
 }
 
 func NewPaymentDatabaseGiven(db *mongo.MongoDB) *PaymentDatabase {
 	pb := &PaymentDatabase{db: db}
 	pb.paidlock = NewMapLock()
+	pb.EmailHaltTime = DEFAULT_EMAIL_HALT_TIME
 	return pb
 }
 
