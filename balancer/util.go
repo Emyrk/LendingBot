@@ -28,7 +28,7 @@ func init() {
 	MaxLendAmt[PoloniexExchange]["BTC"] = .1
 	MaxLendAmt[PoloniexExchange]["BTS"] = 1
 	MaxLendAmt[PoloniexExchange]["CLAM"] = 20
-	MaxLendAmt[PoloniexExchange]["DOGE"] = 1
+	MaxLendAmt[PoloniexExchange]["DOGE"] = 200
 	MaxLendAmt[PoloniexExchange]["DASH"] = 1
 	MaxLendAmt[PoloniexExchange]["LTC"] = 1
 	MaxLendAmt[PoloniexExchange]["MAID"] = 1
@@ -43,7 +43,7 @@ func init() {
 	MinLendAmt[PoloniexExchange]["BTC"] = .01
 	MinLendAmt[PoloniexExchange]["BTS"] = 1
 	MinLendAmt[PoloniexExchange]["CLAM"] = 10
-	MinLendAmt[PoloniexExchange]["DOGE"] = 1
+	MinLendAmt[PoloniexExchange]["DOGE"] = 100
 	MinLendAmt[PoloniexExchange]["DASH"] = 1
 	MinLendAmt[PoloniexExchange]["LTC"] = 1
 	MinLendAmt[PoloniexExchange]["MAID"] = 1
