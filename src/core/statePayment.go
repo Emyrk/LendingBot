@@ -154,7 +154,7 @@ func (s *State) updateUserLendingHalt(username string) error {
 		return fmt.Errorf("Error fetching user: %s", err.Error())
 	}
 
-	if status.UnspentCredits < 0 {
+	if status.UnspentCredits < 0.0 {
 		user.LendingHalted.Reason = "Credits owed. Will not lend until credits are paid. More info in Payment -> Payment Information."
 		user.LendingHalted.Time = time.Now().UTC()
 		user.LendingHalted.Halt = true
@@ -164,8 +164,9 @@ func (s *State) updateUserLendingHalt(username string) error {
 
 	//if the the lending rate is halt and the last time email sent was greater than 18 hours
 	// then send a new email
-	if user.LendingHalted.Halt == false && user.LendingHalted.TimeEmail.UTC().UnixNano() <= time.Now().UTC().Add(s.paymentDB.EmailHaltTime).UnixNano() {
+	if user.LendingHalted.Halt == true && user.LendingHalted.TimeEmail.UTC().UnixNano() <= time.Now().UTC().Add(-s.paymentDB.EmailHaltTime).UnixNano() {
 		emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_NO_REPLY, []string{username}, "Payment Needed")
+		err = emailRequest.ParseTemplate("verify.html", nil)
 		if err = emailRequest.SendEmail(); err != nil {
 			llog.Errorf("Sending email: %s", err.Error())
 		} else {

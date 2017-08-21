@@ -162,14 +162,32 @@ func (s AppSysAdmin) ChangeUserPrivilege() revel.Result {
 }
 
 func (s AppSysAdmin) AddCustomChargeReduction() revel.Result {
-	llog := appSysAdminLog.WithField("method", "ChangeUserPrivilege")
+	llog := appSysAdminLog.WithField("method", "AddCustomChargeReduction")
 
 	data := make(map[string]interface{})
 
 	status, err := state.AddCustomChargeReduction(s.Session[SESSION_EMAIL], s.Params.Form.Get("percAmount"), s.Params.Form.Get("reason"))
 	if err != nil {
-		llog.Errorf("Error adding custom charge reduction for user [%s] error: %s", s.Session[SESSION_EMAIL], err.Error())
-		data[JSON_ERROR] = fmt.Sprintf("Failed to update user status, error: %s", err.Error())
+		llog.Errorf("Error adding custom charge reduction for user [%s] error: %s", s.Session[SESSION_EMAIL], err.LogError)
+		data[JSON_ERROR] = err.UserError.Error()
+		s.Response.Status = 500
+		return s.RenderJSON(data)
+	}
+
+	data["status"] = status
+
+	return s.Render(data)
+}
+
+func (s AppSysAdmin) GetUserStatus() revel.Result {
+	llog := appSysAdminLog.WithField("method", "GetUserStatus")
+
+	data := make(map[string]interface{})
+
+	status, err := state.GetPaymentStatus(s.Request.Form.Get("username"))
+	if err != nil {
+		llog.Errorf("Error getting user [%s] status error: %s", s.Request.Form.Get("username"), err.Error())
+		data[JSON_ERROR] = fmt.Sprintf("Failed to get user status, error: %s", err.Error())
 		s.Response.Status = 500
 		return s.RenderJSON(data)
 	}

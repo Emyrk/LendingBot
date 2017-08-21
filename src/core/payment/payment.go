@@ -66,7 +66,7 @@ func NewPaymentDatabaseEmpty(uri, dbu, dbp string) (*PaymentDatabase, error) {
 
 	pb := &PaymentDatabase{db: db}
 	pb.paidlock = NewMapLock()
-	pb.EmailHaltTime = DEFAULT_EMAIL_HALT_TIME
+	pb.EmailHaltTime = -DEFAULT_EMAIL_HALT_TIME
 
 	return pb, nil
 }
@@ -79,14 +79,14 @@ func NewPaymentDatabase(uri, dbu, dbp string) (*PaymentDatabase, error) {
 
 	pb := &PaymentDatabase{db: db}
 	pb.paidlock = NewMapLock()
-	pb.EmailHaltTime = DEFAULT_EMAIL_HALT_TIME
+	pb.EmailHaltTime = -DEFAULT_EMAIL_HALT_TIME
 	return pb, err
 }
 
 func NewPaymentDatabaseGiven(db *mongo.MongoDB) *PaymentDatabase {
 	pb := &PaymentDatabase{db: db}
 	pb.paidlock = NewMapLock()
-	pb.EmailHaltTime = DEFAULT_EMAIL_HALT_TIME
+	pb.EmailHaltTime = -DEFAULT_EMAIL_HALT_TIME
 	return pb
 }
 

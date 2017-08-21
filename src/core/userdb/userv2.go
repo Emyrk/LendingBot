@@ -105,6 +105,8 @@ type LendingHalt struct {
 	Reason    string    `json:"reason" bson:"reason"`
 	Time      time.Time `json:"time" bson:"time"`
 	TimeEmail time.Time `json:"timeemail" bson:"timeemail"` //last time an notification email was sent
+	//EmailStop bool      `json:"timeemail" bson:"timeemail"` used to throttle emails
+	/////////////////JESSE ADD THROTTLING
 }
 
 type User struct {
