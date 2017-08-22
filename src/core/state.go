@@ -510,34 +510,34 @@ func (s *State) setupNewJWTOTP(username string, t time.Duration) (string, error)
 	return tokenString, nil
 }
 
-func (s *State) SetNewPasswordJWTOTP(tokenString string, password string) bool {
+func (s *State) SetNewPasswordJWTOTP(tokenString string, password string) (string, bool) {
 	token, err := cryption.VerifyJWT(tokenString, s.JWTSecret)
 	if err != nil {
 		fmt.Printf("Error comparing JWT for pass reset: %s\n", err.Error())
-		return false
+		return "", false
 	}
 
 	email, ok := token.Claims().Get("email").(string)
 	if !ok {
 		fmt.Printf("Error Retrieving email for pass reset: %s\n", err.Error())
-		return false
+		return "", false
 	}
 
 	userSig, ok := s.userDB.GetJWTOTP(email)
 	if !ok {
 		fmt.Printf("Error with getting Token for user for pass reset: %s\n", err.Error())
-		return false
+		return "", false
 	}
 
 	tokenSig, err := cryption.GetJWTSignature(tokenString)
 	if err != nil {
 		fmt.Printf("Error retrieving sig for JWT for pass reset: %s\n", err)
-		return false
+		return "", false
 	}
 
 	s.setUserPass(email, password, nil)
 
-	return string(userSig[:]) == tokenSig
+	return email, string(userSig[:]) == tokenSig
 }
 
 func (s *State) SetUserNewPass(username string, oldPassword string, newPassword string) error {

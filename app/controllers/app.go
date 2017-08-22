@@ -335,11 +335,32 @@ func (c App) NewPassResponsePost() revel.Result {
 	c.ViewArgs["get"] = false
 
 	c.ViewArgs["success"] = true
-	if !state.SetNewPasswordJWTOTP(tokenString, pass) {
+	username, ok := state.SetNewPasswordJWTOTP(tokenString, pass)
+	if !ok {
 		c.ViewArgs["success"] = false
 		llog.Errorf("Error with new pass request JWTOTP: %s", tokenString)
 		c.Response.Status = 400
 	}
+
+	emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_NO_REPLY, []string{
+		username,
+	}, "Password Change")
+	err := emailRequest.ParseTemplate("passwordchange.html", nil)
+	if err != nil {
+		llog.Errorf("Error parsing template for user[%s]: %s", username, err)
+		return c.RenderError(&revel.Error{
+			Title:       "500 Error.",
+			Description: "Internal Error. Please contact support at: support@hodl.zone",
+		})
+	}
+	if err = emailRequest.SendEmail(); err != nil {
+		llog.Errorf("Error sending email for user[%s]: %s", username, err)
+		return c.RenderError(&revel.Error{
+			Title:       "500 Error.",
+			Description: "Internal Error. Please contact support at: support@hodl.zone",
+		})
+	}
+
 	c.ViewArgs["Inverse"] = true
 	AppPageHitNewPassPost.Inc()
 	return c.RenderTemplate("App/NewPass.html")
