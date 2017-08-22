@@ -160,18 +160,33 @@ func (s *State) updateUserLendingHalt(username string) error {
 		user.LendingHalted.Halt = true
 	} else {
 		user.LendingHalted.Halt = false
+		user.LendingHalted.EmailThrottleCount = 0
 	}
 
 	//if the the lending rate is halt and the last time email sent was greater than 18 hours
 	// then send a new email
-	if user.LendingHalted.Halt == true && user.LendingHalted.TimeEmail.UTC().UnixNano() <= time.Now().UTC().Add(-s.paymentDB.EmailHaltTime).UnixNano() {
-		emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_NO_REPLY, []string{username}, "Payment Needed")
-		err = emailRequest.ParseTemplate("verify.html", nil)
-		if err = emailRequest.SendEmail(); err != nil {
-			llog.Errorf("Sending email: %s", err.Error())
-		} else {
-			// if no error update last time email was sent
-			user.LendingHalted.TimeEmail = time.Now().UTC()
+	if user.LendingHalted.EmailStop == false && user.LendingHalted.Halt == true {
+		lastEmailTime := user.LendingHalted.EmailTime.UTC().UnixNano()
+
+		//calculates the min time for the previous throttle
+		tempTime := time.Now().UTC().Add(-payment.EMAIL_HALT_THROTTLE_TIMES[len(payment.EMAIL_HALT_THROTTLE_TIMES)-1]).UnixNano()
+		if int(user.LendingHalted.EmailThrottleCount) < len(payment.EMAIL_HALT_THROTTLE_TIMES) {
+			tempTime = time.Now().UTC().Add(-payment.EMAIL_HALT_THROTTLE_TIMES[user.LendingHalted.EmailThrottleCount]).UnixNano()
+		}
+
+		if lastEmailTime <= tempTime {
+			emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_NO_REPLY, []string{username}, "Payment Needed")
+			err = emailRequest.ParseTemplate("paymentneeded.html", nil)
+			if err = emailRequest.SendEmail(); err != nil {
+				llog.Errorf("Sending email: %s", err.Error())
+			} else {
+				// if no error update last time email was sent
+				user.LendingHalted.EmailTime = time.Now().UTC()
+			}
+
+			if int(user.LendingHalted.EmailThrottleCount+1) < len(payment.EMAIL_HALT_THROTTLE_TIMES) {
+				user.LendingHalted.EmailThrottleCount++
+			}
 		}
 	}
 

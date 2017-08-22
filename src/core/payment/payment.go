@@ -15,14 +15,20 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+var EMAIL_HALT_THROTTLE_TIMES = []time.Duration{ //when sending halt emails this is the time waited each time
+	-24 * time.Hour,  //1 day
+	-48 * time.Hour,  //2 days
+	-168 * time.Hour, //7 days
+	-336 * time.Hour, //14 days
+	-720 * time.Hour, //30 days
+}
+
 const (
-	DEFAULT_EMAIL_HALT_TIME = time.Duration(20) * time.Hour
 	DEFAULT_REDUCTION_ROUND = 3 //when calculating reduction, default place to round float to
 )
 
 type PaymentDatabase struct {
-	db            *mongo.MongoDB
-	EmailHaltTime time.Duration // time to wait between sending emails
+	db *mongo.MongoDB
 
 	//mux for generating code
 	referralMux sync.Mutex
@@ -66,7 +72,6 @@ func NewPaymentDatabaseEmpty(uri, dbu, dbp string) (*PaymentDatabase, error) {
 
 	pb := &PaymentDatabase{db: db}
 	pb.paidlock = NewMapLock()
-	pb.EmailHaltTime = -DEFAULT_EMAIL_HALT_TIME
 
 	return pb, nil
 }
@@ -79,14 +84,14 @@ func NewPaymentDatabase(uri, dbu, dbp string) (*PaymentDatabase, error) {
 
 	pb := &PaymentDatabase{db: db}
 	pb.paidlock = NewMapLock()
-	pb.EmailHaltTime = -DEFAULT_EMAIL_HALT_TIME
+
 	return pb, err
 }
 
 func NewPaymentDatabaseGiven(db *mongo.MongoDB) *PaymentDatabase {
 	pb := &PaymentDatabase{db: db}
 	pb.paidlock = NewMapLock()
-	pb.EmailHaltTime = -DEFAULT_EMAIL_HALT_TIME
+
 	return pb
 }
 

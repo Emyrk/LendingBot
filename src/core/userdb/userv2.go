@@ -101,12 +101,12 @@ const UsernameMaxLength int = 100
 const SaltLength int = 5
 
 type LendingHalt struct {
-	Halt      bool      `json:"halt" bson:"halt"` //true = halt payments
-	Reason    string    `json:"reason" bson:"reason"`
-	Time      time.Time `json:"time" bson:"time"`
-	TimeEmail time.Time `json:"timeemail" bson:"timeemail"` //last time an notification email was sent
-	//EmailStop bool      `json:"timeemail" bson:"timeemail"` used to throttle emails
-	/////////////////JESSE ADD THROTTLING
+	Halt               bool      `json:"halt" bson:"halt"` //true = halt payments
+	Reason             string    `json:"reason" bson:"reason"`
+	Time               time.Time `json:"time" bson:"time"`
+	EmailTime          time.Time `json:"emailtime" bson:"emailtime"`                   //last time an notification email was sent
+	EmailStop          bool      `json:"emailstop" bson:"emailstop"`                   //whether or not to stop sending emails
+	EmailThrottleCount int32     `json:"emailthrottlecount" bson:"emailthrottlecount"` //current count for throttle
 }
 
 type User struct {
