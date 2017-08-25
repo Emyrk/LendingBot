@@ -112,6 +112,10 @@ p, .normal-color h1, .normal-color h2, .normal-color h3 {
 
 }
 
+.fixed_min_height_320 {
+  min-height: 320px;
+}
+
 /* < SM */
 @media screen and (max-width: 991px) {
   .join-our-slack-text {
