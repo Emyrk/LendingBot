@@ -35,7 +35,7 @@ func init() {
 	MaxLendAmt[PoloniexExchange]["STR"] = 200
 	MaxLendAmt[PoloniexExchange]["XMR"] = 0.15
 	MaxLendAmt[PoloniexExchange]["XRP"] = 200
-	MaxLendAmt[PoloniexExchange]["ETH"] = .2
+	MaxLendAmt[PoloniexExchange]["ETH"] = 2
 	MaxLendAmt[PoloniexExchange]["FCT"] = 200
 
 	MinLendAmt = make(map[int]map[string]float64)
@@ -50,7 +50,7 @@ func init() {
 	MinLendAmt[PoloniexExchange]["STR"] = 100
 	MinLendAmt[PoloniexExchange]["XMR"] = 0.01
 	MinLendAmt[PoloniexExchange]["XRP"] = 100
-	MinLendAmt[PoloniexExchange]["ETH"] = 0.01
+	MinLendAmt[PoloniexExchange]["ETH"] = 1
 	MinLendAmt[PoloniexExchange]["FCT"] = 100
 }
 
