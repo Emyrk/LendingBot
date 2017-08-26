@@ -278,7 +278,7 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 
 		var result bson.M
 		err = c.Pipe(ops).One(&result)
-		if err != nil && err != mgo.ErrNotFound {
+		if err != nil && err.Error() != mgo.ErrNotFound.Error() {
 			p.paidlock.UnlockPayment(username, lock)
 			return fmt.Errorf("Error debtPaid: %s", err.Error())
 		}
@@ -305,7 +305,7 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 		ops = []bson.D{o1, o2}
 
 		err = c.Pipe(ops).One(&result)
-		if err != nil && err != mgo.ErrNotFound {
+		if err != nil && err.Error() != mgo.ErrNotFound.Error() {
 			p.paidlock.UnlockPayment(username, lock)
 			return fmt.Errorf("Error debtTotal: %s", err.Error())
 		}
@@ -330,7 +330,7 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 		ops = []bson.D{o1, o2}
 
 		err = s.DB(p.db.DbName).C(mongo.C_Paid).Pipe(ops).One(&result)
-		if err != nil {
+		if err != nil && err.Error() != mgo.ErrNotFound.Error() {
 			p.paidlock.UnlockPayment(username, lock)
 			return fmt.Errorf("Error total paid: %s", err.Error())
 		}
