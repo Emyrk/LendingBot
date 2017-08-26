@@ -1,0 +1,18 @@
+index.header.faq=FAQ
+index.header.login=Login
+index.header.signup=Signup
+index.header.dash=Dashboard
+
+# Modal Login/Register 
+index.header.modal.error=Error!
+index.header.modal.email=Email
+index.header.modal.pass=Password
+index.header.modal.twofa=2FA
+index.header.modal.optional=Optional
+index.header.modal.required=Only required if you have activated with your account.
+index.header.modal.forgotpass=Forgot Password?
+index.header.modal.cancel=Cancel
+index.header.modal.registernew=Register a New Account
+index.header.modal.confirmpass=Confirm Password
+index.header.modal.invitecode=Invite Code
+index.header.modal.register=Register
