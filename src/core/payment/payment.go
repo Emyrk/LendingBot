@@ -283,7 +283,6 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 			return fmt.Errorf("Error debtPaid: %s", err.Error())
 		}
 
-		fmt.Println("RECALC debtPaid:", result)
 		if err == mgo.ErrNotFound {
 			debtPaid = 0
 		} else {
@@ -310,7 +309,6 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 			return fmt.Errorf("Error debtTotal: %s", err.Error())
 		}
 
-		fmt.Println("RECALC debtTotal:", result)
 		if err == mgo.ErrNotFound {
 			debtTotal = 0
 		} else {
@@ -335,7 +333,6 @@ func (p *PaymentDatabase) RecalcMultiAllStatusCredits(usernames []string) error 
 			return fmt.Errorf("Error total paid: %s", err.Error())
 		}
 
-		fmt.Println("RECALC paid:", result)
 		if err == mgo.ErrNotFound {
 			paidTotal = 0
 		} else {
