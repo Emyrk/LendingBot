@@ -78,7 +78,10 @@ func (p *PaymentDatabase) PaymentHODLZONECodeExists(code string) (bool, error) {
 	var result bson.M
 	err = c.FindId(code).Limit(1).One(&result)
 	if err != nil && err.Error() == mgo.ErrNotFound.Error() {
-		return true, nil
+		return false, nil
 	}
-	return false, nil
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }

@@ -195,7 +195,7 @@ func (h *CoinbaseWatcher) IncomingNotification(data []byte) error {
 			return err
 		}
 		if !exists {
-			flog.WithField("code", pay.Metadata.HodlzoneCode).Errorf("Not a valid hodlzone code")
+			flog.WithField("code", pay.Metadata.HodlzoneCode).Errorf("%s is not a valid hodlzone code", pay.Metadata.HodlzoneCode)
 			return nil
 		}
 
