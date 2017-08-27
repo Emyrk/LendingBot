@@ -40,9 +40,10 @@ func (p *PaymentDatabase) PaymentCoinbaseCodeExists(code string) (bool, error) {
 	var result bson.M
 	err = c.FindId(code).Limit(1).One(&result)
 	if err != nil && err.Error() == mgo.ErrNotFound.Error() {
-		return true, nil
+		return false, nil
 	}
-	return false, nil
+
+	return true, err
 }
 
 type HODLZONEPaymentCode struct {
