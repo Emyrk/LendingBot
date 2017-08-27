@@ -169,9 +169,9 @@ func (s *State) updateUserLendingHalt(username string) error {
 		lastEmailTime := user.LendingHalted.EmailTime.UTC().UnixNano()
 
 		//calculates the min time for the previous throttle
-		tempTime := time.Now().UTC().Add(-payment.EMAIL_HALT_THROTTLE_TIMES[len(payment.EMAIL_HALT_THROTTLE_TIMES)-1]).UnixNano()
+		tempTime := time.Now().UTC().Add(payment.EMAIL_HALT_THROTTLE_TIMES[len(payment.EMAIL_HALT_THROTTLE_TIMES)-1]).UnixNano()
 		if int(user.LendingHalted.EmailThrottleCount) < len(payment.EMAIL_HALT_THROTTLE_TIMES) {
-			tempTime = time.Now().UTC().Add(-payment.EMAIL_HALT_THROTTLE_TIMES[user.LendingHalted.EmailThrottleCount]).UnixNano()
+			tempTime = time.Now().UTC().Add(payment.EMAIL_HALT_THROTTLE_TIMES[user.LendingHalted.EmailThrottleCount]).UnixNano()
 		}
 
 		if lastEmailTime <= tempTime {
