@@ -718,6 +718,10 @@ app.controller('dashPredictionController', ['$scope', '$http', '$log', '$timeout
 			dashPredictionScope.getTokenValues()
 		})
 
+		$("#prediction-fee-input").on('input', function() {
+			dashPredictionScope.getTokenValues()
+		})
+
 		dashPredictionScope.getTokenValues = function() {
 			if(dashPredictionScope.cachedMap.get(dashPredictionScope.currentToken) === undefined) {
 				$http(
@@ -762,7 +766,9 @@ app.controller('dashPredictionController', ['$scope', '$http', '$log', '$timeout
 			var ur = rates.monthavg
 
 			var amt = $("#prediction-quanitity-input").val() * ($("#prediction-uptime-input").val() / 100)
-			
+			dashPredictionScope.feeRate = $("#prediction-fee-input").val() / 100
+
+
 			var dprof = dashPredictionScope.getProfit(1, amt, ur)
 			var dbtcprof = (dprof * btcrate).toFixed(8)
 			$('#daily td:nth-child(2)').html(dprof + " " + dashPredictionScope.currentToken);
