@@ -255,12 +255,12 @@ func (r AppAuthRequired) CurrentUserStats() revel.Result {
 			dailyCost := grossDaily * (0.1 - discount)
 
 			days := status.UnspentCredits / int64(dailyCost*1e8)
-			if days > 14 {
+			if days < 14 {
 				w.Warn = true
 				w.Reason = fmt.Sprintf("Based on the current numbers, your credits are predicted to run out in %d days. This is a rough estimate based on current numbers and not very accurate. Feel free to contact us on slack with any questions.", days)
 			}
 			w.EndETA = time.Now().Add(24 * time.Hour * time.Duration(days))
-			fmt.Printf("Gross: %f, Cost: %f, Days: %d, Unspent: %d, Discount: %f\n", grossDaily, dailyCost, days, status.UnspentCredits, discount)
+			fmt.Printf("Gross: %f, Cost: %f, Days: %d, Unspent: %d, Discount: %f\n", grossDaily, int64(dailyCost*1e8), days, status.UnspentCredits, discount)
 		}
 	}
 	data["lendWarning"] = w
