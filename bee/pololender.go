@@ -72,6 +72,11 @@ func (l *PoloniexLender) ProcessPoloniexUser(u *LendUser) error {
 		return err
 	}
 
+	// If lending halted, do not lend
+	if dbu.LendingHalted.Halt {
+		return nil
+	}
+
 	l.usersDoneLock.RLock()
 	v, _ := l.usersDone[u.U.Username]
 	l.usersDoneLock.RUnlock()

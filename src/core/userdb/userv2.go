@@ -109,6 +109,12 @@ type LendingHalt struct {
 	EmailThrottleCount int32     `json:"emailthrottlecount" bson:"emailthrottlecount"` //current count for throttle
 }
 
+type LendingWarning struct {
+	Warn   bool      `json:"warn" bson:"warn"` //true = halt payments
+	Reason string    `json:"reason" bson:"reason"`
+	EndETA time.Time `json:"endeta" bson:"endeta"`
+}
+
 type User struct {
 	Username     string   `bson:"_id" json:"username"` // Not case sensitive
 	PasswordHash [32]byte `json:"passhash"`

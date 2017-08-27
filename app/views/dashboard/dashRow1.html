@@ -3,6 +3,9 @@
         <div class="alert alert-danger fade in" role="alert" ng-show="lendHalt.halt">
           <strong>Lending Halted! Reason: {{lendHalt.reason}} {{lendHalt.time}}</strong>
         </div>
+        <div class="alert alert-warning fade in" role="alert" ng-show="lendWarning.warn">
+          <strong>Lending Halted! Reason: {{lendWarning.reason}}</strong>
+        </div>
       </div>
     </div>
     <div class="row">
