@@ -155,6 +155,7 @@ func (h *CoinbaseWatcher) ValidHODLZONECode(code string) (bool, error) {
 }
 
 func (h *CoinbaseWatcher) IncomingNotification(data []byte) error {
+	fmt.Printf("Raw payment: %s\n", string(data))
 	n := new(CoinbaseNotification)
 	err := json.Unmarshal(data, n)
 	if err != nil {
@@ -201,5 +202,5 @@ func (h *CoinbaseWatcher) IncomingNotification(data []byte) error {
 
 		return h.State.MakePayment(paid.Username, *paid)
 	}
-	return fmt.Errorf("Type is not supported: %s", n.Type)
+	return fmt.Errorf("Type is not supported: %s, %s", n.Type, string(data))
 }
