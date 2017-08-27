@@ -137,16 +137,16 @@ func NewCoinbaseWatcher(s *core.State) *CoinbaseWatcher {
 }
 
 func (h *CoinbaseWatcher) setCoinbaseCodeAsUsed(code string) error {
-	h.Cache[code] = true
+	// h.Cache[code] = true
 	return h.State.InsertCoinbaseCode(code)
 }
 
 // alreadyBeenUsed indicates if the payment has already been accepted
 func (h *CoinbaseWatcher) coinbaseAlreadyBeenUsed(code string) (bool, error) {
-	_, ok := h.Cache[code]
-	if ok {
-		return ok, nil
-	}
+	// _, ok := h.Cache[code]
+	// if ok {
+	// 	return ok, nil
+	// }
 	return h.State.CoinbaseCodeExists(code)
 }
 
