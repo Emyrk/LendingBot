@@ -368,7 +368,7 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 					if (dashPaymentScope.status.customchargereducreasons) {
 						dashPaymentScope.status.totalCCR = 0;
 						for(i = 0; i < dashPaymentScope.status.customchargereducreasons.length; i++) {
-							dashPaymentScope.status.totalCCR+=dashPaymentScope.status.customchargereducreasons[i].discount;
+							dashPaymentScope.status.totalCCR+=dashPaymentScope.status.customchargereducreasons[i].discount*100;
 						}
 						$timeout(() => {
 							if (!$.fn.DataTable.isDataTable('#customReducTable')) {
@@ -376,7 +376,9 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 									filter: false,
 									columns: [
 									{data : "time", title: "Time"},
-									{data : "discount", title: "Discount"},
+									{data : "discount", title: "Discount", render: function ( data, type, row ) {
+										return (data * 100) + "%"
+									}},
 									{data : "reason", title: "Reason"},
 									],
 									"order": [[ 0, 'desc' ]],
