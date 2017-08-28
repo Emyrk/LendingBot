@@ -873,3 +873,7 @@ func (p *PaymentDatabase) InsertNewDebt(debt Debt) error {
 
 	return p.SetDebt(debt)
 }
+
+func GetPaymentDiscount(spent, unspent int64) float64 {
+	return float64(float64((spent+unspent)/REDUCTION_PAID_01) * 0.001)
+}

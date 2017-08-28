@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Emyrk/LendingBot/src/core/coinbase"
+	"github.com/Emyrk/LendingBot/src/core/payment"
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"github.com/revel/revel"
@@ -240,6 +241,28 @@ func (r AppAuthRequired) CurrentUserStats() revel.Result {
 	data["currentUserStats"] = stats
 	data["balances"] = balanceBreakdown
 	data["lendHalt"] = u.LendingHalted
+
+	w := new(userdb.LendingWarning)
+
+	w.Warn = false
+	if !u.LendingHalted.Halt {
+		// Check if we should warn the user
+		grossDaily := stats.LoanRate * (stats.BTCLent + stats.BTCNotLent)
+		status, err := state.GetPaymentStatus(email)
+		if err == nil {
+			// Not including referral reductions
+			discount := payment.GetPaymentDiscount(status.SpentCredits, status.UnspentCredits) + status.CustomChargeReduction
+			dailyCost := grossDaily * (0.1 - discount)
+
+			days := status.UnspentCredits / int64(dailyCost*1e8)
+			if days < 14 {
+				w.Warn = true
+				w.Reason = fmt.Sprintf("Based on the current numbers, your credits are predicted to run out in %d days. This is a rough estimate based on current numbers and not very accurate. Feel free to contact us on slack with any questions.", days)
+			}
+			w.EndETA = time.Now().Add(24 * time.Hour * time.Duration(days))
+		}
+	}
+	data["lendWarning"] = w
 	return r.RenderJSON(data)
 }
 
