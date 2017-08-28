@@ -493,3 +493,22 @@ func (r AppAuthRequired) GetPaymentButton() revel.Result {
 
 	return r.RenderJSON(data)
 }
+
+func (r AppAuthRequired) GetReferrals() revel.Result {
+	llog := dataCallsLog.WithField("method", "GetReferrals")
+	username := r.Session[SESSION_EMAIL]
+
+	data := make(map[string]interface{})
+
+	userRef, apiError := state.GetReferrals(username)
+	if apiError != nil {
+		llog.Errorf(apiError.LogError.Error())
+		data["error"] = apiError.UserError.Error()
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+
+	data["ref"] = userRef
+
+	return r.RenderJSON(data)
+}

@@ -121,12 +121,13 @@ type ReductionReason struct {
 
 func (u *Status) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
-		UnspentCredits        string    `json:"unspentcred"`
-		SpentCredits          string    `json:"spentcred"`
-		CustomChargeReduction float64   `json:"customchargereduc"`
-		RefereeCode           string    `json:"refereecode"` //(Person code who referred you)
-		RefereeTime           time.Time `json:"refereetime"`
-		ReferralCode          string    `json:"referralcode"`
+		UnspentCredits               string            `json:"unspentcred"`
+		SpentCredits                 string            `json:"spentcred"`
+		CustomChargeReduction        float64           `json:"customchargereduc"`
+		RefereeCode                  string            `json:"refereecode"` //(Person code who referred you)
+		RefereeTime                  time.Time         `json:"refereetime"`
+		ReferralCode                 string            `json:"referralcode"`
+		CustomChargeReductionReasons []ReductionReason `json:"customchargereducreasons"`
 	}{
 		Int64SatoshiToString(u.UnspentCredits),
 		Int64SatoshiToString(u.SpentCredits),
@@ -134,6 +135,7 @@ func (u *Status) MarshalJSON() ([]byte, error) {
 		u.RefereeCode,
 		u.RefereeTime,
 		u.ReferralCode,
+		u.CustomChargeReductionReasons,
 	})
 }
 
@@ -220,6 +222,10 @@ func (p *PaymentDatabase) ReferralCodeExists(referralCode string) (bool, error) 
 }
 
 func (p *PaymentDatabase) getStatusGiven(username string, c *mgo.Collection) (*Status, error) {
+	if username == "" {
+		return nil, fmt.Errorf("Username is empty.")
+	}
+
 	var result Status
 	err := c.Find(bson.M{"_id": username}).One(&result)
 	if err != nil {

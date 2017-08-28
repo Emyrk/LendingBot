@@ -21,7 +21,7 @@
 						</div>
 					</div>
 					<div class="col-xs-6">
-						<p class="lead">Amount Due 2/22/2014</p>
+						<p class="lead">Amount Due</p>
 						<div class="table-responsive">
 							<table class="table">
 								<tbody>
@@ -38,12 +38,8 @@
 										<td>{{status.spentcred}} BTC</td>
 									</tr>
 									<tr>
-										<th>Custom Charge Reduction:</th>
-										<td>{{status.customchargereduc}}%</td>
-									</tr>
-									<tr>
-										<th>Custom Charge Reduction:</th>
-										<td>{{status.customchargereduc}}%</td>
+										<th>HODL.ZONE Charge:</th>
+										<td>{{10.0-status.customchargereduc}}% <button type="button" class="btn btn-info btn-xs" data-toggle="modal" data-target=".bs-reduchist-modal-lg" ng-click="getReducHist()">View More</button></td>
 									</tr>
 									<tr>
 										<th>Referral Code <small>(your code to share)</small>:</th>
@@ -122,8 +118,8 @@
 			</div>
 			<div class="modal-body">
 				<div class="row">
-				<!-- <div class="col-md-offset-3"></div> -->
-				<div class="col-md-8 col-md-offset-2">
+					<!-- <div class="col-md-offset-3"></div> -->
+					<div class="col-md-8 col-md-offset-2">
 						<table class="table table-striped">
 							<tbody>
 								<tr>
@@ -179,8 +175,8 @@
 			</div>
 			<div class="modal-body">
 				<div class="row">
-				<!-- <div class="col-md-offset-3"></div> -->
-				<div class="col-md-8 col-md-offset-2">
+					<!-- <div class="col-md-offset-3"></div> -->
+					<div class="col-md-8 col-md-offset-2">
 						<table class="table table-striped">
 							<tbody>
 								<tr>
@@ -244,15 +240,56 @@
 </div>
 <!-- /Debt Modal -->
 
-<!-- <div class="col-sm-6 invoice-col">
-                          From
-                          <address>
-                                          <strong>Iron Admin, Inc.</strong>
-                                          <br>795 Freedom Ave, Suite 600
-                                          <br>New York, CA 94107
-                                          <br>Phone: 1 (804) 123-9876
-                                          <br>Email: ironadmin.com
-                                      </address>
-                        </div>
- -->
+<!-- Modal for Debt -->
+<div class="modal fade bs-reduchist-modal-lg" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span>
+				</button>
+				<h4 class="modal-title">Detailed Reduction History Information</h4>
+			</div>
+			<div class="modal-body">
+				<div class="row">
+					<!-- <div class="col-md-offset-3"></div> -->
+					<div class="col-md-8 col-md-offset-2">
+						<h2>User Referrals</h2>
+						<p ng-hide="dashPaymentScope.userRef">
+							<i>No User Referrals found.</i>
+						</p>
+						<div ng-show="dashPaymentScope.userRef">
+							<p>
+								This is a complete list of all the user referrals that have reached the minimum
+								that will .
+								<br>
+								Total: {{userRef.totalR*100}}%
+							</p>
+							<table id="userRefTable" class="table table-striped" cellspacing="0" width="100%">
+							</table>
+						</div>
+						<div class="ln_solid"></div>
+						<h2>Custom Reductions</h2>
+						<p ng-hide="status.customchargereducreasons.length > 0">
+							<i>No User Referrals found.</i>
+						</p>
+						<div ng-show="status.customchargereducreasons.length > 0">
+							<p>
+								This is a complete list of all the custom reductions we have on record.
+								<br>
+								Total: {{status.totalCCR*100}}%
+							</p>
+							<table id="customReducTable" class="table table-striped" cellspacing="0" width="100%">
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- /Debt Modal -->
 

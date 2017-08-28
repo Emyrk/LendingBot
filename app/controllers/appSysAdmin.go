@@ -176,7 +176,7 @@ func (s AppSysAdmin) AddCustomChargeReduction() revel.Result {
 
 	data["status"] = status
 
-	return s.Render(data)
+	return s.RenderJSON(data)
 }
 
 func (s AppSysAdmin) GetUserStatus() revel.Result {
@@ -184,17 +184,17 @@ func (s AppSysAdmin) GetUserStatus() revel.Result {
 
 	data := make(map[string]interface{})
 
-	status, err := state.GetPaymentStatus(s.Request.Form.Get("username"))
+	status, err := state.GetPaymentStatus(s.Params.Query.Get("email"))
 	if err != nil {
-		llog.Errorf("Error getting user [%s] status error: %s", s.Request.Form.Get("username"), err.Error())
-		data[JSON_ERROR] = fmt.Sprintf("Failed to get user status, error: %s", err.Error())
+		llog.Errorf("Error getting user [%s] status error: %s", s.Params.Query.Get("email"), err.Error())
+		data[JSON_ERROR] = fmt.Sprintf("Failed to get user[%s] status, error: %s", s.Params.Query.Get("email"), err.Error())
 		s.Response.Status = 500
 		return s.RenderJSON(data)
 	}
 
 	data["status"] = status
 
-	return s.Render(data)
+	return s.RenderJSON(data)
 }
 
 func (s AppSysAdmin) LogsDashboard() revel.Result {

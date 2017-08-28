@@ -216,3 +216,36 @@ func (s *State) AddCustomChargeReduction(username string, percentageAmount, reas
 
 	return status, nil
 }
+
+//struct used for showing a users referrals under the 'view more' button on the payment info page
+type UserReferral struct {
+	Username     string `json:"email"`
+	ReachedLimit bool   `json:"reachedlimit" bson:"reachedlimit"`
+}
+
+func (s *State) GetReferrals(username string) ([]UserReferral, *primitives.ApiError) {
+	referrals, err := s.paymentDB.GetUserReferralsIfFound(username)
+	if err != nil {
+		return nil, &primitives.ApiError{
+			LogError:  fmt.Errorf("Error retrieving referrals: %s", err.Error()),
+			UserError: fmt.Errorf("Internal error retrieving referrals. Please contact: support@hodl.zone"),
+		}
+	}
+
+	userRef := make([]UserReferral, len(referrals), len(referrals))
+	for i, ref := range referrals {
+		if ref.SpentCredits+ref.UnspentCredits > payment.REDUCTION_CREDIT {
+			userRef[i] = UserReferral{
+				Username:     ref.Username,
+				ReachedLimit: true,
+			}
+		} else {
+			userRef[i] = UserReferral{
+				Username:     ref.Username,
+				ReachedLimit: false,
+			}
+		}
+	}
+
+	return userRef, nil
+}
