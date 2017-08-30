@@ -89,9 +89,11 @@ func (l *LendingHistoryKeeper) SavePoloniexMonth(user *userdb.User, accesskey, s
 	if !ok {
 		l.WorkingOnPolo[username] = time.Now()
 	} else {
-		// If done within 5hrs, don't bother
-		if time.Since(v).Seconds() < 60*60*10 {
-			return false
+		if v.Day() == time.Now().Day() {
+			// If done within 5hrs, don't bother
+			if time.Since(v).Seconds() < 60*60*10 {
+				return false
+			}
 		}
 	}
 
