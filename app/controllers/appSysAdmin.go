@@ -166,7 +166,7 @@ func (s AppSysAdmin) AddCustomChargeReduction() revel.Result {
 
 	data := make(map[string]interface{})
 
-	status, err := state.AddCustomChargeReduction(s.Session[SESSION_EMAIL], s.Params.Form.Get("percAmount"), s.Params.Form.Get("reason"))
+	status, err := state.AddCustomChargeReduction(s.Params.Form.Get("email"), s.Params.Form.Get("percAmount"), s.Params.Form.Get("reason"))
 	if err != nil {
 		llog.Errorf("Error adding custom charge reduction for user [%s] error: %s", s.Session[SESSION_EMAIL], err.LogError)
 		data[JSON_ERROR] = err.UserError.Error()
