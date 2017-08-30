@@ -374,6 +374,7 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 							if (!$.fn.DataTable.isDataTable('#customReducTable')) {
 								customReducTable = $('#customReducTable').DataTable({
 									filter: false,
+									"lengthChange": false,
 									columns: [
 									{data : "time", title: "Time"},
 									{data : "discount", title: "Discount", render: function ( data, type, row ) {
@@ -429,6 +430,7 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 						if (!$.fn.DataTable.isDataTable('#userRefTable')) {
 							userRefTable = $('#userRefTable').DataTable({
 								filter: true,
+								"lengthChange": false,
 								columns: [
 								{data : "email", title: "Email"},
 								{data : "reachedlimit", title: "Reached Limit"},
