@@ -107,9 +107,9 @@ type Status struct {
 	UnspentCredits               int64             `json:"unspentcred" bson:"unspentcred"`
 	SpentCredits                 int64             `json:"spentcred" bson:"spentcred"`
 	CustomChargeReduction        float64           `json:"customchargereduc" bson:"customchargereduc"`
-	RefereeCode                  string            `json:"refereecode" bson:"refereecode"` //(Person code who referred you)
-	RefereeTime                  time.Time         `json:"refereetime" bson:"refereetime"` //NOTE time is set to start of time until refereecode is set
-	ReferralCode                 string            `json:"referralcode" bson:"referralcode"`
+	RefereeCode                  string            `json:"refereecode" bson:"refereecode"`   //(Person code who referred you)
+	RefereeTime                  time.Time         `json:"refereetime" bson:"refereetime"`   //NOTE time is set to start of time until refereecode is set
+	ReferralCode                 string            `json:"referralcode" bson:"referralcode"` //Code you share
 	CustomChargeReductionReasons []ReductionReason `json:"customchargereducreasons" bson:"customchargereducreasons"`
 }
 

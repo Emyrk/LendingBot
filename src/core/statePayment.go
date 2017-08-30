@@ -91,7 +91,7 @@ func (s *State) GetPaymentStatus(username string) (*payment.Status, error) {
 	status, err := s.paymentDB.GetStatusIfFound(username)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get status: %s", err.Error())
-	} else if status == nil {
+	} else if status == nil || status.ReferralCode == "" {
 		status, err = s.paymentDB.GenerateReferralCode(username)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to generate referral code: %s", err.Error())
