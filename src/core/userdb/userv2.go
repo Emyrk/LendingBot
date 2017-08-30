@@ -22,6 +22,8 @@ const (
 	Moderator  UserLevel = 998
 	CommonUser UserLevel = 997
 	Unassigned UserLevel = 0
+
+	TRIAL_PERIOD time.Time = time.Duration(3*24) * time.Hour
 )
 
 var AvaiableCoins = []string{
@@ -394,4 +396,8 @@ func (u *User) MarshalBinary() ([]byte, error) {
 
 	l := len(data)
 	return append(primitives.Uint32ToBytes(uint32(l)), data...), nil
+}
+
+func (u *User) NotTrialPeriod() bool {
+	return u.StartTime.Add(TRIAL_PERIOD).UTC() < time.Now().UTC()
 }
