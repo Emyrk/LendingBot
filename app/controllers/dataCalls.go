@@ -254,7 +254,12 @@ func (r AppAuthRequired) CurrentUserStats() revel.Result {
 			discount := payment.GetPaymentDiscount(status.SpentCredits, status.UnspentCredits) + status.CustomChargeReduction
 			dailyCost := grossDaily * (0.1 - discount)
 
-			days := status.UnspentCredits / int64(dailyCost*1e8)
+			days := 0
+			if dailyCost == 0 {
+				days = 30
+			} else {
+				days = status.UnspentCredits / int64(dailyCost*1e8)
+			}
 			if days < 14 {
 				w.Warn = true
 				w.Reason = fmt.Sprintf("Based on the current numbers, your credits are predicted to run out in %d days. This is a rough estimate based on current numbers and not very accurate. Feel free to contact us on slack with any questions.", days)
