@@ -368,7 +368,7 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 					if (dashPaymentScope.status.customchargereducreasons) {
 						dashPaymentScope.status.totalCCR = 0;
 						for(i = 0; i < dashPaymentScope.status.customchargereducreasons.length; i++) {
-							dashPaymentScope.status.totalCCR+=dashPaymentScope.status.customchargereducreasons[i].discount*100;
+							dashPaymentScope.status.totalCCR+=dashPaymentScope.status.customchargereducreasons[i].discount;
 						}
 						$timeout(() => {
 							if (!$.fn.DataTable.isDataTable('#customReducTable')) {

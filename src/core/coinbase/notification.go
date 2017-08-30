@@ -17,7 +17,8 @@ var _ = fmt.Println
 
 // Coinbase Notification Types
 const (
-	OrderPaid = "wallet:orders:paid"
+	OrderPaid     = "wallet:orders:paid"
+	OrdersPending = "wallet:orders:pending"
 )
 
 type CoinbaseNotification struct {
@@ -176,7 +177,7 @@ func (h *CoinbaseWatcher) IncomingNotification(data []byte) error {
 		}
 
 		paid.RawData = n.Data
-		flog := plog.WithFields(log.Fields{"func": "IncomingNotification", "user": paid.Username})
+		flog := plog.WithFields(log.Fields{"func": "IncomingNotification", "user": paid.Username, "type": "Paid"})
 
 		if ok, err := h.coinbaseAlreadyBeenUsed(paid.Code); err == nil && ok {
 			flog.WithField("code", paid.Code).Errorf("CoinbaseCode already used")
@@ -201,6 +202,23 @@ func (h *CoinbaseWatcher) IncomingNotification(data []byte) error {
 		}
 
 		return h.State.MakePayment(paid.Username, *paid)
+	case OrdersPending:
+		pay := new(CoinbasePaymentNotification)
+		err := json.Unmarshal(n.Data, pay)
+		if err != nil {
+			return err
+		}
+
+		paid, err := NotificationPairToPaid(n, pay)
+		if err != nil {
+			return err
+		}
+
+		paid.RawData = n.Data
+		flog := plog.WithFields(log.Fields{"func": "IncomingNotification", "user": paid.Username, "type": "Pending"})
+		// Store pending code information into DB
+		var _ = flog
+		return nil
 	}
 	return fmt.Errorf("Type is not supported: %s, %s", n.Type, string(data))
 }
