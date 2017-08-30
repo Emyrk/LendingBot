@@ -148,24 +148,23 @@ func (c App) Register() revel.Result {
 
 	e := c.Params.Form.Get("email")
 	pass := c.Params.Form.Get("pass")
-	code := c.Params.Form.Get("ic")
 
 	data := make(map[string]interface{})
 
-	ok, err := state.ClaimInviteCode(e, code)
-	if err != nil {
-		llog.Errorf("Error claiming invite code: %s", err.Error())
-		data[JSON_ERROR] = "Invite code invalid."
-		c.Response.Status = 500
-		return c.RenderJSON(data)
-	}
+	// ok, err := state.ClaimInviteCode(e, code)
+	// if err != nil {
+	// 	llog.Errorf("Error claiming invite code: %s", err.Error())
+	// 	data[JSON_ERROR] = "Invite code invalid."
+	// 	c.Response.Status = 500
+	// 	return c.RenderJSON(data)
+	// }
 
-	if !ok {
-		llog.Warningf("Warning invite code invalid: %s", err.Error())
-		data[JSON_ERROR] = "Invite code invalid."
-		c.Response.Status = 400
-		return c.RenderJSON(data)
-	}
+	// if !ok {
+	// 	llog.Warningf("Warning invite code invalid: %s", err.Error())
+	// 	data[JSON_ERROR] = "Invite code invalid."
+	// 	c.Response.Status = 400
+	// 	return c.RenderJSON(data)
+	// }
 
 	apiErr := state.NewUser(e, pass)
 	if apiErr != nil {

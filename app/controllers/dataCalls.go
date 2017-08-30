@@ -254,7 +254,7 @@ func (r AppAuthRequired) CurrentUserStats() revel.Result {
 			discount := payment.GetPaymentDiscount(status.SpentCredits, status.UnspentCredits) + status.CustomChargeReduction
 			dailyCost := grossDaily * (0.1 - discount)
 
-			days := 0
+			days := int64(0)
 			if dailyCost == 0 {
 				days = 30
 			} else {
