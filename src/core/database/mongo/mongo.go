@@ -287,3 +287,41 @@ func CreateBlankTestStatDB(uri, dbu, dbp string) (*MongoDB, error) {
 
 	return db, nil
 }
+
+func CreatePaymentDB(uri, dbu, dbp string) (*MongoDB, error) {
+	db := createMongoDB(uri, PAYMENT_DB, dbu, dbp)
+
+	session, err := db.CreateSession()
+	if err != nil {
+		return nil, err
+	}
+	defer session.Close()
+
+	return db, nil
+}
+
+func CreateTestPaymentDB(uri, dbu, dbp string) (*MongoDB, error) {
+	db := createMongoDB(uri, PAYMENT_DB_TEST, dbu, dbp)
+
+	session, err := db.CreateSession()
+	if err != nil {
+		return nil, err
+	}
+	defer session.Close()
+
+	// c := session.DB(USER_DB_TEST).C(C_USER)
+
+	// index := mgo.Index{
+	// 	Key:        []string{"username"},
+	// 	Unique:     true,
+	// 	DropDups:   true,
+	// 	Background: true,
+	// 	Sparse:     true,
+	// }
+
+	// err = c.EnsureIndex(index)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	return db, nil
+}
