@@ -50,6 +50,7 @@ const (
 	C_Paid         = "paid"
 	C_CoinbaseCode = "coinbasecode"
 	C_HODLZONECode = "hodlzonecode"
+	C_PendingPaid  = "pendingPaid"
 	//PAYMENT END
 
 	ADMIN_DB = "admin"

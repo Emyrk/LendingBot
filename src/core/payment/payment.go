@@ -877,3 +877,35 @@ func (p *PaymentDatabase) InsertNewDebt(debt Debt) error {
 func GetPaymentDiscount(spent, unspent int64) float64 {
 	return float64(float64((spent+unspent)/REDUCTION_PAID_01) * 0.001)
 }
+
+func (p *PaymentDatabase) SetPendingPaid(paid Paid) error {
+	return p.SetMultiPaid([]Paid{paid})
+}
+
+func (p *PaymentDatabase) SetMultiPendingPaid(paid []Paid) error {
+	s, c, err := p.db.GetCollection(mongo.C_PendingPaid)
+	if err != nil {
+		return fmt.Errorf("SetMultiPendingPaid: getcol: %s", err)
+	}
+	defer s.Close()
+
+	bulk := c.Bulk()
+	for _, o := range paid {
+		if o.ID == nil {
+			//if nil id assume that this is new record so insert
+			bulk.Insert(o)
+		} else {
+			//upsert to prevent update vs insert error for dups
+			bulk.Upsert(
+				bson.M{"_id": o.ID},
+				bson.M{"$set": o},
+			)
+		}
+	}
+
+	_, err = bulk.Run()
+	if err != nil {
+		return fmt.Errorf("SetMultiPendingPaid: run: %s", err)
+	}
+	return nil
+}

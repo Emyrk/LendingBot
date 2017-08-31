@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Emyrk/LendingBot/slack"
 	"github.com/Emyrk/LendingBot/src/core/common/primitives"
 	"github.com/Emyrk/LendingBot/src/core/database"
 	"github.com/Emyrk/LendingBot/src/core/database/mongo"
@@ -537,6 +538,9 @@ func (us *UserStatisticsDB) GetPoloniexStatistics(currency string) (*PoloniexSta
 
 		err = c.Find(find).Sort("-_id").All(&poloniexStatsArr)
 		if err != nil {
+			if err.Error() == "no reachable servers" {
+				slack.SendMessage(":rage:", "mongo", "alerts", fmt.Sprintf("@channel mongo problems, here is the error, but check the logs Error: %s", err.Error()))
+			}
 			return nil, fmt.Errorf("Mongo: getPoloniexStats: findAll: %s", err.Error())
 		}
 

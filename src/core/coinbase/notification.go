@@ -217,7 +217,10 @@ func (h *CoinbaseWatcher) IncomingNotification(data []byte) error {
 		paid.RawData = n.Data
 		flog := plog.WithFields(log.Fields{"func": "IncomingNotification", "user": paid.Username, "type": "Pending"})
 		// Store pending code information into DB
-		var _ = flog
+		err = h.State.InsertPendingPaid(*paid)
+		if err != nil {
+			flog.Errorf("Error inserting pending paid: %s", err.Error())
+		}
 		return nil
 	}
 	return fmt.Errorf("Type is not supported: %s, %s", n.Type, string(data))
