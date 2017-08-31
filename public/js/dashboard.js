@@ -337,7 +337,7 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 								// {data : "email", title: "Payment Date"},
 								// {data : "contactemail", title: "BTC Paid"},
 								{data : "code", title: "Code"},
-								{data : "paymentdate", title: "BTC Transaction Date"},
+								{data : "paymentdate", title: "Coinbase Transaction Date"},
 								{data : "btcpaid", title: "BTC Paid", render: function ( data, type, row ) {
 									return data + " BTC";
 								}},
