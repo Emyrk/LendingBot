@@ -12,6 +12,7 @@ import (
 	"github.com/Emyrk/LendingBot/src/core/common/primitives"
 	"github.com/Emyrk/LendingBot/src/core/cryption"
 	"github.com/Emyrk/LendingBot/src/core/database/mongo"
+	"github.com/Emyrk/LendingBot/src/core/payment"
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"github.com/badoux/checkmail"
@@ -39,6 +40,7 @@ type State struct {
 	userDB          *userdb.UserDatabase
 	userStatistic   *userdb.UserStatisticsDB
 	userInviteCodes *userdb.InviteDB
+	paymentDB       *payment.PaymentDatabase
 	PoloniexAPI     poloniex.IPoloniex
 	CipherKey       [32]byte
 	JWTSecret       [32]byte
@@ -79,7 +81,10 @@ func (s *State) VerifyState() error {
 }
 
 func newState(dbType int, fakePolo bool) *State {
-	uri := revel.Config.StringDefault("database.uri", "mongodb://localhost:27017")
+	uri := "mongodb://localhost:27017"
+	if revel.Config != nil {
+		uri = revel.Config.StringDefault("database.uri", "mongodb://localhost:27017")
+	}
 	mongoRevelPass := os.Getenv("MONGO_REVEL_PASS")
 	if mongoRevelPass == "" && revel.RunMode == "prod" {
 		panic("Running in prod, but no revel pass given in env var 'MONGO_REVEL_PASS'")
@@ -124,7 +129,7 @@ func newState(dbType int, fakePolo bool) *State {
 		s.PoloniexAPI = poloniex.StartPoloniex()
 	}
 
-	if !revel.DevMode {
+	if !revel.DevMode && revel.RunMode != "" {
 		s.CipherKey = getCipherKey()
 	}
 
@@ -168,6 +173,28 @@ func newState(dbType int, fakePolo bool) *State {
 		fallthrough
 	default:
 		s.userInviteCodes = userdb.NewInviteDB()
+	}
+
+	switch dbType {
+	case DB_MAP:
+		fallthrough
+	case DB_BOLT:
+		panic(fmt.Sprintf("Mode not supported"))
+	case DB_MONGO:
+		s.paymentDB, err = payment.NewPaymentDatabase(uri, "revel", mongoRevelPass)
+		if err != nil {
+			panic(fmt.Sprintf("Error connecting to user mongodb: %s\n", err.Error()))
+		}
+	case DB_MONGO_EMPTY:
+		s.paymentDB, err = payment.NewPaymentDatabaseEmpty(uri, "revel", mongoRevelPass)
+		if err != nil {
+			panic(fmt.Sprintf("Error connecting to user mongodb: %s\n", err.Error()))
+		}
+	default:
+		s.paymentDB, err = payment.NewPaymentDatabase(uri, "revel", mongoRevelPass)
+		if err != nil {
+			panic(fmt.Sprintf("Error connecting to user mongodb: %s\n", err.Error()))
+		}
 	}
 
 	// SWITCHED TO BEES
@@ -380,12 +407,26 @@ func (s *State) EnableUserLending(username string, c string, exchange userdb.Use
 	if err != nil {
 		return err
 	}
+
+	// Ensure no nils
+	if u.PoloniexEnabledTime == nil {
+		u.PoloniexEnabledTime = make(map[string]time.Time)
+	}
+
 	switch exchange {
 	case userdb.PoloniexExchange:
 		var coins userdb.PoloniexEnabledStruct
 		err := json.Unmarshal([]byte(c), &coins)
 		if err != nil {
 			return err
+		}
+		before := u.PoloniexEnabled.GetAll()
+		after := coins.GetAll()
+		for i := range before {
+			// Set to true
+			if after[i].Enabled && !before[i].Enabled {
+				u.PoloniexEnabledTime[after[i].Currency] = time.Now()
+			}
 		}
 		u.PoloniexEnabled.Enable(coins)
 		break
@@ -469,34 +510,34 @@ func (s *State) setupNewJWTOTP(username string, t time.Duration) (string, error)
 	return tokenString, nil
 }
 
-func (s *State) SetNewPasswordJWTOTP(tokenString string, password string) bool {
+func (s *State) SetNewPasswordJWTOTP(tokenString string, password string) (string, bool) {
 	token, err := cryption.VerifyJWT(tokenString, s.JWTSecret)
 	if err != nil {
 		fmt.Printf("Error comparing JWT for pass reset: %s\n", err.Error())
-		return false
+		return "", false
 	}
 
 	email, ok := token.Claims().Get("email").(string)
 	if !ok {
 		fmt.Printf("Error Retrieving email for pass reset: %s\n", err.Error())
-		return false
+		return "", false
 	}
 
 	userSig, ok := s.userDB.GetJWTOTP(email)
 	if !ok {
 		fmt.Printf("Error with getting Token for user for pass reset: %s\n", err.Error())
-		return false
+		return "", false
 	}
 
 	tokenSig, err := cryption.GetJWTSignature(tokenString)
 	if err != nil {
 		fmt.Printf("Error retrieving sig for JWT for pass reset: %s\n", err)
-		return false
+		return "", false
 	}
 
 	s.setUserPass(email, password, nil)
 
-	return string(userSig[:]) == tokenSig
+	return email, string(userSig[:]) == tokenSig
 }
 
 func (s *State) SetUserNewPass(username string, oldPassword string, newPassword string) error {

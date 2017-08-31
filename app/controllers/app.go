@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/url"
 
 	"github.com/Emyrk/LendingBot/src/core"
@@ -12,6 +14,8 @@ import (
 	_ "github.com/Emyrk/LendingBot/src/log"
 	log "github.com/sirupsen/logrus"
 )
+
+var _ = fmt.Println
 
 var state *core.State
 var appLog = log.WithFields(log.Fields{
@@ -80,6 +84,12 @@ func (c App) Donate() revel.Result {
 	return c.RenderTemplate("App/Donate.html")
 }
 
+func (c App) TermsAndPrivacy() revel.Result {
+	c.ViewArgs["Inverse"] = true
+	AppPageHitDonate.Inc()
+	return c.RenderTemplate("App/TermsAndPrivacy.html")
+}
+
 func (c App) Information() revel.Result {
 	c.ViewArgs["Inverse"] = true
 	AppPageHitInformation.Inc()
@@ -138,24 +148,23 @@ func (c App) Register() revel.Result {
 
 	e := c.Params.Form.Get("email")
 	pass := c.Params.Form.Get("pass")
-	code := c.Params.Form.Get("ic")
 
 	data := make(map[string]interface{})
 
-	ok, err := state.ClaimInviteCode(e, code)
-	if err != nil {
-		llog.Errorf("Error claiming invite code: %s", err.Error())
-		data[JSON_ERROR] = "Invite code invalid."
-		c.Response.Status = 500
-		return c.RenderJSON(data)
-	}
+	// ok, err := state.ClaimInviteCode(e, code)
+	// if err != nil {
+	// 	llog.Errorf("Error claiming invite code: %s", err.Error())
+	// 	data[JSON_ERROR] = "Invite code invalid."
+	// 	c.Response.Status = 500
+	// 	return c.RenderJSON(data)
+	// }
 
-	if !ok {
-		llog.Warningf("Warning invite code invalid: %s", err.Error())
-		data[JSON_ERROR] = "Invite code invalid."
-		c.Response.Status = 400
-		return c.RenderJSON(data)
-	}
+	// if !ok {
+	// 	llog.Warningf("Warning invite code invalid: %s", err.Error())
+	// 	data[JSON_ERROR] = "Invite code invalid."
+	// 	c.Response.Status = 400
+	// 	return c.RenderJSON(data)
+	// }
 
 	apiErr := state.NewUser(e, pass)
 	if apiErr != nil {
@@ -227,6 +236,44 @@ func (c App) NewPassRequestGET() revel.Result {
 	return c.RenderTemplate("App/NewPassRequest.html")
 }
 
+func (c App) PaymentNotification() revel.Result {
+	llog := appLog.WithField("method", "PaymentNotification")
+
+	data, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		llog.Errorf(err.Error())
+		c.Response.Status = 500
+		return c.RenderJSON(struct {
+			Error string
+			Spot  int
+		}{
+			err.Error(),
+			1,
+		})
+	}
+
+	err = CoinbaseWatcher.IncomingNotification(data)
+	if err != nil {
+		llog.Errorf(err.Error())
+		c.Response.Status = 500
+		return c.RenderJSON(struct {
+			Error string
+			Spot  int
+		}{
+			err.Error(),
+			2,
+		})
+	}
+
+	llog.Infof(string(data))
+
+	return c.RenderJSON(struct {
+		Success string
+	}{
+		"success",
+	})
+}
+
 func (c App) NewPassRequestPOST() revel.Result {
 	llog := appLog.WithField("method", "NewPassRequestPOST")
 
@@ -287,11 +334,32 @@ func (c App) NewPassResponsePost() revel.Result {
 	c.ViewArgs["get"] = false
 
 	c.ViewArgs["success"] = true
-	if !state.SetNewPasswordJWTOTP(tokenString, pass) {
+	username, ok := state.SetNewPasswordJWTOTP(tokenString, pass)
+	if !ok {
 		c.ViewArgs["success"] = false
 		llog.Errorf("Error with new pass request JWTOTP: %s", tokenString)
 		c.Response.Status = 400
 	}
+
+	emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_NO_REPLY, []string{
+		username,
+	}, "Password Change")
+	err := emailRequest.ParseTemplate("passwordchange.html", nil)
+	if err != nil {
+		llog.Errorf("Error parsing template for user[%s]: %s", username, err)
+		return c.RenderError(&revel.Error{
+			Title:       "500 Error.",
+			Description: "Internal Error. Please contact support at: support@hodl.zone",
+		})
+	}
+	if err = emailRequest.SendEmail(); err != nil {
+		llog.Errorf("Error sending email for user[%s]: %s", username, err)
+		return c.RenderError(&revel.Error{
+			Title:       "500 Error.",
+			Description: "Internal Error. Please contact support at: support@hodl.zone",
+		})
+	}
+
 	c.ViewArgs["Inverse"] = true
 	AppPageHitNewPassPost.Inc()
 	return c.RenderTemplate("App/NewPass.html")

@@ -162,8 +162,6 @@
 		var gains = total - btcamount
 
 		var interest = Math.pow(1+(rate/1), weeks*7)
-		console.log(btcamount, rate, weeks, interest, (btcamount*interest)-btcamount)
-		console.log(center, exp, total, gains)
 		$("#caluclator-time").text(weeks)
 		$("#investment-amount").text(btcamount)
 		$("#investment-return-variable").text(gains.toFixed(4))

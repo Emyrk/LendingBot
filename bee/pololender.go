@@ -72,6 +72,11 @@ func (l *PoloniexLender) ProcessPoloniexUser(u *LendUser) error {
 		return err
 	}
 
+	// If lending halted, do not lend
+	if dbu.LendingHalted.Halt {
+		return nil
+	}
+
 	l.usersDoneLock.RLock()
 	v, _ := l.usersDone[u.U.Username]
 	l.usersDoneLock.RUnlock()
@@ -321,7 +326,7 @@ func (l *PoloniexLender) ProcessPoloniexUser(u *LendUser) error {
 	l.usersDone[u.U.Username] = time.Now().Add(15 * time.Second)
 	l.usersDoneLock.Unlock()
 
-	historySaved = l.GS.SavePoloniexMonth(u.U.Username, u.U.AccessKey, u.U.SecretKey)
+	historySaved = l.GS.SavePoloniexMonth(dbu, u.U.AccessKey, u.U.SecretKey)
 	if historySaved {
 		u.U.LastHistorySaved = time.Now()
 	}

@@ -8,6 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Emyrk/LendingBot/src/core/coinbase"
+	"github.com/Emyrk/LendingBot/src/core/payment"
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"github.com/revel/revel"
@@ -236,8 +238,36 @@ func (r AppAuthRequired) CurrentUserStats() revel.Result {
 	stats.scrub()
 	balanceBreakdown.scrub()
 
-	data["CurrentUserStats"] = stats
-	data["Balances"] = balanceBreakdown
+	data["currentUserStats"] = stats
+	data["balances"] = balanceBreakdown
+	data["lendHalt"] = u.LendingHalted
+
+	w := new(userdb.LendingWarning)
+
+	w.Warn = false
+	if !u.LendingHalted.Halt {
+		// Check if we should warn the user
+		grossDaily := stats.LoanRate * (stats.BTCLent + stats.BTCNotLent)
+		status, err := state.GetPaymentStatus(email)
+		if err == nil {
+			// Not including referral reductions
+			discount := payment.GetPaymentDiscount(status.SpentCredits, status.UnspentCredits) + status.CustomChargeReduction
+			dailyCost := grossDaily * (0.1 - discount)
+
+			days := int64(0)
+			if dailyCost == 0 {
+				days = 30
+			} else {
+				days = status.UnspentCredits / int64(dailyCost*1e8)
+			}
+			if days < 14 {
+				w.Warn = true
+				w.Reason = fmt.Sprintf("Based on the current numbers, your credits are predicted to run out in %d days. This is a rough estimate based on current numbers and not very accurate. Feel free to contact us on slack with any questions.", days)
+			}
+			w.EndETA = time.Now().Add(24 * time.Hour * time.Duration(days))
+		}
+	}
+	data["lendWarning"] = w
 	return r.RenderJSON(data)
 }
 
@@ -411,7 +441,102 @@ func (r AppAuthRequired) LendingHistory() revel.Result {
 	return r.RenderJSON(data)
 }
 
-// TODO: Cache this response
 func (r App) GetPoloniexStatistics() revel.Result {
 	return r.RenderJSON(state.GetQuickPoloniexStatistics("BTC"))
+}
+
+func (r App) GetPoloniexStatisticsForToken() revel.Result {
+	token := r.Params.Get("token")
+	data := make(map[string]interface{})
+	data["token"] = state.GetQuickPoloniexStatistics(token)
+	data["rate"] = Balancer.RateCalculator.GetBTCRate(token)
+	return r.RenderJSON(data)
+}
+
+func (r AppAuthRequired) PaymentHistory() revel.Result {
+	llog := dataCallsLog.WithField("method", "PaymentHistory")
+	username := r.Session[SESSION_EMAIL]
+
+	data := make(map[string]interface{})
+
+	debtHist, err := state.GetPaymentDebtHistory(username, 100)
+	if err != nil {
+		llog.Errorf("Error getting user[%s] debt history: %s", username, err.Error())
+		data[JSON_ERROR] = "Internal error. Please contact: support@hodl.zone"
+		r.Response.Status = 500
+	}
+
+	paidHist, err := state.GetPaymentPaidHistory(username, r.Params.Query.Get("ptime"))
+	if err != nil {
+		llog.Errorf("Error getting user[%s] paid history: %s", username, err.Error())
+		data[JSON_ERROR] = "Internal error. Please contact: support@hodl.zone"
+		r.Response.Status = 500
+	}
+
+	status, err := state.GetPaymentStatus(username)
+	if err != nil {
+		llog.Errorf("Error getting user[%s] payment status: %s", username, err.Error())
+		data[JSON_ERROR] = "Internal error. Please contact: support@hodl.zone"
+		r.Response.Status = 500
+	}
+
+	data["debt"] = debtHist
+	data["paid"] = paidHist
+	data["status"] = status
+
+	return r.RenderJSON(data)
+}
+
+func (r AppAuthRequired) GetPaymentButton() revel.Result {
+	llog := dataCallsLog.WithField("method", "GetPaymentButton")
+	username := r.Session[SESSION_EMAIL]
+
+	data := make(map[string]interface{})
+
+	code, err := state.GenerateHODLZONECode()
+	if err != nil {
+		llog.Errorf("HODLZONE code generation failed: %s", err.Error())
+		data["error"] = "Internal error. Please contact: support@hodl.zone"
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+
+	paymentButton, err := coinbase.CreatePayment(username, code)
+	if err != nil {
+		llog.Errorf("%s", err.Error())
+		data["error"] = "Internal error. Please contact: support@hodl.zone"
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+
+	if paymentButton.Data.EmbedCode == "" {
+		llog.Errorf("EmbedCode is empty for user[%s]", username)
+		data["error"] = "Internal error. Please contact: support@hodl.zone"
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+
+	data["username"] = username
+	data["code"] = paymentButton.Data.EmbedCode
+
+	return r.RenderJSON(data)
+}
+
+func (r AppAuthRequired) GetReferrals() revel.Result {
+	llog := dataCallsLog.WithField("method", "GetReferrals")
+	username := r.Session[SESSION_EMAIL]
+
+	data := make(map[string]interface{})
+
+	userRef, apiError := state.GetReferrals(username)
+	if apiError != nil {
+		llog.Errorf(apiError.LogError.Error())
+		data["error"] = apiError.UserError.Error()
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+
+	data["ref"] = userRef
+
+	return r.RenderJSON(data)
 }

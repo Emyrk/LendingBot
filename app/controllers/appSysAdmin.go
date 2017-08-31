@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -158,6 +159,42 @@ func (s AppSysAdmin) ChangeUserPrivilege() revel.Result {
 	data[JSON_DATA] = priv
 
 	return s.Render(data)
+}
+
+func (s AppSysAdmin) AddCustomChargeReduction() revel.Result {
+	llog := appSysAdminLog.WithField("method", "AddCustomChargeReduction")
+
+	data := make(map[string]interface{})
+
+	status, err := state.AddCustomChargeReduction(s.Params.Form.Get("email"), s.Params.Form.Get("percAmount"), s.Params.Form.Get("reason"))
+	if err != nil {
+		llog.Errorf("Error adding custom charge reduction for user [%s] error: %s", s.Session[SESSION_EMAIL], err.LogError)
+		data[JSON_ERROR] = err.UserError.Error()
+		s.Response.Status = 500
+		return s.RenderJSON(data)
+	}
+
+	data["status"] = status
+
+	return s.RenderJSON(data)
+}
+
+func (s AppSysAdmin) GetUserStatus() revel.Result {
+	llog := appSysAdminLog.WithField("method", "GetUserStatus")
+
+	data := make(map[string]interface{})
+
+	status, err := state.GetPaymentStatus(s.Params.Query.Get("email"))
+	if err != nil {
+		llog.Errorf("Error getting user [%s] status error: %s", s.Params.Query.Get("email"), err.Error())
+		data[JSON_ERROR] = fmt.Sprintf("Failed to get user[%s] status, error: %s", s.Params.Query.Get("email"), err.Error())
+		s.Response.Status = 500
+		return s.RenderJSON(data)
+	}
+
+	data["status"] = status
+
+	return s.RenderJSON(data)
 }
 
 func (s AppSysAdmin) LogsDashboard() revel.Result {

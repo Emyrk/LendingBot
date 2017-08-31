@@ -1,4 +1,14 @@
     <div class="row">
+      <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+        <div class="alert alert-danger fade in" role="alert" ng-show="lendHalt.halt">
+          <strong>Lending Halted! Reason: {{lendHalt.reason}} {{lendHalt.time}}</strong>
+        </div>
+        <div class="alert alert-warning fade in" role="alert" ng-show="lendWarning.warn">
+          <strong>Lending Warning! {{lendWarning.reason}}</strong>
+        </div>
+      </div>
+    </div>
+    <div class="row">
         <div class="col-lg-4 col-md-12 col-sm-12 col-xs-12">
           <div class="x_panel tile fixed_min_height_320 overflow_hidden">
             <div class="x_title">

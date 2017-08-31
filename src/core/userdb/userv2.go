@@ -22,6 +22,8 @@ const (
 	Moderator  UserLevel = 998
 	CommonUser UserLevel = 997
 	Unassigned UserLevel = 0
+
+	TRIAL_PERIOD time.Duration = time.Duration(3*24) * time.Hour
 )
 
 var AvaiableCoins = []string{
@@ -100,6 +102,21 @@ const VerifyLength int = 64
 const UsernameMaxLength int = 100
 const SaltLength int = 5
 
+type LendingHalt struct {
+	Halt               bool      `json:"halt" bson:"halt"` //true = halt payments
+	Reason             string    `json:"reason" bson:"reason"`
+	Time               time.Time `json:"time" bson:"time"`
+	EmailTime          time.Time `json:"emailtime" bson:"emailtime"`                   //last time an notification email was sent
+	EmailStop          bool      `json:"emailstop" bson:"emailstop"`                   //whether or not to stop sending emails
+	EmailThrottleCount int32     `json:"emailthrottlecount" bson:"emailthrottlecount"` //current count for throttle
+}
+
+type LendingWarning struct {
+	Warn   bool      `json:"warn" bson:"warn"` //true = halt payments
+	Reason string    `json:"reason" bson:"reason"`
+	EndETA time.Time `json:"endeta" bson:"endeta"`
+}
+
 type User struct {
 	Username     string   `bson:"_id" json:"username"` // Not case sensitive
 	PasswordHash [32]byte `json:"passhash"`
@@ -123,15 +140,18 @@ type User struct {
 	Verified     bool   `json:"verified"`
 	VerifyString string `json:"verifystring"`
 
-	PoloniexMiniumLend PoloniexMiniumumLendStruct `json:"polominlend"`
-	PoloniexEnabled    PoloniexEnabledStruct      `json:"poloenabled"`
-	PoloniexKeys       *ExchangeKeys              `json:"polokeys"`
+	PoloniexMiniumLend  PoloniexMiniumumLendStruct `json:"polominlend"`
+	PoloniexEnabled     PoloniexEnabledStruct      `json:"poloenabled"`
+	PoloniexEnabledTime map[string]time.Time       `json:"poloenabledtime"` // When activated
+	PoloniexKeys        *ExchangeKeys              `json:"polokeys"`
 
 	BitfinexMiniumumLend BitfinexMiniumumLendStruct
 	BitfinexEnabled      BitfinexEnabledStruct
 	BitfinexKeys         *ExchangeKeys
 
 	SessionExpiryTime time.Duration `bson:"sesexpdur"`
+
+	LendingHalted LendingHalt `json:"lendhalt" bson:"lendhalt"`
 }
 
 func (u *User) SafeUnmarshal(data []byte) error {
@@ -180,6 +200,7 @@ func NewBlankUser() *User {
 	u.User2FA = new(primitives.Totp)
 	u.PoloniexKeys = NewBlankExchangeKeys()
 	u.BitfinexKeys = NewBlankExchangeKeys()
+	u.PoloniexEnabledTime = make(map[string]time.Time)
 	return u
 }
 
@@ -375,4 +396,8 @@ func (u *User) MarshalBinary() ([]byte, error) {
 
 	l := len(data)
 	return append(primitives.Uint32ToBytes(uint32(l)), data...), nil
+}
+
+func (u *User) NotTrialPeriod() bool {
+	return u.StartTime.Add(TRIAL_PERIOD).UTC().Nanosecond() < time.Now().UTC().Nanosecond()
 }

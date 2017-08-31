@@ -1,0 +1,295 @@
+<div class="">
+	<div class="page-title">
+		<!-- Paid -->
+		<div class="row">
+			<div class="title_left">
+				<h1>Payment Info</h1>
+			</div>
+		</div>
+		<!-- Status -->
+		<div class="row">
+			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+				<div class="x_panel">
+					<div class="col-xs-6">
+						<p class="lead">Payment Methods:</p>
+						<p class="text-muted well well-sm no-shadow" style="margin-top: 10px;">
+							Hey there, we currently only accept Bitcoin as payment for debts. If you own a Coinbase account, you can also pay in USD. If you have a problem with the payments please contact us on our <a href="https://hodlzone-slack.herokuapp.com/" target="_blank">hodlzone-slack</a> or email us at <a>support@hodl.zone</a>.
+							<br />
+						</p>
+						<div style="width: 100%; text-align: center;">
+							<a class="btn btn-primary" href="#/deposit">Add Credits</a>
+						</div>
+					</div>
+					<div class="col-xs-6">
+						<p class="lead">Amount Due</p>
+						<div class="table-responsive">
+							<table class="table">
+								<tbody>
+									<tr>
+										<th style="width:50%">Total Debt:</th>
+										<td>{{status.tdebt}}</td>
+									</tr>
+									<tr>
+										<th>Unspent Credit: </th>
+										<td>{{status.unspentcred}} BTC</td>
+									</tr>
+									<tr>
+										<th>Spent Credit:</th>
+										<td>{{status.spentcred}} BTC</td>
+									</tr>
+									<tr>
+										<th>HODL.ZONE Charge:</th>
+										<td>{{10.0- (status.customchargereduc * 100)}}% <button type="button" class="btn btn-info btn-xs" data-toggle="modal" data-target=".bs-reduchist-modal-lg" ng-click="getReducHist()">View More</button></td>
+									</tr>
+									<tr>
+										<th>Referral Code <small>(your code to share)</small>:</th>
+										<td>{{status.referralcode}}</td>
+									</tr>
+									<tr>
+										<th>Referee Code <small>(account who referred you)</small>: </th>
+										<td ng-show="status.refereecode == ''"><i>None set, you can set your referee code in <a href="#/settings/user">User Settings</a>.</i></td>
+										<td ng-show="status.refereecode != ''">{{status.refereecode}}</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- /Status -->
+		<!-- Paid -->
+		<div class="row">
+			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+				<div class="x_panel">
+					<div class="x_title">
+						<h2>User Payment Logs</small></h2>
+						<div class="clearfix"></div>
+					</div>
+					<div class="x_content">
+						<div ng-show="paidlog">
+							<table id="paidlog" class="table table-striped" cellspacing="0" width="100%">
+							</table>
+						</div>
+						<p ng-show="!paidlog">
+							No payments found.
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- /Paid -->
+		<!-- Debt -->
+		<div class="row">
+			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+				<div class="x_panel">
+					<div class="x_title">
+						<h2>User Debt Logs</small></h2>
+						<div class="clearfix"></div>
+						<p>All charges are calculated at the current charge rate on the account. If a discount is applied, it will only affect new debts, not the existing.</p>
+					</div>
+					<div class="x_content">
+						<div ng-show="debtlog">
+							<table id="debtlog" class="table table-striped" cellspacing="0" width="100%">
+							</table>
+						</div>
+						<p ng-show="!debtlog">
+							No debts found.
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- /Debt -->
+	</div>
+</div>
+
+<!-- <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bs-example-modal-lg">Large modal</button> -->
+
+<!-- Modal for paid -->
+<div class="modal fade bs-paid-modal-lg" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span>
+				</button>
+				<h4 class="modal-title" id="myModalLabel">Detailed Payment Information</h4>
+			</div>
+			<div class="modal-body">
+				<div class="row">
+					<!-- <div class="col-md-offset-3"></div> -->
+					<div class="col-md-8 col-md-offset-2">
+						<table class="table table-striped">
+							<tbody>
+								<tr>
+									<td>Code</td>
+									<td>{{paidModalVals.code}}</td>
+								</tr>
+								<tr>
+									<td>Credited</td>
+									<td>{{paidModalVals.email}}</td>
+								</tr>
+								<tr>
+									<td>Contacted</td>
+									<td>{{paidModalVals.contactemail}}</td>
+								</tr>
+								<tr>
+									<td>Coinbase Payment Date:</td>
+									<td>{{paidModalVals.paymentdate}}</td>
+								</tr>
+								<tr>
+									<td>HODL.ZONE Payment Date:</td>
+									<td>{{paidModalVals.notificationdelivertime}}</td>
+								</tr>
+								<tr>
+									<td>Payment Amount</td>
+									<td>{{paidModalVals.btcpaid}}</td>
+								</tr>
+								<tr>
+									<td>Coinbase Receipt</td>
+									<td><a href="{{paidModalVals.receipt}}">Click Here</a></td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- /Paid Modal -->
+
+<!-- Modal for Debt -->
+<div class="modal fade bs-debt-modal-lg" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span>
+				</button>
+				<h4 class="modal-title" id="myModalLabel">Detailed Debt Information</h4>
+			</div>
+			<div class="modal-body">
+				<div class="row">
+					<!-- <div class="col-md-offset-3"></div> -->
+					<div class="col-md-8 col-md-offset-2">
+						<table class="table table-striped">
+							<tbody>
+								<tr>
+									<td>Exchange</td>
+									<td>{{debtModalVals.exch}}</td>
+								</tr>
+								<tr>
+									<td>Loan Opened</td>
+									<td>{{debtModalVals.loanopendate}}</td>
+								</tr>
+								<tr>
+									<td>Loan Closed</td>
+									<td>{{debtModalVals.loandate}}</td>
+								</tr>
+								<tr>
+									<td>Currency</td>
+									<td>{{debtModalVals.cur}}</td>
+								</tr>
+								<tr>
+									<td>Amount Loaned</td>
+									<td>{{debtModalVals.amountloaned}} {{debtModalVals.cur}}</td>
+								</tr>
+								<tr>
+									<td>Daily Interest Rate</td>
+									<td>{{debtModalVals.loanrate}}</td>
+								</tr>
+								<tr>
+									<td>Gross Amount Earned</td>
+									<td>{{debtModalVals.gae}} {{debtModalVals.cur}}</td>
+								</tr>
+								<tr>
+									<td>Gross BTC Amount Earned</td>
+									<td>{{debtModalVals.gaebtc}} BTC</td>
+								</tr>
+								<tr>
+									<td>HODL.ZONE ChargeRate</td>
+									<td>{{debtModalVals.chargerate}}</td>
+								</tr>
+								<tr>
+									<td>HODL.ZONE Charge</td>
+									<td>{{debtModalVals.charge}} BTC</td>
+								</tr>
+								<tr>
+									<td>Amount Paid</td>
+									<td>{{debtModalVals.ppa}} BTC</td>
+								</tr>
+								<tr>
+									<td>Fully Paid</td>
+									<td>{{debtModalVals.fullpaid}}</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- /Debt Modal -->
+
+<!-- Modal for Debt -->
+<div class="modal fade bs-reduchist-modal-lg" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span>
+				</button>
+				<h4 class="modal-title">Detailed Reduction History Information</h4>
+			</div>
+			<div class="modal-body">
+				<div class="row">
+					<!-- <div class="col-md-offset-3"></div> -->
+					<div class="col-md-8 col-md-offset-2">
+						<h2>User Referrals</h2>
+						<p ng-hide="dashPaymentScope.userRef">
+							<i>No User Referrals found.</i>
+						</p>
+						<div ng-show="dashPaymentScope.userRef">
+							<p>
+								This is a complete list of all the user referrals that have reached the minimum
+								that will .
+								<br>
+								Total: {{userRef.totalR*100}}%
+							</p>
+							<table id="userRefTable" class="table table-striped" cellspacing="0" width="100%">
+							</table>
+						</div>
+						<div class="ln_solid"></div>
+						<h2>Custom Reductions</h2>
+						<p ng-hide="status.customchargereducreasons.length > 0">
+							<i>No Custom Reductions found.</i>
+						</p>
+						<div ng-show="status.customchargereducreasons.length > 0">
+							<p>
+								This is a complete list of all the custom reductions we have on record.
+								<br>
+								Total: {{status.totalCCR*100}}%
+							</p>
+							<table id="customReducTable" class="table table-striped" cellspacing="0" width="100%">
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- /Debt Modal -->
+

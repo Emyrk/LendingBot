@@ -292,6 +292,21 @@ func (q *QueenBee) getAmtForBTCValue(amount float64, currency string) float64 {
 	return amount / t.Last
 }
 
+func (q *QueenBee) GetBTCRate(currency string) float64 {
+	if currency == "BTC" {
+		return 1
+	}
+	q.poloTickerLock.RLock()
+	t, ok := q.poloTicker[fmt.Sprintf("BTC_%s", currency)]
+	q.poloTickerLock.RUnlock()
+
+	if !ok {
+		return 0
+	}
+
+	return t.Last
+}
+
 func (q *QueenBee) getBTCAmount(amount float64, currency string) float64 {
 	if currency == "BTC" {
 		return amount

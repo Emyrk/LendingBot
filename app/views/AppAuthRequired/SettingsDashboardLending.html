@@ -1,7 +1,7 @@
   <div class="">
   	<div class="page-title">
   		<div class="title_left">
-  			<h3>Lending Settings</h3>
+  			<h3>User Settings</h3>
         <ul id="myTab" class="nav nav-tabs bar_tabs" role="tablist">
         <li role="presentation" ng-class="exch == 'pol' ? 'active' : ''" ng-click="changeExchange('pol')"><a>Poloniex</a>
           </li>
@@ -25,6 +25,9 @@
               </div>
               <div class="alert alert-danger fade in" role="alert" ng-show="exchangeKeysSetError.length > 0">
                 <strong>{{exchangeKeysSetError}}</strong>
+              </div>
+              <div class="alert alert-warning fade in" role="alert" ng-show="getExchangeName() == 'Bitfinex'">
+                <strong>Currently Bitfinex is not fully supported. There will be no charge for Bitfinex profits, and all lending will be at the FRR rate.</strong>
               </div>
               Input your API keys assosicated with your {{getExchangeName()}} account. You can create a new set of API keys here: <a href="{{getExchangeUrl()}}">{{getExchangeUrl()}}</a>
               <br />

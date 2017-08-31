@@ -8,6 +8,16 @@ import (
 
 type UserExchange string
 
+func (u *UserExchange) ExchangeToFullName() string {
+	switch *u {
+	case PoloniexExchange:
+		return "Poloniex"
+	case BitfinexExchange:
+		return "Bitfinex"
+	}
+	return "Unknown"
+}
+
 const (
 	PoloniexExchange UserExchange = "pol"
 	BitfinexExchange UserExchange = "bit"

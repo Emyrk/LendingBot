@@ -94,6 +94,7 @@ func (t *AppTest) TestRegister() {
 
 	//check that session is at count 1
 	ses, err := getAllUserSessions(GetDefaultLoginValues().Get("email"))
+	t.AssertEqual(nil, err)
 	t.AssertEqual(len(ses), 1)
 	us := getUserSessionWithEmail(ses, GetDefaultLoginValues().Get("email"))
 	t.AssertEqual(len(us.ChangeState), 1)
@@ -174,6 +175,10 @@ func (t *AppTest) TestSetAndTimeoutExpiry() {
 	login(t, GetDefaultLoginValues()) //+1 session count, total = 3
 
 	v := url.Values{}
+	v.Set("sesexp", fmt.Sprintf("%d", 2000*time.Hour))
+	t.PostForm("/dashboard/settings/changeexpiry", v)
+	t.AssertStatus(500)
+
 	v.Set("sesexp", fmt.Sprintf("%d", expTimeBase))
 	t.PostForm("/dashboard/settings/changeexpiry", v)
 	t.AssertOk()

@@ -10,7 +10,7 @@ import (
 
 	"github.com/Emyrk/LendingBot/balancer"
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
-	//"github.com/Emyrk/LendingBot/src/core/userdb"
+	"github.com/Emyrk/LendingBot/src/core/userdb"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -46,7 +46,7 @@ type Lender struct {
 	HistoryKeeper *LendingHistoryKeeper
 }
 
-func (l *Lender) SavePoloniexMonth(username, accesskey, secretkey string) bool {
+func (l *Lender) SavePoloniexMonth(username *userdb.User, accesskey, secretkey string) bool {
 	return l.HistoryKeeper.SavePoloniexMonth(username, accesskey, secretkey)
 }
 
@@ -103,17 +103,6 @@ func (l *Lender) Report() string {
 
 type LendUser struct {
 	U balancer.User
-}
-
-func (l *Lender) FullReport() string {
-	str := ""
-	str += fmt.Sprintf("==== Lender [%s] ====\n", l.Bee.ID)
-	str += fmt.Sprintf("%s\n", l.Report())
-	str += fmt.Sprintf("==== Users [%d] ====\n", len(l.Users))
-	for _, u := range l.Users {
-		str += u.U.String() + "\n"
-	}
-	return str
 }
 
 func (*LendUser) Prefix() string {

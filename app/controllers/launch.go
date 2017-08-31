@@ -8,6 +8,7 @@ import (
 
 	"github.com/Emyrk/LendingBot/balancer"
 	"github.com/Emyrk/LendingBot/src/core"
+	"github.com/Emyrk/LendingBot/src/core/coinbase"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 
 	// For Prometheus
@@ -37,6 +38,8 @@ var _ = revel.Equal
 //var Queuer *queuer.Queuer
 //var Lender *lender.Lender
 var Balancer *balancer.Balancer
+var CoinbaseWatcher *coinbase.CoinbaseWatcher
+var DebtAgent *core.DebtCollector
 
 func Launch() {
 	// Prometheus
@@ -118,6 +121,8 @@ func Launch() {
 		panic(err)
 	}
 
+	DebtAgent = core.NewDebtCollector(state)
+
 	//lenderBot := lender.NewLender(state)
 	//queuerBot := queuer.NewQueuer(state, lenderBot)
 
@@ -130,6 +135,17 @@ func Launch() {
 	go launchPrometheus(9911)
 	go Balancer.Run(9200)
 	go StartProfiler()
+	go initPoloStats()
+	DebtAgent.Go()
+	coinbase.InitCoinbaseAPI()
+	CoinbaseWatcher = coinbase.NewCoinbaseWatcher(state)
+}
+
+func initPoloStats() {
+	time.Sleep(1 * time.Second)
+	for _, c := range balancer.Currencies[balancer.PoloniexExchange] {
+		state.GetPoloniexStatistics(c)
+	}
 }
 
 func Shutdown() {
