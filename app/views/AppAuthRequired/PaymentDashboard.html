@@ -46,7 +46,7 @@
 									</tr>
 									<tr>
 										<th>HODL.ZONE Charge:</th>
-										<td>{{charge}}% <button type="button" class="btn btn-info btn-xs" data-toggle="modal" data-target=".bs-reduchist-modal-lg">View More</button></td>
+										<td>{{charge*100.0}}% <button type="button" class="btn btn-info btn-xs" data-toggle="modal" data-target=".bs-reduchist-modal-lg">View More</button></td>
 									</tr>
 									<tr>
 										<th>Referral Code <small>(your code to share)</small>:</th>
@@ -268,7 +268,7 @@
 						</p>
 						<p ng-show="paidus > 0">
 							<i>Each payment of 0.01 BTC = 0.1% reduction.</i><br>
-							You have received {{dashPaymentScope.paidus*100}}% reduction.
+							You have received {{paidus*100}}% reduction.
 						</p>
 
 						<div class="ln_solid"></div>
