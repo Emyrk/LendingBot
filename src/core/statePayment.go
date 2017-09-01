@@ -17,6 +17,10 @@ var statePaymentLog = log.WithFields(log.Fields{
 	"file":    "statePayment",
 })
 
+func (s *State) ReferralCodeExists(refereeCode string) (bool, error) {
+	return s.paymentDB.ReferralCodeExists(refereeCode)
+}
+
 func (s *State) SetUserReferee(username, refereeCode string) *primitives.ApiError {
 	//calls get payment status to set referral code automatically if status does not exist
 	exists, err := s.paymentDB.ReferralCodeExists(refereeCode)
