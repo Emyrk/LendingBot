@@ -60,7 +60,7 @@ func applyCourtesyAmount(state *core.State) {
 			Code:        "Alpha User Courtesy",
 		})
 		if err != nil {
-			fmt.Println("ERROR ADDING USER PAYMENT: %s", u.Username)
+			fmt.Printf("ERROR ADDING USER PAYMENT: %s\n", u.Username)
 		}
 	}
 }
