@@ -44,39 +44,39 @@ func NewHTMLRequest(from string, to []string, subject string) *Request {
 func (r *Request) SendEmail() error {
 	// llog := emailLog.WithField("method", "SendEmail")
 
-	auth := smtp.PlainAuth("", SMTP_EMAIL_USER, SMTP_EMAIL_PASS, SMTP_EMAIL_HOST)
+	// auth := smtp.PlainAuth("", SMTP_EMAIL_USER, SMTP_EMAIL_PASS, SMTP_EMAIL_HOST)
 
-	toStr := ""
-	for i, e := range r.to {
-		toStr += e
-		if i < len(r.to)-1 {
-			toStr += ","
-		}
-	}
+	// toStr := ""
+	// for i, e := range r.to {
+	// 	toStr += e
+	// 	if i < len(r.to)-1 {
+	// 		toStr += ","
+	// 	}
+	// }
 
-	header := make(map[string]string)
-	header["From"] = r.from
-	header["Subject"] = r.subject
-	header["MIME-Version"] = "1.0"
-	header["Content-Type"] = "text/html; charset=\"utf-8\""
-	header["Content-Transfer-Encoding"] = "base64"
+	// header := make(map[string]string)
+	// header["From"] = r.from
+	// header["Subject"] = r.subject
+	// header["MIME-Version"] = "1.0"
+	// header["Content-Type"] = "text/html; charset=\"utf-8\""
+	// header["Content-Transfer-Encoding"] = "base64"
 
-	message := ""
-	for k, v := range header {
-		message += fmt.Sprintf("%s: %s\r\n", k, v)
-	}
-	message += "\r\n" + base64.StdEncoding.EncodeToString([]byte(r.Body))
-	err := smtp.SendMail(
-		SMTP_EMAIL_HOST+":"+SMTP_EMAIL_PORT,
-		auth,
-		r.from,
-		r.to,
-		[]byte(message),
-	)
-	if err != nil {
-		slack.SendMessage(":rage:", "email", "alerts", fmt.Sprintf("Error sending email with subject[%s] to user[%v] error: %s", r.subject, r.to, err.Error()))
-	}
-	return err
+	// message := ""
+	// for k, v := range header {
+	// 	message += fmt.Sprintf("%s: %s\r\n", k, v)
+	// }
+	// message += "\r\n" + base64.StdEncoding.EncodeToString([]byte(r.Body))
+	// err := smtp.SendMail(
+	// 	SMTP_EMAIL_HOST+":"+SMTP_EMAIL_PORT,
+	// 	auth,
+	// 	r.from,
+	// 	r.to,
+	// 	[]byte(message),
+	// )
+	// if err != nil {
+	// 	slack.SendMessage(":rage:", "email", "alerts", fmt.Sprintf("Error sending email with subject[%s] to user[%v] error: %s", r.subject, r.to, err.Error()))
+	// }
+	return nil
 }
 
 func (r *Request) ParseTemplate(file string, data interface{}) error {

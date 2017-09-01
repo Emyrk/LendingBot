@@ -73,12 +73,7 @@ func applyAlphaDiscount(state *core.State) {
 
 	for _, u := range users {
 		//should be in percentage reduction
-		alphaDiscount := 0.1
-		switch {
-		case u.StartTime.UTC().Nanosecond() > dateToTime("2017-May-01").UTC().Nanosecond():
-			alphaDiscount = 0.05
-		}
-
+		alphaDiscount := 0.02
 		_, apiErr := state.AddCustomChargeReduction(u.Username, fmt.Sprintf("%f", alphaDiscount), "Alpha User")
 		if apiErr != nil {
 			fmt.Println("Error adding user[%s] alpha discount: %s", u.Username, apiErr.LogError.Error())
@@ -89,7 +84,7 @@ func applyAlphaDiscount(state *core.State) {
 func applySurveyDiscount(state *core.State) {
 	for _, email := range SURVEY_DISCOUNT {
 		//should be in percentage reduction
-		surveyDiscount := 0.1
+		surveyDiscount := 0.01
 		_, apiErr := state.AddCustomChargeReduction(email, fmt.Sprintf("%f", surveyDiscount), "Took Payment Survey")
 		if apiErr != nil {
 			fmt.Println("Error adding user[%s] survey discount: %s", email, apiErr.LogError.Error())
