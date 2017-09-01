@@ -46,7 +46,7 @@
 									</tr>
 									<tr>
 										<th>HODL.ZONE Charge:</th>
-										<td>{{10.0- (status.customchargereduc * 100)}}% <button type="button" class="btn btn-info btn-xs" data-toggle="modal" data-target=".bs-reduchist-modal-lg" ng-click="getReducHist()">View More</button></td>
+										<td>{{charge}}% <button type="button" class="btn btn-info btn-xs" data-toggle="modal" data-target=".bs-reduchist-modal-lg">View More</button></td>
 									</tr>
 									<tr>
 										<th>Referral Code <small>(your code to share)</small>:</th>
@@ -261,7 +261,19 @@
 				<div class="row">
 					<!-- <div class="col-md-offset-3"></div> -->
 					<div class="col-md-8 col-md-offset-2">
-						<h2>User Referrals</h2>
+						<h2>User Payment Reduction</h2>
+						<p ng-show="paidus <= 0">
+							<i>Each payment of 0.01 BTC = 0.1% reduction.</i>
+							<i>No User Payment reductions.</i>
+						</p>
+						<p ng-show="paidus > 0">
+							<i>Each payment of 0.01 BTC = 0.1% reduction.</i><br>
+							You have received {{dashPaymentScope.paidus*100}}% reduction.
+						</p>
+
+						<div class="ln_solid"></div>
+
+						<h2>User Referral Reduction</h2>
 						<p ng-hide="dashPaymentScope.userRef">
 							<i>No User Referrals found.</i>
 						</p>
@@ -275,7 +287,9 @@
 							<table id="userRefTable" class="table table-striped" cellspacing="0" width="100%">
 							</table>
 						</div>
+
 						<div class="ln_solid"></div>
+
 						<h2>Custom Reductions</h2>
 						<p ng-hide="status.customchargereducreasons.length > 0">
 							<i>No Custom Reductions found.</i>

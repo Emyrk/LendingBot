@@ -464,6 +464,7 @@ func (r AppAuthRequired) PaymentHistory() revel.Result {
 		llog.Errorf("Error getting user[%s] debt history: %s", username, err.Error())
 		data[JSON_ERROR] = "Internal error. Please contact: support@hodl.zone"
 		r.Response.Status = 500
+		return r.RenderJSON(data)
 	}
 
 	paidHist, err := state.GetPaymentPaidHistory(username, r.Params.Query.Get("ptime"))
@@ -471,6 +472,7 @@ func (r AppAuthRequired) PaymentHistory() revel.Result {
 		llog.Errorf("Error getting user[%s] paid history: %s", username, err.Error())
 		data[JSON_ERROR] = "Internal error. Please contact: support@hodl.zone"
 		r.Response.Status = 500
+		return r.RenderJSON(data)
 	}
 
 	status, err := state.GetPaymentStatus(username)
@@ -478,11 +480,47 @@ func (r AppAuthRequired) PaymentHistory() revel.Result {
 		llog.Errorf("Error getting user[%s] payment status: %s", username, err.Error())
 		data[JSON_ERROR] = "Internal error. Please contact: support@hodl.zone"
 		r.Response.Status = 500
+		return r.RenderJSON(data)
 	}
 
+	userRef, apiError := state.GetReferrals(username)
+	if apiError != nil {
+		llog.Errorf(apiError.LogError.Error())
+		data["error"] = apiError.UserError.Error()
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+
+	//calc
+	referralReduc := float64(0.0)
+	for _, r := range userRef {
+		if r.ReachedLimit {
+			referralReduc += 0.005
+		}
+	}
+	paidUsReduc := float64(float64((status.SpentCredits+status.UnspentCredits)/payment.REDUCTION_PAID_01) * 0.001)
+	discount := float64(referralReduc + paidUsReduc)
+	discount, err = payment.RoundFloat(discount, payment.DEFAULT_REDUCTION_ROUND)
+	if err != nil {
+		llog.Errorf("Error rounding discount[%f], error: %s", discount, err.Error())
+		discount = 0.0
+	}
+	if discount > 0.035 {
+		discount = 0.035
+	}
+	final := float64(0.10 - status.CustomChargeReduction - discount)
+	final, err = payment.RoundFloat(final, payment.DEFAULT_REDUCTION_ROUND)
+	if err != nil {
+		llog.Errorf("Error rounding final[%f], error: %s", discount, err.Error())
+	}
+	// /calc
+
+	data["paidus"] = paidUsReduc
+	data["charge"] = final
 	data["debt"] = debtHist
 	data["paid"] = paidHist
 	data["status"] = status
+	data["ref"] = userRef
 
 	return r.RenderJSON(data)
 }
@@ -518,25 +556,6 @@ func (r AppAuthRequired) GetPaymentButton() revel.Result {
 
 	data["username"] = username
 	data["code"] = paymentButton.Data.EmbedCode
-
-	return r.RenderJSON(data)
-}
-
-func (r AppAuthRequired) GetReferrals() revel.Result {
-	llog := dataCallsLog.WithField("method", "GetReferrals")
-	username := r.Session[SESSION_EMAIL]
-
-	data := make(map[string]interface{})
-
-	userRef, apiError := state.GetReferrals(username)
-	if apiError != nil {
-		llog.Errorf(apiError.LogError.Error())
-		data["error"] = apiError.UserError.Error()
-		r.Response.Status = 500
-		return r.RenderJSON(data)
-	}
-
-	data["ref"] = userRef
 
 	return r.RenderJSON(data)
 }

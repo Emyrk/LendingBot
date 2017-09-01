@@ -268,6 +268,9 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 				dashPaymentScope.debtlog = res.data.debt;
 				dashPaymentScope.paidlog = res.data.paid;
 				dashPaymentScope.status = res.data.status;
+				dashPaymentScope.userRef = res.data.ref;
+				dashPaymentScope.charge = res.data.charge;
+				dashPaymentScope.paidus = res.data.paidus;
 				$timeout(() => {
 					if (dashPaymentScope.debtlog) {
 						if (!$.fn.DataTable.isDataTable('#debtlog')) {
@@ -393,6 +396,33 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 							}
 						});
 					}
+					if (dashPaymentScope.userRef) {
+						$timeout(() => {
+							dashPaymentScope.userRef.totalR = 0;
+							for(i = 0; i < dashPaymentScope.userRef.length; i++) {
+								if(dashPaymentScope.userRef[i].reachedlimit) {
+									dashPaymentScope.userRef.totalR+=0.005
+								}
+							}
+							if (!$.fn.DataTable.isDataTable('#userRefTable')) {
+								userRefTable = $('#userRefTable').DataTable({
+									filter: true,
+									"lengthChange": false,
+									columns: [
+									{data : "email", title: "Email"},
+									{data : "reachedlimit", title: "Reached Limit"},
+									],
+									"order": [[ 0, 'desc' ]],
+								});
+								userRefTable.rows.add(dashPaymentScope.userRef).draw();
+							} else {
+								var page = angular.copy(userRefTable.page());
+								userRefTable.rows().remove();
+								userRefTable.rows.add(dashPaymentScope.userRef).draw(false);
+								userRefTable.page(page).draw(false);
+							}
+						});
+					}
 				});
 			}, (err) => {
 				//error
@@ -406,50 +436,6 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 
 		dashPaymentScope.loadDebtModal = function(rowNum) {
 			dashPaymentScope.debtModalVals = dashPaymentScope.debtlog[rowNum];
-		}
-
-		dashPaymentScope.getUserRef = function() {
-			$http(
-			{
-				method: 'GET',
-				url: '/dashboard/data/getreferrals',
-				withCredentials: true
-			})
-			.then((res) => {
-				//success
-				console.log("Retrieved getUserRef");
-				dashPaymentScope.userRef = res.data.ref;
-				if (dashPaymentScope.userRef) {
-					$timeout(() => {
-						dashPaymentScope.userRef.totalR = 0;
-						for(i = 0; i < dashPaymentScope.userRef.length; i++) {
-							if(dashPaymentScope.userRef[i].reachedlimit) {
-								dashPaymentScope.userRef.totalR+=0.005
-							}
-						}
-						if (!$.fn.DataTable.isDataTable('#userRefTable')) {
-							userRefTable = $('#userRefTable').DataTable({
-								filter: true,
-								"lengthChange": false,
-								columns: [
-								{data : "email", title: "Email"},
-								{data : "reachedlimit", title: "Reached Limit"},
-								],
-								"order": [[ 0, 'desc' ]],
-							});
-							userRefTable.rows.add(dashPaymentScope.userRef).draw();
-						} else {
-							var page = angular.copy(userRefTable.page());
-							userRefTable.rows().remove();
-							userRefTable.rows.add(dashPaymentScope.userRef).draw(false);
-							userRefTable.page(page).draw(false);
-						}
-					});
-				}
-			}, (err) => {
-				//error
-				$log.error("getUserRef: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
-			});
 		}
 
 		//init
