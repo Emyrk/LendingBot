@@ -10,20 +10,21 @@ import (
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 )
 
+var _ = os.DevNull
+
 //all individuals who did the survey
 var SURVEY_DISCOUNT = []string{
 	"admin@admin.com",
 }
 
 func main() {
-	state := core.NewStateWithMongo()
-	mongoBalPass := os.Getenv("MONGO_BAL_PASS")
-	if mongoBalPass == "" {
+	if os.Getenv("MONGO_BAL_PASS") == "" {
 		panic("Running in prod, but no balancer pass given in env var 'MONGO_BAL_PASS'")
 	}
 	if os.Getenv("MONGO_REVEL_PASS") == "" {
-		panic("Running in prod, but no revel pass given in env var 'MONGO_REVEL_PASS'")
+		panic("Running in prod, but no balancer pass given in env var 'MONGO_REVEL_PASS'")
 	}
+	state := core.NewStateWithMongo()
 	fmt.Println("===STARTING COURTESY AMOUNT===")
 	applyCourtesyAmount(state)
 	fmt.Println("===FINISHED COURTESY AMOUNT===")
@@ -76,22 +77,12 @@ func applyAlphaDiscount(state *core.State) {
 }
 
 func applySurveyDiscount(state *core.State) {
-	users, err := state.FetchAllUsers()
-	if err != nil {
-		panic(fmt.Sprintf("Unable to fetch all users: %s", err.Error()))
-	}
-
-	for _, u := range users {
+	for _, email := range SURVEY_DISCOUNT {
 		//should be in percentage reduction
 		surveyDiscount := 0.1
-		switch {
-		case u.StartTime.UTC().Nanosecond() > dateToTime("2017-May-01").UTC().Nanosecond():
-			surveyDiscount = 0.05
-		}
-
-		_, apiErr := state.AddCustomChargeReduction(u.Username, fmt.Sprintf("%f", surveyDiscount), "Took Payment Survey")
-		if err != nil {
-			fmt.Println("Error adding user[%s] survey discount: %s", u.Username, apiErr.LogError.Error())
+		_, apiErr := state.AddCustomChargeReduction(email, fmt.Sprintf("%f", surveyDiscount), "Took Payment Survey")
+		if apiErr != nil {
+			fmt.Println("Error adding user[%s] survey discount: %s", email, apiErr.LogError.Error())
 		}
 	}
 }
