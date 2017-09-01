@@ -81,7 +81,7 @@ func (s *State) VerifyState() error {
 }
 
 func newState(dbType int, fakePolo bool) *State {
-	uri := "mongodb://localhost:27017"
+	uri := "mongo.hodl.zone:27017"
 	if revel.Config != nil {
 		uri = revel.Config.StringDefault("database.uri", "mongodb://localhost:27017")
 	}
