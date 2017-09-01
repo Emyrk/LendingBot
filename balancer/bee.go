@@ -303,7 +303,11 @@ func (b *Bee) HandleSends() {
 	}
 }
 
+var lastAlert time.Time
+
 func (b *Bee) HandleReceieves() {
+	lastAlert = time.Now()
+	alerting := false
 	for {
 		if b.Status == Online {
 			var p Parcel
@@ -312,6 +316,24 @@ func (b *Bee) HandleReceieves() {
 				b.ErrorChannel <- fmt.Errorf("[HandleReceieves] %s", err)
 				b.Status = Offline
 			}
+
+			if len(b.RecieveChannel) > cap(b.RecieveChannel)-10 {
+				if time.Since(lastAlert) > time.Minute*5 {
+					lastAlert = time.Now()
+					slack.SendMessage(":rage:", "beeBot", "alerts", fmt.Sprintf("@channel Bee [%s] recieve channel is %d/%d", b.ID, len(b.RecieveChannel), cap(b.RecieveChannel)))
+					alerting = true
+				}
+			}
+
+			if alerting && len(b.RecieveChannel) < cap(b.RecieveChannel)-15 {
+				alerting = false
+				slack.SendMessage(":frog:", "beeBot", "alerts", fmt.Sprintf("@channel Bee [%s] recieve channel has come down: %d/%d", b.ID, len(b.RecieveChannel), cap(b.RecieveChannel)))
+			}
+
+			if len(b.RecieveChannel) > cap(b.RecieveChannel)-1 {
+				<-b.RecieveChannel
+			}
+
 			b.RecieveChannel <- &p
 		} else {
 			time.Sleep(1 * time.Second)

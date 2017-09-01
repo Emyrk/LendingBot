@@ -14,171 +14,50 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var poloLogger = log.WithFields(log.Fields{"package": "PoloLender"})
+var poloLogger = log.WithFields(log.Fields{
+	"pacakge": "bee",
+	"file":    "PoloniexLender",
+})
 
-type Lender struct {
-	Polo  *balancer.PoloniexAPIWithRateLimit
-	Users []*LendUser
-	Bee   *Bee
-
-	recordMapLock sync.RWMutex
-	recordMap     map[int]map[string]time.Time
-
-	LendingRatesChannel chan map[int]map[string]balancer.LoanRates
-	TickerChannel       chan map[string]poloniex.PoloniexTicker
-
-	loanrateLock       sync.RWMutex
-	currentLoanRate    map[int]map[string]balancer.LoanRates
-	LastLoanRateUpdate time.Time
-
-	tickerlock       sync.RWMutex
-	ticker           map[string]poloniex.PoloniexTicker
-	LastTickerUpdate time.Time
-
-	quit chan bool
-
-	BitfinLender *BitfinexLender
+type PoloniexLender struct {
+	Polo *balancer.PoloniexAPIWithRateLimit
+	Bee  *Bee
+	GS   IGlobalServer
 
 	usersDoneLock sync.RWMutex
 	usersDone     map[string]time.Time
 
-	HistoryKeeper *LendingHistoryKeeper
+	recordMapLock sync.RWMutex
+	recordMap     map[int]map[string]time.Time
 
 	// Report
 	usercycles int
 	cycles     int
 }
 
-func (l *Lender) SetTicker(t map[string]poloniex.PoloniexTicker) {
-	l.ticker = t
-}
-
-func NewLender(b *Bee) *Lender {
-	l := new(Lender)
+func NewPoloniexLender(b *Bee, g IGlobalServer, polo *balancer.PoloniexAPIWithRateLimit) *PoloniexLender {
+	l := new(PoloniexLender)
 	l.Bee = b
-	l.Polo = balancer.NewPoloniexAPIWithRateLimit()
-
-	l.LendingRatesChannel = make(chan map[int]map[string]balancer.LoanRates, 100)
-	l.TickerChannel = make(chan map[string]poloniex.PoloniexTicker, 100)
+	l.Polo = polo
+	l.GS = g
 	l.recordMap = make(map[int]map[string]time.Time)
 	l.recordMap[balancer.PoloniexExchange] = make(map[string]time.Time)
 	l.recordMap[balancer.BitfinexExchange] = make(map[string]time.Time)
-	l.ticker = make(map[string]poloniex.PoloniexTicker)
-	l.currentLoanRate = make(map[int]map[string]balancer.LoanRates)
-	l.BitfinLender = NewBitfinexLender()
+
 	l.usersDone = make(map[string]time.Time)
-	l.HistoryKeeper = NewLendingHistoryKeeper(b)
 
 	return l
 }
 
-func (l *Lender) Report() string {
+func (l *PoloniexLender) Report() string {
 	return fmt.Sprintf("Cycles: %d, UsersProcesses: %d", l.cycles, l.usercycles)
 }
 
-type LendUser struct {
-	U balancer.User
+func (l *PoloniexLender) Close() {
+
 }
 
-func (*LendUser) Prefix() string {
-	return fmt.Sprintf("")
-}
-
-func (l *Lender) Runloop() {
-	go l.BitfinLender.Run()
-	for {
-		startLoop := time.Now()
-		// Process all users
-		for _, u := range l.Users {
-			// Find the latest update
-			var latest map[int]map[string]balancer.LoanRates
-			var ticker map[string]poloniex.PoloniexTicker
-		LatestRate:
-			for {
-				select {
-				case lr := <-l.LendingRatesChannel:
-					latest = lr
-				case tc := <-l.TickerChannel:
-					ticker = tc
-				default:
-					break LatestRate
-				}
-			}
-
-			// Update our rates
-			if len(latest) > 0 {
-				l.loanrateLock.Lock()
-				l.currentLoanRate = latest
-				l.LastLoanRateUpdate = time.Now()
-				l.loanrateLock.Unlock()
-			}
-
-			// Update our ticker
-			if len(ticker) > 0 {
-				l.tickerlock.Lock()
-				l.ticker = ticker
-				l.LastTickerUpdate = time.Now()
-				l.tickerlock.Unlock()
-			}
-
-			// Process User
-			duration := time.Now()
-
-			switch u.U.Exchange {
-			case balancer.PoloniexExchange:
-				err := l.ProcessPoloniexUser(u)
-				if err != nil {
-					poloLogger.WithFields(log.Fields{"func": "ProcessPoloniexUser", "user": u.U.Username,
-						"exchange": balancer.GetExchangeString(u.U.Exchange)}).Errorf("[PoloLending] Error: %s", shortError(err).Error())
-				}
-			case balancer.BitfinexExchange:
-				err := l.ProcessBitfinexUser(u)
-				if err != nil {
-					poloLogger.WithFields(log.Fields{"func": "ProcessBitfinexUser", "user": u.U.Username,
-						"exchange": balancer.GetExchangeString(u.U.Exchange)}).Errorf("[BitfinexLending] Error: %s", shortError(err).Error())
-				}
-			}
-			l.usercycles++
-			JobProcessDuration.Observe(float64(time.Since(duration).Nanoseconds()))
-		}
-
-		// Update User List
-		l.CopyBeeList()
-
-		// Quit
-		select {
-		case <-l.quit:
-			l.quit <- true
-			return
-		default:
-		}
-
-		l.cycles++
-		took := time.Since(startLoop).Seconds()
-		if took < 10 {
-			time.Sleep(time.Duration(10-took) * time.Second)
-		}
-	}
-}
-
-func (l *Lender) CopyBeeList() {
-	l.Bee.userlock.RLock()
-	l.Users = make([]*LendUser, len(l.Bee.Users))
-	for i := range l.Bee.Users {
-		l.Users[i] = &LendUser{}
-		l.Users[i].U = *l.Bee.Users[i]
-	}
-	l.Bee.userlock.RUnlock()
-}
-
-func shortError(err error) error {
-	if len(err.Error()) > 100 {
-		return fmt.Errorf("%s...", err.Error()[:100])
-	}
-	return err
-}
-
-func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
+func (l *PoloniexLender) ProcessPoloniexUser(u *LendUser) error {
 	historySaved := false
 	notes := ""
 	defer func(monthtoo bool, n string) {
@@ -191,6 +70,11 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 	dbu, err := l.Bee.FetchUser(u.U.Username)
 	if err != nil {
 		return err
+	}
+
+	// If lending halted, do not lend
+	if dbu.LendingHalted.Halt {
+		return nil
 	}
 
 	l.usersDoneLock.RLock()
@@ -313,20 +197,13 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 		// Move min from a % to it's value
 		min = min / 100
 
-		// Make sure we have a rate to use
-		l.loanrateLock.RLock()
-		if l.currentLoanRate == nil || l.currentLoanRate[balancer.PoloniexExchange] == nil {
-			l.loanrateLock.RUnlock()
-			continue
-		}
-		if _, ok := l.currentLoanRate[balancer.PoloniexExchange][curr]; !ok {
-			l.loanrateLock.RUnlock()
+		// Rate calculation
+		lr, _ := l.GS.GetLoanRate(balancer.PoloniexExchange, curr)
+		rate := lr.AvgBased
+		if rate == 0 { // No rate
 			continue
 		}
 
-		// Rate calculation
-		rate := l.currentLoanRate[balancer.PoloniexExchange][curr].AvgBased
-		l.loanrateLock.RUnlock()
 		// Set to min if we are below
 		if rate < min {
 			rate = min
@@ -449,7 +326,7 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 	l.usersDone[u.U.Username] = time.Now().Add(15 * time.Second)
 	l.usersDoneLock.Unlock()
 
-	historySaved = l.HistoryKeeper.SavePoloniexMonth(u.U.Username, u.U.AccessKey, u.U.SecretKey)
+	historySaved = l.GS.SavePoloniexMonth(dbu, u.U.AccessKey, u.U.SecretKey)
 	if historySaved {
 		u.U.LastHistorySaved = time.Now()
 	}
@@ -457,7 +334,7 @@ func (l *Lender) ProcessPoloniexUser(u *LendUser) error {
 	return nil
 }
 
-func (l *Lender) recordStatistics(username string, bals map[string]map[string]float64,
+func (l *PoloniexLender) recordStatistics(username string, bals map[string]map[string]float64,
 	inact map[string][]poloniex.PoloniexLoanOffer, activeLoan *poloniex.PoloniexActiveLoans) (*userdb.AllUserStatistic, error) {
 
 	// Make stats
@@ -469,9 +346,8 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 	for _, v := range balancer.Currencies[balancer.PoloniexExchange] {
 		var last float64 = 1
 		if v != "BTC" {
-			l.tickerlock.RLock()
-			last = l.ticker[fmt.Sprintf("BTC_%s", v)].Last
-			l.tickerlock.RUnlock()
+			lastTicker, _ := l.GS.GetPoloniexTicker(fmt.Sprintf("BTC_%s", v))
+			last = lastTicker.Last
 		}
 		cstat := userdb.NewUserStatistic(v, last)
 		stats.Currencies[v] = cstat
@@ -481,7 +357,7 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 	for k, v := range bals["lending"] {
 		if !math.IsNaN(v) {
 			stats.Currencies[k].AvailableBalance = v
-			stats.TotalCurrencyMap[k] += l.getBTCAmount(v, k)
+			stats.TotalCurrencyMap[k] += l.GS.GetBTCAmount(v, k)
 		}
 	}
 
@@ -505,7 +381,7 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 				stats.Currencies[loan.Currency].LowestRate = loan.Rate
 			}
 		}
-		stats.TotalCurrencyMap[loan.Currency] += l.getBTCAmount(loan.Amount, loan.Currency)
+		stats.TotalCurrencyMap[loan.Currency] += l.GS.GetBTCAmount(loan.Amount, loan.Currency)
 	}
 
 	for k := range stats.Currencies {
@@ -520,7 +396,7 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 			stats.Currencies[k].AverageOnOrderRate += loan.Rate
 			inactiveLentCount[k] += 1
 
-			stats.TotalCurrencyMap[k] += l.getBTCAmount(loan.Amount, k)
+			stats.TotalCurrencyMap[k] += l.GS.GetBTCAmount(loan.Amount, k)
 		}
 	}
 
@@ -547,55 +423,4 @@ func (l *Lender) recordStatistics(username string, bals map[string]map[string]fl
 	l.recordMap[balancer.PoloniexExchange][username] = time.Now()
 	l.recordMapLock.Unlock()
 	return stats, err
-}
-
-func (l *Lender) getAmtForBTCValue(amount float64, currency string) float64 {
-	if currency == "BTC" {
-		return amount
-	}
-
-	if currency == "IOT" {
-		return amount / l.BitfinLender.iotLast
-	}
-	if currency == "EOS" {
-		return amount / l.BitfinLender.eosLast
-	}
-
-	l.tickerlock.RLock()
-	t, ok := l.ticker[fmt.Sprintf("BTC_%s", currency)]
-	l.tickerlock.RUnlock()
-	if !ok {
-		return amount
-	}
-
-	return amount / t.Last
-}
-
-func (l *Lender) getBTCAmount(amount float64, currency string) float64 {
-	if currency == "BTC" {
-		return amount
-	}
-
-	if currency == "IOT" {
-		return amount * l.BitfinLender.iotLast
-	}
-	if currency == "EOS" {
-		return amount * l.BitfinLender.eosLast
-	}
-
-	l.tickerlock.RLock()
-	t, ok := l.ticker[fmt.Sprintf("BTC_%s", currency)]
-	l.tickerlock.RUnlock()
-	if !ok {
-		return 0
-	}
-
-	return t.Last * amount
-}
-
-func abs(v float64) float64 {
-	if v < 0 {
-		return v * -1
-	}
-	return v
 }

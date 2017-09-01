@@ -1,6 +1,7 @@
 package balancer
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -8,7 +9,7 @@ import (
 	"github.com/Emyrk/LendingBot/src/core/database/mongo"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
+	// "gopkg.in/mgo.v2/bson"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -430,11 +431,20 @@ func (a *Auditor) SaveAudit(auditReport *AuditReport) error {
 	}
 	defer s.Close()
 
-	upsertKey := bson.M{"_id": auditReport.Time}
-	upsertAction := bson.M{"$set": auditReport}
-	_, err = c.Upsert(upsertKey, upsertAction)
+	// upsertKey := bson.M{"_id": auditReport.Time}
+	// upsertAction := bson.M{"$set": auditReport}
+	// _, err = c.Upsert(upsertKey, upsertAction)
+	// if err != nil {
+	// 	return fmt.Errorf("Mongo failed to upsert: %s", err)
+	// }
+
+	err = c.Insert(auditReport)
 	if err != nil {
-		return fmt.Errorf("Mongo failed to upsert: %s", err)
+		b, err := json.Marshal(auditReport)
+		if err != nil {
+			return fmt.Errorf("Error marshalling insert data: %s", err.Error())
+		}
+		return fmt.Errorf("Mongo failed to insert json [%s]: error: %s", string(b), err.Error())
 	}
 	return nil
 }

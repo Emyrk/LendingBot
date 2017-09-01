@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Emyrk/LendingBot/slack"
 	"github.com/Emyrk/LendingBot/src/core/common/primitives"
 	"github.com/Emyrk/LendingBot/src/core/database"
 	"github.com/Emyrk/LendingBot/src/core/database/mongo"
@@ -141,6 +142,8 @@ func newUserStatisticsDB(dbType string) (*UserStatisticsDB, error) {
 
 		u.LastPoloniexRateSave = make(map[string]time.Time)
 	}
+
+	u.GetPoloniexStatistics("BTC")
 	return u, nil
 }
 
@@ -535,6 +538,9 @@ func (us *UserStatisticsDB) GetPoloniexStatistics(currency string) (*PoloniexSta
 
 		err = c.Find(find).Sort("-_id").All(&poloniexStatsArr)
 		if err != nil {
+			if err.Error() == "no reachable servers" {
+				slack.SendMessage(":rage:", "mongo", "alerts", fmt.Sprintf("@channel mongo problems, here is the error, but check the logs Error: %s", err.Error()))
+			}
 			return nil, fmt.Errorf("Mongo: getPoloniexStats: findAll: %s", err.Error())
 		}
 
@@ -817,16 +823,16 @@ func GetCombinedDayAverage(dayStats []AllUserStatistic) *DayAvg {
 		if sD != nil {
 			total := sD.AvgBTCValue * (sD.NotLent + sD.Lent)
 			da.LoanRate += sD.LoanRate * (sD.Lent * sD.AvgBTCValue)
-			da.Lent += sD.Lent * total
-			da.NotLent += sD.NotLent * total
+			da.Lent += sD.Lent * sD.AvgBTCValue
+			da.NotLent += sD.NotLent * sD.AvgBTCValue
 			da.LendingPercent += sD.LendingPercent * total
 			count += total
 		}
 	}
 
 	da.LoanRate = da.LoanRate / count
-	da.Lent = da.Lent / count
-	da.NotLent = da.NotLent / count
+	//da.Lent = da.Lent / count
+	//da.NotLent = da.NotLent / count
 	da.LendingPercent = da.LendingPercent / count
 	return da
 }

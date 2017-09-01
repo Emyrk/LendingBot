@@ -4,8 +4,7 @@
 			<h3>Lending Settings</h3>
 		</div>
 		<div class="clearfix"></div>
-
-		<div class="row" ng-init="enabled2FA = [[.enabled2FA]]; verified = [[.verified]]; has2FA = [[.has2FA]];">
+		<div class="row" ng-init="enabled2FA = [[.enabled2FA]]; verified = [[.verified]]; has2FA = [[.has2FA]]; rangeTimeMin = [[.minSessionTime]]; rangeTimeMax = [[.maxSessionTime]]; rangeTimeCur = [[.currentSessionTime]];">
 			<!-- Create 2fa-->
 			<div class="col-sm-12 col-xs-12"  ng-show="!has2FA">
 				<div class="x_panel">
@@ -39,10 +38,9 @@
 				</div>
 			</div>
 			<!-- /Create 2fa -->
-
 			<!-- QRCode -->
 			<div class="col-sm-12 col-xs-12" ng-show="qrcode">
-			<!-- <div class="col-sm-12 col-xs-12"> -->
+				<!-- <div class="col-sm-12 col-xs-12"> -->
 				<div class="x_panel">
 					<div class="x_title">
 						<h2>QRCode</h2>
@@ -58,7 +56,6 @@
 				</div>
 			</div>
 			<!-- /QRCode-->
-
 			<!-- Enable/Disable 2fa-->
 			<div class="col-sm-12 col-xs-12"  ng-show="has2FA">
 				<div class="x_panel">
@@ -104,16 +101,14 @@
 									<button class="btn btn-danger" ng-click="create2FA()" ng-disabled="!twofaForm.pass2FA.$valid || loadingCreate2FA">Create New 2FA
 									</button>
 									<br>
-									<sub>Only a password is required to create a new 2FA</sub>
+									<sub><i>Only a password is required to create a new 2FA</i></sub>
 								</div>
 							</div>
 						</form>
-
 					</div>
 				</div>
 			</div>
 			<!-- /Enable/Disable 2fa -->
-
 			<!-- Verify Email -->
 			<div class="col-sm-12 col-xs-12" ng-if="!verified">
 				<div class="x_panel">
@@ -139,12 +134,10 @@
 								</div>
 							</div>
 						</form>
-
 					</div>
 				</div>
 			</div>
 			<!-- /Verify Email-->
-
 			<!-- Change Password -->
 			<div class="col-sm-12 col-xs-12">
 				<div class="x_panel">
@@ -191,7 +184,129 @@
 				</div>
 			</div>
 			<!-- /Change Password -->
+			<!-- Referee -->
+			<div class="col-sm-12 col-xs-12" ng-hide="hasReferee">
+				<div class="x_panel">
+					<div class="x_title">
+						<h2>Set Referee</h2>
+						<div class="clearfix"></div>
+					</div>
+					<div class="x_content">
+						<div class="alert alert-success fade in" role="alert" ng-show="setRefereeSuccess.length > 0">
+							<strong>{{setRefereeSuccess}}</strong>
+						</div>
+						<div class="alert alert-danger fade in" role="alert" ng-show="setRefereeError.length > 0">
+							<strong>{{setRefereeError}}</strong>
+						</div>
+						Please enter in referee code.
+						<br />
+						<form class="form-horizontal form-label-left" ng-hide="setRefereeSuccess != ''">
+							<div class="ln_solid"></div>
+							<div class="form-group">
+								<label class="control-label col-md-3 col-sm-3 col-xs-12">Referee:</label>
+								<div class="col-md-7 col-sm-9 col-xs-9">
+									<input ng-model="referee" name="referee" required="required" placeholder="Referee Code..." type="text" class="form-control">
+								</div>
+							</div>
+							<div class="ln_solid"></div>
+
+							<div class="form-group">
+								<div class="col-md-9 col-md-offset-3">
+									<button type="submit" class="btn btn-success" ng-click="setReferee()">Set Referee</button>
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+			<!-- /Referee -->
+			<!-- Alter Default Session Wait Time -->
+			<div class="col-sm-12 col-xs-12">
+				<div class="x_panel">
+					<div class="x_title">
+						<h2>Extend Time Waited between Sessions</h2>
+						<div class="clearfix"></div>
+					</div>
+					<div class="x_content">
+						<div class="alert alert-success fade in" role="alert" ng-show="changeExpirySuccess.length > 0">
+							<strong>{{changeExpirySuccess}}</strong>
+						</div>
+						<div class="alert alert-danger fade in" role="alert" ng-show="changeExpiryError.length > 0">
+							<strong>{{changeExpiryError}}</strong>
+						</div>
+						<div>
+							<input type="text" id="range_time_slider" value="" name="range" />
+						</div>
+						<div class="ln_solid"></div>
+						<div class="form-group">
+							<div class="col-md-9 col-md-offset-3">
+								<button class="btn btn-success" ng-click="changeExpiry()" ng-disabled="">Update Session Alive Time
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- /Alter Default Session Wait Time-->
+			<!-- CheckSessions -->
+			<div class="col-sm-12 col-xs-12" ng-init='userSessions = [[.sessions]];'>
+				<div class="x_panel">
+					<div class="x_title">
+						<h2>Active Sessions</h2>
+						<div class="clearfix"></div>
+					</div>
+					<div class="x_content">
+						<p>
+							<i>Note: Only sessions shown are those besides current session. To close this session, please logout.</i><br>
+							<span ng-show='userSessions.length == 0'>
+								No active active sessions open besides current session.
+							</span>
+						</p>
+						<div class="alert alert-success fade in" role="alert" ng-show="deleteSessionSuccess.length > 0">
+							<strong>{{deleteSessionSuccess}}</strong>
+						</div>
+						<div class="alert alert-danger fade in" role="alert" ng-show="deleteSessionError.length > 0">
+							<strong>{{deleteSessionError}}</strong>
+						</div>
+						<ul class="list-group" style="line-height:30px;" ng-show='userSessions.length > 0'>
+							<li class="list-group-item" ng-repeat="s in userSessions">
+								<div style="display: flex; justify-content: space-between;">
+									<div style="flex-direction: column;">
+										<p>
+											SessionId: {{s.sessionId}}<br>
+											Last Renewal Time: {{s.lrt}}<br>
+											Current IP: {{s.ip}}<br>
+										</p>
+									</div>
+									<div style="display: flex; justify-content: center; align-items: center;">
+										<div style="flex-direction: column; float:right;">
+											<button class="btn btn-sm btn-danger clearfix pull-right" ng-click="deleteSession(s.sessionId)">
+												Delete
+											</button>
+										</div>
+									</div>
+								</div>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<!-- /CheckSessions -->
 		</div>
 	</div>
 </div>
 
+<script type="text/javascript">
+	$("#range_02").ionRangeSlider({
+		"min": 1,
+		"step": 1,
+		"from": 8,
+		"max": 52,
+		grid: true,
+		onChange: function (data) {
+			weeks = data.from
+			console.log(data.from);
+			updateBTCAmount()
+		},
+	});
+</script>

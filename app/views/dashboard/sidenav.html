@@ -46,7 +46,14 @@
                     <li><a href="#/settings/lending">Lending Settings</a></li>
                   </ul>
                 </li>
-                <li><a><i class="fa fa-desktop"></i>Currencies<span class="label pull-right" style="background-color: #ff32ff">New</span><span class="fa fa-chevron-down"></span></a>
+                <li><a><i class="fa fa-money"></i>Payment<span class="fa fa-chevron-down"></span></a>
+                  <ul class="nav child_menu">
+                    <li><a href="#/payment">Payment Information</a></li>
+                    <li><a href="#/deposit">Deposit</a></li>
+                  </ul>
+                </li>
+                <li><a href="#/prediction"><i class="fa fa-line-chart"></i>Profit Projections</a>
+                <li><a><i class="fa fa-desktop"></i>Currencies<span class="fa fa-chevron-down"></span></a>
                     <ul class="nav child_menu">
                     [[range .AvailableCoins]]
                         <li><a href="#/coin/[[.]]">[[.]]</a></li>

@@ -7,6 +7,7 @@ app.controller('sysAdminController', ['$scope', '$http', '$log', '$timeout',
 		sysAdminScope.selectUser = function(i) {
 			sysAdminScope.selectedUser = angular.copy(sysAdminScope.users[i]);
 			sysAdminScope.selectedUser.index = i;
+			sysAdminScope.getStatus(sysAdminScope.selectedUser.email);
 		}
 
 		sysAdminScope.getUsers = function() {
@@ -107,9 +108,6 @@ app.controller('sysAdminController', ['$scope', '$http', '$log', '$timeout',
 				//error
 				$log.error("makeInvite: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
 				sysAdminScope.makeInviteError = err.data.error;
-			})
-			.then(() => {
-				sysAdminScope.makeInviteError = '';
 			});
 		}
 
@@ -167,11 +165,59 @@ app.controller('sysAdminController', ['$scope', '$http', '$log', '$timeout',
 			});
 		}
 
+		sysAdminScope.getStatus = function(username) {
+			$http(
+			{
+				method: 'GET',
+				url: '/dashboard/sysadmin/getuserstatus',
+				params: {
+					email: username,
+				},
+				withCredentials: true
+			})
+			.then((res) => {
+				//success
+				console.log("getStatus: Success");
+				sysAdminScope.selectUser.status = JSON.stringify(res.data.status, null, 2);
+			}, (err) => {
+				//error
+				$log.error("getUsers: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+			});
+		}
+
+		sysAdminScope.addCustomChargeReduction = function() {
+			sysAdminScope.addReductionError = '';
+			$http(
+			{
+				method: 'POST',
+				url: '/dashboard/sysadmin/addcustomreduc',
+				data : $.param({
+					email: sysAdminScope.selectedUser.email,
+					percAmount: sysAdminScope.reduc.percAmount,
+					reason: sysAdminScope.reduc.reason,
+				}),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				withCredentials: true
+			})
+			.then((res) => {
+				//success
+				console.log("addCustomChargeReduction: Success");
+				sysAdminScope.selectUser.status = JSON.stringify(res.data.status, null, 2);
+				sysAdminScope.reduc.percAmount = 0.0;
+				sysAdminScope.reduc.reason = "";
+			}, (err) => {
+				//error
+				$log.error("addCustomChargeReduction: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				sysAdminScope.addReductionError = err.data.error;
+			});
+		}
+
 		//--init
 		sysAdminScope.getUsers();
 		sysAdminScope.adminPass = "";
 		sysAdminScope.updateUserError = '';
 		sysAdminScope.makeInviteError = '';
+		sysAdminScope.addReductionError = '';
 		sysAdminScope.makeInvite = {};
 		sysAdminScope.getInvites();
 		//------

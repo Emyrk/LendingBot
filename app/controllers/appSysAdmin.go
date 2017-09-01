@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -160,6 +161,42 @@ func (s AppSysAdmin) ChangeUserPrivilege() revel.Result {
 	return s.Render(data)
 }
 
+func (s AppSysAdmin) AddCustomChargeReduction() revel.Result {
+	llog := appSysAdminLog.WithField("method", "AddCustomChargeReduction")
+
+	data := make(map[string]interface{})
+
+	status, err := state.AddCustomChargeReduction(s.Params.Form.Get("email"), s.Params.Form.Get("percAmount"), s.Params.Form.Get("reason"))
+	if err != nil {
+		llog.Errorf("Error adding custom charge reduction for user [%s] error: %s", s.Session[SESSION_EMAIL], err.LogError)
+		data[JSON_ERROR] = err.UserError.Error()
+		s.Response.Status = 500
+		return s.RenderJSON(data)
+	}
+
+	data["status"] = status
+
+	return s.RenderJSON(data)
+}
+
+func (s AppSysAdmin) GetUserStatus() revel.Result {
+	llog := appSysAdminLog.WithField("method", "GetUserStatus")
+
+	data := make(map[string]interface{})
+
+	status, err := state.GetPaymentStatus(s.Params.Query.Get("email"))
+	if err != nil {
+		llog.Errorf("Error getting user [%s] status error: %s", s.Params.Query.Get("email"), err.Error())
+		data[JSON_ERROR] = fmt.Sprintf("Failed to get user[%s] status, error: %s", s.Params.Query.Get("email"), err.Error())
+		s.Response.Status = 500
+		return s.RenderJSON(data)
+	}
+
+	data["status"] = status
+
+	return s.RenderJSON(data)
+}
+
 func (s AppSysAdmin) LogsDashboard() revel.Result {
 	if !revel.DevMode {
 		return s.RenderTemplate("errors/404.html")
@@ -185,19 +222,21 @@ func (s AppSysAdmin) DeleteLogs() revel.Result {
 func (s AppSysAdmin) AuthUserSysAdmin() revel.Result {
 	llog := appSysAdminLog.WithField("method", "AuthUserSysAdmin")
 
-	if !ValidCacheEmail(s.Session.ID(), s.Session[SESSION_EMAIL]) {
-		llog.Warningf("Warning has invalid cache: [%s] sessionId:[%s]\n", s.Session[SESSION_EMAIL], s.Session.ID())
+	if !ValidCacheEmail(s.Session.ID(), s.ClientIP, s.Session[SESSION_EMAIL]) {
+		llog.Warningf("Warning invalid cache: email[%s] sessionId:[%s] url[%s]", s.Session[SESSION_EMAIL], s.Session.ID(), s.Request.URL)
 		s.Session[SESSION_EMAIL] = ""
 		s.Response.Status = 403
 		return s.RenderTemplate("errors/403.html")
 	}
 
-	err := SetCacheEmail(s.Session.ID(), s.Session[SESSION_EMAIL])
+	httpCookie, err := SetCacheEmail(s.Session.ID(), s.ClientIP, s.Session[SESSION_EMAIL])
 	if err != nil {
-		llog.Warningf("Warning failed to set cache: [%s] and error: %s\n", s.Session.ID(), err.Error())
+		llog.Warningf("Warning failed to set cache: email[%s] sessionId:[%s] url[%s] and error: %s", s.Session[SESSION_EMAIL], s.Session.ID(), s.Request.URL, err.Error())
 		s.Session[SESSION_EMAIL] = ""
 		s.Response.Status = 403
 		return s.RenderTemplate("errors/403.html")
+	} else {
+		s.SetCookie(httpCookie)
 	}
 
 	if !state.HasUserPrivilege(s.Session[SESSION_EMAIL], userdb.SysAdmin) {
@@ -207,8 +246,6 @@ func (s AppSysAdmin) AuthUserSysAdmin() revel.Result {
 
 	//do not cache auth pages yet
 	// s.Response.Out.Header().Set("Cache-Control", "no-cache, max-age=0, must-revalidate, no-store")
-
-	s.SetCookie(GetTimeoutCookie())
 
 	return nil
 }

@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/Emyrk/LendingBot/balancer"
 	"github.com/Emyrk/LendingBot/src/core/email"
@@ -15,6 +18,8 @@ import (
 
 var _ = userdb.SaltLength
 var SkipAuth = false
+
+var ignoredRoutes = map[string]bool{"/logout": true, "/dashboard/getactivitylog": true}
 
 var appAuthrequiredLog = log.WithFields(log.Fields{
 	"package": "controllers",
@@ -48,7 +53,7 @@ func (r AppAuthRequired) unmarshal2fa(body io.ReadCloser) *Enable2fa {
 	var json2fa Enable2fa
 	err := json.NewDecoder(body).Decode(&json2fa)
 	if err != nil {
-		llog.Errorf("Error unmarshaling 2fa: %s\n", err.Error())
+		llog.Errorf("Error unmarshaling 2fa: %s", err.Error())
 		return nil
 	}
 	defer body.Close()
@@ -62,7 +67,7 @@ func (r AppAuthRequired) unmarshalPass(body io.ReadCloser) string {
 	var jsonPass Pass
 	err := json.NewDecoder(body).Decode(&jsonPass)
 	if err != nil {
-		llog.Errorf("Error unmarshaling pass: %s\n", err.Error())
+		llog.Errorf("Error unmarshaling pass: %s", err.Error())
 		return ""
 	}
 	defer body.Close()
@@ -88,7 +93,12 @@ func (r AppAuthRequired) Dashboard() revel.Result {
 }
 
 func (r AppAuthRequired) Logout() revel.Result {
-	DeleteCacheToken(r.Session.ID())
+	llog := appAuthrequiredLog.WithField("method", "Logout")
+	if err := DeleteCacheToken(r.Session.ID(), r.ClientIP, r.Session[SESSION_EMAIL]); err != nil {
+		llog.Error("Error logging user[%s] out: %s", r.Session[SESSION_EMAIL], err.Error())
+		r.Response.Status = 500
+	}
+	delete(r.Session, SESSION_EMAIL)
 	AppPageHitInfoLogout.Inc()
 	return r.Redirect(App.Index)
 }
@@ -103,13 +113,76 @@ func (r AppAuthRequired) InfoDashboard() revel.Result {
 	return r.RenderTemplate("AppAuthRequired/InfoDashboard.html")
 }
 
+func (r AppAuthRequired) ChangeExpiry() revel.Result {
+	llog := appAuthrequiredLog.WithField("method", "ChangeExpiry")
+
+	data := make(map[string]interface{})
+
+	sesExp, err := strconv.Atoi(r.Params.Form.Get("sesexp"))
+	if err != nil {
+		llog.Errorf("Error parsing int user[%s] expiration: %s", r.Session[SESSION_EMAIL], r.Params.Form.Get("sesexp"))
+		data[JSON_ERROR] = "Internal error. Please contact: support@hodl.zone"
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+
+	//TODO: FIX test for setting minimum
+	//	add in test for to long
+	if time.Duration(sesExp)*time.Millisecond > CACHE_TIME_USER_SESSION_MAX {
+		llog.Errorf("Error user[%s] attempting to set expiry larger than max: %d", r.Session[SESSION_EMAIL], time.Duration(sesExp)*time.Millisecond)
+		data[JSON_ERROR] = "Session time to large."
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+	// } else if time.Duration(sesExp)*time.Millisecond < CACHE_TIME_USER_SESSION_MIN {
+	// 	llog.Errorf("Error user[%s] attempting to set expiry smaller than max: %d", r.Session[SESSION_EMAIL], time.Duration(sesExp)*time.Millisecond)
+	// 	data[JSON_ERROR] = "Session time to small."
+	// 	r.Response.Status = 500
+	// 	return r.RenderJSON(data)
+	// }
+
+	err = state.SetUserExpiry(r.Session[SESSION_EMAIL], time.Duration(sesExp)*time.Millisecond)
+	if err != nil {
+		llog.Errorf("Error setting user[%s] exp: %s", r.Session[SESSION_EMAIL], err.Error())
+		data[JSON_ERROR] = "Internal error. Please contact: support@hodl.zone"
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+
+	err = SetCacheDurEnd(r.Session[SESSION_EMAIL], time.Duration(sesExp)*time.Millisecond)
+	if err != nil {
+		llog.Errorf("Error setting user[%s] cache session exp: %s", r.Session[SESSION_EMAIL], err.Error())
+		data[JSON_ERROR] = "Internal error. Please contact: support@hodl.zone"
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+	r.SetCookie(GetTimeoutCookie(time.Duration(sesExp) * time.Millisecond))
+	return r.RenderJSON(data)
+}
+
+func (r AppAuthRequired) GetExpiry() revel.Result {
+	llog := appAuthrequiredLog.WithField("method", "GetExpiry")
+
+	data := make(map[string]interface{})
+
+	dur, err := GetCacheDur(r.Session[SESSION_EMAIL])
+	if err != nil {
+		llog.Errorf("Error getting user[%s] exp: %s", r.Session[SESSION_EMAIL], err.Error())
+		data[JSON_ERROR] = "Internal error. Please contact: support@hodl.zone"
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+	data["sesexp"] = *dur / time.Millisecond
+	return r.RenderJSON(data)
+}
+
 func (r AppAuthRequired) Enable2FA() revel.Result {
 	llog := appAuthrequiredLog.WithField("method", "Enable2FA")
 
 	data := make(map[string]interface{})
 	json2fa := r.unmarshal2fa(r.Request.Body)
 	if json2fa == nil {
-		llog.Errorf("Error grabbing 2fa err\n")
+		llog.Errorf("Error grabbing 2fa err")
 		data[JSON_ERROR] = "Internal error. Please contact: support@hodl.zone"
 		r.Response.Status = 500
 		return r.RenderJSON(data)
@@ -118,7 +191,7 @@ func (r AppAuthRequired) Enable2FA() revel.Result {
 
 	err := state.Enable2FA(email, json2fa.Pass, json2fa.Token, json2fa.Enable)
 	if err != nil {
-		llog.Errorf("Error enabling 2fa err: %s\n", err.Error())
+		llog.Errorf("Error enabling 2fa err: %s", err.Error())
 		data[JSON_ERROR] = "Invalid password, please try again."
 		r.Response.Status = 400
 		return r.RenderJSON(data)
@@ -139,7 +212,7 @@ func (r AppAuthRequired) SetExchangeKeys() revel.Result {
 	email := r.Session[SESSION_EMAIL]
 	err := state.SetUserKeys(email, r.Params.Form.Get("exchangekey"), r.Params.Form.Get("exchangesecret"), userdb.UserExchange(r.Params.Form.Get("exch")))
 	if err != nil {
-		llog.Errorf("Error authenticating setting Poloniex Keys err: %s\n", err.Error())
+		llog.Errorf("Error authenticating setting Poloniex Keys err: %s", err.Error())
 		data[JSON_ERROR] = fmt.Sprintf("Error: %s", err.Error())
 		r.Response.Status = 500
 		return r.RenderJSON(data)
@@ -160,7 +233,7 @@ func (r AppAuthRequired) SetExchangeKeys() revel.Result {
 
 	d, err := json.Marshal(poloniexKeys)
 	if err != nil {
-		llog.Errorf("Error marshalling poloniex keys, err: %s\n", err.Error())
+		llog.Errorf("Error marshalling poloniex keys, err: %s", err.Error())
 		data[JSON_ERROR] = "Error marshalling keys"
 		r.Response.Status = 500
 		return r.RenderJSON(data)
@@ -174,28 +247,35 @@ func (r AppAuthRequired) SetExchangeKeys() revel.Result {
 func (r AppAuthRequired) SettingsDashboardUser() revel.Result {
 	llog := appAuthrequiredLog.WithField("method", "SettingsDashboardUser")
 
-	u, _ := state.FetchUser(r.Session[SESSION_EMAIL])
+	u, err := state.FetchUser(r.Session[SESSION_EMAIL])
+	if err != nil {
+		r.Response.Status = 500
+		return r.RenderError(&revel.Error{
+			Title:       "500 Error.",
+			Description: "Looks like you are lost.",
+		})
+	}
 
 	r.ViewArgs["verified"] = fmt.Sprintf("%t", u.Verified)
 	r.ViewArgs["has2FA"] = fmt.Sprintf("%t", u.Has2FA)
 	r.ViewArgs["enabled2FA"] = fmt.Sprintf("%t", u.Enabled2FA)
+	r.ViewArgs["minSessionTime"] = fmt.Sprintf("%d", CACHE_TIME_USER_SESSION_MIN/time.Minute)
+	r.ViewArgs["maxSessionTime"] = fmt.Sprintf("%d", CACHE_TIME_USER_SESSION_MAX/time.Hour*60)
+	r.ViewArgs["currentSessionTime"] = fmt.Sprintf("%d", u.SessionExpiryTime/time.Minute)
 
-	if u.PoloniexKeys.APIKeyEmpty() {
-		r.ViewArgs["poloniexKey"] = ""
-	} else {
-		s, err := u.PoloniexKeys.DecryptAPIKeyString(u.GetCipherKey(state.CipherKey))
-		if err != nil {
-			llog.Errorf("Error decrypting Api Keys String: %s\n", err.Error())
-			s = ""
-		}
-		r.ViewArgs["poloniexKey"] = s
+	uss, err := GetUserActiveSessions(r.Session[SESSION_EMAIL], r.Session.ID())
+	if err != nil {
+		llog.Error("Error getting user active sessions: %s", err.Error())
 	}
-
-	if u.PoloniexKeys.SecretKeyEmpty() {
-		r.ViewArgs["poloniexSecret"] = ""
-	} else {
-		r.ViewArgs["poloniexSecret"] = ""
+	b, err := json.Marshal(uss)
+	if err != nil {
+		llog.Errorf("Error marshalling user sessions: %s", err.Error())
+		b = []byte("[]")
 	}
+	if len(uss) == 0 {
+		b = []byte("[]")
+	}
+	r.ViewArgs["sessions"] = string(b)
 
 	AppPageHitSetSettingDashUser.Inc()
 	return r.RenderTemplate("AppAuthRequired/SettingsDashboardUser.html")
@@ -211,7 +291,7 @@ func (r AppAuthRequired) SettingsDashboardLending() revel.Result {
 	} else {
 		s, err := u.PoloniexKeys.DecryptAPIKeyString(u.GetCipherKey(state.CipherKey))
 		if err != nil {
-			llog.Errorf("Error decrypting Api Keys String: %s\n", err.Error())
+			llog.Errorf("Error decrypting Api Keys String: %s", err.Error())
 			s = ""
 		}
 		r.ViewArgs["poloniexKey"] = s
@@ -236,7 +316,7 @@ func (r AppAuthRequired) Create2FA() revel.Result {
 
 	qr, err := state.Add2FA(r.Session[SESSION_EMAIL], pass)
 	if err != nil {
-		llog.Errorf("Error authenticating 2fa err: %s\n", err.Error())
+		llog.Errorf("Error authenticating 2fa err: %s", err.Error())
 		data[JSON_ERROR] = "Invalid password, please try again."
 		r.Response.Status = 400
 		return r.RenderJSON(data)
@@ -248,6 +328,31 @@ func (r AppAuthRequired) Create2FA() revel.Result {
 	return r.RenderJSON(data)
 }
 
+func (r AppAuthRequired) SetReferee() revel.Result {
+	llog := appAuthrequiredLog.WithField("method", "SetReferee")
+	data := make(map[string]interface{})
+	err := state.SetUserReferee(r.Session[SESSION_EMAIL], r.Params.Form.Get("ref"))
+	if err != nil {
+		llog.Errorf("Error setting referee code: %s", err.LogError.Error())
+		data[JSON_ERROR] = err.UserError.Error()
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+	return r.RenderJSON(data)
+}
+
+func (r AppAuthRequired) PaymentDashboard() revel.Result {
+	return r.RenderTemplate("AppAuthRequired/PaymentDashboard.html")
+}
+
+func (r AppAuthRequired) DespositDashboard() revel.Result {
+	return r.RenderTemplate("AppAuthRequired/DepositDashboard.html")
+}
+
+func (r AppAuthRequired) PredictionDashboard() revel.Result {
+	return r.RenderTemplate("AppAuthRequired/PredictionDashboard.html")
+}
+
 func (r AppAuthRequired) RequestEmailVerification() revel.Result {
 	llog := appAuthrequiredLog.WithField("method", "RequestEmailVerification")
 
@@ -256,7 +361,7 @@ func (r AppAuthRequired) RequestEmailVerification() revel.Result {
 	data := make(map[string]interface{})
 
 	if u.Verified {
-		llog.Warningf("WARNING: User already verified: %s\n", r.Session[SESSION_EMAIL])
+		llog.Warningf("WARNING: User already verified: %s", r.Session[SESSION_EMAIL])
 		data[JSON_ERROR] = "User already verified. No email sent."
 		r.Response.Status = 400
 		return r.RenderJSON(data)
@@ -264,7 +369,7 @@ func (r AppAuthRequired) RequestEmailVerification() revel.Result {
 
 	link := MakeURL("verifyemail/" + url.QueryEscape(u.Username) + "/" + url.QueryEscape(u.VerifyString))
 
-	emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_USER, []string{
+	emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_NO_REPLY, []string{
 		r.Session[SESSION_EMAIL],
 	}, "Verify Account")
 
@@ -275,14 +380,14 @@ func (r AppAuthRequired) RequestEmailVerification() revel.Result {
 	})
 
 	if err != nil {
-		llog.Errorf("Error parsing template: %s\n", err)
+		llog.Errorf("Error parsing template: %s", err)
 		data[JSON_ERROR] = "Internal Error. Please contact support at: support@hodl.zone"
 		r.Response.Status = 500
 		return r.RenderJSON(data)
 	}
 
 	if err = emailRequest.SendEmail(); err != nil {
-		llog.Errorf("Error sending email: %s\n", err)
+		llog.Errorf("Error sending email: %s", err)
 		data[JSON_ERROR] = "Internal Error. Please contact support at: support@hodl.zone"
 		r.Response.Status = 500
 		return r.RenderJSON(data)
@@ -298,7 +403,7 @@ func (r AppAuthRequired) GetEnableUserLending() revel.Result {
 
 	u, err := state.FetchUser(r.Session[SESSION_EMAIL])
 	if err != nil {
-		llog.Warningf("Warning user failed to find user: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
+		llog.Warningf("Warning user failed to find user: [%s] error: %s", r.Session[SESSION_EMAIL], err.Error())
 		data[JSON_ERROR] = "Bad Request. Contact support@hodl.zone"
 		r.Response.Status = 400
 		return r.RenderJSON(data)
@@ -316,7 +421,7 @@ func (r AppAuthRequired) GetEnableUserLending() revel.Result {
 		minLendInterface = u.BitfinexMiniumumLend
 		break
 	default:
-		llog.Warningf("Warning failed to set user exchange key: [%s] unknown exchange: %s\n", r.Session[SESSION_EMAIL], r.Params.Form.Get("exch"))
+		llog.Warningf("Warning failed to set user exchange key: [%s] unknown exchange: %s", r.Session[SESSION_EMAIL], r.Params.Form.Get("exch"))
 		data[JSON_ERROR] = "Bad Request. Exchange unknown. Contact support@hodl.zone"
 		r.Response.Status = 400
 		return r.RenderJSON(data)
@@ -342,7 +447,7 @@ func (r AppAuthRequired) SetEnableUserLending() revel.Result {
 	// /ENABLE USER LENDING
 	err := state.EnableUserLending(r.Session[SESSION_EMAIL], r.Params.Form.Get("enable"), userdb.UserExchange(r.Params.Form.Get("exch")))
 	if err != nil {
-		llog.Warningf("Warning user failed to enable/disable lending: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
+		llog.Warningf("Warning user failed to enable/disable lending: [%s] error: %s", r.Session[SESSION_EMAIL], err.Error())
 		data[JSON_ERROR] = "Failed to set and failed to enable/disable."
 		r.Response.Status = 400
 		return r.RenderJSON(data)
@@ -352,7 +457,7 @@ func (r AppAuthRequired) SetEnableUserLending() revel.Result {
 	// SET USER LENDING AMOUNT
 	err = state.SetAllUserMinimumLoan(r.Session[SESSION_EMAIL], r.Params.Form.Get("min"), userdb.UserExchange(r.Params.Form.Get("exch")))
 	if err != nil {
-		llog.Warningf("Warning user failed set lending: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
+		llog.Warningf("Warning user failed set lending: [%s] error: %s", r.Session[SESSION_EMAIL], err.Error())
 		data[JSON_ERROR] = "Failed to set values, but enable/disable went through."
 		r.Response.Status = 400
 		return r.RenderJSON(data)
@@ -366,13 +471,31 @@ func (r AppAuthRequired) SetEnableUserLending() revel.Result {
 func (r AppAuthRequired) ChangePassword() revel.Result {
 	llog := appAuthrequiredLog.WithField("method", "ChangePassword")
 
+	username := r.Session[SESSION_EMAIL]
 	data := make(map[string]interface{})
 
-	err := state.SetUserNewPass(r.Session[SESSION_EMAIL], r.Params.Form.Get("pass"), r.Params.Form.Get("passnew"))
+	err := state.SetUserNewPass(username, r.Params.Form.Get("pass"), r.Params.Form.Get("passnew"))
 	if err != nil {
-		llog.Warningf("Warning user failed to reset pass: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
+		llog.Warningf("Warning user failed to reset pass: [%s] error: %s", username, err.Error())
 		data[JSON_ERROR] = "Password incorrect. Please try again."
 		r.Response.Status = 400
+		return r.RenderJSON(data)
+	}
+
+	emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_NO_REPLY, []string{
+		username,
+	}, "Password Change")
+	err = emailRequest.ParseTemplate("passwordchange.html", nil)
+	if err != nil {
+		llog.Errorf("Warning user failed to parse template for user [%s] error: %s", username, err.Error())
+		data[JSON_ERROR] = "Internal Error. Please contact support at: support@hodl.zone"
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+	if err = emailRequest.SendEmail(); err != nil {
+		llog.Warningf("Warning user failed to send email for user [%s] error: %s", username, err.Error())
+		data[JSON_ERROR] = "Internal Error. Please contact support at: support@hodl.zone"
+		r.Response.Status = 500
 		return r.RenderJSON(data)
 	}
 	AppPageHitChangePass.Inc()
@@ -386,7 +509,7 @@ func (r AppAuthRequired) GetActivityLogs() revel.Result {
 
 	logs, err := state.GetActivityLog(r.Session[SESSION_EMAIL], r.Params.Query.Get("time"))
 	if err != nil {
-		llog.Warningf("Warning failed to get user activity logs: [%s] error: %s\n", r.Session[SESSION_EMAIL], err.Error())
+		llog.Warningf("Warning failed to get user activity logs: [%s] error: %s", r.Session[SESSION_EMAIL], err.Error())
 		data[JSON_ERROR] = "Server error, failed to retrieve logs. Contact support: support@hodl.zone."
 		r.Response.Status = 500
 		return r.RenderJSON(data)
@@ -395,8 +518,40 @@ func (r AppAuthRequired) GetActivityLogs() revel.Result {
 	return r.RenderJSON(data)
 }
 
+func (r AppAuthRequired) HasReferee() revel.Result {
+	data := make(map[string]interface{})
+
+	data["ref"] = state.HasSetReferee(r.Session[SESSION_EMAIL])
+
+	return r.RenderJSON(data)
+}
+
+func (r AppAuthRequired) DeleteSession() revel.Result {
+	llog := appAuthrequiredLog.WithField("method", "DeleteSession")
+
+	data := make(map[string]interface{})
+	//delete session
+	if err := DeleteCacheToken(r.Params.Form.Get("sesid"), r.ClientIP, r.Session[SESSION_EMAIL]); err != nil {
+		llog.Error("Error deleting user session: %s", err.Error())
+		data[JSON_ERROR] = "Server error, failed to delete session. Contact support: support@hodl.zone."
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+	//get active sessions
+	uss, err := GetUserActiveSessions(r.Session[SESSION_EMAIL], r.Session.ID())
+	if err != nil {
+		llog.Error("Error getting user active sessions after delete: %s", err.Error())
+		data[JSON_ERROR] = "Server error, failed to delete session. Contact support: support@hodl.zone."
+		r.Response.Status = 500
+		return r.RenderJSON(data)
+	}
+	data["ses"] = uss
+
+	return r.RenderJSON(data)
+}
+
 func (r AppAuthRequired) UserDashboard() revel.Result {
-	if revel.DevMode {
+	if revel.DevMode || strings.Contains(revel.RunMode, "dev") {
 		return r.RenderError(&revel.Error{
 			Title:       "404 Error.",
 			Description: "Looks like you are lost.",
@@ -409,25 +564,32 @@ func (r AppAuthRequired) UserDashboard() revel.Result {
 func (r AppAuthRequired) AuthUser() revel.Result {
 	llog := appAuthrequiredLog.WithField("method", "AuthUser")
 
-	if !ValidCacheEmail(r.Session.ID(), r.Session[SESSION_EMAIL]) {
-		llog.Warningf("Warning invalid cache: [%s] sessionId:[%s]\n", r.Session[SESSION_EMAIL], r.Session.ID())
+	if !ValidCacheEmail(r.Session.ID(), r.ClientIP, r.Session[SESSION_EMAIL]) {
+		llog.Warningf("Warning invalid cache: email[%s] sessionId:[%s] url[%s]", r.Session[SESSION_EMAIL], r.Session.ID(), r.Request.URL)
 		r.Session[SESSION_EMAIL] = ""
 		r.Response.Status = 403
 		return r.RenderTemplate("errors/403.html")
 	}
 
-	err := SetCacheEmail(r.Session.ID(), r.Session[SESSION_EMAIL])
+	//must add rep
+	if ignoredRoutes[r.Request.RequestURI] == true {
+		return nil
+	}
+
+	AppPageAuthUser.Inc()
+
+	httpCookie, err := SetCacheEmail(r.Session.ID(), r.ClientIP, r.Session[SESSION_EMAIL])
 	if err != nil {
-		llog.Warningf("Warning failed to set cache: [%s] and error: %s\n", r.Session.ID(), err.Error())
+		llog.Warningf("Warning failed to set cache: email[%s] sessionId:[%s] url[%s] and error: %s", r.Session[SESSION_EMAIL], r.Session.ID(), r.Request.URL, err.Error())
 		r.Session[SESSION_EMAIL] = ""
 		r.Response.Status = 403
 		return r.RenderTemplate("errors/403.html")
+	} else {
+		r.SetCookie(httpCookie)
 	}
+
 	//do not cache auth pages
 	// r.Response.Out.Header().Set("Cache-Control", "no-cache, max-age=0, must-revalidate, no-store")
 
-	r.SetCookie(GetTimeoutCookie())
-
-	AppPageAuthUser.Inc()
 	return nil
 }

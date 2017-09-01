@@ -5,11 +5,14 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"net"
 	"os"
 	"time"
 
 	"github.com/Emyrk/LendingBot/src/core/common/primitives"
 	"github.com/Emyrk/LendingBot/src/core/cryption"
+	"github.com/Emyrk/LendingBot/src/core/database/mongo"
+	"github.com/Emyrk/LendingBot/src/core/payment"
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"github.com/badoux/checkmail"
@@ -17,10 +20,16 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var stateLog = log.WithFields(log.Fields{
+	"package": "core",
+	"file":    "state",
+})
+
 const (
-	DB_MAP   = iota
-	DB_BOLT  = iota
-	DB_MONGO = iota
+	DB_MAP = iota
+	DB_BOLT
+	DB_MONGO
+	DB_MONGO_EMPTY
 )
 
 func init() {
@@ -31,6 +40,7 @@ type State struct {
 	userDB          *userdb.UserDatabase
 	userStatistic   *userdb.UserStatisticsDB
 	userInviteCodes *userdb.InviteDB
+	paymentDB       *payment.PaymentDatabase
 	PoloniexAPI     poloniex.IPoloniex
 	CipherKey       [32]byte
 	JWTSecret       [32]byte
@@ -39,6 +49,7 @@ type State struct {
 
 	// Poloniex Cache
 	poloniexCache *PoloniexAccessCache
+	sessionWriter *SessionWriter
 }
 
 func NewFakePoloniexState() *State {
@@ -51,6 +62,10 @@ func NewState() *State {
 
 func NewStateWithMap() *State {
 	return newState(DB_MAP, false)
+}
+
+func NewStateWithMongoEmpty() *State {
+	return newState(DB_MONGO_EMPTY, false)
 }
 
 func NewStateWithMongo() *State {
@@ -66,13 +81,19 @@ func (s *State) VerifyState() error {
 }
 
 func newState(dbType int, fakePolo bool) *State {
-	uri := revel.Config.StringDefault("database.uri", "mongodb://localhost:27017")
+	uri := "mongodb://localhost:27017"
+	if revel.Config != nil {
+		uri = revel.Config.StringDefault("database.uri", "mongodb://localhost:27017")
+	}
 	mongoRevelPass := os.Getenv("MONGO_REVEL_PASS")
 	if mongoRevelPass == "" && revel.RunMode == "prod" {
 		panic("Running in prod, but no revel pass given in env var 'MONGO_REVEL_PASS'")
 	}
 
-	var err error
+	var (
+		err     error
+		dbGiven *mongo.MongoDB
+	)
 	s := new(State)
 	switch dbType {
 	case DB_MAP:
@@ -88,6 +109,12 @@ func newState(dbType int, fakePolo bool) *State {
 		if err != nil {
 			panic(fmt.Sprintf("Error connecting to user mongodb: %s\n", err.Error()))
 		}
+	case DB_MONGO_EMPTY:
+		dbGiven, err = mongo.CreateBlankTestUserDB(uri, "", "")
+		if err != nil {
+			panic(fmt.Sprintf("Error connecting to user mongodb: %s\n", err.Error()))
+		}
+		s.userDB = userdb.NewMongoUserDatabaseGiven(dbGiven)
 	default:
 		v := os.Getenv("USER_DB")
 		if len(v) == 0 {
@@ -102,7 +129,7 @@ func newState(dbType int, fakePolo bool) *State {
 		s.PoloniexAPI = poloniex.StartPoloniex()
 	}
 
-	if !revel.DevMode {
+	if !revel.DevMode && revel.RunMode != "" {
 		s.CipherKey = getCipherKey()
 	}
 
@@ -120,6 +147,12 @@ func newState(dbType int, fakePolo bool) *State {
 		s.userStatistic, err = userdb.NewUserStatisticsDB()
 	case DB_MONGO:
 		s.userStatistic, err = userdb.NewUserStatisticsMongoDB(uri, "revel", mongoRevelPass)
+	case DB_MONGO_EMPTY:
+		dbGiven, err = mongo.CreateBlankTestStatDB(uri, "", "")
+		if err != nil {
+			break
+		}
+		s.userStatistic, err = userdb.NewUserStatisticsMongoDBGiven(dbGiven)
 	}
 	if err != nil {
 		panic(fmt.Sprintf("Could not create user statistic database %s", err.Error()))
@@ -135,13 +168,44 @@ func newState(dbType int, fakePolo bool) *State {
 	case DB_MONGO:
 		//todo
 		fallthrough
+	case DB_MONGO_EMPTY:
+		//todo
+		fallthrough
 	default:
 		s.userInviteCodes = userdb.NewInviteDB()
+	}
+
+	switch dbType {
+	case DB_MAP:
+		fallthrough
+	case DB_BOLT:
+		panic(fmt.Sprintf("Mode not supported"))
+	case DB_MONGO:
+		s.paymentDB, err = payment.NewPaymentDatabase(uri, "revel", mongoRevelPass)
+		if err != nil {
+			panic(fmt.Sprintf("Error connecting to user mongodb: %s\n", err.Error()))
+		}
+	case DB_MONGO_EMPTY:
+		s.paymentDB, err = payment.NewPaymentDatabaseEmpty(uri, "revel", mongoRevelPass)
+		if err != nil {
+			panic(fmt.Sprintf("Error connecting to user mongodb: %s\n", err.Error()))
+		}
+	default:
+		s.paymentDB, err = payment.NewPaymentDatabase(uri, "revel", mongoRevelPass)
+		if err != nil {
+			panic(fmt.Sprintf("Error connecting to user mongodb: %s\n", err.Error()))
+		}
 	}
 
 	// SWITCHED TO BEES
 	// s.Master = NewMaster()
 	// s.Master.Run(6667)
+
+	//Start Session Writing
+
+	sesChan := make(chan *ChannelSession, 1000)
+	s.sessionWriter = &SessionWriter{channel: sesChan}
+	go s.sessionWriter.Run(s.userDB)
 
 	return s
 }
@@ -343,12 +407,26 @@ func (s *State) EnableUserLending(username string, c string, exchange userdb.Use
 	if err != nil {
 		return err
 	}
+
+	// Ensure no nils
+	if u.PoloniexEnabledTime == nil {
+		u.PoloniexEnabledTime = make(map[string]time.Time)
+	}
+
 	switch exchange {
 	case userdb.PoloniexExchange:
 		var coins userdb.PoloniexEnabledStruct
 		err := json.Unmarshal([]byte(c), &coins)
 		if err != nil {
 			return err
+		}
+		before := u.PoloniexEnabled.GetAll()
+		after := coins.GetAll()
+		for i := range before {
+			// Set to true
+			if after[i].Enabled && !before[i].Enabled {
+				u.PoloniexEnabledTime[after[i].Currency] = time.Now()
+			}
 		}
 		u.PoloniexEnabled.Enable(coins)
 		break
@@ -432,34 +510,34 @@ func (s *State) setupNewJWTOTP(username string, t time.Duration) (string, error)
 	return tokenString, nil
 }
 
-func (s *State) SetNewPasswordJWTOTP(tokenString string, password string) bool {
+func (s *State) SetNewPasswordJWTOTP(tokenString string, password string) (string, bool) {
 	token, err := cryption.VerifyJWT(tokenString, s.JWTSecret)
 	if err != nil {
 		fmt.Printf("Error comparing JWT for pass reset: %s\n", err.Error())
-		return false
+		return "", false
 	}
 
 	email, ok := token.Claims().Get("email").(string)
 	if !ok {
 		fmt.Printf("Error Retrieving email for pass reset: %s\n", err.Error())
-		return false
+		return "", false
 	}
 
 	userSig, ok := s.userDB.GetJWTOTP(email)
 	if !ok {
 		fmt.Printf("Error with getting Token for user for pass reset: %s\n", err.Error())
-		return false
+		return "", false
 	}
 
 	tokenSig, err := cryption.GetJWTSignature(tokenString)
 	if err != nil {
 		fmt.Printf("Error retrieving sig for JWT for pass reset: %s\n", err)
-		return false
+		return "", false
 	}
 
 	s.setUserPass(email, password, nil)
 
-	return string(userSig[:]) == tokenSig
+	return email, string(userSig[:]) == tokenSig
 }
 
 func (s *State) SetUserNewPass(username string, oldPassword string, newPassword string) error {
@@ -582,4 +660,79 @@ func (s *State) GetActivityLog(email string, timeString string) (*[]userdb.BotAc
 		return nil, err
 	}
 	return botActLogs, nil
+}
+
+func (s *State) SetUserExpiry(email string, dur time.Duration) error {
+	u, err := s.userDB.FetchUserIfFound(email)
+	if err != nil {
+		return err
+	}
+
+	u.SessionExpiryTime = dur
+	return s.userDB.PutUser(u)
+}
+
+type ChannelSession struct {
+	SessionId string
+	Email     string
+	Time      time.Time
+	CurrentIP net.IP
+	Open      bool
+}
+
+type SessionWriter struct {
+	channel chan *ChannelSession
+}
+
+func (c *SessionWriter) AddSession(cs *ChannelSession) {
+	c.channel <- cs
+}
+
+//go routine should NEVER be called besides start
+func (c *SessionWriter) Run(userDB *userdb.UserDatabase) {
+	llog := stateLog.WithField("method", "Run")
+	err := userDB.CloseAllSessions()
+	if err != nil {
+		llog.Errorf("Failed to terminate all user sessions on start: %s", err.Error())
+	}
+	for {
+		select {
+		case cs, ok := <-c.channel:
+			if ok {
+				//CAN OPTIMIZE LATER
+				//should make it one session for writing
+				err = userDB.UpdateUserSession(cs.SessionId, cs.Email, cs.Time, cs.CurrentIP, cs.Open)
+				if err != nil {
+					llog.Errorf("Error updating user session: %s", err.Error())
+				}
+			} else {
+				llog.Infof("No value ready, moving on")
+			}
+		}
+	}
+}
+
+func (s *State) WriteSession(sessionId, email string, recordTime time.Time, ip net.IP, open bool) {
+	s.sessionWriter.AddSession(&ChannelSession{
+		SessionId: sessionId,
+		Email:     email,
+		Time:      recordTime,
+		CurrentIP: ip,
+		Open:      open,
+	})
+}
+
+//returns all sessions but not including this one
+func (s *State) GetActiveSessions(email string, sessions map[string]time.Time, currentSessionId string) ([]userdb.Session, error) {
+	var uss []userdb.Session
+	tempUss, err := s.userDB.GetAllUserSessions(email, 1, 100)
+	if err != nil {
+		return uss, err
+	}
+	for _, o := range *tempUss {
+		if _, ok := sessions[o.SessionId]; ok && currentSessionId != o.SessionId {
+			uss = append(uss, o)
+		}
+	}
+	return uss, nil
 }

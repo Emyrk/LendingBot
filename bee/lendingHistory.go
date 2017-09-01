@@ -80,17 +80,20 @@ func (l *LendingHistoryKeeper) FindStart(username string, startTime time.Time, e
 	return start
 }
 
-func (l *LendingHistoryKeeper) SavePoloniexMonth(username, accesskey, secretkey string) bool {
+func (l *LendingHistoryKeeper) SavePoloniexMonth(user *userdb.User, accesskey, secretkey string) bool {
 	flog := llog.WithField("func", "SavePoloniexMonth").WithField("exch", "Poloniex")
+	username := user.Username
 	l.WorkOnLockPolo.RLock()
 	v, ok := l.WorkingOnPolo[username]
 	l.WorkOnLockPolo.RUnlock()
 	if !ok {
 		l.WorkingOnPolo[username] = time.Now()
 	} else {
-		// If done within 5hrs, don't bother
-		if time.Since(v).Seconds() < 60*60*10 {
-			return false
+		if v.Day() == time.Now().Day() {
+			// If done within 5hrs, don't bother
+			if time.Since(v).Seconds() < 60*60*10 {
+				return false
+			}
 		}
 	}
 
@@ -137,6 +140,34 @@ func (l *LendingHistoryKeeper) SavePoloniexMonth(username, accesskey, secretkey 
 					if err != nil {
 						flog.WithFields(log.Fields{"time": top.String()}).Errorf("Error saving Lending history: %s", err.Error())
 						break
+					} else {
+						// l.MyBee.
+						for _, loan := range resp.Data {
+							v, ok := user.PoloniexEnabledTime[loan.Currency]
+							if !ok { // Not initialized
+								// Do not add debt to a non-initialized
+								continue
+							}
+
+							// Time of loan close
+							dt, err := time.Parse("2006-01-02 15:04:05", loan.Close)
+							if err != nil {
+								continue
+							}
+
+							// Skip if the loan did not close on the day we are analyzing
+							if dt.Day() != top.Day() {
+								continue
+							}
+							// If we made this loan, charge em
+							if user.PoloniexEnabled.Get(loan.Currency) && v.Before(dt) {
+								err := l.MyBee.AddPoloniexDebt(username, loan)
+								if err != nil {
+									// This person was not charged
+									flog.WithFields(log.Fields{"time": top.String()}).Errorf("Error charging user: %s", err.Error())
+								}
+							}
+						}
 					}
 				}
 			}

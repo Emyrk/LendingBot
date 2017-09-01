@@ -188,6 +188,10 @@ func (q *QueenBee) CalculateLoanRate(exchange int, currency string) error {
 		}
 	}
 
+	if lowest > .05 {
+		lowest = .05
+	}
+
 	lr.Simple = lowest
 	q.loanrateLock.Lock()
 	if q.currentLoanRate[exchange] == nil {
@@ -196,7 +200,7 @@ func (q *QueenBee) CalculateLoanRate(exchange int, currency string) error {
 
 	lr.AvgBased = lr.Simple
 	q.currentLoanRate[exchange][currency] = lr
-	if q.currentLoanRate[exchange][currency].Simple < 2 {
+	if q.currentLoanRate[exchange][currency].Simple < .02 {
 		SetSimple(currency, lr.Simple)
 		if time.Since(q.lastCalculateLoanRate[exchange][currency]).Seconds() > 30 {
 			q.RecordExchangeStatistics(exchange, currency, lr.Simple)
@@ -286,6 +290,21 @@ func (q *QueenBee) getAmtForBTCValue(amount float64, currency string) float64 {
 	}
 
 	return amount / t.Last
+}
+
+func (q *QueenBee) GetBTCRate(currency string) float64 {
+	if currency == "BTC" {
+		return 1
+	}
+	q.poloTickerLock.RLock()
+	t, ok := q.poloTicker[fmt.Sprintf("BTC_%s", currency)]
+	q.poloTickerLock.RUnlock()
+
+	if !ok {
+		return 0
+	}
+
+	return t.Last
 }
 
 func (q *QueenBee) getBTCAmount(amount float64, currency string) float64 {
@@ -421,6 +440,11 @@ func (l *QueenBee) UpdateTicker() {
 		l.poloTickerLock.Unlock()
 	}
 	LenderUpdateTicker.Inc()
+}
+
+func (q *QueenBee) GetQuickPoloniexStatisitics(currency string) *userdb.PoloniexStats {
+	v := q.usdb.GetQuickPoloniexStatistics(currency)
+	return v
 }
 
 func (q *QueenBee) GetExchangeStatisitics(exchange int, currency string) *userdb.PoloniexStats {

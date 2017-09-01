@@ -2,16 +2,20 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/url"
 
 	"github.com/Emyrk/LendingBot/src/core"
 	"github.com/Emyrk/LendingBot/src/core/email"
 	"github.com/revel/revel"
-	"net/url"
 
 	// Init logger
 	_ "github.com/Emyrk/LendingBot/src/log"
 	log "github.com/sirupsen/logrus"
 )
+
+var _ = fmt.Println
 
 var state *core.State
 var appLog = log.WithFields(log.Fields{
@@ -56,9 +60,9 @@ func (c App) Sandbox() revel.Result {
 
 func (c App) Index() revel.Result {
 	llog := appLog.WithField("method", "Index")
-	stats, err := json.Marshal(state.GetQuickPoloniexStatistics("BTC"))
+	stats, err := json.Marshal(Balancer.RateCalculator.GetQuickPoloniexStatisitics("BTC"))
 	if err != nil {
-		llog.Errorf("ERROR CRUCIAL!!!: retrieving index stats: %s\n", err.Error())
+		llog.Errorf("ERROR CRUCIAL!!!: retrieving index stats: %s", err.Error())
 		c.ViewArgs["poloniexStats"] = "null"
 	} else {
 		c.ViewArgs["poloniexStats"] = string(stats)
@@ -78,6 +82,12 @@ func (c App) Donate() revel.Result {
 	c.ViewArgs["Inverse"] = true
 	AppPageHitDonate.Inc()
 	return c.RenderTemplate("App/Donate.html")
+}
+
+func (c App) TermsAndPrivacy() revel.Result {
+	c.ViewArgs["Inverse"] = true
+	AppPageHitDonate.Inc()
+	return c.RenderTemplate("App/TermsAndPrivacy.html")
 }
 
 func (c App) Information() revel.Result {
@@ -107,13 +117,13 @@ func (c App) Login() revel.Result {
 	data := make(map[string]interface{})
 	ok, _, err := state.AuthenticateUser2FA(email, pass, twofa)
 	if err != nil {
-		llog.Errorf("Error authenticating err: %s\n", err.Error())
+		llog.Errorf("Error authenticating err: %s", err.Error())
 		data[JSON_ERROR] = "Invalid username, password or 2fa, please try again."
 		c.Response.Status = 500
 		return c.RenderJSON(data)
 	}
 	if !ok {
-		llog.Errorf("Error authenticating email: %s\n", email)
+		llog.Errorf("Error authenticating email: %s", email)
 		data[JSON_ERROR] = "Invalid username, password or 2fa, please try again."
 		c.Response.Status = 400
 		return c.RenderJSON(data)
@@ -121,9 +131,12 @@ func (c App) Login() revel.Result {
 
 	c.Session[SESSION_EMAIL] = email
 
-	SetCacheEmail(c.Session.ID(), email)
-
-	c.SetCookie(GetTimeoutCookie())
+	httpCookie, err := SetCacheEmail(c.Session.ID(), c.ClientIP, email)
+	if err != nil {
+		llog.Errorf("Error setting email cache: %s", err.Error())
+	} else {
+		c.SetCookie(httpCookie)
+	}
 
 	AppPageHitLogin.Inc()
 
@@ -135,28 +148,27 @@ func (c App) Register() revel.Result {
 
 	e := c.Params.Form.Get("email")
 	pass := c.Params.Form.Get("pass")
-	code := c.Params.Form.Get("ic")
 
 	data := make(map[string]interface{})
 
-	ok, err := state.ClaimInviteCode(e, code)
-	if err != nil {
-		llog.Errorf("Error claiming invite code: %s\n", err.Error())
-		data[JSON_ERROR] = "Invite code invalid."
-		c.Response.Status = 500
-		return c.RenderJSON(data)
-	}
+	// ok, err := state.ClaimInviteCode(e, code)
+	// if err != nil {
+	// 	llog.Errorf("Error claiming invite code: %s", err.Error())
+	// 	data[JSON_ERROR] = "Invite code invalid."
+	// 	c.Response.Status = 500
+	// 	return c.RenderJSON(data)
+	// }
 
-	if !ok {
-		llog.Warningf("Warning invite code invalid: %s\n", err.Error())
-		data[JSON_ERROR] = "Invite code invalid."
-		c.Response.Status = 400
-		return c.RenderJSON(data)
-	}
+	// if !ok {
+	// 	llog.Warningf("Warning invite code invalid: %s", err.Error())
+	// 	data[JSON_ERROR] = "Invite code invalid."
+	// 	c.Response.Status = 400
+	// 	return c.RenderJSON(data)
+	// }
 
 	apiErr := state.NewUser(e, pass)
 	if apiErr != nil {
-		llog.Errorf("Error registering user: %s\n", apiErr.LogError.Error())
+		llog.Errorf("Error registering user: %s", apiErr.LogError.Error())
 		data[JSON_ERROR] = apiErr.UserError.Error()
 		c.Response.Status = 400
 		return c.RenderJSON(data)
@@ -164,15 +176,20 @@ func (c App) Register() revel.Result {
 
 	c.Session[SESSION_EMAIL] = e
 
-	SetCacheEmail(c.Session.ID(), e)
-
 	u, err := state.FetchUser(e)
 	if err != nil {
-		llog.Errorf("Error fetching new user: %s\n", err)
+		llog.Errorf("Error fetching new user: %s", err)
 	} else {
+		httpCookie, err := SetCacheEmail(c.Session.ID(), c.ClientIP, u.Username)
+		if err != nil {
+			llog.Errorf("Error setting email cache: %s", err.Error())
+		} else {
+			c.SetCookie(httpCookie)
+		}
+
 		link := MakeURL("verifyemail/" + url.QueryEscape(u.Username) + "/" + url.QueryEscape(u.VerifyString))
 
-		emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_USER, []string{
+		emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_NO_REPLY, []string{
 			c.Session[SESSION_EMAIL],
 		}, "Verify Account")
 
@@ -183,10 +200,10 @@ func (c App) Register() revel.Result {
 		})
 
 		if err != nil {
-			llog.Errorf("Error register parsing template: %s\n", err)
+			llog.Errorf("Error register parsing template: %s", err)
 		} else {
 			if err = emailRequest.SendEmail(); err != nil {
-				llog.Errorf("Error register sending email: %s\n", err)
+				llog.Errorf("Error register sending email: %s", err)
 			}
 		}
 	}
@@ -204,7 +221,7 @@ func (c App) VerifyEmail() revel.Result {
 
 	err := state.VerifyEmail(email, hash)
 	if err != nil {
-		llog.Warningf("Attempt to verify email: %s hash: %s, error: %s\n", email, hash, err.Error())
+		llog.Warningf("Attempt to verify email: %s hash: %s, error: %s", email, hash, err.Error())
 		return c.NotFound("Invalid link. Please verify your email again.")
 	}
 	c.ViewArgs["email"] = email
@@ -219,6 +236,44 @@ func (c App) NewPassRequestGET() revel.Result {
 	return c.RenderTemplate("App/NewPassRequest.html")
 }
 
+func (c App) PaymentNotification() revel.Result {
+	llog := appLog.WithField("method", "PaymentNotification")
+
+	data, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		llog.Errorf(err.Error())
+		c.Response.Status = 500
+		return c.RenderJSON(struct {
+			Error string
+			Spot  int
+		}{
+			err.Error(),
+			1,
+		})
+	}
+
+	err = CoinbaseWatcher.IncomingNotification(data)
+	if err != nil {
+		llog.Errorf(err.Error())
+		c.Response.Status = 500
+		return c.RenderJSON(struct {
+			Error string
+			Spot  int
+		}{
+			err.Error(),
+			2,
+		})
+	}
+
+	llog.Infof(string(data))
+
+	return c.RenderJSON(struct {
+		Success string
+	}{
+		"success",
+	})
+}
+
 func (c App) NewPassRequestPOST() revel.Result {
 	llog := appLog.WithField("method", "NewPassRequestPOST")
 
@@ -230,13 +285,13 @@ func (c App) NewPassRequestPOST() revel.Result {
 
 	tokenString, err := state.GetNewJWTOTP(e)
 	if err != nil {
-		llog.Errorf("Error getting new JWTOTP email: [%s] error:%s\n", err.Error())
+		llog.Errorf("Error getting new JWTOTP email: [%s] error:%s", e, err.Error())
 		// c.Response.Status = 500
 		// return c.RenderTemplate("errors/500.html")
 		return c.RenderTemplate("App/NewPassRequest.html")
 	}
 
-	emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_USER, []string{
+	emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_NO_REPLY, []string{
 		e,
 	}, "Reset Password")
 
@@ -247,14 +302,14 @@ func (c App) NewPassRequestPOST() revel.Result {
 	})
 
 	if err != nil {
-		llog.Errorf("Error parsing template: %s\n", err.Error())
+		llog.Errorf("Error parsing template: %s", err.Error())
 		// c.Response.Status = 500
 		// return c.RenderTemplate("errors/500.html")
 		return c.RenderTemplate("App/NewPassRequest.html")
 	}
 
 	if err = emailRequest.SendEmail(); err != nil {
-		llog.Errorf("Error sending new password email: %s\n", err.Error())
+		llog.Errorf("Error sending new password email: %s", err.Error())
 		// c.Response.Status = 500
 		// return c.RenderTemplate("errors/500.html")
 		return c.RenderTemplate("App/NewPassRequest.html")
@@ -279,11 +334,32 @@ func (c App) NewPassResponsePost() revel.Result {
 	c.ViewArgs["get"] = false
 
 	c.ViewArgs["success"] = true
-	if !state.SetNewPasswordJWTOTP(tokenString, pass) {
+	username, ok := state.SetNewPasswordJWTOTP(tokenString, pass)
+	if !ok {
 		c.ViewArgs["success"] = false
-		llog.Errorf("Error with new pass request JWTOTP: %s\n", tokenString)
+		llog.Errorf("Error with new pass request JWTOTP: %s", tokenString)
 		c.Response.Status = 400
 	}
+
+	emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_NO_REPLY, []string{
+		username,
+	}, "Password Change")
+	err := emailRequest.ParseTemplate("passwordchange.html", nil)
+	if err != nil {
+		llog.Errorf("Error parsing template for user[%s]: %s", username, err)
+		return c.RenderError(&revel.Error{
+			Title:       "500 Error.",
+			Description: "Internal Error. Please contact support at: support@hodl.zone",
+		})
+	}
+	if err = emailRequest.SendEmail(); err != nil {
+		llog.Errorf("Error sending email for user[%s]: %s", username, err)
+		return c.RenderError(&revel.Error{
+			Title:       "500 Error.",
+			Description: "Internal Error. Please contact support at: support@hodl.zone",
+		})
+	}
+
 	c.ViewArgs["Inverse"] = true
 	AppPageHitNewPassPost.Inc()
 	return c.RenderTemplate("App/NewPass.html")
@@ -297,7 +373,8 @@ func (c App) ValidAuth() revel.Result {
 
 //called before any auth required function
 func (c App) AppAuthUser() revel.Result {
-	if !ValidCacheEmail(c.Session.ID(), c.Session[SESSION_EMAIL]) {
+	email := c.Session[SESSION_EMAIL]
+	if email != "" && !ValidCacheEmail(c.Session.ID(), c.ClientIP, email) {
 		c.Session[SESSION_EMAIL] = ""
 	}
 

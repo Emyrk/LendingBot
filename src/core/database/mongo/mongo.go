@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 var _ = fmt.Println
@@ -16,7 +17,8 @@ const (
 	USER_DB      = "userdb"
 	USER_DB_TEST = "userdb_test"
 
-	C_USER = "user"
+	C_USER    = "user"
+	C_Session = "session"
 	//AUDIT END
 
 	//STAT BEGIN
@@ -38,6 +40,18 @@ const (
 
 	C_Audit = "audit"
 	//AUDIT END
+
+	//PAYMENT BEGIN DB
+	PAYMENT_DB      = "paymentdb"
+	PAYMENT_DB_TEST = "paymentdb_test"
+
+	C_Status       = "status"
+	C_Debt         = "debt"
+	C_Paid         = "paid"
+	C_CoinbaseCode = "coinbasecode"
+	C_HODLZONECode = "hodlzonecode"
+	C_PendingPaid  = "pendingPaid"
+	//PAYMENT END
 
 	ADMIN_DB = "admin"
 )
@@ -69,7 +83,7 @@ func (c *MongoDB) CreateSession() (*mgo.Session, error) {
 	var err error
 	if c.baseSession == nil {
 		var session *mgo.Session
-		if len(c.dbusername) > 0 && len(c.dbpass) > 0 {
+		if len(c.dbusername) > 0 && len(c.dbpass) > 0 && c.dbpass != "MadeUpPass" {
 			dialInfo := &mgo.DialInfo{
 				Addrs:    []string{c.uri},
 				Database: ADMIN_DB,
@@ -82,12 +96,12 @@ func (c *MongoDB) CreateSession() (*mgo.Session, error) {
 			}
 			session, err = mgo.DialWithInfo(dialInfo)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("Error making TLS connection to server[%s]: %s", c.uri, err.Error())
 			}
 		} else {
 			session, err = mgo.Dial(c.uri)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("Error making UNSECURE connection to server[%s]: %s", c.uri, err.Error())
 			}
 		}
 		c.baseSession = session
@@ -174,6 +188,46 @@ func CreateTestUserDB(uri, dbu, dbp string) (*MongoDB, error) {
 	return db, nil
 }
 
+func CreateBlankTestUserDB(uri, dbu, dbp string) (*MongoDB, error) {
+	db := createMongoDB(uri, USER_DB_TEST, dbu, dbp)
+
+	session, err := db.CreateSession()
+	if err != nil {
+		return nil, err
+	}
+	defer session.Close()
+
+	c := session.DB(USER_DB_TEST).C(C_USER)
+
+	index := mgo.Index{
+		Key:        []string{"username"},
+		Unique:     true,
+		DropDups:   true,
+		Background: true,
+		Sparse:     true,
+	}
+
+	err = c.EnsureIndex(index)
+	if err != nil {
+		return nil, err
+	}
+
+	//remove all but admin user
+	_, err = c.RemoveAll(bson.M{"_id": bson.M{"$ne": "admin@admin.com"}})
+	if err != nil {
+		return nil, err
+	}
+
+	c = session.DB(USER_DB_TEST).C(C_Session)
+
+	_, err = c.RemoveAll(bson.M{})
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
+}
+
 func CreateTestStatDB(uri, dbu, dbp string) (*MongoDB, error) {
 	db := createMongoDB(uri, STAT_DB_TEST, dbu, dbp)
 
@@ -183,7 +237,7 @@ func CreateTestStatDB(uri, dbu, dbp string) (*MongoDB, error) {
 	}
 	defer session.Close()
 
-	c := session.DB(STAT_DB_TEST).C(C_UserStat)
+	c := session.DB(STAT_DB_TEST).C(C_Session)
 
 	var index mgo.Index
 	index = mgo.Index{
@@ -199,5 +253,76 @@ func CreateTestStatDB(uri, dbu, dbp string) (*MongoDB, error) {
 		return nil, err
 	}
 
+	return db, nil
+}
+
+func CreateBlankTestStatDB(uri, dbu, dbp string) (*MongoDB, error) {
+	db := createMongoDB(uri, STAT_DB_TEST, dbu, dbp)
+
+	session, err := db.CreateSession()
+	if err != nil {
+		return nil, err
+	}
+	defer session.Close()
+
+	err = session.DB(STAT_DB_TEST).DropDatabase()
+	if err != nil {
+		return nil, err
+	}
+
+	c := session.DB(STAT_DB_TEST).C(C_Session)
+
+	var index mgo.Index
+	index = mgo.Index{
+		Key:        []string{"email"},
+		Unique:     false,
+		DropDups:   false,
+		Background: true,
+		Sparse:     true,
+	}
+
+	err = c.EnsureIndex(index)
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
+}
+
+func CreatePaymentDB(uri, dbu, dbp string) (*MongoDB, error) {
+	db := createMongoDB(uri, PAYMENT_DB, dbu, dbp)
+
+	session, err := db.CreateSession()
+	if err != nil {
+		return nil, err
+	}
+	defer session.Close()
+
+	return db, nil
+}
+
+func CreateTestPaymentDB(uri, dbu, dbp string) (*MongoDB, error) {
+	db := createMongoDB(uri, PAYMENT_DB_TEST, dbu, dbp)
+
+	session, err := db.CreateSession()
+	if err != nil {
+		return nil, err
+	}
+	defer session.Close()
+
+	// c := session.DB(USER_DB_TEST).C(C_USER)
+
+	// index := mgo.Index{
+	// 	Key:        []string{"username"},
+	// 	Unique:     true,
+	// 	DropDups:   true,
+	// 	Background: true,
+	// 	Sparse:     true,
+	// }
+
+	// err = c.EnsureIndex(index)
+	// if err != nil {
+	// 	return nil, err
+	// }
 	return db, nil
 }

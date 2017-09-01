@@ -18,6 +18,8 @@ Run this separtely
 
 ```
 export HODLZONE_KEY=KEY
+export COINBASE_ACCESS_KEY=API-KEY
+export COINBASE_SECRET_KEY=SEC-KEY
 export MONGO_ADMIN_PASS=$1
 export MONGO_REVEL_PASS=$2
 export MONGO_BAL_PASS=$3

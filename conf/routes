@@ -17,6 +17,7 @@ GET		/faq									App.FAQ
 GET		/contact								App.Contact
 GET		/information							App.Information
 GET		/donate									App.Donate
+GET		/termsandprivacy						App.TermsAndPrivacy
 
 GET		/verifyemail/:email/:hash				App.VerifyEmail
 GET		/verify/request                         AppAuthRequired.RequestEmailVerification
@@ -26,9 +27,15 @@ POST	/newpass/request	                    App.NewPassRequestPOST
 GET		/newpass/response/:jwt	          		App.NewPassResponseGet
 POST	/newpass/response/:jwt	          		App.NewPassResponsePost
 
+# Payments
+POST 	/paymentnotification					App.PaymentNotification
+
+# Dash Info
 GET		/dashboard								AppAuthRequired.Dashboard
 GET		/dashboard/info							AppAuthRequired.InfoDashboard
 GET     /dashboard/getactivitylog				AppAuthRequired.GetActivityLogs
+
+# Dash Settings
 GET		/dashboard/settings/user				AppAuthRequired.SettingsDashboardUser
 GET		/dashboard/settings/lending				AppAuthRequired.SettingsDashboardLending
 POST	/dashboard/settings/create2fa			AppAuthRequired.Create2FA
@@ -37,9 +44,16 @@ POST	/dashboard/settings/setexchangekeys		AppAuthRequired.SetExchangeKeys
 Get 	/dashboard/settings/enableuserlending	AppAuthRequired.GetEnableUserLending
 POST	/dashboard/settings/enableuserlending	AppAuthRequired.SetEnableUserLending
 POST	/dashboard/settings/changepass			AppAuthRequired.ChangePassword
+GET		/dashboard/settings/hasreferee			AppAuthRequired.HasReferee
+POST	/dashboard/settings/setreferee			AppAuthRequired.SetReferee
+POST	/dashboard/settings/changeexpiry		AppAuthRequired.ChangeExpiry
+GET		/dashboard/settings/getexpiry			AppAuthRequired.GetExpiry
+POST	/dashboard/settings/deletesession		AppAuthRequired.DeleteSession
 
+# Check for 403 error
 GET		/validauth								App.ValidAuth
 
+# Dash Settings SysAdmin
 GET		/dashboard/sysadmin						AppSysAdmin.SysAdminDashboard
 GET		/dashboard/sysadmin/getusers			AppSysAdmin.GetUsers
 POST	/dashboard/sysadmin/deleteuser			AppSysAdmin.DeleteUser
@@ -47,8 +61,10 @@ POST	/dashboard/sysadmin/makeinvite			AppSysAdmin.MakeInvite
 POST	/dashboard/sysadmin/deleteinvite		AppSysAdmin.DeleteInvite
 GET 	/dashboard/sysadmin/getinvites			AppSysAdmin.GetInvites
 POST	/dashboard/sysadmin/changeuserpriv		AppSysAdmin.ChangeUserPrivilege
+POST 	/dashboard/sysadmin/addcustomreduc	 	AppSysAdmin.AddCustomChargeReduction
+GET 	/dashboard/sysadmin/getuserstatus	 	AppSysAdmin.GetUserStatus
 
-
+# Dash Settings Admin
 GET		/dashboard/admin/logs					AppAdmin.DashboardLogs
 GET		/dashboard/admin/getlogs				AppAdmin.GetLogs
 GET		/dashboard/admin/queuerstatus			AppAdmin.DashboardQueuerStatus
@@ -57,13 +73,24 @@ GET		/dashboard/admin/getusers				AppAdmin.GetUsers
 POST	/dashboard/admin/getuserstats			AppAdmin.GetUserStats
 POST 	/dashboard/admin/conductAudit			AppAdmin.ConductAudit
 
+# Dash Payment 
+GET	 	/dashboard/payment 						AppAuthRequired.PaymentDashboard
+GET	 	/dashboard/deposit 						AppAuthRequired.DespositDashboard
+GET	 	/dashboard/prediction 					AppAuthRequired.PredictionDashboard
+GET	 	/dashboard/paymentbutton				AppAuthRequired.GetPaymentButton
+
+
+# Dash DataCalls
 GET 	/dashboard/data/currentuserstats		AppAuthRequired.CurrentUserStats
 GET 	/dashboard/data/lendinghistory			AppAuthRequired.LendingHistory
 GET 	/dashboard/data/lendinghistory/:coin	AppAuthRequired.LendingHistory
 GET 	/dashboard/data/detstats 				AppAuthRequired.GetDetailedUserStats
 GET 	/dashboard/data/lendinghistorysummary	AppAuthRequired.LendingHistorySummary
+GET 	/dashboard/data/paymenthistory			AppAuthRequired.PaymentHistory
+GET 	/dashboard/data/getreferrals			AppAuthRequired.GetReferrals
+GET     /polostats								App.GetPoloniexStatisticsForToken
 
-
+# Dash Coin
 Get 	/dashboard/coin           				AppAuthRequired.CoinDashboard
 
 # Ignore favicon requests

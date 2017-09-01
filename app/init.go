@@ -87,7 +87,6 @@ func init() {
 	}
 
 	revel.OnAppStart(controllers.Launch)
-
 	// revel. .OnAppShutdown(controllers.Shutdown)
 }
 
