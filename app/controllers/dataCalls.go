@@ -265,7 +265,7 @@ func (r AppAuthRequired) CurrentUserStats() revel.Result {
 				w.Reason = fmt.Sprintf("Based on the current numbers, your credits are predicted to run out in %d days. This is a rough estimate based on current numbers and not very accurate. Feel free to contact us on slack with any questions.", days)
 			}
 			w.EndETA = time.Now().Add(24 * time.Hour * time.Duration(days))
-			fmt.Printf("%s D:%f, T: %f, D: %f, G: %f, D: %d\n",email discount, stats.BTCLent+stats.BTCNotLent, dailyCost, grossDaily, days)
+			fmt.Printf("%s D:%f, T: %f, D: %f, G: %f, D: %d\n", email, discount, stats.BTCLent+stats.BTCNotLent, dailyCost, grossDaily, days)
 		}
 	}
 	data["lendWarning"] = w
