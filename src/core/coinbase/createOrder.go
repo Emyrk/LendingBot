@@ -173,7 +173,7 @@ func NewDefaultCheckoutOptions() *CheckoutOptions {
 	options.Style = "buy_now_small"
 	options.CustomerDefinedAmount = "true"
 	options.AmountPresets = []string{"0.005", "0.01", "0.02"}
-	options.NotificationsURL = "https://dev.hodl.zone/paymentnotification"
+	options.NotificationsURL = "https://hodl.zone/paymentnotification"
 	options.SuccessURL = ""
 	options.CancelURL = ""
 	options.AutoRedirect = false
