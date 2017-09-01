@@ -3,13 +3,13 @@ package email
 import (
 	"bufio"
 	"bytes"
-	"encoding/base64"
-	"fmt"
+	// "encoding/base64"
+	// "fmt"
 	"io/ioutil"
-	"net/smtp"
+	// "net/smtp"
 	"text/template"
 
-	"github.com/Emyrk/LendingBot/slack"
+	// "github.com/Emyrk/LendingBot/slack"
 	log "github.com/sirupsen/logrus"
 )
 
