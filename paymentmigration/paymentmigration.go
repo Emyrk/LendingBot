@@ -14,7 +14,17 @@ var _ = os.DevNull
 
 //all individuals who did the survey
 var SURVEY_DISCOUNT = []string{
-	"admin@admin.com",
+	"Ra2o2@gmx.net",
+	"fb89551@gmail.com",
+	"jzhan@atb-intl.com",
+	"kinfreng@gmail.com",
+	"leonscot.p@gmail.com",
+	"rvmouche@gmail.com",
+	"s980705s@gmail.com",
+	"sfw.sakana@gmail.com",
+	"sm4r7m0u53@yahoo.it",
+	"snipeboom@gmail.com",
+	"special1311@hotmail.com",
 }
 
 func main() {
