@@ -182,7 +182,7 @@ const shortForm = "2006-Jan-02"
 func dateToTime(t string) time.Time {
 	nt, err := time.Parse(shortForm, t)
 	if err != nil {
-		fmt.Println("ERROR PARSING TIME: YOU BROKE IT: %s", err.Error())
+		fmt.Printf("ERROR PARSING TIME: YOU BROKE IT: %s\n", err.Error())
 		return time.Now()
 	}
 	return nt
