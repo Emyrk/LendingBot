@@ -8,7 +8,7 @@
       <div class="col-xs-10 col-xs-offset-1 col-sm-8 col-sm-offset-2" id="center-box">
         [[if .get]]
         <div class="col-xs-offset-1">
-          <h3 style="padding-bottom: 10px;">Input your email address</h3>
+          <h3 style="padding-bottom: 10px;">[[msg . "newpass.input_password"]]</h3>
           <form action="/newpass/request" method="POST">
             <label>Email</label>
             <input type="text" name="email" value="">
@@ -17,7 +17,7 @@
           </form> 
         </div>
         [[else]]
-        <div style="text-align:center;line-height:100%;width:100%;height:100%; padding-top: 40px;"><h3>An email has been sent if user exists.</h3></div>
+        <div style="text-align:center;line-height:100%;width:100%;height:100%; padding-top: 40px;"><h3>[[msg . "newpass.email_success"]]</h3></div>
         [[end]]
       </div>
     </div>
