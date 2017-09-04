@@ -26,6 +26,7 @@ GET		/newpass/request	                 	App.NewPassRequestGET
 POST	/newpass/request	                    App.NewPassRequestPOST
 GET		/newpass/response/:jwt	          		App.NewPassResponseGet
 POST	/newpass/response/:jwt	          		App.NewPassResponsePost
+GET 	/lang/:l 								App.LanguageChange
 
 # Payments
 POST 	/paymentnotification					App.PaymentNotification
