@@ -132,6 +132,10 @@ func (f *File) ProcessLines(newLines []string) error {
 			f.tmpLines = append(f.tmpLines, l)
 		}
 	}
+
+	for a := i; a < int64(len(f.originalLines)); a++ {
+		f.extraLines[f.originalLines[a]] = ""
+	}
 	return nil
 }
 
@@ -141,9 +145,11 @@ func (f *File) processKey(key string, index int64) (int64, bool) {
 		if len(kArr) != 2 {
 			continue
 		} else if kArr[0] != key {
+			f.extraLines[kArr[0]] = kArr[1]
 			continue
 		}
 		f.tmpLines = append(f.tmpLines, f.originalLines[i])
+		i++
 		return i, true
 	}
 	return index, false
@@ -161,5 +167,6 @@ func (f *File) EmptyLines() string {
 			fs += k + "\n"
 		}
 	}
+
 	return fs
 }
