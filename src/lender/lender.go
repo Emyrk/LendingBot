@@ -131,6 +131,10 @@ func NewLender(s *core.State) *Lender {
 	return l
 }
 
+func (l *Lender) FullReport() string {
+	return ""
+}
+
 func (l *Lender) SaveMonth(username string) {
 	return
 	l.LHKeeper.SaveMonth(username)
