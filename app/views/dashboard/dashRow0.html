@@ -4,36 +4,36 @@
   <div class="row tile_count">
     <div class="col-md-3 col-sm-6 col-xs-6 tile_stats_count">
     <!-- Current Daily -->
-      <span class="count_top"><i class="fa fa-user"></i> Current Lending Rate</span>
+      <span class="count_top"><i class="fa fa-user"></i> [[msg . "dash.info.currentlendrate"]]</span>
       <div class="count">{{currentUserStats.loanrate * 100 | number : 5}}%</div>
       <!-- Change -->
 
         <span ng-hide="currentUserStats.loanratechange.toFixed(3) == 0" class="count_bottom">
             <i ng-class="currentUserStats.loanratechange > 0.0 ? 'green' : 'red'">
             <i ng-class="currentUserStats.loanratechange > 0.0 ? 'fa fa-sort-asc' : 'fa fa-sort-desc'">
-        </i> {{currentUserStats.loanratechange | number : 2}}% </i> from yesterday</span>
+        </i> {{currentUserStats.loanratechange | number : 2}}% </i> [[msg . "dash.info.fromyesterday"]]</span>
     </div>
 
     <!-- Current BTC Lent -->
     <div class="col-md-3 col-sm-6 col-xs-6 tile_stats_count">
-      <span class="count_top"><i class="fa fa-clock-o"></i> Current BTC Lent</span>
+      <span class="count_top"><i class="fa fa-clock-o"></i> [[msg . "dash.info.currentbtclent"]]</span>
       <div class="count green">{{currentUserStats.btclent | number : 3}} BTC</div>
       <!-- Change -->
         <span ng-hide="currentUserStats.btclentchange.toFixed(3) == 0" class="count_bottom">
             <i ng-class="currentUserStats.btclentchange > 0.0 ? 'green' : 'red'">
             <i ng-class="currentUserStats.btclentchange > 0.0 ? 'fa fa-sort-asc' : 'fa fa-sort-desc'">
-        </i> {{currentUserStats.btclentchange | number : 2}} </i> from yesterday</span>
+        </i> {{currentUserStats.btclentchange | number : 2}} </i> [[msg . "dash.info.fromyesterday"]]</span>
     </div>
 
     <!-- Current Not Lent -->
     <div class="col-md-3 col-sm-6 col-xs-6 tile_stats_count">
-      <span class="count_top"><i class="fa fa-user"></i> Current Not Lent</span>
+      <span class="count_top"><i class="fa fa-user"></i> [[msg . "dash.info.currentbtcnotlent"]]</span>
       <div class="count red">{{currentUserStats.btcnotlent | number : 3}} BTC</div>
        <!-- Change -->
         <span ng-hide="currentUserStats.btcnotlentchange.toFixed(3) == 0" class="count_bottom">
             <i ng-class="currentUserStats.btcnotlentchange > 0.0 ? 'red' : 'green'">
             <i ng-class="currentUserStats.btcnotlentchange > 0.0 ? 'fa fa-sort-desc' : 'fa fa-sort-asc'">
-        </i> {{currentUserStats.btcnotlentchange | number : 2}} </i> from yesterday</span>
+        </i> {{currentUserStats.btcnotlentchange | number : 2}} </i> [[msg . "dash.info.fromyesterday"]]</span>
     </div>
 
     <!-- Daily BTC Earnings -->
@@ -46,13 +46,13 @@
 
     <!-- Lending Uptime -->
     <div class="col-md-3 col-sm-6 col-xs-6 tile_stats_count">
-      <span class="count_top"><i class="fa fa-user"></i> Available BTC Lent</span>
+      <span class="count_top"><i class="fa fa-user"></i> [[msg . "dash.info.availablebtclent"]]</span>
       <div class="count">{{currentUserStats.lendingpercent * 100| number : 3}}%</div>
        <!-- Change -->
         <span ng-hide="currentUserStats.lendingpercentchange.toFixed(3) == 0" class="count_bottom">
             <i ng-class="currentUserStats.lendingpercentchange > 0.0 ? 'green' : 'red'">
             <i ng-class="currentUserStats.lendingpercentchange > 0.0 ? 'fa fa-sort-asc' : 'fa fa-sort-desc'">
-        </i> {{currentUserStats.lendingpercentchange | number : 2}}% </i> from yesterday</span>
+        </i> {{currentUserStats.lendingpercentchange | number : 2}}% </i> [[msg . "dash.info.fromyesterday"]]</span>
     </div>
 
     <!-- Happiness :) -->

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 
 	"github.com/Emyrk/LendingBot/src/core"
@@ -391,6 +392,17 @@ func (c App) ValidAuth() revel.Result {
 	data := make(map[string]interface{})
 	data[JSON_DATA] = len(c.Session[SESSION_EMAIL]) > 0
 	return c.RenderJSON(data)
+}
+
+func (c App) LanguageChange() revel.Result {
+	langCookie := &http.Cookie{
+		Name:  revel.Config.StringDefault("cookie.prefix", "HODL") + "_LANG",
+		Value: c.Params.Route.Get("l"),
+		Path:  "/",
+	}
+	c.SetCookie(langCookie)
+
+	return c.Redirect("/")
 }
 
 //called before any auth required function
