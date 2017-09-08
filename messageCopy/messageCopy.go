@@ -160,13 +160,13 @@ func (f *File) EmptyLines() string {
 	for _, s := range f.tmpLines {
 		fs += s + "\n"
 	}
-	for k, v := range f.extraLines {
-		if v != "" {
-			fs += k + "=" + v + "\n"
-		} else {
-			fs += k + "\n"
-		}
-	}
+	// for k, v := range f.extraLines {
+	// 	if v != "" {
+	// 		fs += k + "=" + v + "\n"
+	// 	} else {
+	// 		fs += k + "\n"
+	// 	}
+	// }
 
 	return fs
 }

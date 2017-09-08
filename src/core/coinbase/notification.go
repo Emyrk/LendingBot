@@ -19,6 +19,7 @@ var _ = fmt.Println
 const (
 	OrderPaid     = "wallet:orders:paid"
 	OrdersPending = "wallet:orders:pending"
+	OrdersExpired = "wallet:orders:mispaid"
 )
 
 type CoinbaseNotification struct {
@@ -164,6 +165,8 @@ func (h *CoinbaseWatcher) IncomingNotification(data []byte) error {
 	}
 
 	switch n.Type {
+	case OrdersExpired:
+		fallthrough
 	case OrderPaid:
 		pay := new(CoinbasePaymentNotification)
 		err := json.Unmarshal(n.Data, pay)
