@@ -1,51 +1,56 @@
 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
 	<div class="x_panel">
 		<div class="x_title">
-			<h2>Last Month {{coin}} Lending History</h2>
+			<h2>[[msg . "dash.cur.lendhist.title"]]</h2>
 			<div class="clearfix"></div>
-			<p>Each day represents the loans that closed on that given day. Keep in mind that this has some data skew because loans can be up to 2 days in length, meaning a loan placed today might not show up until 2 days from now. This causes days with average shorter durations appear more profitible. </p>
+			<p>[[msg . "dash.cur.lendhist.desc"]] </p>
 		</div>
 		<div class="x_content">
 			<div ng-show="hasCompleteLoans">
 				<div id="lendingHistoryChart" style="height:500px; width:100%;"></div>
-
 				<div class="ln_solid"></div>
 				<div class="pull-right">
 				<button class="btn btn-primary" ng-click="swapLendingHistoryType()">
-						{{'Switch to ' + (isLendingHistoryCrypto ? 'Dollars' : coin)}}
+						{{'[[msg . "dash.cur.lendhist.switchto"]] ' + (isLendingHistoryCrypto ? '[[msg . "dash.cur.lendhist.dollars"]]' : coin)}}
 					</button>
 				</div>
 			</div>
 			<div ng-hide="hasCompleteLoans">
-				No Lending History Found.
+				[[msg . "dash.cur.lendhist.none"]].
 			</div>
 		</div>
 	</div>
 
 	<div class="x_panel">
 		<div class="x_title">
-			<h2>Last Month {{coin}} Lending Rates</h2>
+			<h2>[[msg . "dash.cur.lendrate.title"]]</h2>
 			<div class="clearfix"></div>
-			<p>The middle line is the average active rate for that given moment in time. The area around it shows the highest and lowest rates.</p>
+			<p>[[msg . "dash.cur.lendrate.desc"]]</p>
 		</div>
 		<div class="x_content">
-              <div class="alert alert-info fade in" role="alert" ng-show="loadingDetailedLendingHistory">Loading detailed lending history... this may take a moment.
+              <div class="alert alert-info fade in" role="alert" ng-show="loadingDetailedLendingHistory">[[msg . "dash.cur.lendrate.loading"]]
                 <strong><span><i class="fa fa-spinner fa-spin"></i></span></strong>
               </div>
 			<div id="lending-rate-graph" ng-show="detailedLendingHistory" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+			<div ng-hide="detailedLendingHistory">
+				[[msg . "dash.cur.lendrate.none"]].
+			</div>
 		</div>
 	</div>
 	<div class="x_panel">
 		<div class="x_title">
-			<h2>Last Month {{coin}} Lending Amounts</h2>
+			<h2>[[msg . "dash.cur.lendamount.title"]]</h2>
 			<div class="clearfix"></div>
-			<p>Here shows the amount of crypto that was being lent, and not being lent throughout the last month.</p>
+			<p>[[msg . "dash.cur.lendamount.desc"]]</p>
 		</div>
 		<div class="x_content">
-			<div class="alert alert-info fade in" role="alert" ng-show="loadingDetailedLendingHistory">Loading detailed lending history... this may take a moment.
+			<div class="alert alert-info fade in" role="alert" ng-show="loadingDetailedLendingHistory">[[msg . "dash.cur.lendamount.loading"]]
 				<strong><span><i class="fa fa-spinner fa-spin"></i></span></strong>
 			</div>
 			<div id="lent-totals-graph" ng-show="detailedLendingHistory" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+			<div ng-hide="detailedLendingHistory">
+				[[msg . "dash.cur.lendamount.none"]].
+			</div>
 		</div>
 	</div>
 </div>
