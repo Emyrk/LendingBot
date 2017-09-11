@@ -119,13 +119,13 @@ func (c App) Login() revel.Result {
 	ok, _, err := state.AuthenticateUser2FA(email, pass, twofa)
 	if err != nil {
 		llog.Errorf("Error authenticating err: %s", err.Error())
-		data[JSON_ERROR] = "Invalid username, password or 2fa, please try again."
+		data[JSON_ERROR] = c.Message("error.login.invalidauth")
 		c.Response.Status = 500
 		return c.RenderJSON(data)
 	}
 	if !ok {
 		llog.Errorf("Error authenticating email: %s", email)
-		data[JSON_ERROR] = "Invalid username, password or 2fa, please try again."
+		data[JSON_ERROR] = c.Message("error.login.invalidauth")
 		c.Response.Status = 400
 		return c.RenderJSON(data)
 	}
