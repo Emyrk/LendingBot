@@ -33,3 +33,19 @@ func NewAPIErrorInternalError(err error) *ApiError {
 	apiError.UserError = fmt.Errorf("Internal Error. Please contact support at: support@hodl.zone")
 	return apiError
 }
+
+type RevelApiError struct {
+	LogError     error
+	UserErrorKey string //used to lookup error message
+}
+
+func (a *RevelApiError) Error() string {
+	return a.LogError.Error()
+}
+
+func NewRevelAPIErrorInternalError(err error) *RevelApiError {
+	revelApiError := new(RevelApiError)
+	revelApiError.LogError = err
+	revelApiError.UserErrorKey = "error.internal"
+	return revelApiError
+}

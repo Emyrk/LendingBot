@@ -157,13 +157,13 @@ func (c App) Register() revel.Result {
 		ok, err := state.ReferralCodeExists(code)
 		if err != nil {
 			llog.Errorf("Error claiming invite code: %s", err.Error())
-			data[JSON_ERROR] = "Invite code invalid."
+			data[JSON_ERROR] = c.Message("error.register.invalidreferral")
 			c.Response.Status = 500
 			return c.RenderJSON(data)
 		}
 		if !ok {
 			llog.Warnf("Invite code[%s] does not exist.", code)
-			data[JSON_ERROR] = "Invite code invalid."
+			data[JSON_ERROR] = c.Message("error.register.invalidreferral")
 			c.Response.Status = 500
 			return c.RenderJSON(data)
 		}
@@ -184,17 +184,17 @@ func (c App) Register() revel.Result {
 	// 	return c.RenderJSON(data)
 	// }
 
-	apiErr := state.NewUser(e, pass)
-	if apiErr != nil {
-		llog.Errorf("Error registering user: %s", apiErr.LogError.Error())
-		data[JSON_ERROR] = apiErr.UserError.Error()
+	revelApiErr := state.NewUser(e, pass)
+	if revelApiErr != nil {
+		llog.Errorf("Error registering user: %s", revelApiErr.LogError.Error())
+		data[JSON_ERROR] = c.Message(revelApiErr.UserErrorKey)
 		c.Response.Status = 400
 		return c.RenderJSON(data)
 	}
 
-	apiErr = state.SetUserReferee(e, code)
-	if apiErr != nil {
-		llog.Errorf("Error setting referee code: %s", apiErr.LogError.Error())
+	revelApiErr = state.SetUserReferee(e, code)
+	if revelApiErr != nil {
+		llog.Errorf("Error setting referee code: %s", revelApiErr.LogError.Error())
 	}
 
 	c.Session[SESSION_EMAIL] = e
