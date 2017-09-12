@@ -19,11 +19,11 @@
 		</div>
 		[[else]]
 			[[if .success]]
-				<div style="text-align:center;line-height:100%;width:100%;height:100%; padding-top: 40px;">    <h3>Congrats! Your password has been changed!<br>
+				<div style="text-align:center;line-height:100%;width:100%;height:100%; padding-top: 40px;">    <h3>[[msg . "newpass.congrats"]]<br>
 					Click <a href="/">here</a> to go home.
 				</h3></div>
 			[[else]]
-				<div style="text-align:center;line-height:100%;width:100%;height:100%; padding: 20px 10px 0px 10px;"><h3>Oh no, the link you send is dead :( You will have to make a new request.<br>
+				<div style="text-align:center;line-height:100%;width:100%;height:100%; padding: 20px 10px 0px 10px;"><h3>[[msg . "newpass.dead"]]<br>
 					Click <a href="[[url "App.Index"]]">here</a> to go home.
 				</h3></div>
 			[[end]]

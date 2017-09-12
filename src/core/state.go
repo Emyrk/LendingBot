@@ -281,51 +281,51 @@ func (s *State) SetUserMinimumLoan(username string, minimumAmt float64, currency
 	return s.userDB.PutUser(u)
 }
 
-func (s *State) NewUser(username string, password string) *primitives.ApiError {
+func (s *State) NewUser(username string, password string) *primitives.RevelApiError {
 	ou, err := s.userDB.FetchUser(username)
 	if err != nil {
-		return &primitives.ApiError{
+		return &primitives.RevelApiError{
 			fmt.Errorf("could not check if username exists: %s", err.Error()),
-			fmt.Errorf("Internal error. Please try again."),
+			"error.internal",
 		}
 	}
 
 	if ou != nil {
-		return &primitives.ApiError{
+		return &primitives.RevelApiError{
 			fmt.Errorf("Attempted to create duplicate user: %s", ou.Username),
-			fmt.Errorf("Username already exists."),
+			"error.register.useralreadyexists",
 		}
 	}
 
 	if err := ValidateEmail(username); err != nil {
-		return &primitives.ApiError{
+		return &primitives.RevelApiError{
 			err,
-			fmt.Errorf("Email failed to validate."),
+			"error.register.emailvalidate",
 		}
 	}
 
 	u, err := userdb.NewUser(username, password)
 	if err != nil {
-		return &primitives.ApiError{
+		return &primitives.RevelApiError{
 			err,
-			fmt.Errorf("Failed to create user. Please try again."),
+			"error.register.failedtocreate",
 		}
 	}
 
 	err = s.userDB.PutVerifystring(userdb.GetUsernameHash(username), u.VerifyString)
 	if err != nil {
-		return &primitives.ApiError{
+		return &primitives.RevelApiError{
 			err,
-			fmt.Errorf("Failed to create user. Please try again."),
+			"error.register.failedtocreate",
 		}
 	}
 
 	err = s.userDB.PutUser(u)
 	if err != nil {
 		log.Errorf("[NewUser - 5] Failed: %s :: %v", err.Error(), u)
-		return &primitives.ApiError{
+		return &primitives.RevelApiError{
 			err,
-			fmt.Errorf("Internal error. Please try again."),
+			"error.internal",
 		}
 	}
 

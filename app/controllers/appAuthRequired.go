@@ -331,10 +331,10 @@ func (r AppAuthRequired) Create2FA() revel.Result {
 func (r AppAuthRequired) SetReferee() revel.Result {
 	llog := appAuthrequiredLog.WithField("method", "SetReferee")
 	data := make(map[string]interface{})
-	err := state.SetUserReferee(r.Session[SESSION_EMAIL], r.Params.Form.Get("ref"))
-	if err != nil {
-		llog.Errorf("Error setting referee code: %s", err.LogError.Error())
-		data[JSON_ERROR] = err.UserError.Error()
+	revelApiError := state.SetUserReferee(r.Session[SESSION_EMAIL], r.Params.Form.Get("ref"))
+	if revelApiError != nil {
+		llog.Errorf("Error setting referee code: %s", revelApiError.LogError.Error())
+		data[JSON_ERROR] = r.Message(revelApiError.UserErrorKey)
 		r.Response.Status = 500
 		return r.RenderJSON(data)
 	}
