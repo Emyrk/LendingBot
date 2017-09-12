@@ -833,25 +833,25 @@ app.controller('dashPredictionController', ['$scope', '$http', '$log', '$timeout
 			var dbtcprof = (dprof * btcrate).toFixed(8)
 			$('#daily td:nth-child(2)').html(dprof + " " + dashPredictionScope.currentToken);
 			$('#daily td:nth-child(3)').html(dbtcprof + " BTC");
-			$('#daily td:nth-child(4)').html((dprof * dashPredictionScope.feeRate).toFixed(8) + " BTC");
+			$('#daily td:nth-child(4)').html((dbtcprof * dashPredictionScope.feeRate).toFixed(8) + " BTC");
 
 			var wprof = dashPredictionScope.getProfit(7, amt, ur)
 			var wbtcprof = (wprof * btcrate).toFixed(8)
 			$('#weekly td:nth-child(2)').html(wprof + " " + dashPredictionScope.currentToken);
 			$('#weekly td:nth-child(3)').html(wbtcprof + " BTC");
-			$('#weekly td:nth-child(4)').html((wprof * dashPredictionScope.feeRate).toFixed(8) + " BTC");
+			$('#weekly td:nth-child(4)').html((wbtcprof * dashPredictionScope.feeRate).toFixed(8) + " BTC");
 
 			var mprof = dashPredictionScope.getProfit(30, amt, ur)
 			var mbtcprof = (mprof * btcrate).toFixed(8)
 			$('#monthly td:nth-child(2)').html(mprof + " " + dashPredictionScope.currentToken);
 			$('#monthly td:nth-child(3)').html(mbtcprof + " BTC");
-			$('#monthly td:nth-child(4)').html((mprof * dashPredictionScope.feeRate).toFixed(8) + " BTC");
+			$('#monthly td:nth-child(4)').html((mbtcprof * dashPredictionScope.feeRate).toFixed(8) + " BTC");
 
 			var yprof = dashPredictionScope.getProfit(365, amt, ur)
 			var ybtcprof = (yprof * btcrate).toFixed(8)
 			$('#yearly td:nth-child(2)').html(yprof + " " + dashPredictionScope.currentToken);
 			$('#yearly td:nth-child(3)').html(ybtcprof + " BTC");
-			$('#yearly td:nth-child(4)').html((yprof * dashPredictionScope.feeRate).toFixed(8) + " BTC");
+			$('#yearly td:nth-child(4)').html((ybtcprof * dashPredictionScope.feeRate).toFixed(8) + " BTC");
 		}
 
 		dashPredictionScope.getProfit = function(days, amount, rate) {
