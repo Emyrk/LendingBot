@@ -324,6 +324,11 @@ app.controller('dashPaymentController', ['$scope', '$http', '$log', '$interval',
 							});
 							debtLog.rows.add(dashPaymentScope.debtlog).draw();
 							$compile(debtlog)(dashPaymentScope);
+							debtLog.on( 'page.dt',   function () { 
+								$timeout(() => {
+									$compile(debtlog)(dashPaymentScope);
+								});
+							});
 						} else {
 							var page = angular.copy(debtLog.page());
 							debtLog.rows().remove();
