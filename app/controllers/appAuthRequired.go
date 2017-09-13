@@ -192,7 +192,7 @@ func (r AppAuthRequired) Enable2FA() revel.Result {
 	err := state.Enable2FA(email, json2fa.Pass, json2fa.Token, json2fa.Enable)
 	if err != nil {
 		llog.Errorf("Error enabling 2fa err: %s", err.Error())
-		data[JSON_ERROR] = "Invalid password, please try again."
+		data[JSON_ERROR] = "Invalid password or 2fa, please try again."
 		r.Response.Status = 400
 		return r.RenderJSON(data)
 	}
@@ -317,7 +317,7 @@ func (r AppAuthRequired) Create2FA() revel.Result {
 	qr, err := state.Add2FA(r.Session[SESSION_EMAIL], pass)
 	if err != nil {
 		llog.Errorf("Error authenticating 2fa err: %s", err.Error())
-		data[JSON_ERROR] = "Invalid password, please try again."
+		data[JSON_ERROR] = err.Error()
 		r.Response.Status = 400
 		return r.RenderJSON(data)
 	}
