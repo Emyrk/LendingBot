@@ -10,7 +10,16 @@
 
           <div class="clearfix"></div>
 
-
+/*
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true"><i class="fa fa-globe"></i></a>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="/lang/en">English</a></li>
+            <li><a href="/lang/zh">简体中文</a></li>
+            <li><a href="/lang/tw">繁體中文</a></li>
+          </ul>
+        </li>
+*/
 
           <br />
 
@@ -20,6 +29,13 @@
               <h3>General</h3>
               <ul class="nav side-menu">
                 <li><a href="#/"><i class="fa fa-home"></i>[[msg . "dash.sidenav.home"]]</a>
+                </li>
+                <li><a><i class="fa fa-globe"></i>[[msg . "dash.sidenav.language"]]<span class="fa fa-chevron-down"></span></a>
+                  <ul class="nav child_menu">
+                    <li><a href="/lang/en?from=/dashboard">English</a></li>
+                    <li><a href="/lang/zh?from=/dashboard">简体中文</a></li>
+                    <li><a href="/lang/tw?from=/dashboard">繁體中文</a></li>
+                  </ul>
                 </li>
                 [[if eq "1000" .UserLevel]]
                 <!-- Sys Admin -->

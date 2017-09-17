@@ -401,6 +401,10 @@ func (c App) LanguageChange() revel.Result {
 		Path:  "/",
 	}
 	c.SetCookie(langCookie)
+	location := c.Params.Get("from")
+	if location != "" {
+		return c.Redirect(location)
+	}
 
 	return c.Redirect("/")
 }

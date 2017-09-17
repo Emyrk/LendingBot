@@ -10,6 +10,10 @@ html, body {
   background-color: white;
 }
 
+.navbar {
+  z-index: 10;
+}
+
 .navbar li a {
   cursor: pointer;
 }
@@ -102,12 +106,17 @@ p, .normal-color h1, .normal-color h2, .normal-color h3 {
   }
 
 
-  .inverse-color .navbar-right > li > a {
+  .inverse-color .navbar-right li > a {
     color: white !important;
   }
 
-  .inverse-color .navbar-right > li > a:hover {
+  .inverse-color .navbar-right li > a:hover {
     color: white !important;
+  }
+
+  #faq-content {
+    position: inherit;
+    z-index: 0;
   }
 
 }
