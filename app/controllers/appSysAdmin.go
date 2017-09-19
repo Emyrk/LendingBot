@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Emyrk/LendingBot/src/core"
+	"github.com/Emyrk/LendingBot/src/core/payment"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
 	"github.com/revel/revel"
 	log "github.com/sirupsen/logrus"
@@ -175,6 +176,34 @@ func (s AppSysAdmin) AddCustomChargeReduction() revel.Result {
 	}
 
 	data["status"] = status
+
+	return s.RenderJSON(data)
+}
+
+func (s AppSysAdmin) AddPaymentCredits() revel.Result {
+	llog := appSysAdminLog.WithField("method", "AddPaymentCredits")
+	data := make(map[string]interface{})
+
+	amt, err := strconv.ParseInt(s.Params.Form.Get("amount"), 10, 64)
+	if err != nil {
+		llog.Errorf("Error adding custom payment for user [%s] error: %s", s.Session[SESSION_EMAIL], err)
+		data[JSON_ERROR] = err.Error()
+		s.Response.Status = 500
+		return s.RenderJSON(data)
+	}
+
+	p := payment.NewPaid(s.Params.Form.Get("email"), amt)
+
+	p.Code = s.Params.Form.Get("reason")
+	err = state.MakePayment(s.Params.Form.Get("email"), *p) //state.AddCustomChargeReduction(s.Params.Form.Get("email"), s.Params.Form.Get("amount"), s.Params.Form.Get("reason"))
+	if err != nil {
+		llog.Errorf("Error adding custom payment for user [%s] error: %s", s.Session[SESSION_EMAIL], err)
+		data[JSON_ERROR] = err.Error()
+		s.Response.Status = 500
+		return s.RenderJSON(data)
+	}
+
+	data["status"] = "ok"
 
 	return s.RenderJSON(data)
 }
