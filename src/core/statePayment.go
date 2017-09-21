@@ -256,6 +256,6 @@ func (s *State) GetReferrals(username string) ([]UserReferral, *primitives.ApiEr
 	return userRef, nil
 }
 
-func (s *State) InsertPendingPaid(paid payment.Paid) error {
-	return s.InsertPendingPaid(paid)
+func (s *State) InsertPendingPaid(username string, paid payment.Paid) error {
+	return s.MakePayment(username, paid)
 }
