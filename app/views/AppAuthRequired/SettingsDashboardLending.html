@@ -27,21 +27,21 @@
                 <strong>{{exchangeKeysSetError}}</strong>
               </div>
               <div class="alert alert-warning fade in" role="alert" ng-show="getExchangeName() == 'Bitfinex'">
-                <strong>Currently Bitfinex is not fully supported. There will be no charge for Bitfinex profits, and all lending will be at the FRR rate.</strong>
+                <strong>[[msg . "dash.settings.lending.bitfinwarn"]]</strong>
               </div>
-              Input your API keys assosicated with your {{getExchangeName()}} account. You can create a new set of API keys here: <a href="{{getExchangeUrl()}}">{{getExchangeUrl()}}</a>
+              [[msg . "dash.settings.lending.api"]] <a href="{{getExchangeUrl()}}">{{getExchangeUrl()}}</a>
               <br />
               <br />
               <form class="form-horizontal form-label-left" name="exchangeKeyForm" >
                <div class="form-group">
-                <label class="control-label col-md-3 col-sm-3 col-xs-12">API Key<span class="required">*</span></label>
+                <label class="control-label col-md-3 col-sm-3 col-xs-12">[[msg . "dash.settings.lending.apikey"]]<span class="required">*</span></label>
                 <div class="col-md-7 col-sm-9 col-xs-9">
                  <input ng-if="exch=='pol'" required="required" ng-model="$parent.exchangeKey" type="text" class="form-control" mask="********-********-********-********" ng-disabled="loadingExchangeKeys">
                  <input ng-if="exch!='pol'" required="required" ng-model="$parent.exchangeKey" type="text" class="form-control" ng-disabled="loadingExchangeKeys">
                </div>
              </div>
              <div class="form-group">
-              <label class="control-label col-md-3 col-sm-3 col-xs-12" for="first-name">Secret <span class="required">*</span>
+              <label class="control-label col-md-3 col-sm-3 col-xs-12" for="first-name">[[msg . "dash.settings.lending.seckey"]] <span class="required">*</span>
               </label>
               <div class="col-md-7 col-sm-9 col-xs-12">
                <input ng-model="exchangeSecret" placeholder="****************************************************************" type="text" required="required" class="form-control col-md-7 col-xs-12" ng-disabled="loadingExchangeKeys">
@@ -52,8 +52,8 @@
 
          <div class="form-group">
           <div class="col-md-9 col-md-offset-3">
-            <button ng-click="setExchangeKeys()" type="submit" class="btn btn-success" ng-disabled="loadingExchangeKeys || exchangeKeyForm.$invalid"><span ng-show="loadingExchangeKeys"><i class="fa fa-spinner fa-spin"></i></span>Apply</button>
-            <button class="btn btn-primary" ng-click="resetExchangeKeys()" type="reset" ng-disabled="loadingExchangeKeys">Clear</button>
+            <button ng-click="setExchangeKeys()" type="submit" class="btn btn-success" ng-disabled="loadingExchangeKeys || exchangeKeyForm.$invalid"><span ng-show="loadingExchangeKeys"><i class="fa fa-spinner fa-spin"></i></span>[[msg . "general.button.apply"]]</button>
+            <button class="btn btn-primary" ng-click="resetExchangeKeys()" type="reset" ng-disabled="loadingExchangeKeys">[[ msg . "general.Button.clear"]]</button>
           </div>
         </div>
       </div>
@@ -76,13 +76,13 @@
         <strong>{{exchangeKeysEnabledError}}</strong>
       </div>
       <div  ng-show="coinsEnabled">
-      Enabling lending will begin lending any crypto in your lending account. You can disable it at any time. The left column is the MINIMUM loan rate the bot will use when lending with that crypto. If the rate goes below your minimum, the bot will stop making loans. Setting this rate is reccomended if you do not wish for loans to fall below a certain daily %.
+      [[msg . "dash.settings.enable.info"]]
       </div>
       <br />
       <form class="form-horizontal form-label-left"  ng-show="coinsEnabled">
        <div class="ln_solid"></div>
        <div class="col-md-12 col-sm-12 col-xs-12">
-        Miniumum Loan Rate
+       [[msg . "dash.settings.enable.min-label"]]
         <div class="row" ng-repeat="(key,value) in coinsEnabled track by key">
           <label class="col-md-3 col-sm-3 col-xs-3">
             <input type="number" limit="true" min="0.0" max="2.0" step="0.05" class="form-control" placeholder="Percent..." ng-model="coinsMinLend[key]">
@@ -96,7 +96,7 @@
       </div>
       <div class="form-group">
         <div class="col-md-9 col-md-offset-3">
-         <button type="submit" class="btn btn-success" ng-click="setEnableExchangeLending()" ng-disabled="loadingEnableExchangeLending" ><span ng-show="loadingEnableExchangeLending"><i class="fa fa-spinner fa-spin"></i></span>Apply</button>
+         <button type="submit" class="btn btn-success" ng-click="setEnableExchangeLending()" ng-disabled="loadingEnableExchangeLending" ><span ng-show="loadingEnableExchangeLending"><i class="fa fa-spinner fa-spin"></i></span>[[msg . "general.button.apply"]]</button>
        </div>
      </div>
    </form>

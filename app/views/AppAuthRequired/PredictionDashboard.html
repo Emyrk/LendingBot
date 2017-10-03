@@ -3,28 +3,28 @@
     <!-- Paid -->
     <div class="row">
       <div class="title_left">
-        <h1>Profit Projections</h1>
+        <h1>[[msg . "dash.profpredic.title"]]</h1>
       </div>
     </div>
     <div class="row">
       <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
         <div class="x_panel">
           <div class="x_title">
-            <h2> Estimation of Potential Earnings</h2>
+            <h2> [[msg . "dash.profpredic.estimate.title"]]</h2>
             <div class="clearfix"></div>
           </div>
           <div class="x_content">
 
-            <p>This page is designed to assist the user in predicting their potential earnings from lending. All projections are based off the average lending rates over the last 30 days. This is by no means 100% accurate, as market trends can swing up or down, drastically changing the projection. This is merely a tool to help users get a general sense of their potential earnings.</p>
+            <p>[[msg . "dash.profpredic.estimate.desc"]]</p>
           </div>
         </div>
       </div>
       <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
         <div class="x_panel">
           <div class="x_title">
-            <h2> Projections for Token</h2>
+            <h2> [[msg . "dash.profpredic.projec.title"]]</h2>
             <div class="clearfix"></div>
-            <p>All predictions will be made for lending rates on the Poloniex Exchange.</p>
+            <p>[[msg . "dash.profpredic.projec.desc"]]</p>
             <div class="clearfix"></div>
           </div>
           <div class="x_content">
@@ -33,8 +33,8 @@
                 <table class="prediction-input-table">
                   <tr>
                   <!-- <span tooltip="Slide to the left" flow="left">Left</span> -->
-                    <td tooltip="Crypto currency to be lent" flow="left"><i class="fa fa-info-circle" aria-hidden="true"></i></td>
-                    <td>Token:</td>
+                    <td tooltip='[[msg . "dash.profpredic.projec.token.tooltip"]]' flow="left"><i class="fa fa-info-circle" aria-hidden="true"></i></td>
+                    <td>[[msg . "dash.profpredic.projec.token.title"]]</td>
                     <td>
                       <select id="prediction-token-selection">
                         <option value="BTC">BTC</option>
@@ -53,18 +53,18 @@
                     </td>
                   </tr>
                   <tr>
-                    <td tooltip="Amount of crypto currency to be lent" flow="left"><i class="fa fa-info-circle" aria-hidden="true"></i></td>
-                    <td>Quantity:</td>
+                    <td tooltip='[[msg . "dash.profpredic.projec.quant.tooltip"]]' flow="left"><i class="fa fa-info-circle" aria-hidden="true"></i></td>
+                    <td>[[msg . "dash.profpredic.projec.quant.title"]]</td>
                     <td><input id="prediction-quanitity-input" type="number" id="number" name="number" value="1"> <span id="quantity-suffix">BTC</span></td>
                   </tr>
                   <tr>
-                    <td tooltip="Percentage of total being lent at all times" flow="left"><i class="fa fa-info-circle" aria-hidden="true"></i></td>
-                    <td>Uptime:</td>
+                    <td tooltip='[[msg . "dash.profpredic.projec.uptime.tooltip"]]' flow="left"><i class="fa fa-info-circle" aria-hidden="true"></i></td>
+                    <td>[[msg . "dash.profpredic.projec.uptime.title"]]</td>
                     <td><input id="prediction-uptime-input" type="number" id="number" name="number" value="100"> %</td>
                   </tr>
                   <tr>
-                    <td tooltip="The HODLZONE fee, max is 10%" flow="left"><i class="fa fa-info-circle" aria-hidden="true"></i></td>
-                    <td>HODLZONE Fee:</td>
+                    <td tooltip='[[msg . "dash.profpredic.projec.fee.tooltip"]]' flow="left"><i class="fa fa-info-circle" aria-hidden="true"></i></td>
+                    <td>[[msg . "dash.profpredic.projec.fee.title"]]</td>
                     <td><input id="prediction-fee-input" type="number" id="number" name="number" value="10"> %</td>
                   </tr>
                 </table>
@@ -72,16 +72,16 @@
               </div>
             </div>
 
-            <p>Lending rates are represented in the interest per day. Interest rates are listed below are an average across the time duration specified. All predictions will use the average in the last 30 days. </p>
+            <p>[[msg . "dash.profpredic.projec.lend.desc"]]</p>
             <div class="buffer"></div>
-            <h4 class="panel-title" style="width: 100%; text-align: center;">Lending Rates</h4>
+            <h4 class="panel-title" style="width: 100%; text-align: center;">[[msg . "dash.profpredic.projec.lend.title"]]</h4>
             <table class="table table-striped">
               <thead>
                 <tr>
-                  <th>Last 30 Days</th>
-                  <th>Last 7 Days</th>
-                  <th>Last Day</th>
-                  <th>Current</th>
+                  <th>[[msg . "dash.profpredic.projec.lend.last30days"]]</th>
+                  <th>[[msg . "dash.profpredic.projec.lend.last7days"]]</th>
+                  <th>[[msg . "dash.profpredic.projec.lend.lastday"]]</th>
+                  <th>[[msg . "dash.profpredic.projec.lend.current"]]</th>
                 </tr>
               </thead>
               <tbody>
@@ -94,37 +94,37 @@
               </tbody>
             </table>
             <div class="buffer"></div>
-            <h4 class="panel-title" style="width: 100%; text-align: center;">Projected Profits</h4>
+            <h4 class="panel-title" style="width: 100%; text-align: center;">[[msg . "dash.profpredic.projec.profit.title"]]</h4>
             <table class="table table-striped">
               <thead>
                 <tr>
-                  <th tooltip="Amount of time to lend" flow="up"><i class="fa fa-info-circle" aria-hidden="true"></i> Time</th>
-                  <th tooltip="Amount of token earned" flow="up"><i class="fa fa-info-circle" aria-hidden="true"></i> Gross Profit</th>
-                  <th tooltip="Using current value of token to btc" flow="up"><i class="fa fa-info-circle" aria-hidden="true"></i> Gross Profit (BTC)</th>
-                  <th tooltip="The maximum fee is 10%" flow="up"><i class="fa fa-info-circle" aria-hidden="true"></i> Credits consumed (Based off the fee)</th>
+                  <th tooltip='[[msg . "dash.profpredic.projec.profit.time.tooltip"]]' flow="up"><i class="fa fa-info-circle" aria-hidden="true"></i> [[msg . "dash.profpredic.projec.profit.time.title"]]</th>
+                  <th tooltip='[[msg . "dash.profpredic.projec.profit.grossprof.tooltip"]]' flow="up"><i class="fa fa-info-circle" aria-hidden="true"></i> [[msg . "dash.profpredic.projec.profit.grossprof.title"]]</th>
+                  <th tooltip='[[msg . "dash.profpredic.projec.profit.grossbtcprof.tooltip"]]' flow="up"><i class="fa fa-info-circle" aria-hidden="true"></i> [[msg . "dash.profpredic.projec.profit.grossbtcprof.title"]]</th>
+                  <th tooltip='[[msg . "dash.profpredic.projec.profit.credsconsumed.tooltip"]]' flow="up"><i class="fa fa-info-circle" aria-hidden="true"></i> [[msg . "dash.profpredic.projec.profit.credsconsumed.title"]]</th>
                 </tr>
               </thead>
               <tbody>
                 <tr id="daily">
-                  <th scope="row">Daily</th>
+                  <th scope="row">[[msg . "dash.profpredic.projec.profit.daily"]]</th>
                   <td></td>
                   <td></td>
                   <td></td>
                 </tr>
                 <tr id="weekly">
-                  <th scope="row">Weekly</th>
+                  <th scope="row">[[msg . "dash.profpredic.projec.profit.weekly"]]</th>
                   <td></td>
                   <td></td>
                   <td></td>
                 </tr>
                 <tr id="monthly">
-                  <th scope="row">Monthy</th>
+                  <th scope="row">[[msg . "dash.profpredic.projec.profit.monthly"]]</th>
                   <td></td>
                   <td></td>
                   <td></td>
                 </tr>
                 <tr id="yearly">
-                  <th scope="row">Yearly</th>
+                  <th scope="row">[[msg . "dash.profpredic.projec.profit.yearly"]]</th>
                   <td></td>
                   <td></td>
                   <td></td>

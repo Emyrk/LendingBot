@@ -238,12 +238,15 @@ app.controller('coinController', ['$scope', '$http', '$log', '$timeout','$routeP
 				// 	rangePoints.push([i, i,i+5])
 				// }
 
-				coinScope.detailedLendingHistory = res.data.data ? true : false;
+				coinScope.detailedLendingHistory = false;
 
 				for(i = 0; i < res.data.data.length; i++) {
-					if (res.data.data[i] == undefined) {
+					if (res.data.data[i] == null) {
+						continue
+					} else if (res.data.data[i].length == 0) {
 						continue
 					}
+					coinScope.detailedLendingHistory = true;
 					var prevLowest = 0
 					for(c = 0; c < res.data.data[i].length; c++) {
 						var cur = res.data.data[i][c].currencies[coinScope.coin]
