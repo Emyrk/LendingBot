@@ -11,6 +11,10 @@ func StringSatoshiFloatToInt64(str string) (int64, error) {
 	if len(parts) > 2 {
 		return 0, fmt.Errorf("Invalid number: %s", str)
 	}
+
+	if len(parts) == 1 {
+		parts = append(parts, "")
+	}
 	ap := 8 - len(parts[1])
 	for i := 0; i < ap; i++ {
 		parts[1] += "0"
