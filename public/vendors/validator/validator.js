@@ -29,7 +29,8 @@ var validator = (function($){
         number          : 'not a number',
         email           : 'email address is invalid',
         email_repeat    : 'emails do not match',
-        password_repeat : 'passwords do not match',
+        // password_repeat : 'passwords do not match',
+        password_repeat : REVEL_PASS_NOT_MATCH,
         repeat          : 'no match',
         complete        : 'input is not complete',
         select          : 'Please select an option'

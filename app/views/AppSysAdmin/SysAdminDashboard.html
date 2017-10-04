@@ -130,6 +130,62 @@
         </div>
       </div>
       <!-- /Add Reduction -->
+
+ <!-- Add Payment -->
+      <div class="row" ng-show="selectedUser">
+        <div class="col-sm-12 col-xs-12">
+           <div class="x_panel">
+              <div class="x_title">
+                 <h2>Add Payment</h2>
+                 <div class="clearfix"></div>
+              </div>
+              <div class="x_content">
+                <div class="alert alert-danger fade in" role="alert" ng-show="addPaymentError.length > 0">
+                  <strong>{{addPaymentError}}</strong>
+                </div>
+                 <br />
+                 <form class="form-horizontal form-label-left">
+                    <div class="form-group">
+                       <div class="col-md-12 col-sm-12 col-xs-12">
+                        <pre>
+                          {{payment.status}}
+                        </pre>
+                       </div>
+                    </div>
+                    <div class="ln_solid"></div>
+                    <div class="form-group">
+                       <label class="control-label col-md-3 col-sm-3 col-xs-12">Email</label>
+                       <div class="col-md-9 col-sm-9 col-xs-12">
+                          <p style="margin: 0px;">
+                          {{selectedUser.email}}
+                          </p>
+                       </div>
+                    </div>
+                    <div class="form-group">
+                       <label class="control-label col-md-3 col-sm-3 col-xs-12">Code</label>
+                       <div class="col-md-9 col-sm-9 col-xs-12">
+                          <input ng-model="payment.reason" type="string" class="form-control" value="">
+                       </div>
+                    </div>
+                    <div class="form-group">
+                       <label class="control-label col-md-3 col-sm-3 col-xs-12">Payment (as Satoshis)</label>
+                       <div class="col-md-9 col-sm-9 col-xs-12">
+                          <input ng-model="payment.amount" type="number" class="form-control" value="" step="0.0001">
+                       </div>
+                    </div>
+                    <div class="ln_solid"></div>
+                    <div class="form-group">
+                       <div class="col-md-9 col-md-offset-3">
+                          <button type="submit" class="btn btn-success" ng-click="addPayment()">Add Payment</button>
+                       </div>
+                    </div>
+                 </form>
+              </div>
+           </div>
+        </div>
+      </div>
+      <!-- /Add Payment -->
+
       <!-- All Invites -->
       <div class="row">
         <div class="col-md-12 col-sm-12 col-xs-12" >

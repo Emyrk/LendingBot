@@ -572,6 +572,17 @@ type Paid struct {
 	RawData json.RawMessage `json:"rawdata" bson:"rawdata"`
 }
 
+func NewPaid(email string, amt int64) *Paid {
+	p := new(Paid)
+	p.Username = email
+	p.ContactUsername = email
+	p.PaymentDate = time.Now()
+	p.BTCPaid = amt
+	p.ReceiptUrl = "https://hodl.zone"
+
+	return p
+}
+
 func (u *Paid) String() string {
 	d, _ := json.Marshal(u)
 	return string(d)

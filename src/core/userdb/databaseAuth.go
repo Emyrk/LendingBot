@@ -16,6 +16,11 @@ var (
 	VerifyDataBaseKey []byte = []byte("Verify_Database")
 )
 
+var databaseAuthLog = log.WithFields(log.Fields{
+	"package": "userdb",
+	"file":    "databaseAuth",
+})
+
 func (ud *UserDatabase) VerifyDatabase(key [32]byte) error {
 	msg := []byte("Constant_String_For_Verifying")
 	v, err := ud.db.Get(VerifyDataBaseKey, VerifyDataBaseKey)
@@ -127,14 +132,17 @@ func (ud *UserDatabase) Add2FA(username string, password string) (qr []byte, err
 		return nil, fmt.Errorf("Invalid password")
 	}
 
+	llog := databaseAuthLog.WithField("method", "Add2FA")
 	qr, err = u.Create2FA("HodlZone")
 	if err != nil {
-		return nil, err
+		llog.Errorf("Error adding auth: %s", err.Error())
+		return nil, fmt.Errorf("Internal Error. Please contact support at: support@hodl.zone")
 	}
 
 	err = ud.PutUser(u)
 	if err != nil {
-		return nil, err
+		llog.Errorf("Error putting user: %s", err.Error())
+		return nil, fmt.Errorf("Internal Error. Please contact support at: support@hodl.zone")
 	}
 
 	return qr, nil
@@ -152,7 +160,7 @@ func (ud *UserDatabase) Enable2FA(username string, password string, token string
 
 	valid := ud.validate2FA(u, token)
 	if valid != nil {
-		return err
+		return valid
 	}
 
 	u.Enabled2FA = enabled

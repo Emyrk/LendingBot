@@ -212,12 +212,40 @@ app.controller('sysAdminController', ['$scope', '$http', '$log', '$timeout',
 			});
 		}
 
+		sysAdminScope.addPayment = function() {
+			sysAdminScope.addPaymentError = '';
+			$http(
+			{
+				method: 'POST',
+				url: '/dashboard/sysadmin/addpayment',
+				data : $.param({
+					email: sysAdminScope.selectedUser.email,
+					amount: sysAdminScope.payment.amount,
+					reason: sysAdminScope.payment.reason,
+				}),
+				headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+				withCredentials: true
+			})
+			.then((res) => {
+				//success
+				console.log("addPayment: Success");
+				sysAdminScope.payment.status = JSON.stringify(res.data.status, null, 2);
+				sysAdminScope.payment.amount = 0;
+				sysAdminScope.payment.reason = "";
+			}, (err) => {
+				//error
+				$log.error("addCustomChargeReduction: Error: [" + JSON.stringify(err) + "] Status [" + err.status + "]");
+				sysAdminScope.addPaymentError = err.data.error;
+			});
+		}
+
 		//--init
 		sysAdminScope.getUsers();
 		sysAdminScope.adminPass = "";
 		sysAdminScope.updateUserError = '';
 		sysAdminScope.makeInviteError = '';
 		sysAdminScope.addReductionError = '';
+		sysAdminScope.addPaymentError = '';
 		sysAdminScope.makeInvite = {};
 		sysAdminScope.getInvites();
 		//------

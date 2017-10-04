@@ -140,6 +140,11 @@ func (f *File) ProcessLines(newLines []string) error {
 }
 
 func (f *File) processKey(key string, index int64) (int64, bool) {
+	if v, ok := f.extraLines[key]; ok {
+		f.tmpLines = append(f.tmpLines, strings.Trim(key, " ")+"="+v)
+		return index, true
+	}
+
 	for i := index; i < int64(len(f.originalLines)); i++ {
 		kArr := strings.SplitN(f.originalLines[i], "=", 2)
 		if len(kArr) != 2 {

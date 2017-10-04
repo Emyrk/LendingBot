@@ -3,6 +3,7 @@ package coinbase
 import (
 	"encoding/json"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/Emyrk/LendingBot/src/core"
@@ -126,7 +127,8 @@ func NotificationPairToPaid(parent *CoinbaseNotification, pay *CoinbasePaymentNo
 }
 
 type CoinbaseWatcher struct {
-	State *core.State
+	State            *core.State
+	notificationLock sync.Mutex
 
 	Cache map[string]bool
 }
@@ -157,6 +159,8 @@ func (h *CoinbaseWatcher) ValidHODLZONECode(code string) (bool, error) {
 }
 
 func (h *CoinbaseWatcher) IncomingNotification(data []byte) error {
+	h.notificationLock.Lock()
+	defer h.notificationLock.Unlock()
 	fmt.Printf("Raw payment: %s\n", string(data))
 	n := new(CoinbaseNotification)
 	err := json.Unmarshal(data, n)
@@ -220,7 +224,7 @@ func (h *CoinbaseWatcher) IncomingNotification(data []byte) error {
 		paid.RawData = n.Data
 		flog := plog.WithFields(log.Fields{"func": "IncomingNotification", "user": paid.Username, "type": "Pending"})
 		// Store pending code information into DB
-		err = h.State.InsertPendingPaid(*paid)
+		err = h.State.InsertPendingPaid(paid.Username, *paid)
 		if err != nil {
 			flog.Errorf("Error inserting pending paid: %s", err.Error())
 		}

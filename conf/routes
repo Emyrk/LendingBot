@@ -63,6 +63,7 @@ POST	/dashboard/sysadmin/deleteinvite		AppSysAdmin.DeleteInvite
 GET 	/dashboard/sysadmin/getinvites			AppSysAdmin.GetInvites
 POST	/dashboard/sysadmin/changeuserpriv		AppSysAdmin.ChangeUserPrivilege
 POST 	/dashboard/sysadmin/addcustomreduc	 	AppSysAdmin.AddCustomChargeReduction
+POST 	/dashboard/sysadmin/addpayment		 	AppSysAdmin.AddPaymentCredits
 GET 	/dashboard/sysadmin/getuserstatus	 	AppSysAdmin.GetUserStatus
 
 # Dash Settings Admin

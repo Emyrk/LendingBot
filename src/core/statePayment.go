@@ -21,37 +21,37 @@ func (s *State) ReferralCodeExists(refereeCode string) (bool, error) {
 	return s.paymentDB.ReferralCodeExists(refereeCode)
 }
 
-func (s *State) SetUserReferee(username, refereeCode string) *primitives.ApiError {
+func (s *State) SetUserReferee(username, refereeCode string) *primitives.RevelApiError {
 	//calls get payment status to set referral code automatically if status does not exist
 	exists, err := s.paymentDB.ReferralCodeExists(refereeCode)
 	if err != nil {
 		errMes := fmt.Errorf("Error checking referral code exists: %s", err.Error())
-		return primitives.NewAPIErrorInternalError(errMes)
+		return primitives.NewRevelAPIErrorInternalError(errMes)
 	}
 	if !exists {
-		return &primitives.ApiError{
+		return &primitives.RevelApiError{
 			fmt.Errorf("RefereeCode [%s] does not exist", refereeCode),
-			fmt.Errorf("The referee code entered does not exist."),
+			"error.setreferee.doesnotexist",
 		}
 	}
 
 	status, err := s.GetPaymentStatus(username)
 	if err != nil {
 		errMes := fmt.Errorf("Error getting payment status: %s", err.Error())
-		return primitives.NewAPIErrorInternalError(errMes)
+		return primitives.NewRevelAPIErrorInternalError(errMes)
 	}
 
 	if status.RefereeCode != "" {
-		return &primitives.ApiError{
+		return &primitives.RevelApiError{
 			fmt.Errorf("RefereeCode for user[%s] already set", username),
-			fmt.Errorf("Your referee code has already been set."),
+			"error.setreferee.alreadyset",
 		}
 	}
 
 	if status.ReferralCode == refereeCode {
-		return &primitives.ApiError{
+		return &primitives.RevelApiError{
 			fmt.Errorf("RefereeCode for user[%s] is same as users [%s]==[%s]", username, status.RefereeCode, refereeCode),
-			fmt.Errorf("You can not set your code as referee code."),
+			"error.setreferee.sameasyours",
 		}
 	}
 
@@ -60,7 +60,7 @@ func (s *State) SetUserReferee(username, refereeCode string) *primitives.ApiErro
 	err = s.paymentDB.SetStatus(*status)
 	if err != nil {
 		errMes := fmt.Errorf("Error setting status: %s", err.Error())
-		return primitives.NewAPIErrorInternalError(errMes)
+		return primitives.NewRevelAPIErrorInternalError(errMes)
 	}
 	return nil
 }
@@ -256,6 +256,6 @@ func (s *State) GetReferrals(username string) ([]UserReferral, *primitives.ApiEr
 	return userRef, nil
 }
 
-func (s *State) InsertPendingPaid(paid payment.Paid) error {
-	return s.InsertPendingPaid(paid)
+func (s *State) InsertPendingPaid(username string, paid payment.Paid) error {
+	return s.MakePayment(username, paid)
 }
