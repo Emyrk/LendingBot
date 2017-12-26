@@ -194,10 +194,6 @@ func (h *CoinbaseWatcher) IncomingNotification(data []byte) error {
 				return err
 			}
 		}
-		err = h.setCoinbaseCodeAsUsed(paid.Code)
-		if err != nil {
-			return err
-		}
 
 		exists, err := h.ValidHODLZONECode(pay.Metadata.HodlzoneCode)
 		if err != nil {
@@ -208,7 +204,16 @@ func (h *CoinbaseWatcher) IncomingNotification(data []byte) error {
 			return nil
 		}
 
-		return h.State.MakePayment(paid.Username, *paid)
+		err = h.State.MakePayment(paid.Username, *paid)
+		if err != nil {
+			return err
+		}
+
+		err = h.setCoinbaseCodeAsUsed(paid.Code)
+		if err != nil {
+			return err
+		}
+		return nil
 	case OrdersPending:
 		pay := new(CoinbasePaymentNotification)
 		err := json.Unmarshal(n.Data, pay)
@@ -223,10 +228,34 @@ func (h *CoinbaseWatcher) IncomingNotification(data []byte) error {
 
 		paid.RawData = n.Data
 		flog := plog.WithFields(log.Fields{"func": "IncomingNotification", "user": paid.Username, "type": "Pending"})
+
+		if ok, err := h.coinbaseAlreadyBeenUsed(paid.Code); err == nil && ok {
+			flog.WithField("code", paid.Code).Errorf("CoinbaseCode already used")
+			return nil
+		} else {
+			if err != nil {
+				return err
+			}
+		}
+
+		exists, err := h.ValidHODLZONECode(pay.Metadata.HodlzoneCode)
+		if err != nil {
+			return err
+		}
+		if !exists {
+			flog.WithField("code", pay.Metadata.HodlzoneCode).Errorf("%s is not a valid hodlzone code", pay.Metadata.HodlzoneCode)
+			return nil
+		}
+
 		// Store pending code information into DB
 		err = h.State.InsertPendingPaid(paid.Username, *paid)
 		if err != nil {
 			flog.Errorf("Error inserting pending paid: %s", err.Error())
+		}
+
+		err = h.setCoinbaseCodeAsUsed(paid.Code)
+		if err != nil {
+			return err
 		}
 		return nil
 	}
