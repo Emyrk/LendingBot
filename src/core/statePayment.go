@@ -179,7 +179,9 @@ func (s *State) updateUserLendingHalt(username string) error {
 				tempTime = time.Now().UTC().Add(payment.EMAIL_HALT_THROTTLE_TIMES[user.LendingHalted.EmailThrottleCount]).UnixNano()
 			}
 
-			if lastEmailTime <= tempTime {
+			// TODO: Renable low funds email
+			// Disabling sending out emails when balance is low
+			if false && lastEmailTime <= tempTime {
 				emailRequest := email.NewHTMLRequest(email.SMTP_EMAIL_NO_REPLY, []string{username}, "Payment Needed")
 				err = emailRequest.ParseTemplate("paymentneeded.html", nil)
 				if err = emailRequest.SendEmail(); err != nil {

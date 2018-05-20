@@ -74,7 +74,9 @@ func (l *PoloniexLender) ProcessPoloniexUser(u *LendUser) error {
 
 	// If lending halted, do not lend
 	if dbu.LendingHalted.Halt {
-		return nil
+		// TODO: Renable not lending if not paid
+		// Commenting this out makes Hodl.zone free
+		// return nil
 	}
 
 	l.usersDoneLock.RLock()

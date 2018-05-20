@@ -245,7 +245,9 @@ func (r AppAuthRequired) CurrentUserStats() revel.Result {
 	w := new(userdb.LendingWarning)
 
 	w.Warn = false
-	if !u.LendingHalted.Halt {
+	// TODO: Renable warning showing up when low on credits
+	// Disable credits low warning
+	if false && !u.LendingHalted.Halt {
 		// Check if we should warn the user
 		grossDaily := stats.LoanRate * (stats.BTCLent + stats.BTCNotLent)
 		status, err := state.GetPaymentStatus(email)
