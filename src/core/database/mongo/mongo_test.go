@@ -108,6 +108,18 @@ var err error
 // 	}
 // }
 
+func Test_connect_prod(t *testing.T) {
+	revel_pass := os.Getenv("MONGO_REVEL_PASS")
+	if revel_pass == "" {
+		t.Fatalf("Need prod env var MONGO_REVEL_PASS")
+	}
+	db, err = CreateUserDB("mongo1.hodl.zone:4000", "revel", revel_pass)
+	if err != nil {
+		t.Errorf("Error creating revel db: %s\n", err.Error())
+		t.FailNow()
+	}
+}
+
 func Test_user_userdb(t *testing.T) {
 	db, err = CreateTestUserDB("mongodb://localhost:27017", "", "")
 	if err != nil {
