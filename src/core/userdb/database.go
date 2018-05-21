@@ -6,8 +6,8 @@ import (
 
 	"github.com/Emyrk/LendingBot/src/core/database"
 	"github.com/Emyrk/LendingBot/src/core/database/mongo"
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
+	"github.com/globalsign/mgo"
+	"github.com/globalsign/mgo/bson"
 )
 
 var _ = fmt.Println

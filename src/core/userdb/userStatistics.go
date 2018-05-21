@@ -16,8 +16,8 @@ import (
 	"github.com/Emyrk/LendingBot/src/core/database/mongo"
 	// "github.com/revel/revel"
 	"github.com/tinylib/msgp/msgp"
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
+	"github.com/globalsign/mgo"
+	"github.com/globalsign/mgo/bson"
 )
 
 var _ = strings.Compare

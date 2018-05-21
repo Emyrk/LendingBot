@@ -196,7 +196,7 @@ imports:
   - transport
 - name: gopkg.in/fsnotify.v1
   version: 629574ca2a5df945712d3079857300b5e4da0236
-- name: gopkg.in/mgo.v2
+- name: github.com/globalsign/mgo
   version: 3f83fa5005286a7fe593b055f0d7771a7dce4655
   subpackages:
   - bson

@@ -5,7 +5,7 @@ import (
 
 	"github.com/Emyrk/LendingBot/src/core/database/mongo"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
-	"gopkg.in/mgo.v2/bson"
+	"github.com/globalsign/mgo/bson"
 )
 
 var _ = mongo.AUDIT_DB

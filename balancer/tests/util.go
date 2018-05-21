@@ -2,12 +2,13 @@ package tests
 
 import (
 	"fmt"
-	"github.com/Emyrk/LendingBot/balancer"
 	"time"
+
+	"github.com/Emyrk/LendingBot/balancer"
 	// "github.com/Emyrk/LendingBot/src/core/database/mongo"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
-	// "gopkg.in/mgo.v2"
-	// "gopkg.in/mgo.v2/bson"
+	// "github.com/globalsign/mgo"
+	// "github.com/globalsign/mgo/bson"
 	// "testing"
 )
 

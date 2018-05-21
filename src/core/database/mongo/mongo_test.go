@@ -4,8 +4,8 @@ import (
 	. "github.com/Emyrk/LendingBot/src/core/database/mongo"
 
 	"github.com/Emyrk/LendingBot/src/core/userdb"
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
+	"github.com/globalsign/mgo"
+	"github.com/globalsign/mgo/bson"
 
 	"bytes"
 	"encoding/json"
@@ -118,6 +118,18 @@ func Test_connect_prod(t *testing.T) {
 		t.Errorf("Error creating revel db: %s\n", err.Error())
 		t.FailNow()
 	}
+
+	s, _, err := db.GetCollection(C_USER)
+	if err != nil {
+		t.Errorf("Error getting collection: %s", err.Error())
+	}
+	udb := userdb.NewMongoUserDatabaseGiven(db)
+	var tempU *userdb.User
+	if tempU, err = udb.FetchUser("jes4313@rit.edu"); err != nil {
+		t.Errorf("Error grabbing user t1: %s\n", err.Error())
+	}
+	t.Log(*tempU)
+	s.Close()
 }
 
 func Test_user_userdb(t *testing.T) {

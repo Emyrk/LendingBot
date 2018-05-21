@@ -2,7 +2,8 @@ package controllers
 
 import (
 	"fmt"
-	"gopkg.in/mgo.v2"
+
+	"github.com/globalsign/mgo"
 
 	"github.com/Emyrk/LendingBot/src/core/poloniex"
 	"github.com/Emyrk/LendingBot/src/core/userdb"

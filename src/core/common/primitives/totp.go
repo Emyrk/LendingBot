@@ -2,8 +2,9 @@ package primitives
 
 import (
 	"fmt"
+
 	"github.com/DistributedSolutions/twofactor"
-	"gopkg.in/mgo.v2/bson"
+	"github.com/globalsign/mgo/bson"
 )
 
 type Totp struct {

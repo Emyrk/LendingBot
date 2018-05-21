@@ -11,8 +11,8 @@ import (
 
 	"github.com/Emyrk/LendingBot/src/core/database/mongo"
 	"github.com/Emyrk/LendingBot/src/core/userdb"
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
+	"github.com/globalsign/mgo"
+	"github.com/globalsign/mgo/bson"
 )
 
 var EMAIL_HALT_THROTTLE_TIMES = []time.Duration{ //when sending halt emails this is the time waited each time
