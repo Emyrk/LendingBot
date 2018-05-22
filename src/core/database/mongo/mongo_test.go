@@ -118,6 +118,11 @@ func Test_connect_prod(t *testing.T) {
 		t.Errorf("Error creating revel db: %s\n", err.Error())
 		t.FailNow()
 	}
+	udb := userdb.NewMongoUserDatabaseGiven(db)
+	if _, err = udb.FetchUser("t1"); err != nil {
+		t.Errorf("Error grabbing user t1: %s\n", err.Error())
+	}
+	udb.Close()
 }
 
 func Test_user_userdb(t *testing.T) {
