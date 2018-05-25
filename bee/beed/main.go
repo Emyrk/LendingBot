@@ -16,7 +16,7 @@ import (
 func main() {
 	var (
 		address = flag.String("a", "bee.hodl.zone:9200", "Address to connect to the balancer")
-		dba     = flag.String("dba", "mongo1.hodl.zone:4001", "Address for db to connect")
+		dba     = flag.String("dba", "mongo1.hodl.zone:4000", "Address for db to connect")
 		dbu     = flag.String("dbu", "bee", "Username for db to connect")
 		test    = flag.Bool("test", false, "Testmode")
 	)

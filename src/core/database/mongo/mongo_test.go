@@ -119,8 +119,8 @@ func Test_connect_prod(t *testing.T) {
 		t.FailNow()
 	}
 	udb := userdb.NewMongoUserDatabaseGiven(db)
-	if _, err = udb.FetchUser("t1"); err != nil {
-		t.Errorf("Error grabbing user t1: %s\n", err.Error())
+	if _, err = udb.FetchAllUsers(); err != nil {
+		t.Errorf("Error grabbing all users: %s\n", err.Error())
 	}
 	udb.Close()
 }

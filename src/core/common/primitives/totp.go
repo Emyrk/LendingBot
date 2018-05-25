@@ -2,6 +2,7 @@ package primitives
 
 import (
 	"fmt"
+
 	"github.com/DistributedSolutions/twofactor"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -34,11 +35,11 @@ func (a *Totp) SetBSON(raw bson.Raw) error {
 		})
 		err := raw.Unmarshal(decoded)
 		if err != nil {
-			return err
+			return fmt.Errorf("Error unmarshalling raw code: %s", err.Error())
 		}
 		newTotp, err := twofactor.TOTPFromBytes(decoded.Totp, "HodlZone")
 		if err != nil {
-			return err
+			return fmt.Errorf("Error getting totp from bytes: %s", err.Error())
 		}
 		a.Totp = newTotp
 	}
