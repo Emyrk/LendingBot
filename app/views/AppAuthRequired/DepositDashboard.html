@@ -4,9 +4,16 @@
 		<div class="row">
 			<div class="title_left">
 				<h1>[[msg . "dash.deposit.title"]]</h1>
+
+				[[if false]]
 				<p>[[msg . "dash.deposit.desc"]]</p>
+				[[end]]
+			</div>
+			<div class="alert alert-info fade in" role="alert">
+				<strong>[[msg . "dash.deposit.freemessage"]]</strong>
 			</div>
 		</div>
+		[[if false]]
 		<!-- Refund Policy -->
 		<div class="row">
 			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -70,6 +77,7 @@
 		</div>
 		<script src="https://www.coinbase.com/assets/button.js" type="text/javascript"></script>
 		<!-- /Refund Policy -->
+		[[end]]
 	</div>
 </div>
 
