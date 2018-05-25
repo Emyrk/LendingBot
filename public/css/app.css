@@ -166,6 +166,12 @@ p, .normal-color h1, .normal-color h2, .normal-color h3 {
   }
 }
 
+@media screen and (max-width: 1200px) and (min-width: 991px){
+  .more-information-container > div > .content{
+    min-height: 245px;
+  }
+}
+
 /* > MD */
 @media screen and (min-width: 1200px) {
   .join-our-slack-text {
@@ -593,6 +599,10 @@ p, .normal-color h1, .normal-color h2, .normal-color h3 {
 .index-footer span, .index-footer a {
   color: white;
   font-size: 18px;
+}
+
+#price{
+  background-color: #3E82A5;
 }
 
 /*  Inverse */
