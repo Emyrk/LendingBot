@@ -66,317 +66,309 @@
   
   <script src="vendors/validator/validator.js" type="text/javascript"></script>
 <style type="text/css">#mc_embed_signup input.mce_inline_error { border-color:#6B0505; } #mc_embed_signup div.mce_inline_error { margin: 0 0 1em 0; padding: 5px 10px; background-color:#6B0505; font-weight: bold; z-index: 1; color:#fff; }</style></head>
-<body ng-app="lendingApp" ng-controller="indexController" class="inverse-color ng-scope">
+<body ng-app="lendingApp"  ng-controller="indexController" ng-cloak="ng-cloak" class=" inverse-color ">
 
-<div class="navbar navbar-inverse navbar-lock" ng-init="isLoggedIn = ('' == ''? false : true)">
-  <div class="container-fluid">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <a class="nav-brand" href="https://hodl.zone/">HODL.ZONE</a>
-    </div>
-    <div class="collapse navbar-collapse">
-      <ul class="nav navbar-nav navbar-right">
-        <li><a href="https://hodl.zone/faq">常見問題</a></li>
-        <li><a ng-show="!isLoggedIn" data-toggle="modal" data-target=".login-modal" aria-hidden="false" class="">登入</a></li>
-        <li><a ng-show="!isLoggedIn" data-toggle="modal" data-target=".register-modal" aria-hidden="false" class="">註冊</a></li>
-        <li><a ng-show="isLoggedIn" href="https://hodl.zone/dashboard" aria-hidden="true" class="ng-hide">控制頁面</a></li>
-        <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true"><i class="fa fa-globe"></i></a>
-          <ul class="dropdown-menu" role="menu">
-            <li><a href="https://hodl.zone/lang/en">English</a>
-            </li>
-            <li><a href="https://hodl.zone/lang/zh">简体中文</a>
-            </li>
-            <li><a href="https://hodl.zone/lang/tw">繁體中文</a>
-            </li>
-          </ul>
-        </li>
-      </ul>
+  <div class="navbar navbar-inverse navbar-lock" ng-init="isLoggedIn = ('' == ''? false : true)">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="nav-brand" href="Home_tw.html">HODL.ZONE</a>
+      </div>
+      <div class="collapse navbar-collapse">
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="FAQ_tw.html">常見問題</a></li>
+          <li><a ng-show="!isLoggedIn" data-toggle="modal" data-target=".login-modal">登入</a></li>
+          <li><a ng-show="!isLoggedIn" data-toggle="modal" data-target=".register-modal">註冊</a></li>
+          <li><a ng-show="isLoggedIn" href="Dashboard_tw.html">控制頁面</a></li>
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="true"><i class="fa fa-globe"></i></a>
+            <ul class="dropdown-menu" role="menu">
+              <li><a href="FAQ_en.html">English</a>
+              </li>
+              <li><a href="FAQ_zh.html">简体中文</a>
+              </li>
+              <li><a href="FAQ_tw.html">繁體中文</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
-</div>
-
-
-<div class="modal fade login-modal" tabindex="-1" role="dialog" aria-hidden="true" ng-init="loginError = '';">
-  <div class="modal-dialog modal-lg user-modal-shit">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title">登入</h4>
-      </div>
-      <div class="modal-body">
-        <div class="right_col" role="main">
-          <div class="">
-            <div class="row">
-              <div class="col-md-12 col-sm-12 col-xs-12">
-                <div class="x_panel">
-                  <div class="x_content">
-                    <form target="temp" class="form-horizontal form-label-left loginRegisterForm ng-pristine ng-valid-email ng-invalid ng-invalid-required" name="loginForm" novalidate="" autocomplete="on" id="loginForm" method="POST" action="/dashboard">
-                      <div class="item form-group ng-hide" ng-show="loginError.length &gt; 0" aria-hidden="true">
-                        <div class="col-md-9 col-sm-9 col-xs-9 col-md-offset-3 col-sm-offset-3 col-xs-offset-3 ng-binding" style="color:red;">
-                          <strong>錯誤!</strong> 
+  
+  
+  <div class="modal fade login-modal" tabindex="-1" role="dialog" aria-hidden="true" ng-init="loginError = '';">
+    <div class="modal-dialog modal-lg user-modal-shit">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">登入</h4>
+        </div>
+        <div class="modal-body">
+          <div class="right_col" role="main">
+            <div class="">
+              <div class="row">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                  <div class="x_panel">
+                    <div class="x_content">
+                      <form target="temp" class="form-horizontal form-label-left loginRegisterForm" name="loginForm" novalidate="" autocomplete="on" id="loginForm" method="POST" action="/dashboard">
+                        <div class="item form-group" ng-show="loginError.length > 0">
+                          <div class="col-md-9 col-sm-9 col-xs-9 col-md-offset-3 col-sm-offset-3 col-xs-offset-3" style="color:red;">
+                            <strong>錯誤!</strong> {{loginError}}
+                          </div>
                         </div>
-                      </div>
-                      <div class="item form-group">
-                        <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-xs-2 col-sm-offset-0" for="email">信箱
-                        </label>
-                        <div class="col-md-3 col-sm-3 col-xs-7">
-                          <input tabindex="1" type="email" id="email" ng-model="login.email" name="username" required="required" class="form-control col-md-7 col-xs-12 ng-pristine ng-untouched ng-empty ng-valid-email ng-invalid ng-invalid-required" ng-disabled="attemptingLogin" autocomplete="on" aria-invalid="true">
+                        <div class="item form-group">
+                          <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-xs-2 col-sm-offset-0" for="email">信箱
+                          </label>
+                          <div class="col-md-3 col-sm-3 col-xs-7">
+                            <input tabindex=1 type="email" id="email" ng-model="login.email" name="username" required="required" class="form-control col-md-7 col-xs-12" ng-disabled="attemptingLogin" class="login-field" autocomplete="on">
+                          </div>
                         </div>
-                      </div>
-                      <div class="item form-group">
-                        <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-sm-offset-0" for="password">密碼
-                        </label>
-                        <div class="col-md-3 col-sm-3 col-xs-7">
-                          <input tabindex="2" id="passwordLogin" type="password" name="password" data-validate-length="6,100" class="form-control col-md-7 col-xs-12 ng-pristine ng-untouched ng-empty ng-invalid ng-invalid-required" required="required" ng-model="login.pass" ng-disabled="attemptingLogin" autocomplete="on" aria-invalid="true">
+                        <div class="item form-group">
+                          <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-sm-offset-0" for="password">密碼
+                          </label>
+                          <div class="col-md-3 col-sm-3 col-xs-7">
+                            <input tabindex=2 id="passwordLogin" type="password" name="password" data-validate-length="6,100" class="form-control col-md-7 col-xs-12" required="required" ng-model="login.pass" ng-disabled="attemptingLogin" class="login-field" autocomplete="on">
+                          </div>
                         </div>
-                      </div>
-                      <div class="item form-group">
-                        <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-sm-offset-0" for="twofa">雙重身分認證2FA
-                        </label>
-                        <div class="col-md-3 col-sm-3 col-xs-7">
-                          <input id="twofa" type="text" name="twofa" data-validate-length="6,6" class="form-control col-md-7 col-xs-12 ng-pristine ng-untouched ng-valid ng-empty" ng-model="login.twofa" ng-disabled="attemptingLogin" placeholder="非必要" tabindex="3" aria-invalid="false">
-                          <sub>如果您的帳號有啟用此功能才需填寫</sub>
+                        <div class="item form-group">
+                          <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-sm-offset-0" for="twofa">雙重身分認證2FA
+                          </label>
+                          <div class="col-md-3 col-sm-3 col-xs-7">
+                            <input id="twofa" type="text" name="twofa" data-validate-length="6,6" class="form-control col-md-7 col-xs-12" ng-model="login.twofa" ng-disabled="attemptingLogin" placeholder='非必要' class="login-field" tabindex=3>
+                            <sub>如果您的帳號有啟用此功能才需填寫</sub>
+                          </div>
                         </div>
-                      </div>
-                    </form>
+                      </form>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      <div class="modal-footer">
-        <div class="row">
-          <div class="col-md-6 col-sm-8 col-xs-8">
-            <a href="https://hodl.zone/newpass/request" tabindex="6">忘記密碼?</a>
-            <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="cancelLogin()" tabindex="5">取消</button>
-            <button type="button" class="btn btn-success" ng-disabled="attemptingLogin || !loginForm.$valid" ng-click="login()" tabindex="4" disabled="disabled"><span ng-show="attemptingLogin" aria-hidden="true" class="ng-hide"><i class="fa fa-spinner fa-spin"></i></span>登入</button>
+        <div class="modal-footer">
+          <div class="row">
+            <div class="col-md-6 col-sm-8 col-xs-8">
+              <a href="Forgot_Password_tw.html" tabindex=6>忘記密碼?</a>
+              <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="cancelLogin()" tabindex=5>取消</button>
+              <button type="button" class="btn btn-success" ng-disabled="attemptingLogin || !loginForm.$valid" ng-click="login()" tabindex=4><span ng-show="attemptingLogin"><i class="fa fa-spinner fa-spin"></i></span>登入</button>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div>
-
-
-
-<div class="modal fade register-modal" tabindex="-1" role="dialog" aria-hidden="true" ng-init="registerError = '';">
-  <div class="modal-dialog modal-lg user-modal-shit">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title">註冊新帳號</h4>
-      </div>
-      <div class="modal-body">
-        <div class="right_col" role="main">
-          <div class="">
-            <div class="row">
-              <div class="col-md-12 col-sm-12 col-xs-12">
-                <div class="x_panel">
-                  <div class="x_content">
-                    <form target="temp" class="form-horizontal form-label-left loginRegisterForm ng-pristine ng-valid-email ng-invalid ng-invalid-required" name="registerForm" novalidate="" id="registerForm">
-                      <div class="item form-group ng-hide" ng-show="registerError.length &gt; 0" aria-hidden="true">
-                        <div class="col-md-9 col-sm-9 col-xs-9 col-md-offset-3 col-sm-offset-3 col-xs-offset-3 ng-binding" style="color:red;">
-                          <strong>錯誤!</strong> 
+  
+  
+  
+  <div class="modal fade register-modal" tabindex="-1" role="dialog" aria-hidden="true" ng-init="registerError = '';">
+    <div class="modal-dialog modal-lg user-modal-shit">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">註冊新帳號</h4>
+        </div>
+        <div class="modal-body">
+          <div class="right_col" role="main">
+            <div class="">
+              <div class="row">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                  <div class="x_panel">
+                    <div class="x_content">
+                      <form target="temp" class="form-horizontal form-label-left loginRegisterForm" name="registerForm" novalidate="" id="registerForm">
+                        <div class="item form-group" ng-show="registerError.length > 0">
+                          <div class="col-md-9 col-sm-9 col-xs-9 col-md-offset-3 col-sm-offset-3 col-xs-offset-3" style="color:red;">
+                            <strong>錯誤!</strong> {{registerError}}
+                          </div>
                         </div>
-                      </div>
-                      <div class="item form-group">
-                        <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-xs-2 col-sm-offset-0" for="email">信箱
-                        </label>
-                        <div class="col-md-3 col-sm-3 col-xs-7">
-                          <input type="email" id="email" ng-model="register.email" name="username" required="required" class="form-control col-md-7 col-xs-12 ng-pristine ng-untouched ng-empty ng-valid-email ng-invalid ng-invalid-required" ng-disabled="attemptingRegister" aria-invalid="true">
+                        <div class="item form-group">
+                          <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-xs-2 col-sm-offset-0" for="email">信箱
+                          </label>
+                          <div class="col-md-3 col-sm-3 col-xs-7">
+                            <input type="email" id="email" ng-model="register.email" name="username" required="required" class="form-control col-md-7 col-xs-12" ng-disabled="attemptingRegister" class="login-field">
+                          </div>
                         </div>
-                      </div>
-                      <div class="item form-group">
-                        <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-sm-offset-0" for="password">密碼
-                        </label>
-                        <div class="col-md-3 col-sm-3 col-xs-7">
-                          <input id="regPassword" type="password" name="regPassword" data-validate-length="6,100" class="form-control col-md-7 col-xs-12 ng-pristine ng-untouched ng-empty ng-invalid ng-invalid-required" required="required" ng-model="register.pass" ng-disabled="attemptingRegister" aria-invalid="true">
+                        <div class="item form-group">
+                          <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-sm-offset-0" for="password">密碼
+                          </label>
+                          <div class="col-md-3 col-sm-3 col-xs-7">
+                            <input id="regPassword" type="password" name="regPassword" data-validate-length="6,100" class="form-control col-md-7 col-xs-12" required="required" ng-model="register.pass" ng-disabled="attemptingRegister" class="login-field">
+                          </div>
                         </div>
-                      </div>
-                      <div class="item form-group">
-                        <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-sm-offset-0" for="password2">確認密碼
-                        </label>
-                        <div class="col-md-3 col-sm-3 col-xs-7">
-                          <input id="regPassword2" type="password" name="regPassword2" data-validate-length="6,100" class="form-control col-md-7 col-xs-12 ng-pristine ng-untouched ng-empty ng-invalid ng-invalid-required" ng-model="register.pass2" ng-disabled="attemptingRegister" required="required" data-validate-linked="regPassword" aria-invalid="true">
+                        <div class="item form-group">
+                          <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-sm-offset-0" for="password2">確認密碼
+                          </label>
+                          <div class="col-md-3 col-sm-3 col-xs-7">
+                            <input id="regPassword2" type="password" name="regPassword2" data-validate-length="6,100" class="form-control col-md-7 col-xs-12" ng-model="register.pass2" ng-disabled="attemptingRegister" required="required" data-validate-linked="regPassword" class="login-field">
+                          </div>
                         </div>
-                      </div>
-                       <div class="item form-group">
-                         <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-sm-offset-0" for="code">推薦碼
-                         </label>
-                         <div class="col-md-3 col-sm-3 col-xs-7">
-                           <input id="code" type="text" name="code" data-validate-length="0,1" class="form-control col-md-7 col-xs-12 ng-pristine ng-untouched ng-valid ng-empty" ng-model="register.code" ng-disabled="attemptingRegister" placeholder="非必要" aria-invalid="false">
+                         <div class="item form-group">
+                           <label class="control-label col-md-3 col-sm-3 col-xs-2 col-xs-offset-1 col-sm-offset-0" for="code">推薦碼
+                           </label>
+                           <div class="col-md-3 col-sm-3 col-xs-7">
+                             <input id="code" type="text" name="code" data-validate-length="0,1" class="form-control col-md-7 col-xs-12" ng-model="register.code" ng-disabled="attemptingRegister" class="login-field" placeholder='非必要'>
+                           </div>
                          </div>
-                       </div>
-                    </form>
+                      </form>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      <div class="modal-footer">
-        <div class="row">
-          <div class="col-md-6 col-sm-8 col-xs-8">
-            <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="cancelRegister()">取消</button>
-            <button type="button" class="btn btn-success" ng-disabled="attemptingRegister || !registerForm.$valid" ng-click="register()" disabled="disabled">註冊</button>
+        <div class="modal-footer">
+          <div class="row">
+            <div class="col-md-6 col-sm-8 col-xs-8">
+              <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="cancelRegister()">取消</button>
+              <button type="button" class="btn btn-success" ng-disabled="attemptingRegister || !registerForm.$valid" ng-click="register()">註冊</button>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div>
-
-
-<section id="faq-content">
-  <section id="faq-title" class="container">
-    <div class="row">
-      <div class="col-xs-12 center-text">
-        <h1>常見問題</h1>
+  
+  
+  <section id="faq-content">
+    <section id="faq-title" class="container">
+      <div class="row">
+        <div class="col-xs-12 center-text">
+          <h1>常見問題</h1>
+        </div>
       </div>
-    </div>
-  </section>
-
-  <section id="faq-questions">
+    </section>
+  
+    <section id="faq-questions">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-10">
+            <a href="#question1" data-toggle="collapse">
+              <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span> 
+              什麼是HODL? 你是在說HOLD嗎?
+            </a>
+            <div id="question1" class="collapse">
+              <p>
+              Hodl一詞源自於比特幣剛發跡的時候，諷刺人們不應該在比特幣價值上下波動時，輕易將其出售，相反的應該持有並HOLD住它。在過去8年裡，比特幣的價格爆炸性的飆升，如果你一直抱到現在，肯定獲利不少。</p>
+            </div>
+  
+  
+            <a href="#question2" data-toggle="collapse">
+              <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span> 
+              什麼是 HODL.ZONE?
+            </a>
+            <div id="question2" class="collapse">
+              <p>HODL.ZONE是一個利用Poloniex(俗稱P網)出借系統(lending system)增加你數位貨幣資產的網站。</p>
+            </div>
+  
+            <a href="#question3" data-toggle="collapse">
+              <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span> 
+              什麼是放款(lending)?
+            </a>
+            <div id="question3" class="collapse">
+              <p>交易者可以透過與其他用戶借款，進行貨幣交易來增加利潤（或損失）。借貸雙方為了鼓勵用戶向他們借貸數位貨幣，這些借貸的利率隨著每天的交易活動、價格和消息而變化。</p>
+            </div>
+  
+            <a href="#question4" data-toggle="collapse">
+              <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span> 
+              放款安全嗎?
+            </a>
+            <div id="question4" class="collapse">
+              <p>通常放款時，您必須承擔和擔心對方違約的風險，但幸運的是，Poloniex可以防止這種情況發生，借款人必須先抵押其本金才能借款，如果借款方的本金接近違約時應該給付的金額時，系統就會自動強制將其清算，也就是說出借方並不會有任何的損失。</p>
+            </div>
+  
+            <a href="#question5" data-toggle="collapse">
+              <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span> 
+              那麼，要怎麼出借你的資金呢?
+            </a>
+            <div id="question5" class="collapse">
+              <p>透過Poloniex，您可以將資金從您的交易帳戶（Exchange）轉移到您的出借(Lending)帳戶來進行放款，並藉由設置利息的高低來吸引其他用戶向你借款，而這些貸款持續的周期可能短到以秒為單位，或是長達60天之久（我們網站設定最大的出借天數為兩天，好處就是你的資金永遠不會被綁住太久），這使得手動掛單放款顯得很沒有效率和困難，因為你沒辦法預測借款者會不會提早還款，也就是說，每當你檢查你的帳戶，你可能會發現有資金閒置（被提早還款），這也就是就是為什麼使用HODL.ZONE這樣的自動化服務，可以透過不斷自動掛單出借你的資金，最大化你的利益，而不是讓你的資金閒置在那裡。</p>
+            </div>
+  
+            <a href="#question6" data-toggle="collapse">
+              <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span> 
+              那..為什麼要選HODL.ZONE呢?
+            </a>
+            <div id="question6" class="collapse">
+              <p>由於市場利率波動無常，我們能透過不斷記錄貸款利率的統計資料，來決定最佳的出借利率，因為我們的目標不僅僅是最大限度地延長出借的時間，還有出借時的利息。</p>
+            </div>
+  
+            <a href="#question7" data-toggle="collapse">
+              <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span> 
+              我可以信任HODL.ZONE嗎?
+            </a>
+            <div id="question7" class="collapse">
+              <p>當設定我們通過API輔助您的帳戶時，您可以透過限制API的權限來防止我們提取您的貨幣，降低造成您我損失的風險。我們是一群虛擬貨幣持有者，創建並提供服務給其他加密貨幣玩家，而這一切都將建立在信任的基礎上，所以我們開放我們的身份，並在Slack上建立一個開放及公開的溝通管道，如果您有任何疑問及疑慮，請隨時與我們聯繫及討論，我們非常重視您們的意見及反饋。</p>
+            </div>
+  
+  
+            <a href="#question8" data-toggle="collapse">
+              <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span> 
+              我可以相信Poloniex嗎? 我自己不是也可以保管比特幣?
+            </a>
+            <div id="question8" class="collapse">
+              <p>在交易所存放虛擬貨幣的確有一定的風險，我們不是在告訴大家Poloniex是儲存資金多好多棒的地方， 只是，當你在Poloniex上儲存資金，透過出借的等等的方式，可以讓您的資產增加，而單純的儲存在錢包裡是不會生產任何利息的。</p>
+            </div>
+  
+  
+            <a href="#question9" data-toggle="collapse">
+              <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span> 
+              那麼..可以獲利多少錢呢?
+            </a>
+            <div id="question9" class="collapse">
+              <p>利率每天都不斷變化，有時您可以每天獲得本金的0.5％，但是有時也可能變得很低。首頁上的計算器是使用BTC貸款的月平均利率，所以有興趣的話可以嘗試一下。與此同時，我們正持續不斷的努力，期望能夠在未來提供您更多有利的資訊。</p>
+            </div>
+  
+            <a href="#question10" data-toggle="collapse">
+              <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span> 
+              如果我持有的貨幣是比特幣以外的貨幣怎麼辦？
+            </a>
+            <div id="question10" class="collapse">
+              <p>雖然我們主要重點放在比特幣的借貸，但同時我們也支持BTS，CLAM，DOGE，DASH，LTC，MAID，STR，XMR，ETH和FCT的出借。但請別忘記，我們的重點放在比特幣BTC，如果您持有的是比特幣以外的貨幣，我們可能還沒有優化該貨幣的演算法，但是，我們一直朝這個方向努力，希望能盡可能地滿足各種貨幣的持有者，最大化大家的收益。</p>
+            </div>
+  
+          </div>
+        </div>
+      </div>
+    </section>
+  
     <div class="container">
       <div class="row">
-        <div class="col-md-10">
-          <a href="#question1" data-toggle="collapse">
-            <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span> 
-            什麼是HODL? 你是在說HOLD嗎?
-          </a>
-          <div id="question1" class="collapse">
-            <p>
-            Hodl一詞源自於比特幣剛發跡的時候，諷刺人們不應該在比特幣價值上下波動時，輕易將其出售，相反的應該持有並HOLD住它。在過去8年裡，比特幣的價格爆炸性的飆升，如果你一直抱到現在，肯定獲利不少。</p>
-          </div>
-
-
-          <a href="#question2" data-toggle="collapse">
-            <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span> 
-            什麼是 HODL.ZONE?
-          </a>
-          <div id="question2" class="collapse">
-            <p>HODL.ZONE是一個利用Poloniex(俗稱P網)出借系統(lending system)增加你數位貨幣資產的網站。</p>
-          </div>
-
-          <a href="#question3" data-toggle="collapse" class="" aria-expanded="true">
-            <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span> 
-            什麼是放款(lending)?
-          </a>
-          <div id="question3" class="collapse in" aria-expanded="true" style="">
-            <p>交易者可以透過與其他用戶借款，進行貨幣交易來增加利潤（或損失）。借貸雙方為了鼓勵用戶向他們借貸數位貨幣，這些借貸的利率隨著每天的交易活動、價格和消息而變化。</p>
-          </div>
-
-          <a href="#question4" data-toggle="collapse">
-            <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span> 
-            放款安全嗎?
-          </a>
-          <div id="question4" class="collapse">
-            <p>通常放款時，您必須承擔和擔心對方違約的風險，但幸運的是，Poloniex可以防止這種情況發生，借款人必須先抵押其本金才能借款，如果借款方的本金接近違約時應該給付的金額時，系統就會自動強制將其清算，也就是說出借方並不會有任何的損失。</p>
-          </div>
-
-          <a href="#question5" data-toggle="collapse">
-            <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span> 
-            那麼，要怎麼出借你的資金呢?
-          </a>
-          <div id="question5" class="collapse">
-            <p>透過Poloniex，您可以將資金從您的交易帳戶（Exchange）轉移到您的出借(Lending)帳戶來進行放
-款，並藉由設置利息的高低來吸引其他用戶向你借款，而這些貸款持續的周期可能短到以秒為單位，或是長達60天之久（我們網站設定最大的出借天數為兩天，好
-處就是你的資金永遠不會被綁住太久），這使得手動掛單放款顯得很沒有效率和困難，因為你沒辦法預測借款者會不會提早還款，也就是說，每當你檢查你的帳戶，
-你可能會發現有資金閒置（被提早還款），這也就是就是為什麼使用HODL.ZONE這樣的自動化服務，可以透過不斷自動掛單出借你的資金，最大化你的利
-益，而不是讓你的資金閒置在那裡。</p>
-          </div>
-
-          <a href="#question6" data-toggle="collapse">
-            <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span> 
-            那..為什麼要選HODL.ZONE呢?
-          </a>
-          <div id="question6" class="collapse">
-            <p>由於市場利率波動無常，我們能透過不斷記錄貸款利率的統計資料，來決定最佳的出借利率，因為我們的目標不僅僅是最大限度地延長出借的時間，還有出借時的利息。</p>
-          </div>
-
-          <a href="#question7" data-toggle="collapse">
-            <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span> 
-            我可以信任HODL.ZONE嗎?
-          </a>
-          <div id="question7" class="collapse">
-            <p>當設定我們通過API輔助您的帳戶時，您可以透過限制API的權限來防止我們提取您的貨幣，降低造成您我損失的風險。我們
-是一群虛擬貨幣持有者，創建並提供服務給其他加密貨幣玩家，而這一切都將建立在信任的基礎上，所以我們開放我們的身份，並在Slack上建立一個開放及公
-開的溝通管道，如果您有任何疑問及疑慮，請隨時與我們聯繫及討論，我們非常重視您們的意見及反饋。</p>
-          </div>
-
-
-          <a href="#question8" data-toggle="collapse">
-            <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span> 
-            我可以相信Poloniex嗎? 我自己不是也可以保管比特幣?
-          </a>
-          <div id="question8" class="collapse">
-            <p>在交易所存放虛擬貨幣的確有一定的風險，我們不是在告訴大家Poloniex是儲存資金多好多棒的地方， 只是，當你在Poloniex上儲存資金，透過出借的等等的方式，可以讓您的資產增加，而單純的儲存在錢包裡是不會生產任何利息的。</p>
-          </div>
-
-
-          <a href="#question9" data-toggle="collapse">
-            <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span> 
-            那麼..可以獲利多少錢呢?
-          </a>
-          <div id="question9" class="collapse">
-            <p>利率每天都不斷變化，有時您可以每天獲得本金的0.5％，但是有時也可能變得很低。首頁上的計算器是使用BTC貸款的月平均利率，所以有興趣的話可以嘗試一下。與此同時，我們正持續不斷的努力，期望能夠在未來提供您更多有利的資訊。</p>
-          </div>
-
-          <a href="#question10" data-toggle="collapse">
-            <span class="glyphicon glyphicon-chevron-down" aria-hidden="true"></span> 
-            如果我持有的貨幣是比特幣以外的貨幣怎麼辦？
-          </a>
-          <div id="question10" class="collapse">
-            <p>雖然我們主要重點放在比特幣的借貸，但同時我們也支持
-BTS，CLAM，DOGE，DASH，LTC，MAID，STR，XMR，ETH和FCT的出借。但請別忘記，我們的重點放在比特幣BTC，如果您持有
-的是比特幣以外的貨幣，我們可能還沒有優化該貨幣的演算法，但是，我們一直朝這個方向努力，希望能盡可能地滿足各種貨幣的持有者，最大化大家的收益。</p>
-          </div>
-
+        <div class="span6">
+  
+  
+          
+  
+  
+  
         </div>
       </div>
     </div>
   </section>
-
-  <div class="container">
-    <div class="row">
-      <div class="span6">
-
-
-        
-
-
-
+    <footer class="index-footer">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-4">
+            <span class="copyright">Copyright © 2017 HODL.ZONE</span>
+          </div>
+          <div class="col-md-4">
+            <span class="copyright">問題支援: Support@hodl.zone </span>
+          </div>
+          <div class="col-md-4">
+            <ul class="list-inline quicklinks">
+              <li><a href="FAQ_tw.html" class="portfolio-link">常見問題</a>
+              </li>
+              <li> / 
+              </li><li><a href="Contact_tw.html" class="portfolio-link">聯絡我們</a>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
-  </div>
-</section>
-	<footer class="index-footer">
-		<div class="container">
-			<div class="row">
-				<div class="col-md-4">
-					<span class="copyright">Copyright © 2017 HODL.ZONE</span>
-				</div>
-				<div class="col-md-4">
-					<span class="copyright">問題支援: Support@hodl.zone </span>
-				</div>
-				<div class="col-md-4">
-					<ul class="list-inline quicklinks">
-						<li><a href="FAQ_tw.html" class="portfolio-link">常見問題</a>
-						</li>
-						<li> / 
-						</li><li><a href="Contact_tw.html" class="portfolio-link">聯絡我們</a>
-					</li>
-				</ul>
-			</div>
-		</div>
-	</div>
-	</footer>
+    </footer>
 
 
 
